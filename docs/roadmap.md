@@ -9,8 +9,8 @@ Milestones end with a check-in: results, images, and the next decisions.
 | **M2: Web UI v1** | Rendering touch-up; 14 openly licensed specimen photos; FastAPI backend; React app with parameter panel, preset shape menu, live preview, background runs, run browser, slab viewer with growth slider and comparison | done |
 | **M3: Schedules and the combined form** | Formation time and schedules (timeline editor in the UI); procedural growth model; combined fortification–waterline (both stage orders); quartz-centre geode; band-statistics module with run comparison ([ADR 0007](adr/0007-formation-history-and-growth-model.md)) | done |
 | **M4: Drawing tool and nucleation** | Cavity drawing tool (corners or freehand, angular or smooth); tubes placed by clicking; spherulitic growth from nucleation sites → botryoidal, eye; tube agate; quartz crystals with pointed growth forms that coarsen by geometric selection ([ADR 0008](adr/0008-drawn-cavities-nucleation-and-crystal-growth.md)) | done |
-| **M5: Dendrites** | Diffusion-limited growth → moss, plume | next |
-| **M6: Optical renderer** | Translucency and colour → shadow; wave optics → iris | |
+| **M5: Dendrites** | Literature pass (two reviews and a dendrite study read in full or in part); multi-particle DLA inclusions on a world-scale lattice, enclosed by later chalcedony → moss; upward-biased growth → plume ([ADR 0009](adr/0009-branched-inclusions.md)) | done |
+| **M6: Optical renderer** | Translucency and colour → shadow; wave optics → iris | next |
 | **M7: Specimen analysis I** | Photo upload and scale; outline tracing; observed fields from photos; identify forms with the archetype criteria; fit procedural parameters; replica side by side ([ADR 0006](adr/0006-specimen-photo-analysis.md)) | |
 | **M8: Mechanistic models** | Reaction–diffusion / phase-field (H2), front feedback (H1), settling (H4); GPU backend | |
 | **M9: 3D** | Volumetric runs, slicing in the viewer | |

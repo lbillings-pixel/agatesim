@@ -284,3 +284,71 @@ def test_tube_criteria_reject_rings_away_from_their_seeds() -> None:
     phase = np.where(moved, Phase.INCLUSION, phase).astype(np.uint8)
     shifted = replace(result, fields=replace(f, phase=phase))
     assert "seed-placement" in _failed(evaluate("tube", shifted))
+
+
+# --- Moss and plume ---------------------------------------------------------------
+
+
+def test_moss_criteria_reject_banding_without_inclusions() -> None:
+    assert _failed(_evaluate("moss", _fortification())) == {"fractal-dimension"}
+
+
+def test_moss_criteria_reject_tubes() -> None:
+    tube = load_preset("tube").with_resolution(NEGATIVE_RESOLUTION)
+    assert _failed(_evaluate("moss", tube)) == {"fractal-dimension"}
+
+
+def test_moss_criteria_reject_straight_inclusions() -> None:
+    """Parallel straight filaments: filling the slab is not branching."""
+    result = simulate(load_preset("waterline").with_resolution(NEGATIVE_RESOLUTION))
+    phase = result.fields.phase.copy()
+    lines = np.zeros_like(phase, dtype=bool)
+    lines[60:330, ::14] = True
+    phase[lines & result.domain.mask] = Phase.INCLUSION
+    straight = replace(result, fields=replace(result.fields, phase=phase))
+    assert _failed(evaluate("moss", straight)) == {"fractal-dimension"}
+
+
+def test_moss_criteria_reject_a_mass_of_inclusions() -> None:
+    massive = _with_model(
+        load_preset("moss").with_resolution(NEGATIVE_RESOLUTION),
+        dendrite_amount=0.5,
+        dendrite_density=0.3,
+    )
+    assert _failed(_evaluate("moss", massive)) == {"translucent-matrix"}
+
+
+def test_plume_criteria_reject_branches_pointing_every_way() -> None:
+    moss = load_preset("moss").with_resolution(NEGATIVE_RESOLUTION)
+    assert _failed(_evaluate("plume", moss)) == {"anisotropic-growth"}
+
+
+def test_plume_criteria_reject_plumes_left_in_open_space() -> None:
+    never_enclosed = _with_schedule(
+        load_preset("plume").with_resolution(NEGATIVE_RESOLUTION), "dendrite", {"base": 1}
+    )
+    assert _failed(_evaluate("plume", never_enclosed)) == {"encapsulated"}
+
+
+def test_plume_criteria_follow_gravity() -> None:
+    """Tilt gravity and the plumes rise along the new 'up'."""
+    tilted = _with_model(
+        load_preset("plume").with_resolution(NEGATIVE_RESOLUTION), gravity_deg=200.0
+    )
+    ev = _evaluate("plume", tilted)
+    assert ev.passed, [r for r in ev.results if not r.passed]
+
+
+def test_dendrites_compete_so_fewer_reach_farther() -> None:
+    """As in natural Mn dendrites (hou2023): branches compete for particles, so
+    fewer separate branches cross a line far from the wall than near it."""
+    result = simulate(load_preset("moss").with_resolution(NEGATIVE_RESOLUTION))
+    inclusion = result.fields.phase == Phase.INCLUSION
+    wall = result.domain.wall_distance
+    dx = result.grid.dx
+
+    def crossings(distance_mm: float) -> int:
+        shell = inclusion & (np.abs(wall - distance_mm) < dx)
+        return int(_scipy.label(shell, eight_connected=True).max())
+
+    assert crossings(0.5) > crossings(3.0) > 0

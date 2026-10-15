@@ -32,7 +32,7 @@ class Domain:
         tubes = np.zeros((0, 3)) if tubes is None else np.asarray(tubes, dtype=np.float64)
         inclusions = np.zeros_like(mask)
         if len(tubes):
-            inclusions = mask & (_tube_distance(grid, tubes) <= 0)
+            inclusions = mask & (tube_distance(grid, tubes) <= 0)
         return cls(
             cavity=cavity,
             grid=grid,
@@ -52,11 +52,11 @@ class Domain:
         the wall or a tube; 0 elsewhere."""
         if not len(self.tubes):
             return self.wall_distance
-        d = np.minimum(self.wall_distance, _tube_distance(self.grid, self.tubes))
+        d = np.minimum(self.wall_distance, tube_distance(self.grid, self.tubes))
         return np.where(self.open_start, np.maximum(d, 0.0), 0.0)
 
 
-def _tube_distance(grid: Grid, tubes: FloatArray) -> FloatArray:
+def tube_distance(grid: Grid, tubes: FloatArray) -> FloatArray:
     """Signed distance (mm) from each pixel centre to the nearest tube surface."""
     xx, yy = grid.coords()
     d = np.full(grid.shape, np.inf)

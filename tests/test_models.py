@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from agatesim import _scipy
 from agatesim.config import RunConfig, load_preset
 from agatesim.criteria.radial import near_phase
 from agatesim.fields import Phase
@@ -114,3 +115,31 @@ def test_tubes_are_inclusions_with_bands_around_them() -> None:
     # The first material next to each tube is among the earliest deposited.
     beside = near_phase(result, Phase.INCLUSION, 1.5) & (f.phase == Phase.CHALCEDONY)
     assert float(np.nanmedian(f.t_dep[beside])) < 0.05
+
+
+def test_dendrite_cache_never_changes_a_result() -> None:
+    """The first dendrite stage is cached between runs; a cached preview must
+    equal a fresh one."""
+    from agatesim.models import growth
+
+    config = load_preset("moss").with_resolution(128)
+    growth._AGGREGATES.clear()  # pyright: ignore[reportPrivateUsage]
+    fresh = simulate(config).fields
+    simulate(load_preset("moss").with_resolution(256))  # fills the cache
+    cached = simulate(config).fields
+    for name, array in fresh.arrays().items():
+        np.testing.assert_array_equal(array, cached.arrays()[name], err_msg=name)
+
+
+@pytest.mark.parametrize("preset", ["moss", "plume"])
+def test_inclusions_match_between_preview_and_full_run(preset: str) -> None:
+    """Dendrites grow on a lattice in world coordinates, so a preview shows the
+    same inclusions as a full run."""
+    full = simulate(load_preset(preset))
+    preview = simulate(load_preset(preset).with_resolution(256))
+    rows, cols = np.nonzero(preview.fields.phase == Phase.INCLUSION)
+    g = preview.grid
+    pts = np.stack([g.x0 + (cols + 0.5) * g.dx, g.y1 - (rows + 0.5) * g.dx], axis=1)
+    near = _scipy.distance_to_false(full.fields.phase != Phase.INCLUSION, full.grid.dx)
+    d, _ = full.grid.sample(near, pts)
+    assert np.mean(d <= g.dx) > 0.95

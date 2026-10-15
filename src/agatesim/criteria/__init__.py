@@ -13,6 +13,7 @@ from agatesim.criteria import (
     botryoidal,
     combined,
     fortification,
+    inclusions,
     quartz_geode,
     seam,
     tube,
@@ -30,6 +31,8 @@ EVALUATORS: dict[str, Callable[[SimulationResult], dict[str, Measurement]]] = {
     "botryoidal": botryoidal.evaluate_botryoidal,
     "eye": botryoidal.evaluate_eye,
     "tube": tube.evaluate,
+    "moss": inclusions.evaluate_moss,
+    "plume": inclusions.evaluate_plume,
 }
 
 

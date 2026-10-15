@@ -1,0 +1,32 @@
+# Verification preset for moss / dendritic agate (procedural tier): a dendrite
+# stage grows branched inclusions from scattered points on the wall, by
+# aggregation of diffusing particles, then faintly banded chalcedony encloses
+# them, following every branch.
+name = "moss"
+seed = 10
+archetype = "moss"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 40
+
+[model]
+kind = "procedural-growth"
+growth_mm = 30
+band_period = 0.03
+opacity_contrast = 0.25
+dendrite_spacing_mm = 4
+dendrite_density = 0.04
+dendrite_amount = 0.08
+dendrite_sticking = 0.5
+dendrite_tint = 0.0
+
+[model.schedules.dendrite]
+base = 1.0
+events = [{ type = "step", at = 0.25, value = 0.0 }]
+
+[model.schedules.iron]
+base = 0.05

@@ -25,7 +25,9 @@ class Phase(IntEnum):
 class Fields:
     phase: NDArray[np.uint8]  # Phase values
     band: NDArray[np.int32]  # band index in deposition order; -1 where no band
-    impurity: NDArray[np.float32]  # 0..1, iron-oxide stand-in that controls colour
+    # 0..1, iron-oxide stand-in that controls colour. For inclusions it is the
+    # mineral tint: 0 green Fe-silicate, 0.5 red-brown Fe oxide, 1 black Mn oxide.
+    impurity: NDArray[np.float32]
     translucency: NDArray[np.float32]  # 0 (milky, opaque) .. 1 (clear)
     t_dep: NDArray[np.float32]  # normalized deposition time 0..1; NaN where nothing deposited
     grain: NDArray[np.int32]  # crystal id for macrocrystalline quartz; -1 elsewhere

@@ -27,7 +27,12 @@ MILKY = np.array([238.0, 235.0, 228.0])
 CLEAR = np.array([86.0, 96.0, 114.0])
 VOID = np.array([18.0, 18.0, 22.0])
 CELADONITE = np.array([78.0, 98.0, 84.0])  # greenish rind typical of volcanic agates
-INCLUSION = np.array([44.0, 30.0, 24.0])  # dark brown stand-in for filament material
+# Inclusion minerals, by the tint stored in `impurity` for inclusion pixels.
+INCLUSION_TINT = [
+    (0.0, np.array([64.0, 98.0, 62.0])),  # green Fe-silicate (celadonite-like)
+    (0.5, np.array([128.0, 52.0, 30.0])),  # red-brown Fe oxide
+    (1.0, np.array([36.0, 28.0, 24.0])),  # black Mn oxide
+]
 # Iron-stain palette: (impurity, colour), interpolated piecewise-linearly.
 STAIN = [
     (0.0, np.array([214.0, 196.0, 160.0])),
@@ -164,7 +169,13 @@ def render_slab(result: SimulationResult) -> NDArray[np.uint8]:
     quartz = phase == Phase.QUARTZ
     if quartz.any():
         rgb[quartz] = _quartz(result)[quartz]
-    rgb[phase == Phase.INCLUSION] = INCLUSION
+    inclusion = phase == Phase.INCLUSION
+    if inclusion.any():
+        tint = f.impurity[inclusion].astype(np.float64)
+        xs = np.array([p for p, _ in INCLUSION_TINT])
+        rgb[inclusion] = np.stack(
+            [np.interp(tint, xs, [c[i] for _, c in INCLUSION_TINT]) for i in range(3)], axis=-1
+        )
     return np.clip(np.rint(rgb), 0, 255).astype(np.uint8)
 
 

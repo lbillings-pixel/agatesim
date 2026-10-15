@@ -28,7 +28,13 @@ def test_meta_describes_cavities_models_and_parameters(client: TestClient) -> No
         "procedural-waterline",
     }
     growth = next(m for m in meta["models"] if m["kind"] == "procedural-growth")
-    assert [s["key"] for s in growth["schedules"]] == ["silica", "settling", "spherulitic", "iron"]
+    assert [s["key"] for s in growth["schedules"]] == [
+        "silica",
+        "settling",
+        "spherulitic",
+        "dendrite",
+        "iron",
+    ]
     fort = next(m for m in meta["models"] if m["kind"] == "procedural-fortification")
     band = fort["schema"]["properties"]["mean_band_thickness_mm"]
     assert band["units"] == "mm"

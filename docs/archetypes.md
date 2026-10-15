@@ -18,8 +18,8 @@ provisional until the archetype is implemented.
 | 6 | [Botryoidal habit](#botryoidal) | verified | pending | formation | volcanic, sedimentary, seam | fortification |
 | 7 | [Eye agate](#eye) | verified | pending | formation | volcanic, sedimentary | botryoidal |
 | 8 | [Tube agate](#tube) | verified | pending | formation | volcanic, sedimentary | eye |
-| 9 | [Moss / dendritic agate](#moss) | pending | pending | formation | volcanic, sedimentary, seam | — |
-| 10 | [Plume agate](#plume) | pending | pending | formation | volcanic, sedimentary | moss |
+| 9 | [Moss / dendritic agate](#moss) | verified | pending | formation | volcanic, sedimentary, seam | — |
+| 10 | [Plume agate](#plume) | verified | pending | formation | volcanic, sedimentary | moss |
 | 11 | [Shadow agate](#shadow) | pending | pending | optics | volcanic, sedimentary | fortification |
 | 12 | [Iris agate](#iris) | pending | pending | optics | volcanic, sedimentary | fortification, shadow |
 
@@ -134,25 +134,28 @@ channels). In cross-section each tube shows up as a small concentric ring system
 
 <a id="moss"></a>
 
-Branching, tree-like inclusions of iron or manganese oxides in translucent
-chalcedony, grown by diffusion-limited branching.
+Branching, tree-like inclusions in translucent chalcedony. Two kinds share the
+name: dendrites of Mn or Fe oxides (grown by aggregation of diffusing
+particles, or as fingers of infiltrating fluid) and green filamentous fabrics
+with Fe-silicate cores wrapped in chalcedony.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `fractal-dimension` | Inclusions are branched, like natural dendrites. | Box-counting dimension of the inclusion mask in a configured range (DLA ≈ 1.7 in 2D). | provisional |
-| `translucent-matrix` | Dendrites sit in a mostly translucent host. | Inclusion area fraction ≤ threshold. | provisional |
+| `fractal-dimension` | Inclusions are branched, like natural dendrites. | Area-weighted mean box-counting dimension of each inclusion at least 2 mm across, measured on its own between 0.4 mm (or 2 px) and half its extent (a line is 1, a solid patch 2; large DLA clusters approach 1.7, smaller ones measure lower). | 1.3 ≤ value ≤ 1.9 |
+| `translucent-matrix` | Dendrites sit in a mostly clear host, not a mass of inclusions. | Share of the cavity occupied by inclusions. | value ≤ 0.2 |
 
 ## Plume agate
 
 <a id="plume"></a>
 
-Feathery, upward-billowing oxide inclusions rising from a base, later enclosed by
-chalcedony.
+Feathery, upward-billowing inclusions rising from a base and later enclosed by
+chalcedony; interpreted as silica-garden self-assembly driven by osmosis,
+reaction and buoyancy.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `anisotropic-growth` | Plumes grow preferentially in one direction from a base. | Principal-axis anisotropy of each plume mask ≥ threshold. | provisional |
-| `encapsulated` | Plumes are enclosed by later chalcedony. | Every plume pixel is surrounded by chalcedony phase within a buffer distance. | provisional |
+| `anisotropic-growth` | Plumes grow upward from their base. | Mean cos² between the local branch direction of the inclusions (structure tensor over 0.4 mm, weighted by coherence) and gravity: 1 = all vertical, about 0.5 = pointing every way. | value ≥ 0.7 |
+| `encapsulated` | Plumes are enclosed by later chalcedony. | Share of inclusion pixels with no open space within 2 px. | value ≥ 0.98 |
 
 ## Shadow agate
 

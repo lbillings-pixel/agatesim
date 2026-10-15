@@ -1,0 +1,35 @@
+# Verification preset for plume agate (procedural tier): red-brown inclusions
+# rise from the lower part of the cavity, because particles stick more readily
+# to the tops of branches (a procedural stand-in for buoyancy-driven growth);
+# chalcedony then encloses them.
+name = "plume"
+seed = 11
+archetype = "plume"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-round"
+size_mm = 40
+
+[model]
+kind = "procedural-growth"
+gravity_deg = 270
+growth_mm = 26
+band_period = 0.03
+opacity_contrast = 0.3
+dendrite_spacing_mm = 6
+dendrite_density = 0.02
+dendrite_amount = 0.06
+dendrite_sticking = 0.5
+dendrite_upward = 0.9
+dendrite_start_height = 0.45
+dendrite_tint = 0.5
+
+[model.schedules.dendrite]
+base = 1.0
+events = [{ type = "step", at = 0.25, value = 0.0 }]
+
+[model.schedules.iron]
+base = 0.05

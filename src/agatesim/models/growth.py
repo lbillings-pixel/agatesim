@@ -15,6 +15,10 @@ The cavity fills over formation time τ ∈ [0, 1] under scheduled conditions:
   as uniform layers (fortification-like). At 0.5 or above it radiates from
   scattered nucleation sites on the growth surface, so each site grows a
   hemispherical lobe (botryoidal, eye).
+- **dendrite** (ADR 0009): at 0.5 or above, branched inclusions grow from the
+  growth surface into the open space by multi-particle diffusion-limited
+  aggregation (`agatesim.models.dendrites`) instead of silica depositing. Later
+  stages grow over them, as over tubes.
 - **iron** sets the staining of the bands deposited at each moment.
 
 Time is split into stages wherever the growth mode changes. Each stage is solved
@@ -53,7 +57,8 @@ from agatesim import _scipy
 from agatesim.fields import Fields, Phase
 from agatesim.geometry import circle, densify
 from agatesim.grid import FloatArray, Grid
-from agatesim.models.base import Domain, make_bands, smooth_noise
+from agatesim.models import dendrites
+from agatesim.models.base import Domain, make_bands, smooth_noise, tube_distance
 from agatesim.params import Nature, param
 from agatesim.schedules import Schedule
 
@@ -73,6 +78,7 @@ class Mode(IntEnum):
     SPHERULITIC = 1
     CRYSTAL = 2
     SETTLING = 3
+    DENDRITE = 4
 
 
 class ScheduledVariable(BaseModel):
@@ -121,6 +127,18 @@ SCHEDULED = [
         nature=Nature.EFFECTIVE,
     ),
     ScheduledVariable(
+        key="dendrite",
+        label="Dendrite growth",
+        description=(
+            "At 0.5 or above, branched inclusions (dendrites, moss, plumes) grow from "
+            "the growth surface into the open space instead of silica depositing. "
+            "Later silica encloses them."
+        ),
+        min=0.0,
+        max=1.0,
+        nature=Nature.EFFECTIVE,
+    ),
+    ScheduledVariable(
         key="iron",
         label="Iron supply",
         description="Iron available to stain the bands deposited at each moment.",
@@ -137,6 +155,7 @@ class Schedules(BaseModel):
     silica: Schedule = Schedule(base=1.0)
     settling: Schedule = Schedule(base=0.0)
     spherulitic: Schedule = Schedule(base=0.0)
+    dendrite: Schedule = Schedule(base=0.0)
     iron: Schedule = Schedule(base=0.25)
 
 
@@ -246,6 +265,83 @@ class ProceduralGrowth(BaseModel):
         description=(
             "Spread of crystal long axes about the surface normal where they nucleate "
             "(0 = all perpendicular to the surface)."
+        ),
+    )
+    dendrite_spacing_mm: float = param(
+        4.0,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Mean spacing of the points on the growth surface where inclusions start.",
+    )
+    dendrite_density: float = param(
+        0.04,
+        gt=0,
+        le=0.5,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Concentration of the particles that build inclusions, as a share of the open "
+            "space. Higher values give bulkier, less finely branched inclusions."
+        ),
+    )
+    dendrite_amount: float = param(
+        0.08,
+        gt=0,
+        le=0.6,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="Total inclusion material, as a share of the open space it grows into.",
+    )
+    dendrite_sticking: float = param(
+        0.5,
+        gt=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Chance that a particle sticks when it touches an inclusion. Lower values "
+            "give denser, more compact branches."
+        ),
+    )
+    dendrite_upward: float = param(
+        0.0,
+        ge=0,
+        le=0.98,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Preference for upward growth (0 = none): particles stick less readily to "
+            "the sides and undersides of branches, so inclusions grow upward, like plumes."
+        ),
+    )
+    dendrite_start_height: float = param(
+        1.0,
+        gt=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Inclusions start only from the lowest part of the growth surface, up to "
+            "this share of the cavity's height (1 = anywhere)."
+        ),
+    )
+    dendrite_width_mm: float = param(
+        0.12,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Width of the finest branches (the lattice cell the particles walk on).",
+    )
+    dendrite_tint: float = param(
+        1.0,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.IMPOSED,
+        description=(
+            "Colour of the inclusion mineral: 0 = green Fe-silicate (celadonite-like), "
+            "0.5 = red-brown Fe oxide, 1 = black Mn oxide."
         ),
     )
     wobble_mm: float = param(
@@ -509,6 +605,102 @@ def _assign(
 class _Fill:
     filled_at: NDArray[np.int64]  # time step at which each pixel fills; -1 if never
     grain: NDArray[np.int32]  # crystal id; -1 elsewhere
+    inclusion: NDArray[np.bool_]  # filled by branched inclusions (dendrite stages)
+
+
+def _dendrites(
+    params: ProceduralGrowth,
+    domain: Domain,
+    open_: NDArray[np.bool_],
+    first: bool,
+    rng: np.random.Generator,
+) -> FloatArray:
+    """Grow branched inclusions from the current growth surface into the open
+    space. Returns each pixel's attachment order in [0, 1] (inf where none)."""
+    key = None
+    if first:
+        # The first stage doesn't depend on the grid, so previews reuse its result.
+        seq = rng.bit_generator.seed_seq
+        key = (
+            domain.cavity.vertices.tobytes(),
+            domain.tubes.tobytes(),
+            params.gravity_deg,
+            tuple(getattr(params, f) for f in DENDRITE_FIELDS),
+            repr(getattr(seq, "entropy", None)),
+            tuple(getattr(seq, "spawn_key", ())),
+        )
+        if key in _AGGREGATES:
+            return np.where(open_, dendrites.rasterise(_AGGREGATES[key], domain.grid), np.inf)
+    aggregate = _grow_aggregate(params, domain, open_, first, rng)
+    if key is not None:
+        if len(_AGGREGATES) >= 8:
+            _AGGREGATES.pop(next(iter(_AGGREGATES)))
+        _AGGREGATES[key] = aggregate
+    return np.where(open_, dendrites.rasterise(aggregate, domain.grid), np.inf)
+
+
+DENDRITE_FIELDS = (
+    "dendrite_spacing_mm",
+    "dendrite_density",
+    "dendrite_amount",
+    "dendrite_sticking",
+    "dendrite_upward",
+    "dendrite_start_height",
+    "dendrite_width_mm",
+)
+_AGGREGATES: dict[object, dendrites.Aggregate] = {}
+
+
+def _grow_aggregate(
+    params: ProceduralGrowth,
+    domain: Domain,
+    open_: NDArray[np.bool_],
+    first: bool,
+    rng: np.random.Generator,
+) -> dendrites.Aggregate:
+    rng_sites, rng_grow = rng.spawn(2)
+    lattice = dendrites.lattice_around(domain.cavity.bounds(), params.dendrite_width_mm)
+    if first:
+        # Exact geometry for the empty cavity, so sites and walks don't depend on
+        # the simulation grid.
+        free = domain.cavity.discretize(lattice)[0]
+        if len(domain.tubes):
+            free &= tube_distance(lattice, domain.tubes) > 0
+        front = _initial_front(domain, SITE_SEPARATION * params.dendrite_spacing_mm / 10)
+    else:
+        xx, yy = lattice.coords()
+        sampled, valid = domain.grid.sample(open_, np.stack([xx, yy], axis=-1))
+        free = sampled & valid
+        front = _pixel_front(domain.grid, open_)
+    sites = _place_sites(front, params.dendrite_spacing_mm, domain.cavity.bounds(), rng_sites)
+    points = sites.points
+    if params.dendrite_start_height < 1 and len(points):
+        g = params.gravity()
+        height = -(points @ g)
+        lo, hi = float(height.min()), float(height.max())
+        low = height <= lo + params.dendrite_start_height * (hi - lo)
+        points = points[low]
+        sites = Sites(points=points, normals=sites.normals[low], draws=sites.draws[low])
+    seeds = lattice_index(lattice, sites.points + sites.normals * lattice.dx)
+    return dendrites.grow(
+        lattice,
+        free,
+        seeds,
+        density=params.dendrite_density,
+        amount=params.dendrite_amount,
+        sticking=params.dendrite_sticking,
+        upward=params.dendrite_upward,
+        gravity=params.gravity(),
+        rng=rng_grow,
+    )
+
+
+def lattice_index(lattice: Grid, points: FloatArray) -> NDArray[np.int64]:
+    """Flat (row-major) index of the lattice cell nearest each world point."""
+    idx = np.rint(lattice.to_index(points)).astype(np.int64)
+    col = np.clip(idx[:, 0], 0, lattice.nx - 1)
+    row = np.clip(idx[:, 1], 0, lattice.ny - 1)
+    return row * lattice.nx + col
 
 
 def _fill(
@@ -519,11 +711,13 @@ def _fill(
     noise: FloatArray,
     rng_sites: np.random.Generator,
     rng_crystals: np.random.Generator,
+    rng_dendrites: np.random.Generator,
 ) -> _Fill:
     grid, dx = domain.grid, domain.grid.dx
     step_mm = params.growth_mm * supply / TIME_STEPS
     filled_at = np.full(grid.shape, -1, dtype=np.int64)
     grain = np.full(grid.shape, -1, dtype=np.int32)
+    inclusion = np.zeros(grid.shape, dtype=bool)
     xx, yy = grid.coords()
     g = params.gravity()
     height = -(xx * g[0] + yy * g[1])
@@ -534,6 +728,16 @@ def _fill(
         open_ = domain.open_start & (filled_at < 0)
         if not open_.any():
             break
+        if m is Mode.DENDRITE:
+            # Inclusions grow instead of silica; attachment order maps onto the stage.
+            order = _dendrites(
+                params, domain, open_, not (filled_at >= 0).any(), rng_dendrites.spawn(1)[0]
+            )
+            new = np.isfinite(order)
+            steps = a + np.minimum(np.floor(order * (b - a)), b - a - 1).astype(np.int64)
+            filled_at[new] = steps[new]
+            inclusion |= new
+            continue
         cumulative = np.cumsum(step_mm[a:b])
         if cumulative[-1] <= 0:
             continue
@@ -583,7 +787,7 @@ def _fill(
         if owner is not None and m is Mode.CRYSTAL:
             grain[rows[new], cols[new]] = (crystals + owner[new]).astype(np.int32)
             crystals += int(owner.max()) + 1 if len(owner) else 0
-    return _Fill(filled_at=filled_at, grain=grain)
+    return _Fill(filled_at=filled_at, grain=grain, inclusion=inclusion)
 
 
 def growth_modes(params: ProceduralGrowth, tau: FloatArray) -> NDArray[np.int64]:
@@ -593,25 +797,28 @@ def growth_modes(params: ProceduralGrowth, tau: FloatArray) -> NDArray[np.int64]
     settle = s.settling.sample(tau) >= SWITCH_ON
     quartz = (supply > 0) & (supply < params.quartz_threshold)
     spherulitic = s.spherulitic.sample(tau) >= SWITCH_ON
+    dendrite = s.dendrite.sample(tau) >= SWITCH_ON
     mode = np.where(spherulitic, Mode.SPHERULITIC, Mode.LINING)
     mode = np.where(quartz, Mode.CRYSTAL, mode)
-    return np.where(settle, Mode.SETTLING, mode).astype(np.int64)
+    mode = np.where(settle, Mode.SETTLING, mode)
+    return np.where(dendrite, Mode.DENDRITE, mode).astype(np.int64)
 
 
 def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generator) -> Fields:
-    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites = rng.spawn(5)
+    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites = rng.spawn(6)
     tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
     s = params.schedules
     supply = np.clip(s.silica.sample(tau), 0.0, 1.0)
     mode = growth_modes(params, tau)
 
     noise = smooth_noise(domain, params.wobble_scale_mm, rng_noise)
-    fill = _fill(params, domain, supply, mode, noise, rng_sites, rng_crystals)
+    fill = _fill(params, domain, supply, mode, noise, rng_sites, rng_crystals, rng_dendrites)
     filled = fill.filled_at >= 0
     step = np.maximum(fill.filled_at, 0)
     t_dep = np.where(filled, tau[step], np.nan)
-    quartz = filled & (mode[step] == Mode.CRYSTAL)
-    chalcedony = filled & ~quartz
+    inclusion = fill.inclusion
+    quartz = filled & ~inclusion & (mode[step] == Mode.CRYSTAL)
+    chalcedony = filled & ~inclusion & ~quartz
 
     # Bands are periods of formation time.
     bands = make_bands(
@@ -635,7 +842,9 @@ def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generato
     phase[domain.mask] = Phase.VOID
     phase[chalcedony] = Phase.CHALCEDONY
     phase[quartz] = Phase.QUARTZ
+    phase[inclusion] = Phase.INCLUSION
     impurity = np.where(chalcedony, band_iron[safe], 0.0)
+    impurity = np.where(inclusion, params.dendrite_tint, impurity)
     impurity = np.where(quartz, 0.25 * np.clip(s.iron.sample(np.nan_to_num(t_dep)), 0, 1), impurity)
     translucency = np.where(chalcedony, bands.translucency[safe], 0.0)
     translucency = np.where(quartz, 0.9, translucency)
