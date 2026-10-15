@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import platform
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -22,6 +23,7 @@ from pathlib import Path
 import zarr
 
 from agatesim import __version__
+from agatesim.config import load_config
 from agatesim.criteria import Evaluation, evaluate, implemented
 from agatesim.render import render_slab, to_png_image
 from agatesim.simulate import SimulationResult
@@ -49,10 +51,67 @@ def _git_state() -> dict[str, object]:
     return {"commit": commit, "dirty": dirty}
 
 
+RUN_ID = re.compile(r"^\d{8}-\d{6}-[a-z0-9][a-z0-9-]*-[0-9a-f]{6}$")
+
+
 @dataclass(frozen=True)
 class RunRecord:
     path: Path
     evaluation: Evaluation | None
+
+
+@dataclass(frozen=True)
+class RunSummary:
+    id: str
+    name: str
+    started_utc: str
+    elapsed_s: float
+    cavity: str
+    model: str
+    archetype: str | None
+    passed: bool | None
+    nx: int
+    ny: int
+
+
+def is_run_id(value: str) -> bool:
+    return RUN_ID.fullmatch(value) is not None
+
+
+def read_summary(path: Path) -> RunSummary:
+    meta = json.loads((path / "metadata.json").read_text("utf-8"))
+    config = load_config(path / "config.toml")
+    metrics_path = path / "metrics.json"
+    passed = None
+    if metrics_path.exists():
+        passed = bool(json.loads(metrics_path.read_text("utf-8"))["passed"])
+    return RunSummary(
+        id=path.name,
+        name=config.name,
+        started_utc=meta["started_utc"],
+        elapsed_s=meta["elapsed_s"],
+        cavity=config.cavity.preset,
+        model=config.model.kind,
+        archetype=config.archetype,
+        passed=passed,
+        nx=meta["grid"]["nx"],
+        ny=meta["grid"]["ny"],
+    )
+
+
+def list_runs(out_dir: Path) -> list[RunSummary]:
+    """Runs in `out_dir`, newest first. Incomplete or unreadable directories are skipped."""
+    if not out_dir.is_dir():
+        return []
+    summaries: list[RunSummary] = []
+    for path in out_dir.iterdir():
+        if not (is_run_id(path.name) and (path / "metadata.json").exists()):
+            continue
+        try:
+            summaries.append(read_summary(path))
+        except (OSError, ValueError, KeyError):
+            continue
+    return sorted(summaries, key=lambda s: s.started_utc, reverse=True)
 
 
 def write_run(

@@ -78,6 +78,27 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0 if ev.passed or not args.check else 1
 
 
+def _cmd_serve(args: argparse.Namespace) -> int:
+    import threading
+    import webbrowser
+
+    import uvicorn
+
+    from agatesim.server.app import STATIC_DIR, create_app
+
+    if not (STATIC_DIR / "index.html").exists():
+        print(
+            "The web UI isn't built yet. Build it once with:\n  npm --prefix web ci\n"
+            "  npm --prefix web run build\nThe API is still served under /api."
+        )
+    url = f"http://{args.host}:{args.port}/"
+    if not args.no_browser:
+        threading.Timer(1.0, webbrowser.open, [url]).start()
+    print(f"agatesim UI at {url} (runs saved to {args.runs.resolve()}); Ctrl+C to stop")
+    uvicorn.run(create_app(args.runs), host=args.host, port=args.port, log_level="warning")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="agatesim", description=__doc__)
     parser.add_argument("--version", action="version", version=f"agatesim {__version__}")
@@ -100,6 +121,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--resolution", type=int, help="override grid resolution")
     p.add_argument("--check", action="store_true", help="exit 1 if archetype criteria fail")
     p.set_defaults(func=_cmd_run)
+
+    p = sub.add_parser("serve", help="start the local web app")
+    p.add_argument("--host", default="127.0.0.1", help="bind address (default: localhost only)")
+    p.add_argument("--port", type=int, default=8000)
+    p.add_argument("--runs", type=Path, default=Path("runs"), help="runs directory")
+    p.add_argument("--no-browser", action="store_true", help="don't open a browser tab")
+    p.set_defaults(func=_cmd_serve)
     return parser
 
 

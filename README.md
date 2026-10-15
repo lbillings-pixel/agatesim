@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M1 (first procedural models).** See the [roadmap](docs/roadmap.md).
+> **Status: M2 (web UI v1).** See the [roadmap](docs/roadmap.md).
 
 ![Verification presets for fortification, seam and waterline agate](docs/images/archetypes.png)
 
@@ -42,7 +42,34 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 
 ## Getting started
 
-Requires [uv](https://docs.astral.sh/uv/).
+Requires [uv](https://docs.astral.sh/uv/) and, for the web app, [Node.js](https://nodejs.org/) 24.
+
+### Web app
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\start.ps1           # Windows: build if needed, then serve
+powershell -ExecutionPolicy Bypass -File scripts\start.ps1 -Rebuild  # after pulling changes
+```
+
+or on any platform:
+
+```sh
+npm --prefix web ci && npm --prefix web run build   # once, and after UI changes
+uv run agatesim serve                               # http://127.0.0.1:8000/
+```
+
+The app runs only on your machine (bound to localhost). It offers:
+
+- **Live preview** that updates as you move sliders, judged against the chosen
+  archetype as you go.
+- **Cavity menu** of preset shapes for volcanic, sedimentary and seam settings.
+- **Parameters** with units and a badge for what kind of quantity each one is:
+  physical, effective or imposed.
+- **Full-resolution runs** in the background, saved to `runs/`.
+- **Run browser and slab viewer** with zoom, pan, a scale bar, a growth slider
+  that shows the agate forming over time, and side-by-side comparison.
+
+### Command line
 
 ```sh
 uv sync                                   # create the environment
@@ -66,6 +93,10 @@ uv run ruff check; uv run ruff format     # lint and format
 uv run pyright                            # strict type checking
 uv run pre-commit install                 # run checks on every commit
 uv run python scripts/make_gallery.py     # regenerate docs/images
+
+npm --prefix web run dev                  # UI dev server with hot reload (proxies /api to :8000)
+npm --prefix web test                     # UI unit tests (Vitest)
+npm --prefix web run lint                 # ESLint
 ```
 
 ## Project layout
@@ -81,6 +112,9 @@ src/agatesim/
   simulate.py        run a configuration
   render.py          slab rendering (placeholder until the optical renderer, M6)
   runs.py            run records
+  server/            FastAPI backend for the web app (`agatesim serve`)
+web/                 React + TypeScript web app (built into server/static)
+scripts/             gallery generator, Windows start script
 tests/               pytest suite, including negative controls for every criterion
 docs/
   adr/               architecture decision records

@@ -8,11 +8,13 @@ license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "lbillings-pixel" }]
 dependencies = [
+    "fastapi>=0.143.1",
     "numpy>=2.5.4",
     "pillow>=12.3.0",
     "pydantic>=2.9",
     "scipy>=1.18.1",
     "tomli-w>=1.2.0",
+    "uvicorn>=0.54.0",
     "zarr>=3.4.1",
 ]
 
@@ -28,6 +30,7 @@ packages = ["src/agatesim"]
 
 [dependency-groups]
 dev = [
+    "httpx2>=2.13.1",
     "pre-commit>=4.0",
     "pyright>=1.1.390",
     "pytest>=8.3",

@@ -19,6 +19,12 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      - id: web-lint
+        name: eslint (web)
+        entry: npm --prefix web run lint
+        language: system
+        files: ^web/
+        pass_filenames: false
       - id: archetypes-doc
         name: regenerate docs/archetypes.md
         entry: uv run agatesim archetypes --write docs/archetypes.md

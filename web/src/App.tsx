@@ -1,0 +1,419 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import {
+  api,
+  type Job,
+  type Meta,
+  type PreviewResult,
+  type RunConfig,
+  type RunDetail,
+  type RunSummary,
+} from "./api";
+import { CavityMenu } from "./components/CavityMenu";
+import { CriteriaPanel } from "./components/CriteriaPanel";
+import { ParamPanel, Slider } from "./components/ParamPanel";
+import { RunBrowser } from "./components/RunBrowser";
+import { SlabView } from "./components/SlabView";
+import { type Control, controlsFor, defaultsFor } from "./lib/schema";
+
+const PREVIEW_RESOLUTIONS = [128, 192, 256, 384];
+const RUN_RESOLUTIONS = [512, 768, 1024, 1536, 2048];
+const DEBOUNCE_MS = 250;
+
+const SIZE_CONTROL: Control = {
+  key: "size_mm", label: "Cavity size", units: "mm", nature: "physical",
+  description: "Longest dimension of the cavity.", min: 10, max: 150, step: 1, defaultValue: 50,
+};
+const ROTATION_CONTROL: Control = {
+  key: "rotation_deg", label: "Rotation", units: "deg", nature: "physical",
+  description: "Rotates the cavity in the slab plane.", min: 0, max: 359, step: 1, defaultValue: 0,
+};
+
+/** The archetype a model is most naturally judged as, given the cavity's host. */
+function suggestedArchetype(kind: string, host: string | undefined): string | null {
+  if (kind === "procedural-waterline") return "waterline";
+  if (kind === "procedural-fortification") return host === "seam" ? "seam" : "fortification";
+  return null;
+}
+
+/** Automatic run name, used until the user types their own. */
+function autoName(kind: string, cavity: string): string {
+  return `${kind.replace(/^procedural-/, "")}-${cavity}`;
+}
+
+function slug(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+/, "").slice(0, 40) || "run";
+}
+
+export function App() {
+  const [meta, setMeta] = useState<Meta | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [config, setConfig] = useState<RunConfig | null>(null);
+  const [previewRes, setPreviewRes] = useState(256);
+  const [preview, setPreview] = useState<PreviewResult | null>(null);
+  const [previewBusy, setPreviewBusy] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [runs, setRuns] = useState<RunSummary[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [runResolution, setRunResolution] = useState(768);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [pinned, setPinned] = useState<string | null>(null);
+  const [details, setDetails] = useState<Record<string, RunDetail>>({});
+
+  const refreshRuns = useCallback(() => {
+    api.runs().then(setRuns).catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    api
+      .meta()
+      .then((m) => {
+        setMeta(m);
+        const start = m.presets.find((p) => p.name === "fortification") ?? m.presets[0];
+        if (start) setConfig(start.config);
+      })
+      .catch((e: unknown) => setLoadError(String(e)));
+    refreshRuns();
+  }, [refreshRuns]);
+
+  // Live preview: debounced, and only the latest request counts.
+  useEffect(() => {
+    if (!config) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      setPreviewBusy(true);
+      api
+        .preview(config, previewRes, controller.signal)
+        .then((p) => {
+          setPreview(p);
+          setPreviewError(null);
+        })
+        .catch((e: unknown) => {
+          if (!controller.signal.aborted) setPreviewError(e instanceof Error ? e.message : String(e));
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setPreviewBusy(false);
+        });
+    }, DEBOUNCE_MS);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [config, previewRes]);
+
+  // Poll active jobs; refresh the run list when one finishes.
+  useEffect(() => {
+    const active = jobs.filter((j) => j.status === "queued" || j.status === "running");
+    if (active.length === 0) return;
+    const timer = window.setInterval(() => {
+      Promise.all(active.map((j) => api.job(j.id))).then((updated) => {
+        setJobs((all) => all.map((j) => updated.find((u) => u.id === j.id) ?? j));
+        if (updated.some((u) => u.status === "done")) refreshRuns();
+      }, () => undefined);
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [jobs, refreshRuns]);
+
+  // Fetch details for the selected and pinned runs.
+  useEffect(() => {
+    for (const id of [selected, pinned]) {
+      if (id && !details[id]) {
+        api.run(id).then((d) => setDetails((all) => ({ ...all, [id]: d })), () => undefined);
+      }
+    }
+  }, [selected, pinned, details]);
+
+  const kind = config?.model.kind;
+  const model = useMemo(() => meta?.models.find((m) => m.kind === kind) ?? null, [meta, kind]);
+  const controls = useMemo(() => (model ? controlsFor(model.schema.properties) : []), [model]);
+  const cavity = meta?.cavities.find((c) => c.name === config?.cavity.preset);
+
+  if (loadError) {
+    return (
+      <div className="fatal">
+        <h1>agatesim can’t reach its server</h1>
+        <p>Start it with <code>uv run agatesim serve</code>, then reload this page.</p>
+        <p className="muted small">{loadError}</p>
+      </div>
+    );
+  }
+  if (!meta || !config) return <div className="fatal muted">Loading…</div>;
+
+  // Keep the run name in step with model and cavity, unless the user has named it.
+  const update = (change: (c: RunConfig) => RunConfig) =>
+    setConfig((c) => {
+      if (!c) return c;
+      const next = change(c);
+      const wasAuto = c.name === autoName(c.model.kind, c.cavity.preset) || meta.presets.some((p) => p.name === c.name);
+      return wasAuto && next.name === c.name ? { ...next, name: autoName(next.model.kind, next.cavity.preset) } : next;
+    });
+
+  const setModelKind = (kind: string) => {
+    const info = meta.models.find((m) => m.kind === kind);
+    if (!info) return;
+    update((c) => ({
+      ...c,
+      model: { kind, ...defaultsFor(info.schema.properties) },
+      archetype: suggestedArchetype(kind, cavity?.host),
+    }));
+  };
+
+  const setCavity = (name: string) => {
+    const host = meta.cavities.find((c) => c.name === name)?.host;
+    update((c) => {
+      // Keep the judge in step with the setting, unless the user picked something else.
+      const autoJudge = c.archetype === suggestedArchetype(c.model.kind, cavity?.host);
+      return {
+        ...c,
+        cavity: { ...c.cavity, preset: name },
+        archetype: autoJudge ? suggestedArchetype(c.model.kind, host) : c.archetype,
+      };
+    });
+  };
+
+  const startRun = () => {
+    const runConfig = { ...config, grid: { ...config.grid, resolution: runResolution } };
+    api.startRun(runConfig).then(
+      (job) => setJobs((all) => [job, ...all]),
+      (e: unknown) => setPreviewError(e instanceof Error ? e.message : String(e)),
+    );
+  };
+
+  const selectedDetail = selected ? details[selected] : undefined;
+  const pinnedDetail = pinned && pinned !== selected ? details[pinned] : undefined;
+  const judgeable = meta.archetypes.filter((a) => a.implemented);
+
+  return (
+    <div className="app">
+      <header className="topbar">
+        <div className="brand">
+          agatesim <span className="muted small">v{meta.version}</span>
+        </div>
+        <label className="inline">
+          <span className="micro-label">Preset</span>
+          <select
+            id="preset"
+            value=""
+            onChange={(e) => {
+              const p = meta.presets.find((x) => x.name === e.target.value);
+              if (p) setConfig(p.config);
+            }}
+          >
+            <option value="" disabled>
+              Load a preset…
+            </option>
+            {meta.presets.map((p) => (
+              <option key={p.name} value={p.name}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="run-controls">
+          <label className="inline">
+            <span className="micro-label">Name</span>
+            <input
+              id="run-name"
+              value={config.name}
+              onChange={(e) => update((c) => ({ ...c, name: slug(e.target.value) }))}
+            />
+          </label>
+          <label className="inline">
+            <span className="micro-label">Resolution</span>
+            <select id="run-resolution" value={runResolution} onChange={(e) => setRunResolution(Number(e.target.value))}>
+              {RUN_RESOLUTIONS.map((r) => (
+                <option key={r} value={r}>
+                  {r} px
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" className="primary" onClick={startRun}>
+            Run full resolution
+          </button>
+        </div>
+      </header>
+
+      <div className="workspace">
+        <aside className="controls" aria-label="Simulation settings">
+          <section>
+            <h2>Model</h2>
+            <div className="segmented" role="radiogroup" aria-label="Model">
+              {meta.models.map((m) => (
+                <button
+                  key={m.kind}
+                  type="button"
+                  role="radio"
+                  aria-checked={m.kind === config.model.kind}
+                  onClick={() => setModelKind(m.kind)}
+                >
+                  {m.title}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2>Cavity</h2>
+            <CavityMenu cavities={meta.cavities} selected={config.cavity.preset} onSelect={setCavity} />
+            <Slider
+              id="cavity-size"
+              control={SIZE_CONTROL}
+              value={config.cavity.size_mm}
+              onChange={(v) => update((c) => ({ ...c, cavity: { ...c.cavity, size_mm: v } }))}
+            />
+            <Slider
+              id="cavity-rotation"
+              control={ROTATION_CONTROL}
+              value={config.cavity.rotation_deg}
+              onChange={(v) => update((c) => ({ ...c, cavity: { ...c.cavity, rotation_deg: v } }))}
+            />
+          </section>
+
+          <section>
+            <h2>Parameters</h2>
+            <ParamPanel
+              controls={controls}
+              values={config.model}
+              onChange={(key, v) => update((c) => ({ ...c, model: { ...c.model, [key]: v } }))}
+            />
+          </section>
+
+          <section>
+            <h2>Judge as</h2>
+            <select
+              id="archetype"
+              value={config.archetype ?? ""}
+              onChange={(e) => update((c) => ({ ...c, archetype: e.target.value || null }))}
+            >
+              <option value="">No archetype</option>
+              {judgeable.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+            <div className="seed">
+              <label htmlFor="seed">Seed</label>
+              <input
+                id="seed"
+                type="number"
+                min={0}
+                value={config.seed}
+                onChange={(e) => update((c) => ({ ...c, seed: Math.max(0, Math.floor(Number(e.target.value) || 0)) }))}
+              />
+              <button
+                type="button"
+                onClick={() => update((c) => ({ ...c, seed: Math.floor(Math.random() * 1_000_000) }))}
+              >
+                New seed
+              </button>
+            </div>
+          </section>
+        </aside>
+
+        <main className="viewer">
+          <div className="tabs" role="tablist">
+            <button type="button" role="tab" aria-selected={selected === null} onClick={() => setSelected(null)}>
+              Live preview
+            </button>
+            {selected && (
+              <button type="button" role="tab" aria-selected="true">
+                Run: {selectedDetail?.config.name ?? selected}
+              </button>
+            )}
+            <span className="tab-status muted small" aria-live="polite">
+              {selected === null &&
+                (previewError
+                  ? ""
+                  : previewBusy
+                    ? "Updating…"
+                    : preview
+                      ? `${preview.width}×${preview.height} px · ${preview.elapsed_ms} ms`
+                      : "")}
+            </span>
+            {selected === null && (
+              <label className="inline small">
+                <span className="micro-label">Preview</span>
+                <select id="preview-resolution" value={previewRes} onChange={(e) => setPreviewRes(Number(e.target.value))}>
+                  {PREVIEW_RESOLUTIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r} px
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+
+          {selected === null && previewError && (
+            <p className="error" role="alert">
+              This configuration can’t run: {previewError}
+            </p>
+          )}
+
+          <div className={`slabs${pinnedDetail ? " compare" : ""}`}>
+            {selected === null && preview && (
+              <SlabView
+                identity="preview"
+                imageSrc={preview.image}
+                tdepSrc={preview.tdep}
+                dxMm={preview.dx_mm}
+                caption={`Preview of “${config.name}”`}
+              />
+            )}
+            {selected && selectedDetail && (
+              <SlabView
+                identity={selected}
+                imageSrc={api.slabUrl(selected)}
+                tdepSrc={api.tdepUrl(selected)}
+                dxMm={selectedDetail.metadata.grid.dx_mm}
+                caption={`${selectedDetail.config.name} · ${selectedDetail.metadata.grid.nx}×${selectedDetail.metadata.grid.ny} px`}
+              />
+            )}
+            {pinnedDetail && pinned && (
+              <SlabView
+                identity={`pinned-${pinned}`}
+                imageSrc={api.slabUrl(pinned)}
+                tdepSrc={api.tdepUrl(pinned)}
+                dxMm={pinnedDetail.metadata.grid.dx_mm}
+                caption={`Pinned: ${pinnedDetail.config.name}`}
+              />
+            )}
+          </div>
+
+          {selected && selectedDetail && (
+            <div className="run-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setConfig(selectedDetail.config);
+                  setSelected(null);
+                }}
+              >
+                Use these settings
+              </button>
+              <button type="button" onClick={() => setPinned(pinned === selected ? null : selected)}>
+                {pinned === selected ? "Unpin" : "Pin for comparison"}
+              </button>
+            </div>
+          )}
+          {selected === null && pinned && (
+            <div className="run-actions">
+              <button type="button" onClick={() => setPinned(null)}>
+                Unpin {details[pinned]?.config.name ?? "run"}
+              </button>
+            </div>
+          )}
+
+          <CriteriaPanel
+            evaluation={selected ? (selectedDetail?.evaluation ?? null) : (preview?.evaluation ?? null)}
+            archetypes={meta.archetypes}
+          />
+        </main>
+
+        <RunBrowser runs={runs} jobs={jobs} selected={selected} pinned={pinned} onSelect={setSelected} />
+      </div>
+    </div>
+  );
+}

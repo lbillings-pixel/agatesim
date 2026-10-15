@@ -21,6 +21,12 @@
   editing registry.toml
 - `uv run python scripts/make_gallery.py`: regenerate docs/images after model or
   render changes
+- Web UI: `npm --prefix web run lint|typecheck|test|build`. Build output goes to
+  src/agatesim/server/static (gitignored). `uv run agatesim serve` serves it.
+  For browser checks, serve on a spare port (`--port 8765 --no-browser`) in the
+  background, and stop it afterwards.
+- The UI reads model parameters from each model's JSON schema (units and nature
+  extras), so new model parameters appear in the UI automatically.
 - Commit messages: write to a file in the scratchpad and use `git commit -F`.
   PowerShell 5.1 mangles here-strings passed to native commands.
 
