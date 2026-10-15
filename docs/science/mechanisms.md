@@ -82,9 +82,17 @@ schedule.
    - nucleation-site density
    - cavity geometry
    - host-rock permeability
-3. **First procedural model (M1):** wall-offset banding with angular corners, a
-   schedule-driven band spacing and contrast (an H3 analogue), and a horizontal
-   fill confined to the cavity floor under gravity (an H4 analogue).
+3. **First procedural models (M1):** wall-offset banding with angular corners, and
+   a horizontal fill confined to the cavity floor under gravity (an H4 analogue).
+   **M3 adds formation history** (ADR 0007): scheduled silica supply, settling and
+   iron. Wall-lining and settling stages can come in either order, matching both
+   sequences in [@lu1994]. Below a silica-supply threshold, coarse quartz crystals
+   grow inward. That threshold follows the common reading that falling
+   supersaturation favours macrocrystalline quartz over chalcedony. We have not
+   yet confirmed that reading in a full-text source, and it sits uneasily with
+   Heaney's note that chalcedony itself precipitates from only slightly saturated
+   solutions ([@heaney1993]). So the threshold is labelled *effective*, and
+   resolving this is an open question below.
 4. **First mechanistic model (later):** a 2D reaction–diffusion and phase-field
    precipitation model along the lines of [@liu2025] (H2), followed by
    front-feedback oscillatory zoning (H1).
@@ -97,3 +105,6 @@ schedule.
   explicitly?
 - Is there a quantitative optical model of the shadow effect?
 - What are measured iris-band spacings, from peer-reviewed sources?
+- What controls the switch from chalcedony to macrocrystalline quartz: silica
+  supersaturation, temperature, growth rate, or impurity content? What do the
+  reviews conclude?

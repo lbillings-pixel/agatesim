@@ -30,7 +30,7 @@ from agatesim.config import RunConfig, load_config, load_preset, preset_names
 from agatesim.criteria import evaluate, implemented
 from agatesim.geometry import CAVITY_PRESETS, make_cavity
 from agatesim.models import ProceduralFortification, ProceduralGrowth, ProceduralWaterline
-from agatesim.models.growth import SCHEDULED
+from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
 from agatesim.runs import is_run_id, list_runs
 from agatesim.server.jobs import Job, JobManager
@@ -51,7 +51,13 @@ MODEL_TITLES = {
     "procedural-waterline": "Waterline (horizontal layers)",
 }
 MODEL_SCHEDULES: dict[str, list[dict[str, object]]] = {
-    "procedural-growth": [v.model_dump(mode="json") for v in SCHEDULED],
+    "procedural-growth": [
+        {
+            **v.model_dump(mode="json"),
+            "default": getattr(Schedules(), v.key).model_dump(mode="json"),
+        }
+        for v in SCHEDULED
+    ],
 }
 
 

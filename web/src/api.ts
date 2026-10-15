@@ -15,10 +15,44 @@ export interface JsonSchemaProperty {
   nature?: Nature;
 }
 
+export type ScheduleEvent =
+  | { type: "step"; at: number; value: number }
+  | { type: "ramp"; start: number; end: number; value: number }
+  | { type: "pulse"; at: number; width: number; value: number };
+
+export interface Schedule {
+  base: number;
+  events: ScheduleEvent[];
+}
+
+export interface ScheduledVariable {
+  key: string;
+  label: string;
+  description: string;
+  min: number;
+  max: number;
+  nature: Nature;
+  default: Schedule;
+}
+
 export interface ModelInfo {
   kind: string;
   title: string;
   schema: { properties: Record<string, JsonSchemaProperty> };
+  schedules: ScheduledVariable[];
+}
+
+export interface BandStats {
+  band_count: number;
+  thickness_mean_mm: number | null;
+  thickness_median_mm: number | null;
+  thickness_cv: number | null;
+  translucency_contrast: number | null;
+  iron_mean: number | null;
+  chalcedony_fraction: number;
+  quartz_fraction: number;
+  open_fraction: number;
+  crystal_count: number;
 }
 
 export interface CavityInfo {
@@ -50,8 +84,10 @@ export interface RunConfig {
   archetype?: string | null;
   grid: { resolution: number; margin_fraction: number };
   cavity: { preset: string; size_mm: number; rotation_deg: number };
-  model: { kind: string } & Record<string, number | string>;
+  model: ModelConfig;
 }
+
+export type ModelConfig = { kind: string; schedules?: Record<string, Schedule> } & Record<string, unknown>;
 
 export interface Meta {
   version: string;
@@ -85,6 +121,7 @@ export interface PreviewResult {
   dx_mm: number;
   elapsed_ms: number;
   evaluation: Evaluation | null;
+  stats: BandStats;
 }
 
 export interface Job {
@@ -114,6 +151,7 @@ export interface RunDetail {
   config: RunConfig;
   metadata: { grid: { nx: number; ny: number; dx_mm: number }; git: { commit: string | null } };
   evaluation: Evaluation | null;
+  stats: BandStats | null;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {

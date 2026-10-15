@@ -45,7 +45,7 @@ export function Slider({ id, control, value, onChange }: SliderProps) {
 
 interface Props {
   controls: Control[];
-  values: Record<string, number | string>;
+  values: Record<string, unknown>;
   onChange: (key: string, value: number) => void;
 }
 

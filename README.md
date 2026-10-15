@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M2 (web UI v1).** See the [roadmap](docs/roadmap.md).
+> **Status: M3 (formation history).** See the [roadmap](docs/roadmap.md).
 
 ![Verification presets for fortification, seam and waterline agate](docs/images/archetypes.png)
 
@@ -26,7 +26,9 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Fortification | ✅ verified | pending |
 | Vein / seam | ✅ verified | pending |
 | Waterline | ✅ verified | pending |
-| Combined, quartz-centre geode, botryoidal, eye, tube, moss, plume, shadow, iris | pending | pending |
+| Combined fortification and waterline | ✅ verified | pending |
+| Banded agate with quartz-crystal centre | ✅ verified | pending |
+| Botryoidal, eye, tube, moss, plume, shadow, iris | pending | pending |
 
 ## Approach
 
@@ -65,6 +67,9 @@ The app runs only on your machine (bound to localhost). It offers:
 - **Cavity menu** of preset shapes for volcanic, sedimentary and seam settings.
 - **Parameters** with units and a badge for what kind of quantity each one is:
   physical, effective or imposed.
+- **Conditions over time**: a timeline editor for silica supply, settling and
+  iron, with steps, ramps and pulses (growth-history model).
+- **Band statistics** for each result, side by side with a pinned run.
 - **Full-resolution runs** in the background, saved to `runs/`.
 - **Run browser and slab viewer** with zoom, pan, a scale bar, a growth slider
   that shows the agate forming over time, and side-by-side comparison.

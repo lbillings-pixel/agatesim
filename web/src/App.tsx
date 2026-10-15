@@ -13,7 +13,9 @@ import { CavityMenu } from "./components/CavityMenu";
 import { CriteriaPanel } from "./components/CriteriaPanel";
 import { ParamPanel, Slider } from "./components/ParamPanel";
 import { RunBrowser } from "./components/RunBrowser";
+import { ScheduleEditor } from "./components/ScheduleEditor";
 import { SlabView } from "./components/SlabView";
+import { StatsPanel } from "./components/StatsPanel";
 import { type Control, controlsFor, defaultsFor } from "./lib/schema";
 
 const PREVIEW_RESOLUTIONS = [128, 192, 256, 384];
@@ -145,15 +147,23 @@ export function App() {
       if (!c) return c;
       const next = change(c);
       const wasAuto = c.name === autoName(c.model.kind, c.cavity.preset) || meta.presets.some((p) => p.name === c.name);
-      return wasAuto && next.name === c.name ? { ...next, name: autoName(next.model.kind, next.cavity.preset) } : next;
+      const setupChanged = next.model.kind !== c.model.kind || next.cavity.preset !== c.cavity.preset;
+      return wasAuto && setupChanged && next.name === c.name
+        ? { ...next, name: autoName(next.model.kind, next.cavity.preset) }
+        : next;
     });
 
   const setModelKind = (kind: string) => {
     const info = meta.models.find((m) => m.kind === kind);
     if (!info) return;
+    const schedules = Object.fromEntries(info.schedules.map((v) => [v.key, v.default]));
     update((c) => ({
       ...c,
-      model: { kind, ...defaultsFor(info.schema.properties) },
+      model: {
+        kind,
+        ...defaultsFor(info.schema.properties),
+        ...(info.schedules.length > 0 ? { schedules } : {}),
+      },
       archetype: suggestedArchetype(kind, cavity?.host),
     }));
   };
@@ -278,6 +288,25 @@ export function App() {
               onChange={(key, v) => update((c) => ({ ...c, model: { ...c.model, [key]: v } }))}
             />
           </section>
+
+          {model && model.schedules.length > 0 && (
+            <section>
+              <h2>Conditions over time</h2>
+              {model.schedules.map((v) => (
+                <ScheduleEditor
+                  key={v.key}
+                  variable={v}
+                  schedule={config.model.schedules?.[v.key] ?? v.default}
+                  onChange={(s) =>
+                    update((c) => ({
+                      ...c,
+                      model: { ...c.model, schedules: { ...c.model.schedules, [v.key]: s } },
+                    }))
+                  }
+                />
+              ))}
+            </section>
+          )}
 
           <section>
             <h2>Judge as</h2>
@@ -409,6 +438,16 @@ export function App() {
           <CriteriaPanel
             evaluation={selected ? (selectedDetail?.evaluation ?? null) : (preview?.evaluation ?? null)}
             archetypes={meta.archetypes}
+          />
+
+          <StatsPanel
+            columns={[
+              {
+                title: selected ? (selectedDetail?.config.name ?? "run") : "Preview",
+                stats: selected ? (selectedDetail?.stats ?? null) : (preview?.stats ?? null),
+              },
+              ...(pinnedDetail ? [{ title: `Pinned: ${pinnedDetail.config.name}`, stats: pinnedDetail.stats }] : []),
+            ]}
           />
         </main>
 

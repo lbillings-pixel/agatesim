@@ -150,6 +150,37 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .nature-effective { color: var(--effective); }
 .nature-imposed { color: var(--imposed); }
 .seed { display: flex; align-items: center; gap: 0.5rem; }
+
+.schedule {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.6rem 0.65rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.schedule + .schedule { margin-top: 0.5rem; }
+.schedule-title { font-weight: 600; }
+.schedule-plot { width: 100%; height: 64px; display: block; }
+.schedule-plot .grid { stroke: var(--line); stroke-dasharray: 3 3; }
+.schedule-plot .area { fill: var(--accent); opacity: 0.14; }
+.schedule-plot .curve { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.schedule-axis { display: flex; justify-content: space-between; margin-top: -0.2rem; }
+.event {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed var(--line);
+}
+.event-type { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); width: 2.8rem; }
+.event-field { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.8rem; color: var(--muted); }
+.event-field input { width: 4.2rem; padding: 0.15rem 0.3rem; }
+.event .icon { margin-left: auto; padding: 0 0.5rem; line-height: 1.4; }
+.event-problem { width: 100%; color: var(--fail); font-size: 0.78rem; }
+.event-add { display: flex; gap: 0.35rem; }
+.event-add button { font-size: 0.8rem; padding: 0.2rem 0.55rem; }
 .seed input { width: 7rem; }
 
 .viewer { display: flex; flex-direction: column; gap: 0.9rem; padding: 1rem; min-width: 0; overflow-y: auto; }
