@@ -448,3 +448,17 @@ licence = "publisher copyright; cite only"
 checked = "citation"
 topics = ["sedimentation", "hindered-settling", "kinematic-waves"]
 notes = "The kinematic theory of batch settling: particle concentration depending on height only, with a flux that is a function of concentration; settling interfaces move as kinematic waves and shocks. Basis of the H4 model (ADR 0016). DOI checked to resolve to the RSC record; the paper itself not read."
+
+[[references]]
+id = "holten1998"
+kind = "article"
+authors = ["Holten, T.", "Jamtveit, B.", "Meakin, P."]
+year = 1998
+title = "Self-affine fractal geometry of agate"
+venue = "European Journal of Mineralogy 10(1), 149–154"
+doi = "10.1127/ejm/10/1/0149"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "abstract"
+topics = ["agate", "fractal", "hurst-exponent", "banding", "greyscale-profiles"]
+notes = "Greyscale profiles of an agate's coloured bands analysed by the width (standard deviation at different length scales) and bridge methods: self-affine over about two decades, Hurst exponents 0.36 ± 0.05 and 0.49 ± 0.05. Whether profiles ran across or along the bands, and the interpretation, are not in the abstract."
