@@ -7,12 +7,16 @@ two noise seeds) of every supported form's verification preset (ADR 0011):
 
 - for every form but eye, a photo *pass* was never wrong (no false positives in
   24 photos of other forms each), so a pass is reliable;
-- but forms present were rarely confirmed (0-1 of 4): the strict criteria
-  (closed rings, the flattest band's flatness) seldom survive the noise in bands
-  traced from a photo, so a *fail* says little;
-- eye passed on 7 photos of other forms, so its passes are not reliable.
+- botryoidal was confirmed in all 4 of its photos; the other forms present were
+  not (0 of 4): their strict criteria (closed rings, the flattest band's
+  flatness, sharp corners, mirror-image sequences in a thin seam) seldom survive
+  the noise in bands traced from a photo, so a *fail* says little;
+- eye passed on the 4 botryoidal photos (their lobes read as eyes), and its own
+  preset doesn't pass at the validation resolution, so its passes are not
+  reliable.
 
-tests/test_specimen.py guards the no-false-positive claim.
+tests/test_specimen.py guards the no-false-positive claim and the botryoidal
+detection.
 """
 
 from __future__ import annotations
@@ -34,16 +38,16 @@ SUPPORTED = (
     "eye",
 )
 # Forms whose photo passes were never false positives in validation (kept in step
-# by tests/test_specimen.py). Eye is left out: it passed on photos of other forms.
+# by tests/test_specimen.py). Eye is left out: it passed on botryoidal photos.
 PASS_RELIABLE = frozenset(SUPPORTED) - {"eye"}
 # How often validation photos of the form were confirmed (true positives / photos).
 DETECTION_RATE = {
     "fortification": 0.0,
-    "seam": 0.25,
+    "seam": 0.0,
     "waterline": 0.0,
     "fortification-waterline": 0.0,
     "quartz-geode": 0.0,
-    "botryoidal": 0.0,
+    "botryoidal": 1.0,
     "eye": None,  # its own preset fails at the validation resolution
 }
 NOT_FROM_PHOTOS = {

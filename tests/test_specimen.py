@@ -13,7 +13,7 @@ from agatesim import _scipy
 from agatesim.config import load_preset
 from agatesim.criteria import evaluate
 from agatesim.specimen.fit import replicate
-from agatesim.specimen.identify import PASS_RELIABLE, SUPPORTED, identify
+from agatesim.specimen.identify import DETECTION_RATE, PASS_RELIABLE, SUPPORTED, identify
 from agatesim.specimen.observe import Observation, observe, simplify
 from agatesim.specimen.photo import load_photo
 from agatesim.specimen.scale import Calibration, camera_height_mm, face_mm_per_px
@@ -119,6 +119,14 @@ def test_photo_passes_are_never_false_positives(archetype: str) -> None:
         for quality in (95, 75):
             seen = evaluate(archetype, _perturbed(preset, quality).result)
             assert not seen.passed, f"{archetype} wrongly confirmed on a photo of {preset}"
+
+
+@pytest.mark.parametrize("quality", [95, 75])
+def test_botryoidal_is_confirmed_from_a_photo(quality: int) -> None:
+    """The guard behind DETECTION_RATE["botryoidal"]: bands traced along the
+    photo's own band direction keep the lobes whole."""
+    assert DETECTION_RATE["botryoidal"] == 1.0
+    assert evaluate("botryoidal", _perturbed("botryoidal", quality).result).passed
 
 
 def test_identification_reports_every_supported_form() -> None:

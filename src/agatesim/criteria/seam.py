@@ -74,8 +74,13 @@ def central_suture(result: SimulationResult) -> Measurement:
         return None, "no cross-sections found"
     offsets: list[float] = []
     for _, t in sections:
-        last = np.flatnonzero(t == t.max())
+        known = ~np.isnan(t)  # pixels without a deposition time don't count
+        if not known.any():
+            continue
+        last = np.flatnonzero(t == t[known].max())
         offsets.append(abs(float(last.mean()) - (len(t) - 1) / 2) / len(t))
+    if not offsets:
+        return None, "no deposition times in the cross-sections"
     return max(offsets), "max offset of final growth from the section midpoint (fraction of width)"
 
 

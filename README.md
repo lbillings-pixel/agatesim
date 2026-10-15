@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M7 (specimen photo analysis, first pass). All twelve target forms reproduced at the procedural tier.** See the [roadmap](docs/roadmap.md).
+> **Status: M7.1 (specimen photo analysis: whole bands traced along the photo's band direction). All twelve target forms reproduced at the procedural tier.** See the [roadmap](docs/roadmap.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 

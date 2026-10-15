@@ -11,7 +11,8 @@ from typing import Any, cast
 
 import numpy as np
 from numpy.typing import NDArray
-from scipy import ndimage, special
+from scipy import ndimage, sparse, special
+from scipy.sparse import linalg as sparse_linalg
 from scipy.spatial import KDTree
 
 from agatesim.grid import FloatArray
@@ -135,4 +136,96 @@ def majority(labels: NDArray[np.int32], passes: int) -> NDArray[np.int32]:
         )
         winner = np.argmax(counts, axis=0).astype(np.int32)
         out = np.where(labels >= 0, winner, labels)
+    return out
+
+
+def solve_anisotropic(
+    region: NDArray[np.bool_],
+    d11: FloatArray,
+    d22: FloatArray,
+    d12: FloatArray,
+    zero: NDArray[np.bool_],
+    one: NDArray[np.bool_],
+    colour: FloatArray | None = None,
+    contrast: float = 1.0,
+) -> NDArray[np.float64]:
+    """Solve div(D grad u) = 0 on `region`, D = [[d11, d12], [d12, d22]] per pixel
+    (x along columns, y along rows), with u = 0 on `zero`, u = 1 on `one` and no
+    flux across the region's other edges; NaN outside.
+
+    Conservative finite volumes: the flux through each face between two pixels
+    uses the face-averaged D, with the cross term from the four pixels beside the
+    face (a pixel outside the region is replaced by its neighbour on the face, a
+    one-sided difference). With `colour`, a face's flux is scaled by
+    exp(-(colour difference / contrast)^2), floored at 1%, so pixels that look
+    different hardly exchange. Not monotone, so the result is clipped to [0, 1]."""
+    h, w = region.shape
+    out = np.full((h, w), np.nan)
+    rows_in, cols_in = np.nonzero(region)
+    n = len(rows_in)
+    if n == 0 or not (one & region).any() or not (zero & region).any():
+        return out
+    index = np.full((h + 2, w + 2), -1, dtype=np.int64)  # padded: no bounds checks
+    index[rows_in + 1, cols_in + 1] = np.arange(n)
+
+    def at(dr: int, dc: int, r: NDArray[np.intp], c: NDArray[np.intp]) -> NDArray[np.int64]:
+        return index[r + 1 + dr, c + 1 + dc]
+
+    entries_r: list[NDArray[np.int64]] = []
+    entries_c: list[NDArray[np.int64]] = []
+    entries_v: list[NDArray[np.float64]] = []
+    for dr, dc in ((0, 1), (1, 0)):  # east faces, south faces
+        q = at(dr, dc, rows_in, cols_in)
+        ok = q >= 0
+        p = np.flatnonzero(ok)
+        q = q[ok]
+        r, c = rows_in[ok], cols_in[ok]
+        r2, c2 = r + dr, c + dc
+        normal = d11 if dc else d22
+        k_n = 0.5 * (normal[r, c] + normal[r2, c2])
+        k_x = 0.25 * 0.5 * (d12[r, c] + d12[r2, c2])
+        # Pixels beside the face, on the side of p and of q (for the cross term):
+        # along the other axis, + then -.
+        sr, sc = (1, 0) if dc else (0, 1)
+        side = []
+        for sign in (1, -1):
+            for base, (br, bc) in ((p, (r, c)), (q, (r2, c2))):
+                beside = at(sign * sr, sign * sc, br, bc)
+                side.append((np.where(beside >= 0, beside, base), sign))
+        scale = np.ones(len(p))
+        if colour is not None:
+            diff = np.linalg.norm(colour[r, c] - colour[r2, c2], axis=-1)
+            scale = np.maximum(np.exp(-((diff / contrast) ** 2)), 0.01)
+        # Flux F = scale * (k_n (u_q - u_p) + k_x * sum(sign * u_side)).
+        terms = [(q, k_n), (p, -k_n), *((s, sign * k_x) for s, sign in side)]
+        for target, coef in terms:
+            for row, sgn in ((p, 1.0), (q, -1.0)):  # F leaves p, enters q
+                entries_r.append(row)
+                entries_c.append(target)
+                entries_v.append(sgn * scale * coef)
+    rr = np.concatenate(entries_r)
+    cc = np.concatenate(entries_c)
+    vv = np.concatenate(entries_v)
+    fixed = (zero | one)[rows_in, cols_in]
+    value = one[rows_in, cols_in].astype(np.float64)
+    free_row = ~fixed[rr]
+    to_fixed = fixed[cc]
+    rhs = np.zeros(n)
+    np.add.at(
+        rhs, rr[free_row & to_fixed], -vv[free_row & to_fixed] * value[cc[free_row & to_fixed]]
+    )
+    keep = free_row & ~to_fixed
+    fixed_ids = np.flatnonzero(fixed)
+    rhs[fixed_ids] = value[fixed_ids]
+    matrix = sparse.coo_matrix(
+        (
+            np.concatenate([vv[keep], np.ones(len(fixed_ids))]),
+            (np.concatenate([rr[keep], fixed_ids]), np.concatenate([cc[keep], fixed_ids])),
+        ),
+        shape=(n, n),
+    ).tocsr()
+    # A pocket cut off from both ends is singular; a tiny pull to 0 keeps it solvable.
+    matrix = matrix - sparse.diags(np.where(fixed, 0.0, 1e-9))
+    solution = np.asarray(sparse_linalg.spsolve(matrix, rhs), dtype=np.float64)
+    out[rows_in, cols_in] = np.clip(solution, 0.0, 1.0)
     return out

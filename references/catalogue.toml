@@ -342,3 +342,33 @@ licence = "CC-BY-4.0"
 checked = "abstract"
 topics = ["liesegang", "phase-field", "cahn-hilliard", "reaction-diffusion", "geometry"]
 notes = "Two reactants react and diffuse to form a precipitate that phase-separates under Cahn–Hilliard dynamics (double-well free energy); 2D, no-flux boundaries. Geometry of reactive-fluid distribution and nucleation zones strongly shapes the bands. Close template for our physics stage."
+
+# --- Image analysis ----------------------------------------------------------
+
+[[references]]
+id = "bigun1987"
+kind = "article"
+authors = ["Bigün, J.", "Granlund, G. H."]
+year = 1987
+title = "Optimal orientation detection of linear symmetry"
+venue = "Proceedings of the First International Conference on Computer Vision (ICCV), London, 433–438. IEEE Computer Society"
+url = "https://www2.hh.se/staff/josef/public/publications/node2.html"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["image-analysis", "structure-tensor", "orientation"]
+notes = "Origin of the structure tensor: local orientation from the averaged outer product of image gradients. URL is the author's publication list (no full text read). Used for the band direction in photos (agatesim.specimen.observe.band_orientation)."
+
+[[references]]
+id = "weickert1998"
+kind = "book"
+authors = ["Weickert, J."]
+year = 1998
+title = "Anisotropic Diffusion in Image Processing"
+venue = "ECMI Series, B. G. Teubner, Stuttgart"
+url = "https://www.mia.uni-saarland.de/weickert/book.html"
+access = "open"
+licence = "free download from the author's page; copyright retained, do not repost"
+checked = "citation"
+topics = ["image-analysis", "anisotropic-diffusion", "structure-tensor"]
+notes = "Standard reference for diffusion with a structure-tensor-steered diffusion tensor. Our growth-order field (agatesim.specimen.ordering) is a steady-state diffusion of this kind, solved between boundary conditions rather than run as a filter."

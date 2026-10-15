@@ -1,6 +1,6 @@
 # 11. Specimen photo analysis, first pass
 
-- Status: accepted
+- Status: accepted; band tracing (decision 4) superseded by [ADR 0012](0012-band-tracing-along-the-band-direction.md)
 - Date: 2026-10-15
 - Builds on: [ADR 0006](0006-specimen-photo-analysis.md)
 
