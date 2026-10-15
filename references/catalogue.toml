@@ -1,0 +1,176 @@
+# Reference catalogue. Every source the project relies on, with how far it has
+# been checked and under what licence it may be used.
+#
+#   checked  = "citation" | "abstract" | "full-text"
+#              Never state more in the docs than the checked level supports.
+#   licence  = SPDX id where one exists (e.g. "CC-BY-4.0"), otherwise a short
+#              description. Material is stored in this repository only when
+#              its licence allows; everything else is cited and linked.
+#
+# Docs cite entries as [@id]; tests check every citation resolves here.
+# Validated by agatesim.references.
+
+# --- Reviews -----------------------------------------------------------------
+
+[[references]]
+id = "goetze2020"
+kind = "review"
+authors = ["Götze, J.", "Möckel, R.", "Pan, Y."]
+year = 2020
+title = "Mineralogy, Geochemistry and Genesis of Agate—A Review"
+venue = "Minerals 10(11), 1037"
+doi = "10.3390/min10111037"
+access = "open"
+licence = "CC-BY-4.0"
+checked = "abstract"
+topics = ["mineralogy", "geochemistry", "genesis", "formation-temperature", "host-rocks"]
+notes = "Primary overview. Abstract gives formation temperatures of roughly 20–230 °C from fluid-inclusion and oxygen-isotope data."
+
+[[references]]
+id = "moxon2020"
+kind = "review"
+authors = ["Moxon, T.", "Palyanova, G."]
+year = 2020
+title = "Agate Genesis: A Continuing Enigma"
+venue = "Minerals 10(11), 953"
+doi = "10.3390/min10110953"
+access = "open"
+licence = "CC-BY-4.0"
+checked = "citation"
+topics = ["genesis", "history-of-theories", "basic-igneous-hosts"]
+notes = "History of genesis theories for agate in basic igneous hosts; quoted in search results as noting general consensus on formation below 100 °C in those hosts. Read in full before relying on it."
+
+[[references]]
+id = "cartwright2026"
+kind = "review"
+authors = [
+    "Cartwright, J. H. E.", "Cockell, C. S.", "Goehring, L.", "Holler, S.", "Jordan, S. F.",
+    "Knoll, P.", "Kotopoulou, E.", "Loron, C. C.", "McMahon, S.", "Morris, S. W.",
+    "Neubeck, A.", "Pimentel, C.", "Sainz-Díaz, C. I.", "Shahidzadeh, N.", "Szymczak, P.",
+]
+year = 2026
+title = "Self-Organized Pattern Formation in Geological Soft Matter"
+venue = "Physics Reports 1183, 1–98"
+url = "https://arxiv.org/abs/2412.18999"
+access = "open"
+licence = "arXiv non-exclusive distribution licence 1.0 (preprint); publisher terms for the journal version"
+checked = "abstract"
+topics = ["self-organization", "pattern-formation", "soft-matter"]
+notes = "Broad framework for geological pattern formation. Not yet confirmed whether agate is discussed."
+
+# --- Banding mechanisms ------------------------------------------------------
+
+[[references]]
+id = "wang1990"
+kind = "article"
+authors = ["Wang, Y.", "Merino, E."]
+year = 1990
+title = "Self-organizational origin of agates: banding, fiber twisting, composition, and dynamic crystallization model"
+venue = "Geochimica et Cosmochimica Acta 54, 1627–1638"
+url = "https://earth.indiana.edu/directory/emeriti-faculty/merino-enrique.html"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["banding", "self-organization", "reaction-diffusion", "fiber-twisting"]
+notes = "Citation confirmed from the author's faculty publication list; DOI still to confirm."
+
+[[references]]
+id = "merino1995"
+kind = "article"
+authors = ["Merino, E.", "Wang, Y.", "Deloule, E."]
+year = 1995
+title = "Genesis of agates in flood basalts: twisting of chalcedony fibers and trace-element geochemistry"
+venue = "American Journal of Science"
+url = "https://ajsonline.org/article/60699-genesis-of-agates-in-flood-basalts-twisting-of-chalcedony-fibers-and-trace-element-geochemistry"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["banding", "self-organization", "fiber-twisting", "trace-elements"]
+notes = "Related 1994 abstract: low-trace-element bands of straight fibres alternate with high-trace-element bands of twisted fibres."
+
+[[references]]
+id = "heaney1993"
+kind = "article"
+authors = ["Heaney, P. J."]
+year = 1993
+title = "A proposed mechanism for the growth of chalcedony"
+venue = "Contributions to Mineralogy and Petrology 115(1), 66–74"
+doi = "10.1007/BF00712979"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "abstract"
+topics = ["chalcedony-growth", "fibers", "moganite", "low-temperature"]
+notes = "Fibres grow by spiral growth on a screw dislocation from short-chain silica polymers; explains [110] elongation, periodic fibre twisting, Brazil twins and moganite intergrowths. Supports precipitation from slightly saturated solutions below about 100 °C."
+
+[[references]]
+id = "heaney1995"
+kind = "article"
+authors = ["Heaney, P. J.", "Davis, A. M."]
+year = 1995
+title = "Observation and Origin of Self-Organized Textures in Agates"
+venue = "Science 269(5230), 1562–1565"
+url = "https://agatesofscotland.co.uk/references.html"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["banding", "self-organization", "oscillatory-zoning"]
+notes = "Cited elsewhere as proposing oscillating defect concentrations. Abstract not yet read; DOI still to confirm."
+
+[[references]]
+id = "krug1993"
+kind = "article"
+authors = ["Krug", "Jacob"]
+year = 1993
+title = "Genese und Fragmentierung rhythmischer Bänderungen durch Selbstorganisation"
+venue = "Zeitschrift der Deutschen Geologischen Gesellschaft 144"
+url = "https://www.schweizerbart.de/papers/zdgg_alt/detail/144/94680/Genese_und_Fragmentierung_rhythmischer_Banderungen_durch_Selbstorganisation"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "abstract"
+topics = ["banding", "liesegang", "precipitation-diffusion", "self-organization"]
+notes = "Nonlinear precipitation-diffusion model: rhythmic banding by in-situ self-organization, without sedimentation. Authors' initials and exact year still to confirm."
+
+[[references]]
+id = "lu1994"
+kind = "article"
+authors = ["Lu, T.", "Sunagawa, I."]
+year = 1994
+title = "Texture formation of agate in geode"
+venue = "Mineralogical Journal 17(2), 53–76"
+doi = "10.2465/minerj.17.53"
+url = "https://www.jstage.jst.go.jp/article/minerj/17/2/17_2_53/_article"
+access = "open"
+licence = "unknown (free to read on J-STAGE); cite only until confirmed"
+checked = "abstract"
+topics = ["waterline", "uruguay-banding", "gravity-settling", "crystallites", "geode"]
+notes = "Fibres are aligned quartz crystallites 8–100 nm long. Uruguay (horizontal) bands are euhedral quartz grains (0.5–4 µm) and/or spherulites (≤100 µm), deposited by gravity after the agate bands and coarse quartz formed. Proposes growth from a hydrothermal solution carrying ~10 nm polymerized particles."
+
+# --- Modelling methods -------------------------------------------------------
+
+[[references]]
+id = "jahnke2008"
+kind = "preprint"
+authors = ["Jahnke", "Kantelhardt"]
+year = 2008
+title = "Comparison of models and lattice-gas simulations for Liesegang patterns"
+venue = "arXiv:0803.3634"
+url = "https://arxiv.org/abs/0803.3634"
+access = "open"
+licence = "arXiv licence; check the specific paper"
+checked = "abstract"
+topics = ["liesegang", "model-comparison", "lattice-gas"]
+notes = "Reviews the main Liesegang models and checks them against 3D lattice-gas simulations. Initials and journal version still to confirm."
+
+[[references]]
+id = "liu2025"
+kind = "article"
+authors = ["Liu, C.", "Regenauer-Lieb, K.", "Hu, M."]
+year = 2025
+title = "Influence of geometry heterogeneity on Liesegang patterns in rocks"
+venue = "Frontiers in Physics 13, 1628328"
+doi = "10.3389/fphy.2025.1628328"
+access = "open"
+licence = "CC-BY-4.0"
+checked = "abstract"
+topics = ["liesegang", "phase-field", "cahn-hilliard", "reaction-diffusion", "geometry"]
+notes = "Two reactants react and diffuse to form a precipitate that phase-separates under Cahn–Hilliard dynamics (double-well free energy); 2D, no-flux boundaries. Geometry of reactive-fluid distribution and nucleation zones strongly shapes the bands. Close template for our physics stage."

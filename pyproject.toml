@@ -1,0 +1,57 @@
+[project]
+name = "agatesim"
+version = "0.0.1"
+description = "Simulation of natural agate formation in nodules and seams, from procedural models to physics."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "lbillings-pixel" }]
+dependencies = [
+    "pydantic>=2.9",
+]
+
+[project.scripts]
+agatesim = "agatesim.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agatesim"]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.0",
+    "pyright>=1.1.390",
+    "pytest>=8.3",
+    "ruff>=0.8",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # bugbear
+    "UP",       # pyupgrade
+    "N",        # pep8-naming
+    "SIM",      # simplify
+    "PT",       # pytest style
+    "RUF",      # ruff-specific
+]
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]

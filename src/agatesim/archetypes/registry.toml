@@ -1,0 +1,326 @@
+# The archetype ladder. Single source of truth for which agate forms the
+# simulator targets, in what order, and how each will be judged.
+#
+# Rules (enforced by agatesim.archetypes.registry):
+#   - ids are lowercase slugs and unique
+#   - an archetype may depend only on archetypes on strictly earlier rungs
+#   - "verified" requires every dependency to be verified
+#
+# Metrics are provisional: they are refined, and given numeric thresholds,
+# when an archetype is implemented. Changing a verified archetype's criteria
+# requires an ADR (see docs/adr/0004-archetype-ladder.md).
+#
+# After editing, regenerate the docs: agatesim archetypes --write docs/archetypes.md
+
+schema_version = 1
+
+[[archetypes]]
+id = "fortification"
+name = "Fortification (concentric) banding"
+rung = 1
+status = "pending"
+subsystem = "formation"
+hosts = ["volcanic", "sedimentary"]
+summary = """
+Bands that follow the cavity wall inward, layer after layer, keeping the wall's
+corners as sharp angular turns. The basic agate form, and the foundation most
+other archetypes build on.
+"""
+
+  [[archetypes.criteria]]
+  id = "wall-parallel"
+  description = "Bands run parallel to the cavity wall."
+  metric = "Mean |cos θ| between band-contour normals and the distance-to-wall gradient ≥ threshold."
+
+  [[archetypes.criteria]]
+  id = "corners-preserved"
+  description = "Angular turns in the wall propagate inward as angular turns in the bands."
+  metric = "Curvature peaks of inner bands align with wall corners within an angular tolerance."
+
+  [[archetypes.criteria]]
+  id = "closed-bands"
+  description = "Bands form closed loops around the cavity centre."
+  metric = "Fraction of band contours that are closed ≥ threshold."
+
+  [[archetypes.criteria]]
+  id = "band-count"
+  description = "Enough distinct bands to read as banding."
+  metric = "Band count from a wall-to-centre profile within a configured range."
+
+[[archetypes]]
+id = "seam"
+name = "Vein / seam agate"
+rung = 2
+status = "pending"
+subsystem = "formation"
+hosts = ["seam"]
+depends_on = ["fortification"]
+summary = """
+Banding in an elongated crack, growing inward from both walls toward a central
+suture, open void, or quartz infill.
+"""
+
+  [[archetypes.criteria]]
+  id = "elongate-host"
+  description = "The cavity is a high-aspect-ratio crack."
+  metric = "Cavity aspect ratio ≥ threshold."
+
+  [[archetypes.criteria]]
+  id = "mirror-symmetry"
+  description = "Band sequences on opposite walls mirror each other about the seam's midline."
+  metric = "Correlation between reflected wall-normal profiles ≥ threshold."
+
+  [[archetypes.criteria]]
+  id = "central-suture"
+  description = "Growth fronts from the two walls meet at, or leave open, a central plane."
+  metric = "Locus of final growth lies within a tolerance of the medial axis."
+
+[[archetypes]]
+id = "waterline"
+name = "Waterline (Uruguay-type) horizontal banding"
+rung = 3
+status = "pending"
+subsystem = "formation"
+hosts = ["volcanic", "sedimentary"]
+summary = """
+Flat, parallel bands lying perpendicular to gravity at the cavity floor. They
+record which way was "up" at the time they formed (a geopetal indicator).
+"""
+
+  [[archetypes.criteria]]
+  id = "gravity-normal"
+  description = "Band normals align with the configured gravity vector."
+  metric = "Mean |cos θ| between band normals and gravity ≥ threshold."
+
+  [[archetypes.criteria]]
+  id = "planar"
+  description = "Bands are flat, not curved to the wall."
+  metric = "RMS residual of a straight-line fit to each band ≤ threshold."
+
+  [[archetypes.criteria]]
+  id = "floor-confined"
+  description = "Horizontal bands occupy the gravitational bottom of the cavity."
+  metric = "Centroid of horizontal-band area lies below the cavity centroid along gravity."
+
+  [[archetypes.criteria]]
+  id = "geopetal-recoverable"
+  description = "The gravity direction can be recovered from the result alone."
+  metric = "Gravity direction estimated from the bands matches the configured value within tolerance."
+
+[[archetypes]]
+id = "fortification-waterline"
+name = "Combined fortification and waterline banding"
+rung = 4
+status = "pending"
+subsystem = "formation"
+hosts = ["volcanic", "sedimentary"]
+depends_on = ["fortification", "waterline"]
+summary = """
+Wall-parallel and horizontal banding in one nodule, produced by changing
+conditions over time. The order of the two stages is set by the run's schedule,
+since nature records both sequences.
+"""
+
+  [[archetypes.criteria]]
+  id = "two-domains"
+  description = "Distinct wall-parallel and horizontal band domains coexist."
+  metric = "Both the fortification and waterline orientation criteria pass within their own domains."
+
+  [[archetypes.criteria]]
+  id = "sequence-honoured"
+  description = "The cross-cutting relationship matches the configured stage order."
+  metric = "The later domain's bands truncate or drape over the earlier domain's, as scheduled."
+
+[[archetypes]]
+id = "quartz-geode"
+name = "Banded agate with quartz-crystal centre"
+rung = 5
+status = "pending"
+subsystem = "formation"
+hosts = ["volcanic", "sedimentary"]
+depends_on = ["fortification"]
+summary = """
+Chalcedony banding at the rim gives way to coarse, inward-pointing quartz crystals
+toward the centre (and sometimes an open void) as silica supply falls.
+"""
+
+  [[archetypes.criteria]]
+  id = "phase-transition"
+  description = "Microcrystalline banding gives way to macrocrystalline quartz inward."
+  metric = "Phase field switches from chalcedony to quartz along wall-to-centre profiles."
+
+  [[archetypes.criteria]]
+  id = "inward-coarsening"
+  description = "Crystal size increases toward the centre."
+  metric = "Grain size increases monotonically with distance from the wall in the quartz zone."
+
+  [[archetypes.criteria]]
+  id = "supply-controlled"
+  description = "The transition responds to the silica-supply schedule."
+  metric = "Moving the supply drop in time moves the transition depth in the same direction."
+
+[[archetypes]]
+id = "botryoidal"
+name = "Botryoidal habit"
+rung = 6
+status = "pending"
+subsystem = "formation"
+hosts = ["volcanic", "sedimentary", "seam"]
+depends_on = ["fortification"]
+summary = """
+Grape-like clusters of hemispherical lobes on the growth surface, formed by
+spherulitic growth from many nucleation sites. Bands follow the lobes.
+"""
+
+  [[archetypes.criteria]]
+  id = "lobate-front"
+  description = "The final growth surface is made of rounded lobes."
+  metric = "Front curvature is mostly positive, with lobe radii in a configured range."
+
+  [[archetypes.criteria]]
+  id = "bands-follow-lobes"
+  description = "Internal bands are concentric about lobe centres."
+  metric = "Band contours fit circles about nucleation sites with residual ≤ threshold."
+
+  [[archetypes.criteria]]
+  id = "nucleation-controlled"
+  description = "Nucleation density controls lobe size."
+  metric = "Mean lobe radius decreases as nucleation-site density increases."
+
+[[archetypes]]
+id = "eye"
+name = "Eye agate"
+rung = 7
+status = "pending"
+subsystem = "formation"
+hosts = ["volcanic", "sedimentary"]
+depends_on = ["botryoidal"]
+summary = """
+Isolated, circular, concentrically banded "eyes": spherulites nucleated at the
+wall, seen on a cut or weathered surface.
+"""
+
+  [[archetypes.criteria]]
+  id = "discrete-eyes"
+  description = "Separate circular band systems are present."
+  metric = "Count of concentric systems within a configured range, each with circularity ≥ threshold."
+
+  [[archetypes.criteria]]
+  id = "wall-nucleated"
+  description = "Eyes are rooted at the cavity wall."
+  metric = "Each eye's centre lies within a tolerance of the original wall."
+
+[[archetypes]]
+id = "tube"
+name = "Tube agate"
+rung = 8
+status = "pending"
+subsystem = "formation"
+hosts = ["volcanic", "sedimentary"]
+depends_on = ["eye"]
+summary = """
+Chalcedony banding grown around thin linear seeds (needles, filaments, stalactitic
+channels). In cross-section each tube shows up as a small concentric ring system.
+"""
+
+  [[archetypes.criteria]]
+  id = "seed-concentric"
+  description = "Bands are concentric about the configured seeds."
+  metric = "Band contours around each seed fit circles with residual ≤ threshold."
+
+  [[archetypes.criteria]]
+  id = "seed-placement"
+  description = "Ring systems sit where the seeds were placed."
+  metric = "Ring-system centres match seed positions within tolerance."
+
+[[archetypes]]
+id = "moss"
+name = "Moss / dendritic agate"
+rung = 9
+status = "pending"
+subsystem = "formation"
+hosts = ["volcanic", "sedimentary", "seam"]
+summary = """
+Branching, tree-like inclusions of iron or manganese oxides in translucent
+chalcedony, grown by diffusion-limited branching.
+"""
+
+  [[archetypes.criteria]]
+  id = "fractal-dimension"
+  description = "Inclusions are branched, like natural dendrites."
+  metric = "Box-counting dimension of the inclusion mask in a configured range (DLA ≈ 1.7 in 2D)."
+
+  [[archetypes.criteria]]
+  id = "translucent-matrix"
+  description = "Dendrites sit in a mostly translucent host."
+  metric = "Inclusion area fraction ≤ threshold."
+
+[[archetypes]]
+id = "plume"
+name = "Plume agate"
+rung = 10
+status = "pending"
+subsystem = "formation"
+hosts = ["volcanic", "sedimentary"]
+depends_on = ["moss"]
+summary = """
+Feathery, upward-billowing oxide inclusions rising from a base, later enclosed by
+chalcedony.
+"""
+
+  [[archetypes.criteria]]
+  id = "anisotropic-growth"
+  description = "Plumes grow preferentially in one direction from a base."
+  metric = "Principal-axis anisotropy of each plume mask ≥ threshold."
+
+  [[archetypes.criteria]]
+  id = "encapsulated"
+  description = "Plumes are enclosed by later chalcedony."
+  metric = "Every plume pixel is surrounded by chalcedony phase within a buffer distance."
+
+[[archetypes]]
+id = "shadow"
+name = "Shadow agate"
+rung = 11
+status = "pending"
+subsystem = "optics"
+hosts = ["volcanic", "sedimentary"]
+depends_on = ["fortification"]
+summary = """
+An optical effect: alternating translucent and opaque bands make shadows appear
+to sweep across a slab as it is tilted or the light moves. Needs the optical
+renderer, not just the formation model.
+"""
+
+  [[archetypes.criteria]]
+  id = "alternating-translucency"
+  description = "The banding alternates between translucent and opaque layers."
+  metric = "Translucency profile across the bands shows alternation contrast ≥ threshold."
+
+  [[archetypes.criteria]]
+  id = "angle-dependent-shadow"
+  description = "The rendered shadow pattern moves with light or view angle."
+  metric = "Displacement of the rendered shadow pattern correlates with angle change (|r| ≥ threshold)."
+
+[[archetypes]]
+id = "iris"
+name = "Iris agate"
+rung = 12
+status = "pending"
+subsystem = "optics"
+hosts = ["volcanic", "sedimentary"]
+depends_on = ["fortification", "shadow"]
+summary = """
+Rainbow colours in thin, backlit slices, caused by very fine banding acting as a
+diffraction grating. Needs wave-optics rendering.
+"""
+
+  [[archetypes.criteria]]
+  id = "grating-spacing"
+  description = "Band spacing is fine enough to diffract visible light."
+  metric = "Band spacing in a configured micrometre-scale range."
+
+  [[archetypes.criteria]]
+  id = "spectral-dispersion"
+  description = "Transmitted light separates into colours at angles the grating equation predicts."
+  metric = "Rendered diffraction angles match d·sin θ = mλ within tolerance."

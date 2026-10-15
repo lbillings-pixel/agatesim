@@ -24,5 +24,23 @@ Desktop.ini
 # Claude Code local settings
 .claude/settings.local.json
 
-# Language-specific ignores (build/, target/, .venv/, node_modules/, ...)
-# will be added once the project's stack is chosen.
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Node / frontend
+node_modules/
+web/dist/
+
+# Simulation outputs (runs are reproducible from their configs)
+runs/
+*.zarr/

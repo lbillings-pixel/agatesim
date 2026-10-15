@@ -1,0 +1,27 @@
+# Runs the project's own locked tool versions (via uv), so hooks and CI agree.
+# Install once with: uv run pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+      - id: pyright
+        name: pyright
+        entry: uv run pyright
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: archetypes-doc
+        name: regenerate docs/archetypes.md
+        entry: uv run agatesim archetypes --write docs/archetypes.md
+        language: system
+        files: ^src/agatesim/archetypes/
+        pass_filenames: false
