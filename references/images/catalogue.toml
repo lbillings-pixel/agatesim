@@ -1,0 +1,232 @@
+# Reference specimen photos. Every image here is openly licensed and stored
+# with attribution. Licences apply to the image files and anything derived from
+# them; they do not affect the MIT licence of the code.
+#
+#   forms           archetype ids the photo shows (validated against the registry)
+#   view            "cut-slab" (sawn/polished face) or "rough" (natural surface)
+#   analysis_ready  flat cut face, roughly face-on, unobstructed: usable as a test
+#                   input for photo analysis (ADR 0006)
+#
+# Reviewed by eye on 2026-10-15. Validated by agatesim.references.
+
+[[images]]
+id = "brazil-fortification"
+file = "agate-braziilia.jpg"
+title = "Agate Braziilia.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_Braziilia.jpg"
+author = "Viktor Slyotov (VikSl)"
+licence = "CC BY 3.0"
+licence_url = "https://creativecommons.org/licenses/by/3.0"
+forms = [
+    "fortification",
+]
+view = "cut-slab"
+analysis_ready = true
+notes = "Classic grey-blue fortification banding in a polished slab with a small lenticular core."
+
+[[images]]
+id = "polyhedral-quartz-centre"
+file = "polyhedral-agate-caillois-donation-mnhn-n04.jpg"
+title = "Polyhedral agate Caillois Donation MNHN n04.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Polyhedral_agate_Caillois_Donation_MNHN_n04.jpg"
+author = "Marie-Lan Taÿ Pamart"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+view = "cut-slab"
+analysis_ready = true
+notes = "Angular (polyhedral) cavity: banding keeps sharp corners, then gives way to radiating quartz with a small central void. Backlit."
+
+[[images]]
+id = "polyhedral-eyes-botryoidal"
+file = "polyhedral-agate-caillois-donation-mnhn-n01.jpg"
+title = "Polyhedral agate Caillois Donation MNHN n01.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Polyhedral_agate_Caillois_Donation_MNHN_n01.jpg"
+author = "Marie-Lan Taÿ Pamart"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+forms = [
+    "fortification",
+    "eye",
+    "botryoidal",
+]
+view = "cut-slab"
+analysis_ready = true
+notes = "Angular cavity with a fortification rim; interior shows concentric eyes and mammillary (botryoidal) growth surfaces."
+
+[[images]]
+id = "artigas-combined"
+file = "banded-agate-artigas-or-rio-grande-do-sul-caillois-donation-.jpg"
+title = "Banded agate Artigas or Rio Grande do Sul Caillois Donation MNHN n01.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Banded_agate_Artigas_or_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n01.jpg"
+author = "Marie-Lan Taÿ Pamart"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+forms = [
+    "fortification-waterline",
+    "waterline",
+    "fortification",
+]
+view = "cut-slab"
+analysis_ready = true
+notes = "Textbook combined specimen: horizontal (Uruguay-type) layers fill the lower half; wall-parallel banding arches over the upper half. Backlit."
+
+[[images]]
+id = "uruguay-banding-front"
+file = "agate-with-uruguay-type-banding-om1-077a.jpg"
+title = "Agate with Uruguay-type banding (OM1-077A).JPG"
+source = "https://commons.wikimedia.org/wiki/File:Agate_with_Uruguay-type_banding_(OM1-077A).JPG"
+author = "HolDu"
+licence = "CC BY-SA 3.0 de"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en"
+forms = [
+    "waterline",
+    "fortification-waterline",
+]
+view = "cut-slab"
+analysis_ready = true
+notes = "Broken/cut nodule: thick white horizontal layers inside a dark wall-parallel rim. Layers are tilted in the photo, so gravity at formation was not 'down the page'."
+
+[[images]]
+id = "uruguay-banding-oblique"
+file = "agate-with-uruguay-type-banding-om1-078a.jpg"
+title = "Agate with Uruguay-type banding (OM1-078A).JPG"
+source = "https://commons.wikimedia.org/wiki/File:Agate_with_Uruguay-type_banding_(OM1-078A).JPG"
+author = "HolDu"
+licence = "CC BY-SA 3.0 de"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en"
+forms = [
+    "waterline",
+    "fortification-waterline",
+]
+view = "cut-slab"
+analysis_ready = false
+notes = "Same specimen as uruguay-banding-front, viewed obliquely; useful for robustness tests, not for measurement."
+
+[[images]]
+id = "geode-slice-quartz"
+file = "sliced-agate-geode-with-crystals-1.jpg"
+title = "Sliced agate geode with crystals 1.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Sliced_agate_geode_with_crystals_1.jpg"
+author = "W.carter"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+forms = [
+    "quartz-geode",
+    "fortification",
+]
+view = "cut-slab"
+analysis_ready = false
+notes = "Thin backlit slice: banded rim, quartz crystals lining an open central void. Held in fingers, which occlude one end."
+
+[[images]]
+id = "geode-broken-quartz"
+file = "agate-geode-with-quartz-crystals-01.jpg"
+title = "Agate-Geode-with-Quartz-crystals-01.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-Geode-with-Quartz-crystals-01.jpg"
+author = "CEphoto, Uwe Aranas"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+forms = [
+    "quartz-geode",
+]
+view = "rough"
+analysis_ready = false
+notes = "Broken geode: chalcedony rim with a quartz-crystal lined cavity. Not a flat cut."
+
+[[images]]
+id = "botryoidal-crust"
+file = "botryoidal-chalcedony-on-schist-54770439260.jpg"
+title = "Botryoidal Chalcedony on Schist (54770439260).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Botryoidal_Chalcedony_on_Schist_(54770439260).jpg"
+author = "Kevin M. Gill"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+forms = [
+    "botryoidal",
+]
+view = "rough"
+analysis_ready = false
+notes = "Botryoidal chalcedony crust on schist: the grape-like growth surface itself, not a cut section."
+
+[[images]]
+id = "moss-dendrites"
+file = "moss-agate-1.jpg"
+title = "Moss agate 1.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_1.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+forms = [
+    "moss",
+]
+view = "cut-slab"
+analysis_ready = true
+notes = "Close-up of dense dark dendritic (moss) inclusions in translucent chalcedony."
+
+[[images]]
+id = "plume-thunderegg"
+file = "richardson-ranch-thunder-egg-with-plume-from-plume-beds-rich.jpg"
+title = "Richardson Ranch Thunder Egg with Plume from Plume Beds, Richardson Ranch, Madras, Oregon detail, from- Oregon001 (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Richardson_Ranch_Thunder_Egg_with_Plume_from_Plume_Beds,_Richardson_Ranch,_Madras,_Oregon_detail,_from-_Oregon001_(cropped).jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+forms = [
+    "plume",
+]
+view = "cut-slab"
+analysis_ready = true
+notes = "Detail of plume inclusions in a thunder egg from Richardson Ranch, Oregon."
+
+[[images]]
+id = "vein-eyes-dendrites"
+file = "silver-in-agate-amethyst-vein-last-chance-mine-mineral-count.jpg"
+title = "Silver in agate (Amethyst Vein, Last Chance Mine, Mineral County, Colorado, USA) 1 (17076507687).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Silver_in_agate_(Amethyst_Vein,_Last_Chance_Mine,_Mineral_County,_Colorado,_USA)_1_(17076507687).jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+forms = [
+    "seam",
+    "eye",
+    "botryoidal",
+]
+view = "cut-slab"
+analysis_ready = true
+notes = "Vein agate: lobate wall-parallel banding with several eyes, plus acicular silver/dendritic inclusions in the white core."
+
+[[images]]
+id = "iris-backlit"
+file = "iris-agate-from-agatized-petrified-wood-stinking-water-orego.jpg"
+title = "Iris Agate from (Agatized Petrified Wood), Stinking Water, Oregon detail, from- Oregon004 (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Iris_Agate_from_(Agatized_Petrified_Wood),_Stinking_Water,_Oregon_detail,_from-_Oregon004_(cropped).jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+forms = [
+    "iris",
+    "botryoidal",
+]
+view = "cut-slab"
+analysis_ready = false
+notes = "Backlit iris agate: diffraction colours along very fine bands that follow botryoidal growth fronts. Lighting-dependent by nature."
+
+[[images]]
+id = "laguna-shadow-animation"
+file = "laguna-agate-with-parallax-banding.gif"
+title = "Laguna agate with parallax banding.gif"
+source = "https://commons.wikimedia.org/wiki/File:Laguna_agate_with_parallax_banding.gif"
+author = "I2Overcome"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+forms = [
+    "shadow",
+    "fortification",
+]
+view = "cut-slab"
+analysis_ready = false
+notes = "Animated GIF of a hand-held Laguna agate slice: banding shows the shadow (parallax) effect as it is turned."

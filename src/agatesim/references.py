@@ -81,6 +81,58 @@ class Catalogue(BaseModel):
         return {r.id for r in self.references}
 
 
+class View(StrEnum):
+    CUT_SLAB = "cut-slab"  # sawn or polished face
+    ROUGH = "rough"  # natural or broken surface
+
+
+OPEN_LICENCES = ("CC BY ", "CC BY-SA ", "CC0", "Public domain")
+
+
+class SpecimenImage(BaseModel):
+    """An openly licensed specimen photo stored in references/images/."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    id: Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9-]*$")]
+    file: str
+    title: str
+    source: str
+    author: str = Field(min_length=1)
+    licence: str
+    licence_url: str
+    forms: tuple[str, ...] = Field(min_length=1)
+    view: View
+    analysis_ready: bool
+    notes: str
+
+    @model_validator(mode="after")
+    def _open_licence(self) -> SpecimenImage:
+        if not self.licence.startswith(OPEN_LICENCES):
+            raise ValueError(
+                f"image {self.id!r} has a licence we can't redistribute: {self.licence}"
+            )
+        return self
+
+
+class ImageCatalogue(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    images: tuple[SpecimenImage, ...]
+
+    @model_validator(mode="after")
+    def _unique(self) -> ImageCatalogue:
+        for attr in ("id", "file"):
+            values = [getattr(i, attr) for i in self.images]
+            if len(values) != len(set(values)):
+                raise ValueError(f"duplicate image {attr}s")
+        return self
+
+
+def load_image_catalogue(path: Path) -> ImageCatalogue:
+    return ImageCatalogue.model_validate(tomllib.loads(path.read_text("utf-8")))
+
+
 def load_catalogue(path: Path) -> Catalogue:
     return Catalogue.model_validate(tomllib.loads(path.read_text("utf-8")))
 
