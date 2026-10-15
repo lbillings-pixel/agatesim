@@ -322,7 +322,7 @@ reaction and buoyancy.
 id = "shadow"
 name = "Shadow agate"
 rung = 11
-status = { procedural = "pending", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "optics"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification"]
@@ -335,18 +335,20 @@ renderer, not just the formation model.
   [[archetypes.criteria]]
   id = "alternating-translucency"
   description = "The banding alternates between translucent and opaque layers."
-  metric = "Translucency profile across the bands shows alternation contrast ≥ threshold."
+  metric = "Mean change in translucency between consecutive bands, in deposition order (0 = uniform, 1 = strict clear/milky alternation)."
+  min = 0.6
 
   [[archetypes.criteria]]
   id = "angle-dependent-shadow"
-  description = "The rendered shadow pattern moves with light or view angle."
-  metric = "Displacement of the rendered shadow pattern correlates with angle change (|r| ≥ threshold)."
+  description = "The rendered shadow pattern moves with the light angle."
+  metric = "How far the shadow inside clear bands (horizontal crossings between milky bands) moves across them, as a fraction of their width, when the light swings between opposite directions (largest swing over ±20° and ±40°); counted only if the shadow is visible (median contrast across the band at least 0.2) and sits on opposite sides for opposite light at every angle."
+  min = 0.3
 
 [[archetypes]]
 id = "iris"
 name = "Iris agate"
 rung = 12
-status = { procedural = "pending", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "optics"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification", "shadow"]
@@ -358,9 +360,12 @@ diffraction grating. Needs wave-optics rendering.
   [[archetypes.criteria]]
   id = "grating-spacing"
   description = "Band spacing is fine enough to diffract visible light."
-  metric = "Band spacing in a configured micrometre-scale range."
+  metric = "Median micro-band spacing (µm) where regular micro-banding is visible (pigment < 0.3, translucency > 0.4); reported oscillatory zonation is 0.5–5 µm, iris bands about 2 µm."
+  min = 0.5
+  max = 5
 
   [[archetypes.criteria]]
   id = "spectral-dispersion"
   description = "Transmitted light separates into colours at angles the grating equation predicts."
-  metric = "Rendered diffraction angles match d·sin θ = mλ within tolerance."
+  metric = "Median difference (nm) between the wavelength of the rendered colour (from its hue) and the first order predicted by d·sin θ = λ, over pixels where that prediction is 450–630 nm, at views of 12°, 16° and 20°."
+  max = 15

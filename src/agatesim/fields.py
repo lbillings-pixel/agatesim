@@ -31,9 +31,13 @@ class Fields:
     translucency: NDArray[np.float32]  # 0 (milky, opaque) .. 1 (clear)
     t_dep: NDArray[np.float32]  # normalized deposition time 0..1; NaN where nothing deposited
     grain: NDArray[np.int32]  # crystal id for macrocrystalline quartz; -1 elsewhere
+    # Spacing (µm) of regular micro-banding within the visible bands, which acts
+    # as a diffraction grating (iris agate); NaN where the micro-banding is irregular.
+    micro_spacing_um: NDArray[np.float32]
 
     def arrays(self) -> dict[str, NDArray[np.generic]]:
         return {
+            "micro_spacing_um": self.micro_spacing_um,
             "phase": self.phase,
             "band": self.band,
             "impurity": self.impurity,

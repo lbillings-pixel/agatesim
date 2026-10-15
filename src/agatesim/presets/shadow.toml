@@ -1,0 +1,30 @@
+# Verification preset for shadow agate (procedural tier): strictly alternating
+# clear and milky bands in a 2 mm slab. Light entering a clear band reaches the
+# milky band beside it at depth, so the shadow inside each clear band moves to
+# the other side when the light does.
+name = "shadow"
+seed = 12
+archetype = "shadow"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 40
+
+[optics]
+thickness_mm = 2
+band_tilt_deg = 0
+
+[model]
+kind = "procedural-growth"
+growth_mm = 18
+band_period = 0.04
+period_variability = 0.2
+alternation = 1.0
+opacity_contrast = 1.0
+iron_variability = 0.05
+
+[model.schedules.iron]
+base = 0.03

@@ -133,3 +133,14 @@ def test_invalid_cavities_are_rejected_with_a_reason(
     response = client.post("/api/preview", json={"config": config, "resolution": 128})
     assert response.status_code == 422
     assert message in response.text
+
+
+@pytest.mark.parametrize("view", ["shadow", "iris"])
+def test_optical_views(client: TestClient, view: str) -> None:
+    config = _config(view)
+    for angle in (-30, 30):
+        body = client.post(
+            "/api/optics",
+            json={"config": config, "resolution": 128, "view": view, "angle_deg": angle},
+        ).json()
+        assert body["image"].startswith("data:image/png;base64,")

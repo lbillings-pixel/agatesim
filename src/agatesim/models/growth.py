@@ -344,6 +344,33 @@ class ProceduralGrowth(BaseModel):
             "0.5 = red-brown Fe oxide, 1 = black Mn oxide."
         ),
     )
+    iris_fraction: float = param(
+        0.3,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.IMPOSED,
+        description=(
+            "Share of bands containing regular micro-banding, which diffracts light "
+            "(iris). Reported to occur in nearly every agate, often hidden by pigment."
+        ),
+    )
+    micro_band_um: float = param(
+        2.0,
+        gt=0,
+        le=50,
+        units="µm",
+        nature=Nature.IMPOSED,
+        description="Mean spacing of the regular micro-bands (about 2 µm reported for iris agate).",
+    )
+    micro_band_variability: float = param(
+        0.25,
+        ge=0,
+        le=1.5,
+        units="",
+        nature=Nature.IMPOSED,
+        description="Band-to-band spread of micro-band spacing (log-normal sigma).",
+    )
     wobble_mm: float = param(
         0.1,
         ge=0,
@@ -805,7 +832,7 @@ def growth_modes(params: ProceduralGrowth, tau: FloatArray) -> NDArray[np.int64]
 
 
 def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generator) -> Fields:
-    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites = rng.spawn(6)
+    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = rng.spawn(7)
     tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
     s = params.schedules
     supply = np.clip(s.silica.sample(tau), 0.0, 1.0)
@@ -848,6 +875,15 @@ def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generato
     impurity = np.where(quartz, 0.25 * np.clip(s.iron.sample(np.nan_to_num(t_dep)), 0, 1), impurity)
     translucency = np.where(chalcedony, bands.translucency[safe], 0.0)
     translucency = np.where(quartz, 0.9, translucency)
+
+    # Micro-banding: a share of the bands carry regular micro-bands (a grating).
+    regular = rng_micro.random(bands.count) < params.iris_fraction
+    sigma = params.micro_band_variability
+    spacing = params.micro_band_um * np.exp(
+        sigma * rng_micro.standard_normal(bands.count) - sigma**2 / 2
+    )
+    band_spacing = np.where(regular, spacing, np.nan)
+    micro = np.where(chalcedony, band_spacing[safe], np.nan)
     return Fields(
         phase=phase,
         band=band,
@@ -855,4 +891,5 @@ def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generato
         translucency=translucency.astype(np.float32),
         t_dep=t_dep.astype(np.float32),
         grain=np.where(quartz, fill.grain, -1).astype(np.int32),
+        micro_spacing_um=micro.astype(np.float32),
     )

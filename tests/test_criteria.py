@@ -18,7 +18,7 @@ from agatesim.criteria.radial import near_phase
 from agatesim.fields import Phase
 from agatesim.models import ProceduralGrowth
 from agatesim.schedules import Schedule
-from agatesim.simulate import simulate
+from agatesim.simulate import SimulationResult, simulate
 
 NEGATIVE_RESOLUTION = 384
 
@@ -201,9 +201,8 @@ def test_growth_model_reproduces_fortification_when_wall_lining_only() -> None:
     assert ev.passed, [r for r in ev.results if not r.passed]
 
 
-def test_unimplemented_archetype_raises() -> None:
-    with pytest.raises(NotImplementedError):
-        evaluate("iris", simulate(load_preset("fortification").with_resolution(64)))
+def test_every_archetype_on_the_ladder_has_criteria() -> None:
+    assert implemented() == {a.id for a in load_registry().archetypes}
 
 
 # --- Botryoidal, eye and tube ---------------------------------------------------
@@ -352,3 +351,84 @@ def test_dendrites_compete_so_fewer_reach_farther() -> None:
         return int(_scipy.label(shell, eight_connected=True).max())
 
     assert crossings(0.5) > crossings(3.0) > 0
+
+
+# --- Shadow and iris (optical) -------------------------------------------------------
+
+
+def _with_optics(config: RunConfig, **changes: float) -> RunConfig:
+    return config.model_copy(update={"optics": config.optics.model_copy(update=changes)})
+
+
+def test_shadow_criteria_reject_uniform_banding() -> None:
+    uniform = _with_model(
+        load_preset("shadow").with_resolution(NEGATIVE_RESOLUTION), opacity_contrast=0.0
+    )
+    assert _failed(_evaluate("shadow", uniform)) == {
+        "alternating-translucency",
+        "angle-dependent-shadow",
+    }
+
+
+def test_shadow_criteria_reject_a_paper_thin_slab() -> None:
+    """Alternating bands, but no depth for light to reach the milky bands through
+    the clear ones: no shadow to move."""
+    thin = _with_optics(
+        load_preset("shadow").with_resolution(NEGATIVE_RESOLUTION), thickness_mm=0.02
+    )
+    assert _failed(_evaluate("shadow", thin)) == {"angle-dependent-shadow"}
+
+
+def test_shadow_moves_to_the_side_away_from_the_light() -> None:
+    from agatesim import optics
+    from agatesim.criteria.optical import (
+        _clear_runs,  # pyright: ignore[reportPrivateUsage]
+        _shadow_position,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    result = simulate(load_preset("shadow").with_resolution(256))
+    runs = _clear_runs(result)
+    left = _shadow_position(optics.shadow_luminance(result, -30.0)[..., 1], runs)
+    right = _shadow_position(optics.shadow_luminance(result, 30.0)[..., 1], runs)
+    assert left * right < 0
+    assert abs(left + right) < 0.05  # mirror images of each other
+
+
+def test_iris_criteria_reject_agate_without_micro_banding() -> None:
+    plain = _with_model(load_preset("iris").with_resolution(NEGATIVE_RESOLUTION), iris_fraction=0.0)
+    assert _failed(_evaluate("iris", plain)) == {"grating-spacing", "spectral-dispersion"}
+
+
+def test_iris_criteria_reject_coarse_banding() -> None:
+    """Spacings of tens of micrometres (as in some non-peer-reviewed accounts)
+    would not be the reported iris structure."""
+    coarse = _with_model(
+        load_preset("iris").with_resolution(NEGATIVE_RESOLUTION), micro_band_um=20.0
+    )
+    assert _failed(_evaluate("iris", coarse)) == {"grating-spacing"}
+
+
+def test_iris_is_hidden_by_pigment() -> None:
+    """Iris banding exists in most agates but pigment conceals it (cartwright2026)."""
+    stained = _with_schedule(
+        load_preset("iris").with_resolution(NEGATIVE_RESOLUTION), "iron", {"base": 0.8}
+    )
+    assert _failed(_evaluate("iris", stained)) == {"grating-spacing", "spectral-dispersion"}
+
+
+@pytest.mark.parametrize("broken", ["white light", "wrong angle"])
+def test_iris_dispersion_rejects_renderers_that_break_the_grating_equation(broken: str) -> None:
+    from agatesim import optics
+    from agatesim.criteria.optical import spectral_dispersion
+
+    def white(result: SimulationResult, view: float, azimuth: float) -> np.ndarray:
+        light = optics.iris_light(result, view, azimuth)
+        return np.repeat(light.sum(axis=-1, keepdims=True), 3, axis=-1)
+
+    def wrong_angle(result: SimulationResult, view: float, azimuth: float) -> np.ndarray:
+        return optics.iris_light(result, view * 1.3, azimuth)
+
+    result = simulate(load_preset("iris").with_resolution(NEGATIVE_RESOLUTION))
+    value, _ = spectral_dispersion(result, white if broken == "white light" else wrong_angle)
+    assert value is not None
+    assert value > 15

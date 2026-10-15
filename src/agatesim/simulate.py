@@ -74,4 +74,5 @@ def _with_inclusions(fields: Fields, domain: Domain) -> Fields:
         translucency=np.where(inc, 0.0, fields.translucency).astype(np.float32),
         # Tint 0: filament cores are reported as Fe-silicates such as celadonite.
         impurity=np.where(inc, 0.0, fields.impurity).astype(np.float32),
+        micro_spacing_um=np.where(inc, np.nan, fields.micro_spacing_um).astype(np.float32),
     )

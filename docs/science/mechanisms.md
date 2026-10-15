@@ -157,23 +157,39 @@ its own mechanism.
 For M5 the simulator grows inclusions by multi-particle DLA (ADR 0009):
 particles start spread through the open space, diffuse, and attach to branches
 rooted on the growth surface. Chalcedony then grows over the inclusions, as it
-grows over tube filaments. A drift of the particles along gravity is a
-procedural stand-in for the buoyant, upward-directed growth of plumes. The
+grows over tube filaments. An upward attachment bias (particles stick more
+readily to the tops of branches) is a procedural stand-in for the buoyant,
+upward-directed growth of plumes. The
 alternatives stay open: dendrites growing in fractures or gel after the
 chalcedony, and viscous fingering.
 
 ## 7. Optical archetypes
 
 - **Shadow agate:** shadows appear to sweep across the slab as it is tilted, an
-  effect tied to alternating translucent and opaque bands. We haven't yet found a
-  peer-reviewed optical explanation, so the renderer will start from that
-  description and treat the mechanism as an open question.
-- **Iris agate:** very fine banding acts as a diffraction grating in thin,
-  backlit slices. Reported band densities vary widely between informal sources, so
-  a peer-reviewed measurement is still to be found. One review reports up to
-  1000 micro-bands per millimetre inside visible bands ([@goetze2020] §4.1.2),
-  that is spacings down to about 1 µm, the order of magnitude a visible-light
-  grating needs.
+  effect tied to alternating translucent and opaque bands. A second search (M6)
+  again found no peer-reviewed optical study. The M6 renderer therefore tests one
+  hypothesis (ADR 0010): light entering a clear band reaches the milky band
+  beside it at depth, so the shadow inside each clear band moves to the other
+  side when the light does. It is a single-scattering model of a slab whose bands
+  run straight down. Its scattering and absorption coefficients are effective
+  values, not measurements.
+- **Iris agate:** micro-banding acts as a diffraction grating. A review reports
+  oscillatory micro-zonation of defects at 0.5–5 µm, with refractive-index
+  changes along these bands giving the iris colours, and an iris band spacing of
+  about 2 µm ([@cartwright2026] §5.1.1, after [@jones1952]). Iris zones "exist in
+  nearly every agate, although they are often concealed by pigmentation"
+  ([@cartwright2026] §5.1.1). Another review reports up to 1000 micro-bands per
+  millimetre ([@goetze2020] §4.1.2). Non-peer-reviewed sources give figures
+  ranging from about 0.1 to 25 µm, so the simulator uses the peer-reviewed range.
+  The renderer applies the grating equation (d·sin θ = mλ) with the grating
+  lines along the visible bands. The refractive index of chalcedony (1.54) is an
+  assumed typical value, still to source.
+- **Against two banding hypotheses** ([@cartwright2026] §5.1.1): Liesegang
+  patterns lack agate's sharp corners, have ring defects agates don't, and follow
+  a spacing law agates don't. External-rhythm models predict that nearby agates
+  share band sequences, which they don't. The corner criterion of the
+  fortification form and a future check for uncorrelated sequences between
+  neighbouring nodules can test mechanistic models against these.
 - **Band colours** that the M6 renderer should reproduce: white bands are
   plate-edge structures that reflect light, clear bands are globular and porous,
   and blue comes from Tyndall scattering by the micro-particles ([@goetze2020]

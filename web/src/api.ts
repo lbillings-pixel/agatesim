@@ -211,6 +211,18 @@ export const api = {
       body: JSON.stringify({ config, resolution }),
       signal,
     }),
+  optics: (
+    config: RunConfig,
+    resolution: number,
+    view: "shadow" | "iris",
+    angleDeg: number,
+    signal?: AbortSignal,
+  ) =>
+    request<{ image: string; elapsed_ms: number }>("/api/optics", {
+      method: "POST",
+      body: JSON.stringify({ config, resolution, view, angle_deg: angleDeg }),
+      signal,
+    }),
   startRun: (config: RunConfig) =>
     request<Job>("/api/runs", { method: "POST", body: JSON.stringify(config) }),
   job: (id: string) => request<Job>(`/api/jobs/${id}`),

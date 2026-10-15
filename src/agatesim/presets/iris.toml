@@ -1,0 +1,28 @@
+# Verification preset for iris agate (procedural tier): a thin (0.3 mm), nearly
+# pigment-free slice in which most bands carry regular micro-banding about 2 µm
+# apart; backlit and seen off-axis, it diffracts into rainbow colours.
+name = "iris"
+seed = 13
+archetype = "iris"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-round"
+size_mm = 40
+
+[optics]
+thickness_mm = 0.3
+band_tilt_deg = 0
+
+[model]
+kind = "procedural-growth"
+growth_mm = 22
+band_period = 0.02
+opacity_contrast = 0.4
+iris_fraction = 0.6
+micro_band_um = 2.0
+
+[model.schedules.iron]
+base = 0.03

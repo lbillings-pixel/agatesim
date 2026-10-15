@@ -8,9 +8,9 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M5 (dendrites).** See the [roadmap](docs/roadmap.md).
+> **Status: M6 (optical renderer). All twelve target forms reproduced at the procedural tier.** See the [roadmap](docs/roadmap.md).
 
-![Verification presets of the ten forms reproduced so far](docs/images/archetypes.png)
+![Verification presets of all twelve forms](docs/images/archetypes.png)
 
 ## What it reproduces so far
 
@@ -33,7 +33,8 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Tube | ✅ verified | pending |
 | Moss / dendritic | ✅ verified | pending |
 | Plume | ✅ verified | pending |
-| Shadow, iris | pending | pending |
+| Shadow | ✅ verified | pending |
+| Iris | ✅ verified | pending |
 
 ## Approach
 
@@ -73,6 +74,9 @@ The app runs only on your machine (bound to localhost). It offers:
   plus a **drawing tool** for your own (click corners or sketch freehand; keep
   corners angular or smooth them).
 - **Tubes**: click the preview to place filaments that banding grows around.
+- **Optical views**: see the preview as a slab lit from one side (shadow agate:
+  move the light and the shadows sweep) or as a backlit thin slice (iris agate:
+  change the view angle and the colours shift).
 - **Parameters** with units and a badge for what kind of quantity each one is:
   physical, effective or imposed.
 - **Conditions over time**: a timeline editor for silica supply, settling,
@@ -123,7 +127,8 @@ src/agatesim/
   geometry.py        cavity shapes, exact masks and wall distances
   config.py          run configuration (TOML)
   simulate.py        run a configuration
-  render.py          slab rendering (placeholder until the optical renderer, M6)
+  render.py          slab rendering in diffuse reflected light
+  optics.py          optical views: shadow (reflected light) and iris (backlit slice)
   runs.py            run records
   server/            FastAPI backend for the web app (`agatesim serve`)
 web/                 React + TypeScript web app (built into server/static)

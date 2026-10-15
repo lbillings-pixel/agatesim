@@ -56,9 +56,10 @@ venue = "Physics Reports 1183, 1–98"
 url = "https://arxiv.org/abs/2412.18999"
 access = "open"
 licence = "arXiv non-exclusive distribution licence 1.0 (preprint); publisher terms for the journal version"
-checked = "abstract"
-topics = ["self-organization", "pattern-formation", "soft-matter"]
-notes = "Broad framework for geological pattern formation. Not yet confirmed whether agate is discussed."
+checked = "sections"
+sections_read = ["5.1.1 Agates"]
+topics = ["self-organization", "pattern-formation", "soft-matter", "agate", "iris", "liesegang"]
+notes = """Broad framework for geological pattern formation; §5.1.1 reviews agate (read 2026-10-15). Micro-banding of defect-rich chalcedony and macrocrystalline quartz at ~100 µm, with oscillatory zonation of defects at 0.5–5 µm; the change of refractive index along these bands gives iris colours; iris spacing ~2 µm (Fig. 35, after jones1952); 'Zones with iris banding exist in nearly every agate, although they are often concealed by pigmentation.' Growth starts as spherulites at the wall, then common banding equidistant to the walls. Against Liesegang models: no sharp corners, ring defects, Jabłczyński spacing law not seen in agate, gel shrinkage problem. Against external-rhythm models: nearby agates have uncorrelated band sequences. Wang–Merino model: Al3+ accumulating at the front accelerates quartz crystallisation, alternating chalcedony and quartz bands."""
 
 # --- Banding mechanisms ------------------------------------------------------
 
@@ -265,6 +266,22 @@ licence = "publisher copyright; cite only"
 checked = "citation"
 topics = ["silica-gel", "crystallization", "timescales"]
 notes = "Citation from the reference list of goetze2020 (ref. 184), which reports that Oehler crystallised silica gel to quartz in the laboratory in 12 h to 180 days under high-pressure/high-temperature conditions that may not apply to agate."
+
+# --- Optics ------------------------------------------------------------------
+
+[[references]]
+id = "jones1952"
+kind = "article"
+authors = ["Jones, F. T."]
+year = 1952
+title = "Iris agate"
+venue = "American Mineralogist 37(7–8), 578–"
+url = "http://www.minsocam.org/ammin/AM37/AM37_578.pdf"
+access = "open"
+licence = "MSA; free to read, cite only"
+checked = "citation"
+topics = ["iris", "diffraction", "micro-banding"]
+notes = "The classic study of iris agate. Cited by cartwright2026 for an iris band spacing of about 2 µm; search summaries describe a grating of thin lamellae of alternating refractive index with chalcedony fibres perpendicular to them. Full text (a scanned PDF) not yet read."
 
 # --- Crystal growth ----------------------------------------------------------
 

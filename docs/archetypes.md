@@ -20,8 +20,8 @@ provisional until the archetype is implemented.
 | 8 | [Tube agate](#tube) | verified | pending | formation | volcanic, sedimentary | eye |
 | 9 | [Moss / dendritic agate](#moss) | verified | pending | formation | volcanic, sedimentary, seam | — |
 | 10 | [Plume agate](#plume) | verified | pending | formation | volcanic, sedimentary | moss |
-| 11 | [Shadow agate](#shadow) | pending | pending | optics | volcanic, sedimentary | fortification |
-| 12 | [Iris agate](#iris) | pending | pending | optics | volcanic, sedimentary | fortification, shadow |
+| 11 | [Shadow agate](#shadow) | verified | pending | optics | volcanic, sedimentary | fortification |
+| 12 | [Iris agate](#iris) | verified | pending | optics | volcanic, sedimentary | fortification, shadow |
 
 ## Fortification (concentric) banding
 
@@ -167,8 +167,8 @@ renderer, not just the formation model.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `alternating-translucency` | The banding alternates between translucent and opaque layers. | Translucency profile across the bands shows alternation contrast ≥ threshold. | provisional |
-| `angle-dependent-shadow` | The rendered shadow pattern moves with light or view angle. | Displacement of the rendered shadow pattern correlates with angle change (|r| ≥ threshold). | provisional |
+| `alternating-translucency` | The banding alternates between translucent and opaque layers. | Mean change in translucency between consecutive bands, in deposition order (0 = uniform, 1 = strict clear/milky alternation). | value ≥ 0.6 |
+| `angle-dependent-shadow` | The rendered shadow pattern moves with the light angle. | How far the shadow inside clear bands (horizontal crossings between milky bands) moves across them, as a fraction of their width, when the light swings between opposite directions (largest swing over ±20° and ±40°); counted only if the shadow is visible (median contrast across the band at least 0.2) and sits on opposite sides for opposite light at every angle. | value ≥ 0.3 |
 
 ## Iris agate
 
@@ -179,5 +179,5 @@ diffraction grating. Needs wave-optics rendering.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `grating-spacing` | Band spacing is fine enough to diffract visible light. | Band spacing in a configured micrometre-scale range. | provisional |
-| `spectral-dispersion` | Transmitted light separates into colours at angles the grating equation predicts. | Rendered diffraction angles match d·sin θ = mλ within tolerance. | provisional |
+| `grating-spacing` | Band spacing is fine enough to diffract visible light. | Median micro-band spacing (µm) where regular micro-banding is visible (pigment < 0.3, translucency > 0.4); reported oscillatory zonation is 0.5–5 µm, iris bands about 2 µm. | 0.5 ≤ value ≤ 5 |
+| `spectral-dispersion` | Transmitted light separates into colours at angles the grating equation predicts. | Median difference (nm) between the wavelength of the rendered colour (from its hue) and the first order predicted by d·sin θ = λ, over pixels where that prediction is 450–630 nm, at views of 12°, 16° and 20°. | value ≤ 15 |

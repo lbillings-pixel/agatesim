@@ -156,4 +156,5 @@ def fields_from_bands(
         translucency=np.where(filled, bands.translucency[safe], 0.0).astype(np.float32),
         t_dep=np.where(filled, t_dep, np.nan).astype(np.float32),
         grain=np.full(domain.grid.shape, -1, dtype=np.int32),
+        micro_spacing_um=np.full(domain.grid.shape, np.nan, dtype=np.float32),
     )

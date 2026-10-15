@@ -79,6 +79,9 @@ export function App() {
   const [lastDrawn, setLastDrawn] = useState<Drawn | null>(null);
   const [placingTubes, setPlacingTubes] = useState(false);
   const [tubeRadius, setTubeRadius] = useState(0.3);
+  const [light, setLight] = useState<"reflected" | "shadow" | "iris">("reflected");
+  const [lightAngle, setLightAngle] = useState(30);
+  const [opticsImage, setOpticsImage] = useState<string | null>(null);
 
   const refreshRuns = useCallback(() => {
     api.runs().then(setRuns).catch(() => undefined);
@@ -120,6 +123,24 @@ export function App() {
       controller.abort();
     };
   }, [config, previewRes]);
+
+  // Optical views of the live preview: directional light, at the chosen angle.
+  useEffect(() => {
+    if (!config || light === "reflected") return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      api
+        .optics(config, previewRes, light, lightAngle, controller.signal)
+        .then((o) => setOpticsImage(o.image))
+        .catch((e: unknown) => {
+          if (!controller.signal.aborted) setPreviewError(e instanceof Error ? e.message : String(e));
+        });
+    }, DEBOUNCE_MS);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [config, previewRes, light, lightAngle]);
 
   // Poll active jobs; refresh the run list when one finishes.
   useEffect(() => {
@@ -417,6 +438,51 @@ export function App() {
                       : "")}
             </span>
             {selected === null && (
+              <div className="light-controls">
+                <div className="toggle" role="radiogroup" aria-label="Lighting">
+                  {(
+                    [
+                      ["reflected", "Slab"],
+                      ["shadow", "Shadow"],
+                      ["iris", "Iris"],
+                    ] as const
+                  ).map(([v, label]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      role="radio"
+                      aria-checked={light === v}
+                      title={
+                        v === "reflected"
+                          ? "Polished slab in diffuse reflected light"
+                          : v === "shadow"
+                            ? "Reflected light from one direction: shadows inside clear bands move with it"
+                            : "Backlit thin slice seen off-axis: fine micro-banding diffracts colours"
+                      }
+                      onClick={() => setLight(v)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {light !== "reflected" && (
+                  <label className="inline small">
+                    <span className="micro-label">{light === "shadow" ? "Light angle" : "View angle"}</span>
+                    <input
+                      id="light-angle"
+                      type="range"
+                      min={-60}
+                      max={60}
+                      step={1}
+                      value={lightAngle}
+                      onChange={(e) => setLightAngle(Number(e.target.value))}
+                    />
+                    <output htmlFor="light-angle">{lightAngle}°</output>
+                  </label>
+                )}
+              </div>
+            )}
+            {selected === null && (
               <label className="inline small">
                 <span className="micro-label">Preview</span>
                 <select id="preview-resolution" value={previewRes} onChange={(e) => setPreviewRes(Number(e.target.value))}>
@@ -440,7 +506,7 @@ export function App() {
             {selected === null && preview && (
               <SlabView
                 identity="preview"
-                imageSrc={preview.image}
+                imageSrc={light !== "reflected" && opticsImage ? opticsImage : preview.image}
                 tdepSrc={preview.tdep}
                 dxMm={preview.dx_mm}
                 caption={`Preview of “${config.name}”`}

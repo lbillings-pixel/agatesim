@@ -14,6 +14,7 @@ from agatesim.criteria import (
     combined,
     fortification,
     inclusions,
+    optical,
     quartz_geode,
     seam,
     tube,
@@ -33,6 +34,8 @@ EVALUATORS: dict[str, Callable[[SimulationResult], dict[str, Measurement]]] = {
     "tube": tube.evaluate,
     "moss": inclusions.evaluate_moss,
     "plume": inclusions.evaluate_plume,
+    "shadow": optical.evaluate_shadow,
+    "iris": optical.evaluate_iris,
 }
 
 

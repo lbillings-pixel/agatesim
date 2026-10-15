@@ -13,7 +13,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import zarr
@@ -24,7 +24,7 @@ from numpy.typing import NDArray
 from PIL import Image
 from pydantic import BaseModel, Field
 
-from agatesim import __version__
+from agatesim import __version__, optics
 from agatesim.archetypes import load_registry
 from agatesim.config import RunConfig, load_config, load_preset, preset_names
 from agatesim.criteria import evaluate, implemented
@@ -34,7 +34,7 @@ from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
 from agatesim.runs import is_run_id, list_runs
 from agatesim.server.jobs import Job, JobManager
-from agatesim.simulate import simulate
+from agatesim.simulate import SimulationResult, simulate
 from agatesim.stats import band_statistics
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -64,6 +64,30 @@ MODEL_SCHEDULES: dict[str, list[dict[str, object]]] = {
 class PreviewRequest(BaseModel):
     config: RunConfig
     resolution: int = Field(default=256, ge=64, le=MAX_PREVIEW_RESOLUTION)
+
+
+class OpticsRequest(PreviewRequest):
+    view: Literal["shadow", "iris"]
+    angle_deg: float = Field(default=30.0, ge=-80, le=80)
+    azimuth_deg: float = Field(default=0.0, ge=-360, le=360)
+
+
+SIMULATION_CACHE = 4
+
+
+class _Simulations:
+    """Recent simulations, so optical views at new angles don't re-simulate."""
+
+    def __init__(self) -> None:
+        self._items: dict[str, SimulationResult] = {}
+
+    def get(self, config: RunConfig) -> SimulationResult:
+        key = config.digest()
+        if key not in self._items:
+            if len(self._items) >= SIMULATION_CACHE:
+                self._items.pop(next(iter(self._items)))
+            self._items[key] = simulate(config)
+        return self._items[key]
 
 
 def _png(image: Image.Image) -> bytes:
@@ -154,11 +178,30 @@ def create_app(runs_dir: Path, static_dir: Path | None = STATIC_DIR) -> FastAPI:
     def meta() -> dict[str, object]:
         return _meta()
 
+    simulations = _Simulations()
+
+    @app.post("/api/optics")
+    def optical_view(request: OpticsRequest) -> dict[str, object]:
+        """The live preview under directional light: reflected light from a light
+        `angle_deg` from the slab normal (shadow), or a backlit slice seen
+        `angle_deg` off the light (iris)."""
+        config = request.config.with_resolution(request.resolution)
+        t0 = time.perf_counter()
+        result = simulations.get(config)
+        if request.view == "shadow":
+            rgb = optics.render_shadow(result, request.angle_deg, request.azimuth_deg)
+        else:
+            rgb = optics.render_iris(result, request.angle_deg, request.azimuth_deg)
+        return {
+            "image": _data_uri(_png(Image.fromarray(rgb))),
+            "elapsed_ms": round((time.perf_counter() - t0) * 1000),
+        }
+
     @app.post("/api/preview")
     def preview(request: PreviewRequest) -> dict[str, object]:
         config = request.config.with_resolution(request.resolution)
         t0 = time.perf_counter()
-        result = simulate(config)
+        result = simulations.get(config)
         rgb = render_slab(result)
         elapsed = time.perf_counter() - t0
         return {

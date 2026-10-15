@@ -250,6 +250,9 @@ button.link { border: 0; background: none; padding: 0; color: var(--accent); tex
 .tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
 .tabs [role="tab"][aria-selected="true"] { border-color: var(--accent); font-weight: 600; }
 .tab-status { margin-left: auto; }
+.light-controls { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.light-controls input[type="range"] { width: 8rem; }
+.light-controls output { font-size: 0.8rem; min-width: 2.5rem; }
 .error {
   border: 1px solid var(--fail);
   color: var(--fail);

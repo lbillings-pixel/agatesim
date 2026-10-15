@@ -120,6 +120,26 @@ class CavityConfig(BaseModel):
         return np.array([[t.x_mm, t.y_mm, t.radius_mm] for t in self.tubes]).reshape(-1, 3)
 
 
+class OpticsConfig(BaseModel):
+    """The slab as an optical object (ADR 0010). The formation models describe the
+    cut surface; these settings say how the banding continues beneath it."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    thickness_mm: float = Field(
+        default=3.0, gt=0, le=30, description="Slab thickness, for light passing into it."
+    )
+    band_tilt_deg: float = Field(
+        default=30.0,
+        ge=0,
+        lt=85,
+        description=(
+            "Tilt of the band surfaces from the slab normal beneath the cut "
+            "(0 = bands run straight down through the slab)."
+        ),
+    )
+
+
 class RunConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -129,6 +149,7 @@ class RunConfig(BaseModel):
     grid: GridConfig = Field(default_factory=GridConfig)
     cavity: CavityConfig
     model: ModelConfig
+    optics: OpticsConfig = Field(default_factory=OpticsConfig)
 
     @field_validator("archetype")
     @classmethod
