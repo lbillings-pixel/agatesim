@@ -1,0 +1,28 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editors and IDEs
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Language-specific ignores (build/, target/, .venv/, node_modules/, ...)
+# will be added once the project's stack is chosen.
