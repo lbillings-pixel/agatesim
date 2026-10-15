@@ -5,6 +5,7 @@
 - archetypes.png: the verification preset of each implemented archetype (optical
   forms in their optical view: shadow lit at 30°, iris backlit and seen at 18°).
 - cavities.png:   every preset cavity shape, banded with the fortification model.
+- mechanisms.png: the mechanistic models H1 and H2 side by side, in a nodule and a seam.
 """
 
 from __future__ import annotations
@@ -83,7 +84,16 @@ def main() -> None:
         config = base.model_copy(update={"cavity": cavity, "name": name})
         cavities.append(_tile(config, f"{name} ({preset.host.value})"))
     _sheet(cavities, columns=3).save(OUT / "cavities.png", optimize=True)
-    print(f"wrote {OUT / 'archetypes.png'} and {OUT / 'cavities.png'}")
+
+    # Competing mechanisms on the same cavities (H2 needs AGATESIM_GPU=1 to be quick).
+    mechanisms = [
+        _tile(load_preset("fortification-mechanistic"), "H1 front feedback: nodule"),
+        _tile(load_preset("liesegang-nodule"), "H2 Liesegang: nodule"),
+        _tile(load_preset("seam-mechanistic"), "H1 front feedback: seam"),
+        _tile(load_preset("liesegang-seam"), "H2 Liesegang: seam"),
+    ]
+    _sheet(mechanisms, columns=2).save(OUT / "mechanisms.png", optimize=True)
+    print(f"wrote archetypes.png, cavities.png and mechanisms.png in {OUT}")
 
 
 if __name__ == "__main__":

@@ -82,12 +82,29 @@ H2 therefore **does not** verify fortification at the mechanistic tier, and
 the registry records nothing for it. Sharp-cornered fortification counts as
 evidence against H2 *as modelled here*.
 
-**Seam (30 mm, GPU).** Mirror symmetry passed (0.98). The central suture failed
-(0.29), so the seam isn't verified either. Why the last-reached material sits
-off the midline in some sections is not yet diagnosed.
+**Seam (30 mm, GPU): H2 reproduces it.** The bands mirror each other about the
+midline and meet there:
+- elongate host 9.9;
+- mirror symmetry 0.98;
+- central suture 0.011.
+
+A 60 mm seam on a lattice twice as coarse gives the same values, as a
+scale-free model should.
+
+An earlier run failed the central suture (0.29) because of a sampling bug. Output
+pixels at the wall that fell on lattice cells just outside the lattice's own
+cavity were given t_dep = 1, as if they were the last material. They now take
+the nearest cell inside.
+
+The preset `liesegang-seam` is tested only where a GPU is available. On a
+lattice coarse enough for the CPU, the seam holds only two bands and would
+pass trivially. So CI doesn't check this result, and the seam stays verified
+at the mechanistic tier by H1's preset (`seam-mechanistic`).
 
 ## Consequences
 
+- **Seam agate doesn't discriminate between H1 and H2:** both reproduce it.
+  Angular fortification does, and so does ring breakup (see `docs/images/mechanisms.png`).
 - **Two concrete discriminants against specimens:**
   - corner sharpness;
   - band spacing: Liesegang cycles widen inward geometrically.

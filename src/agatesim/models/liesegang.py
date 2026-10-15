@@ -33,7 +33,7 @@ from typing import Literal
 import numpy as np
 from pydantic import BaseModel, ConfigDict
 
-from agatesim import _rd
+from agatesim import _rd, _scipy
 from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray, Grid
 from agatesim.models.base import Domain
@@ -182,16 +182,18 @@ def run_liesegang(params: Liesegang, domain: Domain, rng: np.random.Generator) -
     band = _bands_by_arrival(arrival, zone, inside, min_cells)
     stain = np.clip(p / max(float(np.percentile(p[inside], 99)), 1e-9), 0, 1)
     t_dep = np.where(inside, arrival / max(float(np.max(arrival[inside])), 1e-9), np.nan)
-    # Sample the lattice at the output pixel centres (nearest cell).
+    # Sample the lattice at the output pixel centres (nearest cell). An output
+    # pixel at the wall can fall on a lattice cell just outside the lattice's
+    # cavity; it takes the nearest cell inside.
+    near_r, near_c = _scipy.nearest_true_indices(inside)
     xx, yy = domain.grid.coords()
     cols = np.clip(((xx - lattice.x0) / lattice.dx).astype(int), 0, lattice.shape[1] - 1)
     rows = np.clip(((lattice.y1 - yy) / lattice.dx).astype(int), 0, lattice.shape[0] - 1)
+    rows, cols = near_r[rows, cols], near_c[rows, cols]
     mask = domain.mask
-    out_band = np.where(mask, band[rows, cols], -1)
-    out_band = np.where(mask & (out_band < 0), 0, out_band).astype(np.int32)
+    out_band = np.where(mask, band[rows, cols], -1).astype(np.int32)
     out_stain = np.where(mask, stain[rows, cols], 0.0)
     out_t = np.where(mask, t_dep[rows, cols], np.nan)
-    out_t = np.where(mask & np.isnan(out_t), 1.0, out_t)
     phase = np.full(domain.grid.shape, Phase.HOST, dtype=np.uint8)
     phase[mask] = Phase.CHALCEDONY  # the gel crystallises to chalcedony later
     return Fields(

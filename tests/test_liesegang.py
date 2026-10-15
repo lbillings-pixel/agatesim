@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 from agatesim import _rd
-from agatesim.config import RunConfig
+from agatesim.config import RunConfig, load_preset
 from agatesim.criteria import evaluate
 from agatesim.simulate import SimulationResult, simulate
 
@@ -66,6 +66,16 @@ def test_output_resolution_does_not_change_the_pattern() -> None:
     assert len(np.unique(coarse.fields.band[coarse.domain.mask])) == len(
         np.unique(fine.fields.band[fine.domain.mask])
     )
+
+
+def test_liesegang_reproduces_seam_agate(monkeypatch: pytest.MonkeyPatch) -> None:
+    """In a crack, Liesegang bands mirror each other about the midline (ADR 0015).
+    Needs a resolved lattice, so it runs only where a GPU is available."""
+    if _rd.array_module(prefer_gpu=True) is np:
+        pytest.skip("needs the GPU backend (CuPy) to run at a resolved lattice")
+    monkeypatch.setenv("AGATESIM_GPU", "1")
+    ev = evaluate("seam", simulate(load_preset("liesegang-seam")))
+    assert ev.passed, [r for r in ev.results if not r.passed]
 
 
 def test_gpu_matches_cpu() -> None:
