@@ -18,7 +18,17 @@ async function loadPixels(src: string): Promise<ImageData> {
   return ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
 
+/** Clicking the slab to place things (tubes), in world mm. */
+export interface Picking {
+  grid: { x0: number; y1: number; dx: number };
+  markers: { x: number; y: number; r: number }[];
+  onPick: (x: number, y: number) => void;
+}
+
+const CLICK_SLOP_PX = 4;
+
 interface Props {
+  picking?: Picking;
   imageSrc: string;
   tdepSrc: string;
   dxMm: number;
@@ -27,7 +37,7 @@ interface Props {
   identity: string;
 }
 
-export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity }: Props) {
+export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity, picking }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const [pixels, setPixels] = useState<{ slab: ImageData; tdep: ImageData } | null>(null);
@@ -35,7 +45,7 @@ export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity }: Props) 
   const [view, setView] = useState({ zoom: 1, x: 0, y: 0 });
   const [fit, setFit] = useState(1);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
-  const drag = useRef<{ x: number; y: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -125,9 +135,9 @@ export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity }: Props) 
     <figure className="slab-view">
       <div
         ref={frameRef}
-        className="slab-frame"
+        className={`slab-frame${picking ? " picking" : ""}`}
         onPointerDown={(e) => {
-          drag.current = { x: e.clientX - view.x, y: e.clientY - view.y };
+          drag.current = { x: e.clientX - view.x, y: e.clientY - view.y, startX: e.clientX, startY: e.clientY };
           e.currentTarget.setPointerCapture(e.pointerId);
         }}
         onPointerMove={(e) => {
@@ -136,8 +146,17 @@ export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity }: Props) 
             setView((v) => ({ ...v, x: e.clientX - start.x, y: e.clientY - start.y }));
           }
         }}
-        onPointerUp={() => {
+        onPointerUp={(e) => {
+          const start = drag.current;
           drag.current = null;
+          if (!picking || !start || !frameRef.current) return;
+          if (Math.hypot(e.clientX - start.startX, e.clientY - start.startY) > CLICK_SLOP_PX) return;
+          const rect = frameRef.current.getBoundingClientRect();
+          const col = (e.clientX - rect.left - origin.x - view.x) / scale;
+          const row = (e.clientY - rect.top - origin.y - view.y) / scale;
+          if (!pixels || col < 0 || row < 0 || col > pixels.slab.width || row > pixels.slab.height) return;
+          const { x0, y1, dx } = picking.grid;
+          picking.onPick(x0 + col * dx, y1 - row * dx);
         }}
         onDoubleClick={() => setView({ zoom: 1, x: 0, y: 0 })}
       >
@@ -150,6 +169,27 @@ export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity }: Props) 
             transform: `translate(${origin.x + view.x}px, ${origin.y + view.y}px) scale(${view.zoom})`,
           }}
         />
+        {pixels && picking && (
+          <svg
+            className="slab-markers"
+            viewBox={`0 0 ${pixels.slab.width} ${pixels.slab.height}`}
+            style={{
+              width,
+              height,
+              transform: `translate(${origin.x + view.x}px, ${origin.y + view.y}px) scale(${view.zoom})`,
+            }}
+            aria-hidden="true"
+          >
+            {picking.markers.map((m, i) => (
+              <circle
+                key={i}
+                cx={(m.x - picking.grid.x0) / picking.grid.dx}
+                cy={(picking.grid.y1 - m.y) / picking.grid.dx}
+                r={m.r / picking.grid.dx + 6 / scale}
+              />
+            ))}
+          </svg>
+        )}
         {pixels && (
           <div className="scale-bar" aria-label={`Scale bar: ${barMm} mm`}>
             <div style={{ width: barPx }} />
@@ -173,7 +213,9 @@ export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity }: Props) 
       </div>
       <figcaption>
         {caption}
-        <span className="hint"> · scroll to zoom, drag to pan, double-click to reset</span>
+        <span className="hint">
+          {picking ? " · click to add a tube or remove one" : ""} · scroll to zoom, drag to pan, double-click to reset
+        </span>
       </figcaption>
     </figure>
   );

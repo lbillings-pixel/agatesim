@@ -55,9 +55,11 @@ export interface BandStats {
   crystal_count: number;
 }
 
+export type Host = "volcanic" | "sedimentary" | "seam";
+
 export interface CavityInfo {
   name: string;
-  host: "volcanic" | "sedimentary" | "seam";
+  host: Host;
   description: string;
   outline: [number, number][];
   corners: number;
@@ -83,8 +85,26 @@ export interface RunConfig {
   seed: number;
   archetype?: string | null;
   grid: { resolution: number; margin_fraction: number };
-  cavity: { preset: string; size_mm: number; rotation_deg: number };
+  cavity: CavityConfig;
   model: ModelConfig;
+}
+
+/** A thin filament crossing the slab, seen end-on (tube agate). */
+export interface Tube {
+  x_mm: number;
+  y_mm: number;
+  radius_mm: number;
+}
+
+/** A preset shape, or a drawn outline with its host. Exactly one of preset and outline. */
+export interface CavityConfig {
+  preset?: string | null;
+  outline?: [number, number][] | null;
+  host?: Host | null;
+  smooth?: boolean;
+  size_mm: number;
+  rotation_deg: number;
+  tubes?: Tube[];
 }
 
 export type ModelConfig = { kind: string; schedules?: Record<string, Schedule> } & Record<string, unknown>;
@@ -119,6 +139,8 @@ export interface PreviewResult {
   width: number;
   height: number;
   dx_mm: number;
+  x0_mm: number;
+  y1_mm: number;
   elapsed_ms: number;
   evaluation: Evaluation | null;
   stats: BandStats;

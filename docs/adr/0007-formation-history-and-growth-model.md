@@ -59,7 +59,7 @@ order (fortification first, then waterline) as the default combined preset.
 - Simplifications to revisit:
   - Quartz crystals are equant cells rather than elongated, inward-pointing
     prisms, and the open space has a smooth margin rather than crystal
-    terminations.
+    terminations. (Resolved in M4: see ADR 0008.)
   - All pockets of open space settle to a single level.
   - Wall-lining after the first stage uses a pixel distance transform (half-pixel
     accuracy).

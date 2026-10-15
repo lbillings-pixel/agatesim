@@ -58,7 +58,31 @@ Uruguay bands can also form a flat floor that later agate bands drape over
 ([@lu1994]). The combined archetype therefore takes its stage order from the run's
 schedule.
 
-## 5. Optical archetypes
+## 5. Forms that grow from points
+
+- **Botryoidal and eye agate** are usually described as spherulitic: banding
+  radiates from nucleation sites as hemispherical growths. A review of
+  spherulites in general is catalogued but not yet read ([@shtukenberg2012]), so
+  for now these descriptions are the simulator's working assumptions, not
+  sourced claims about agate.
+- **Tube agate** shows banding around filaments that cross the cavity. We haven't
+  yet found a peer-reviewed study of how tubes form or what the filaments are.
+  The model treats them only geometrically: given filaments, chalcedony lines
+  them as it lines the wall.
+- **Coarse quartz** crystals in the M4 model coarsen inward by geometric
+  selection: of crystals growing from a surface, those aimed closest to the
+  growth direction outgrow the rest. This is the principle usually credited to
+  van der Drift ([@vanderdrift1967], so far checked only at citation level).
+  Whether this is how quartz in agate geodes coarsens is a question for the full
+  texts.
+
+The procedural model shows a geometric point worth checking against specimens. A
+crust of equally fast spherulites much thicker than their spacing grows towards a
+smooth layer, the envelope of their growth fronts. Large lobes on a thick crust
+therefore need either sparse nucleation or competition between unequal growth
+rates (ADR 0008).
+
+## 6. Optical archetypes
 
 - **Shadow agate:** shadows appear to sweep across the slab as it is tilted, an
   effect tied to alternating translucent and opaque bands. We haven't yet found a
@@ -68,7 +92,7 @@ schedule.
   backlit slices. Reported band densities vary widely between informal sources, so
   a peer-reviewed measurement is still to be found.
 
-## 6. What this means for the simulator
+## 7. What this means for the simulator
 
 1. **Output fields the formation models must produce:** phase (chalcedony,
    quartz, moganite, opal, void), impurity concentration (an Fe stand-in for
@@ -93,11 +117,15 @@ schedule.
    Heaney's note that chalcedony itself precipitates from only slightly saturated
    solutions ([@heaney1993]). So the threshold is labelled *effective*, and
    resolving this is an open question below.
+   **M4 adds nucleation** (ADR 0008): a scheduled spherulitic mode in which
+   growth radiates from blue-noise sites on the growth surface (botryoidal and
+   eye forms), tubes as growth surfaces inside the cavity, and quartz crystals
+   with pointed, elongated growth forms that coarsen by geometric selection.
 4. **First mechanistic model (later):** a 2D reaction–diffusion and phase-field
    precipitation model along the lines of [@liu2025] (H2), followed by
    front-feedback oscillatory zoning (H1).
 
-## 7. Open questions to resolve by reading the full texts
+## 8. Open questions to resolve by reading the full texts
 
 - Which dimensionless numbers control band spacing in H1 and H2, and what ranges
   do natural agates imply?
@@ -108,3 +136,9 @@ schedule.
 - What controls the switch from chalcedony to macrocrystalline quartz: silica
   supersaturation, temperature, growth rate, or impurity content? What do the
   reviews conclude?
+- What sets spherulite nucleation density and lobe size in botryoidal
+  chalcedony, and do natural lobes coarsen by competition as the model's do?
+- What are the filaments in tube agate, and are they there before the
+  chalcedony, or do tubes form as channels during growth?
+- Does quartz in agate geodes show the orientation selection and inward widening
+  predicted by geometric selection?

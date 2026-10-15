@@ -8,7 +8,9 @@ import {
   type RunConfig,
   type RunDetail,
   type RunSummary,
+  type Tube,
 } from "./api";
+import { CavityDrawer, type Drawn } from "./components/CavityDrawer";
 import { CavityMenu } from "./components/CavityMenu";
 import { CriteriaPanel } from "./components/CriteriaPanel";
 import { ParamPanel, Slider } from "./components/ParamPanel";
@@ -16,6 +18,7 @@ import { RunBrowser } from "./components/RunBrowser";
 import { ScheduleEditor } from "./components/ScheduleEditor";
 import { SlabView } from "./components/SlabView";
 import { StatsPanel } from "./components/StatsPanel";
+import { TubePanel } from "./components/TubePanel";
 import { type Control, controlsFor, defaultsFor } from "./lib/schema";
 
 const PREVIEW_RESOLUTIONS = [128, 192, 256, 384];
@@ -39,9 +42,20 @@ function suggestedArchetype(kind: string, host: string | undefined): string | nu
 }
 
 /** Automatic run name, used until the user types their own. */
-function autoName(kind: string, cavity: string): string {
-  return `${kind.replace(/^procedural-/, "")}-${cavity}`;
+function autoName(config: RunConfig): string {
+  return `${config.model.kind.replace(/^procedural-/, "")}-${cavityLabel(config)}`;
 }
+
+function cavityLabel(config: RunConfig): string {
+  return config.cavity.preset ?? "drawn";
+}
+
+function drawnOf(config: RunConfig): Drawn | null {
+  const { outline, host, smooth } = config.cavity;
+  return outline && host ? { outline, host, smooth: smooth ?? false } : null;
+}
+
+const round2 = (v: number) => Math.round(v * 100) / 100;
 
 function slug(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+/, "").slice(0, 40) || "run";
@@ -61,6 +75,10 @@ export function App() {
   const [selected, setSelected] = useState<string | null>(null);
   const [pinned, setPinned] = useState<string | null>(null);
   const [details, setDetails] = useState<Record<string, RunDetail>>({});
+  const [drawer, setDrawer] = useState<"edit" | "new" | null>(null);
+  const [lastDrawn, setLastDrawn] = useState<Drawn | null>(null);
+  const [placingTubes, setPlacingTubes] = useState(false);
+  const [tubeRadius, setTubeRadius] = useState(0.3);
 
   const refreshRuns = useCallback(() => {
     api.runs().then(setRuns).catch(() => undefined);
@@ -129,6 +147,8 @@ export function App() {
   const model = useMemo(() => meta?.models.find((m) => m.kind === kind) ?? null, [meta, kind]);
   const controls = useMemo(() => (model ? controlsFor(model.schema.properties) : []), [model]);
   const cavity = meta?.cavities.find((c) => c.name === config?.cavity.preset);
+  const host = cavity?.host ?? config?.cavity.host ?? undefined;
+  const drawn = config ? (drawnOf(config) ?? lastDrawn) : null;
 
   if (loadError) {
     return (
@@ -146,11 +166,9 @@ export function App() {
     setConfig((c) => {
       if (!c) return c;
       const next = change(c);
-      const wasAuto = c.name === autoName(c.model.kind, c.cavity.preset) || meta.presets.some((p) => p.name === c.name);
-      const setupChanged = next.model.kind !== c.model.kind || next.cavity.preset !== c.cavity.preset;
-      return wasAuto && setupChanged && next.name === c.name
-        ? { ...next, name: autoName(next.model.kind, next.cavity.preset) }
-        : next;
+      const wasAuto = c.name === autoName(c) || meta.presets.some((p) => p.name === c.name);
+      const setupChanged = next.model.kind !== c.model.kind || cavityLabel(next) !== cavityLabel(c);
+      return wasAuto && setupChanged && next.name === c.name ? { ...next, name: autoName(next) } : next;
     });
 
   const setModelKind = (kind: string) => {
@@ -164,21 +182,40 @@ export function App() {
         ...defaultsFor(info.schema.properties),
         ...(info.schedules.length > 0 ? { schedules } : {}),
       },
-      archetype: suggestedArchetype(kind, cavity?.host),
+      archetype: suggestedArchetype(kind, host),
     }));
   };
 
-  const setCavity = (name: string) => {
-    const host = meta.cavities.find((c) => c.name === name)?.host;
+  // A new shape replaces the old one and its tubes (they may not fit inside).
+  const setShape = (shape: Pick<RunConfig["cavity"], "preset" | "outline" | "host" | "smooth">, newHost?: string) => {
+    const current = drawnOf(config);
+    if (current) setLastDrawn(current);
     update((c) => {
       // Keep the judge in step with the setting, unless the user picked something else.
-      const autoJudge = c.archetype === suggestedArchetype(c.model.kind, cavity?.host);
+      const autoJudge = c.archetype === suggestedArchetype(c.model.kind, host);
       return {
         ...c,
-        cavity: { ...c.cavity, preset: name },
-        archetype: autoJudge ? suggestedArchetype(c.model.kind, host) : c.archetype,
+        cavity: { ...c.cavity, ...shape, tubes: [] },
+        archetype: autoJudge ? suggestedArchetype(c.model.kind, newHost) : c.archetype,
       };
     });
+  };
+  const setCavity = (name: string) =>
+    setShape(
+      { preset: name, outline: null, host: null, smooth: false },
+      meta.cavities.find((c) => c.name === name)?.host,
+    );
+  const applyDrawn = (d: Drawn) => {
+    setLastDrawn(d);
+    setShape({ preset: null, outline: d.outline, host: d.host, smooth: d.smooth }, d.host);
+  };
+
+  const tubes: Tube[] = config.cavity.tubes ?? [];
+  const setTubes = (next: Tube[]) => update((c) => ({ ...c, cavity: { ...c.cavity, tubes: next } }));
+  const pickTube = (x: number, y: number) => {
+    const hit = tubes.findIndex((t) => Math.hypot(t.x_mm - x, t.y_mm - y) <= Math.max(1, 3 * t.radius_mm));
+    if (hit >= 0) setTubes(tubes.filter((_, i) => i !== hit));
+    else setTubes([...tubes, { x_mm: round2(x), y_mm: round2(y), radius_mm: tubeRadius }]);
   };
 
   const startRun = () => {
@@ -265,7 +302,14 @@ export function App() {
 
           <section>
             <h2>Cavity</h2>
-            <CavityMenu cavities={meta.cavities} selected={config.cavity.preset} onSelect={setCavity} />
+            <CavityMenu
+              cavities={meta.cavities}
+              selected={config.cavity.preset ?? null}
+              drawn={drawn}
+              onSelect={setCavity}
+              onUseDrawn={() => drawn && applyDrawn(drawn)}
+              onDraw={(edit) => setDrawer(edit ? "edit" : "new")}
+            />
             <Slider
               id="cavity-size"
               control={SIZE_CONTROL}
@@ -277,6 +321,17 @@ export function App() {
               control={ROTATION_CONTROL}
               value={config.cavity.rotation_deg}
               onChange={(v) => update((c) => ({ ...c, cavity: { ...c.cavity, rotation_deg: v } }))}
+            />
+            <TubePanel
+              tubes={tubes}
+              placing={placingTubes && selected === null}
+              radius={tubeRadius}
+              onPlacing={(on) => {
+                setPlacingTubes(on);
+                if (on) setSelected(null);
+              }}
+              onRadius={setTubeRadius}
+              onClear={() => setTubes([])}
             />
           </section>
 
@@ -389,6 +444,15 @@ export function App() {
                 tdepSrc={preview.tdep}
                 dxMm={preview.dx_mm}
                 caption={`Preview of “${config.name}”`}
+                picking={
+                  placingTubes
+                    ? {
+                        grid: { x0: preview.x0_mm, y1: preview.y1_mm, dx: preview.dx_mm },
+                        markers: tubes.map((t) => ({ x: t.x_mm, y: t.y_mm, r: t.radius_mm })),
+                        onPick: pickTube,
+                      }
+                    : undefined
+                }
               />
             )}
             {selected && selectedDetail && (
@@ -453,6 +517,16 @@ export function App() {
 
         <RunBrowser runs={runs} jobs={jobs} selected={selected} pinned={pinned} onSelect={setSelected} />
       </div>
+      {drawer && (
+        <CavityDrawer
+          initial={drawer === "edit" ? drawn : null}
+          onUse={(d) => {
+            applyDrawn(d);
+            setDrawer(null);
+          }}
+          onCancel={() => setDrawer(null)}
+        />
+      )}
     </div>
   );
 }

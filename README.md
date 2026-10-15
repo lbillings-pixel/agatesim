@@ -8,9 +8,9 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M3 (formation history).** See the [roadmap](docs/roadmap.md).
+> **Status: M4 (drawing tool and nucleation).** See the [roadmap](docs/roadmap.md).
 
-![Verification presets for fortification, seam and waterline agate](docs/images/archetypes.png)
+![Verification presets of the eight forms reproduced so far](docs/images/archetypes.png)
 
 ## What it reproduces so far
 
@@ -28,7 +28,10 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Waterline | ✅ verified | pending |
 | Combined fortification and waterline | ✅ verified | pending |
 | Banded agate with quartz-crystal centre | ✅ verified | pending |
-| Botryoidal, eye, tube, moss, plume, shadow, iris | pending | pending |
+| Botryoidal | ✅ verified | pending |
+| Eye | ✅ verified | pending |
+| Tube | ✅ verified | pending |
+| Moss, plume, shadow, iris | pending | pending |
 
 ## Approach
 
@@ -64,11 +67,14 @@ The app runs only on your machine (bound to localhost). It offers:
 
 - **Live preview** that updates as you move sliders, judged against the chosen
   archetype as you go.
-- **Cavity menu** of preset shapes for volcanic, sedimentary and seam settings.
+- **Cavity menu** of preset shapes for volcanic, sedimentary and seam settings,
+  plus a **drawing tool** for your own (click corners or sketch freehand; keep
+  corners angular or smooth them).
+- **Tubes**: click the preview to place filaments that banding grows around.
 - **Parameters** with units and a badge for what kind of quantity each one is:
   physical, effective or imposed.
-- **Conditions over time**: a timeline editor for silica supply, settling and
-  iron, with steps, ramps and pulses (growth-history model).
+- **Conditions over time**: a timeline editor for silica supply, settling,
+  spherulitic growth and iron, with steps, ramps and pulses (growth-history model).
 - **Band statistics** for each result, side by side with a pinned run.
 - **Full-resolution runs** in the background, saved to `runs/`.
 - **Run browser and slab viewer** with zoom, pan, a scale bar, a growth slider
@@ -110,7 +116,7 @@ npm --prefix web run lint                 # ESLint
 src/agatesim/
   archetypes/        archetype ladder (registry.toml): criteria and thresholds
   presets/           shipped run configs; one per verified archetype
-  models/            formation models (procedural fortification, waterline)
+  models/            formation models (procedural fortification, waterline, growth history)
   criteria/          measurements that judge results against the ladder
   geometry.py        cavity shapes, exact masks and wall distances
   config.py          run configuration (TOML)
