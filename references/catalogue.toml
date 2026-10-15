@@ -401,3 +401,34 @@ licence = "publisher copyright; cite only"
 checked = "abstract"
 topics = ["oscillatory-zoning", "agate", "trace-elements", "bifurcation"]
 notes = "The Wang–Merino model of trace elements precipitating at the crystallisation front of a silica- and water-rich medium has periodic solutions; bifurcation values found and 51 phase portraits catalogued; limit-cycle duration, trace-element range and zone width per cycle estimated. Ion-microprobe Fe, Sr and Zn profiles of an Arc-Bogdo agate show a gradual accumulation trend with two overlapping cycles plus noise."
+
+# --- Zoning and banding as records -------------------------------------------
+
+[[references]]
+id = "holten1997"
+kind = "article"
+authors = ["Holten, T.", "Jamtveit, B.", "Meakin, P.", "Cortini, M.", "Blundy, J.", "Austrheim, H."]
+year = 1997
+title = "Statistical characteristics and origin of oscillatory zoning in crystals"
+venue = "American Mineralogist 82, 596–606"
+url = "https://msaweb.org/MSA/AmMin/TOC/Articles_Free/1997/Holten_p596-606_97.pdf"
+access = "open"
+licence = "publisher copyright; free to read; cite only"
+checked = "full-text"
+topics = ["oscillatory-zoning", "fractal", "hurst-exponent", "external-forcing", "time-series"]
+notes = "Read in full (M8). Zoning profiles of hydrothermal garnet and vesuvianite and magmatic plagioclase analysed by the width method w(l) ~ l^H and power spectra: self-affine over up to two decades, Hurst exponents mostly 0.25–0.45 (anti-persistent), no distinct periodic components, and no chaos found (Grassberger–Procaccia, nonlinear forecasting). A periodic pattern instead gives w(l) slope ~1 below the period and ~0 above it. Profiles are records in depth, distorted from time by a varying growth rate. Simulations: Brownian noise imposed at the edge of a diffusion layer is smoothed only below a correlation length xi, which is below 0.1 µm for open hydrothermal systems, so profiles record external fluctuations nearly unfiltered; a concentration-dependent growth rate does not change the statistics; multi-valued (nonideal) responses can transform the noise. They attribute anti-persistence to anti-persistent forcing, and expect closed systems like agate to be internally driven. Large jumps record events such as veins opening."
+
+[[references]]
+id = "torii2024"
+kind = "article"
+authors = ["Torii, H.", "Miura, H."]
+year = 2024
+title = "Oscillatory zoning of minerals as a fingerprint of impurity-mediated growth"
+venue = "Scientific Reports 14, 13337"
+doi = "10.1038/s41598-024-63722-4"
+access = "open"
+licence = "CC-BY-4.0"
+checked = "sections"
+sections_read = ["model", "conditions for oscillation", "discussion"]
+topics = ["oscillatory-zoning", "impurity", "step-pinning", "bistability", "diffusion"]
+notes = "Read via the PMC page summary (M8). Impurities adsorb on the surface and pin growth steps (Langmuir adsorption kinetics); growth rate is bistable over a range of supersaturation, and with 1D diffusion of solute and impurity this hysteresis gives oscillatory zoning. Needs diffusion-controlled growth (no convection, crystals far apart) and a wide enough bistable range; slower adsorption lengthens the zoning wavelength. No external forcing considered. Proposes impurity-induced hysteresis as a common cause of oscillatory zoning; agate and chalcedony not discussed. An inhibition-based alternative to our catalysis-based H1 feedback."

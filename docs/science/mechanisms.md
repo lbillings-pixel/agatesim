@@ -244,6 +244,16 @@ chalcedony, and viscous fingering.
 
    Next: a 2D reaction–diffusion and nucleation model (H2) along the lines of
    [@liu2025] and the pre-nucleation models of [@cartwright2026] §4.1.5.
+5. **Band sequences as records (ADR 0014).** Zoning profiles in other
+   minerals are scale-free and anti-persistent (Hurst exponent 0.25–0.45), with
+   no periodic component, which [@holten1997] read as environmental forcing.
+   Impurity inhibition is a second internal oscillator ([@torii2024]). In our
+   H1 model a fluctuating silica supply is recorded cycle by cycle: thicker
+   cycles where supply is lower. The forcing's fractal character is not
+   recorded, because the oscillator rewrites it to a Hurst exponent of about
+   0.3–0.5. Environmental signals in agate bands are therefore best recovered
+   by inversion through a mechanism model, and by comparing nodules that grew
+   in the same environment.
 
 ## 9. Open questions to resolve by reading the full texts
 
