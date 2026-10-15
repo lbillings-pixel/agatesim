@@ -28,6 +28,7 @@ def test_meta_describes_cavities_models_and_parameters(client: TestClient) -> No
         "procedural-waterline",
         "mechanistic-front-feedback",
         "mechanistic-liesegang",
+        "mechanistic-settling",
     }
     h1 = next(m for m in meta["models"] if m["kind"] == "mechanistic-front-feedback")
     natures = {p.get("nature") for p in h1["schema"]["properties"].values() if "nature" in p}

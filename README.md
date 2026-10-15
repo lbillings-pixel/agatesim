@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M8 in progress. All twelve target forms reproduced at the procedural tier; fortification and seam also at the mechanistic tier, by self-organised front feedback (H1, [ADR 0013](docs/adr/0013-mechanistic-front-feedback.md)).** See the [roadmap](docs/roadmap.md).
+> **Status: M8 done. All twelve target forms reproduced at the procedural tier; fortification, seam and waterline also at the mechanistic tier (H1 front feedback, H4 hindered settling). See [mechanisms](docs/images/mechanisms.png).** See the [roadmap](docs/roadmap.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -25,7 +25,7 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 |---|---|---|
 | Fortification | ✅ verified | ✅ verified (H1) |
 | Vein / seam | ✅ verified | ✅ verified (H1) |
-| Waterline | ✅ verified | pending |
+| Waterline | ✅ verified | ✅ verified (H4) |
 | Combined fortification and waterline | ✅ verified | pending |
 | Banded agate with quartz-crystal centre | ✅ verified | pending |
 | Botryoidal | ✅ verified | pending |
@@ -41,9 +41,11 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 - **2D cross-sections first**, with 3D later.
 - **Procedural models first** for fast, controllable results. Mechanistic physics
   follows behind the same interface ([ADR 0003](docs/adr/0003-model-architecture.md)):
-  front feedback (H1) and Liesegang precipitation (H2) now; settling next. H2's
-  rings round off corners, so it fails the fortification test that H1 passes
-  ([ADR 0015](docs/adr/0015-mechanistic-liesegang.md)).
+  front feedback (H1), Liesegang precipitation (H2) and hindered settling (H4).
+  H2's rings round off corners, so it fails the fortification test that H1
+  passes ([ADR 0015](docs/adr/0015-mechanistic-liesegang.md)). H1 passes it in
+  a boundary-layer approximation whose limits are recorded in
+  [ADR 0017](docs/adr/0017-h1-without-the-boundary-layer.md).
 - **Competing formation hypotheses are separate, swappable mechanisms**, because
   the science is unsettled ([science notes](docs/science/mechanisms.md)).
 - **Every run is reproducible** from its config, seed and code version.

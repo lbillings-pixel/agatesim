@@ -251,7 +251,17 @@ chalcedony, and viscous fingering.
    band spacings, against 0.45 for H1). This supports, within our models, the
    argument that Liesegang patterns lack agate's sharp corners
    ([@cartwright2026] §5.1.1).
-6. **Band sequences as records (ADR 0014).** Zoning profiles in other
+6. **Hindered settling (H4, ADR 0016).** Settling of particle pulses by Kynch's
+   theory ([@kynch1952]) gives horizontal layers over a curved floor, verifying
+   waterline. It predicts that layers thin where the cavity widens, and that
+   pulses closer together than the settling time merge into one deposit.
+7. **H1 without the boundary-layer approximation (ADR 0017).** The oscillating
+   regime of the boundary-layer model doesn't survive explicit diffusion: the
+   front outruns its silica layer. With physical front conditions, converged
+   oscillations are rare (about 0.05% of sampled parameter sets), stick-slip,
+   and give bands thinner than the diffusion length, possibly the scale of
+   micro-banding rather than of visible bands.
+8. **Band sequences as records (ADR 0014).** Zoning profiles in other
    minerals are scale-free and anti-persistent (Hurst exponent 0.25–0.45), with
    no periodic component, which [@holten1997] read as environmental forcing.
    Impurity inhibition is a second internal oscillator ([@torii2024]). In our

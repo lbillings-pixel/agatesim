@@ -1,6 +1,6 @@
 # 13. First mechanistic model: front feedback (H1)
 
-- Status: accepted
+- Status: accepted; limits recorded in [ADR 0017](0017-h1-without-the-boundary-layer.md): the oscillating regime used here doesn't survive explicit diffusion
 - Date: 2026-10-15
 - Builds on: [ADR 0003](0003-model-architecture.md), [ADR 0005](0005-verification-tiers-and-parameter-natures.md)
 

@@ -36,10 +36,16 @@ from agatesim.models import (
     ProceduralFortification,
     ProceduralGrowth,
     ProceduralWaterline,
+    Settling,
 )
 
 ModelConfig = Annotated[
-    ProceduralFortification | ProceduralWaterline | ProceduralGrowth | FrontFeedback | Liesegang,
+    ProceduralFortification
+    | ProceduralWaterline
+    | ProceduralGrowth
+    | FrontFeedback
+    | Liesegang
+    | Settling,
     Field(discriminator="kind"),
 ]
 

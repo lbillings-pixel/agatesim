@@ -35,6 +35,7 @@ from agatesim.models import (
     ProceduralFortification,
     ProceduralGrowth,
     ProceduralWaterline,
+    Settling,
 )
 from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
@@ -53,6 +54,7 @@ MODELS: dict[str, type[BaseModel]] = {
     "procedural-waterline": ProceduralWaterline,
     "mechanistic-front-feedback": FrontFeedback,
     "mechanistic-liesegang": Liesegang,
+    "mechanistic-settling": Settling,
 }
 MODEL_TITLES = {
     "procedural-growth": "Growth history (scheduled conditions)",
@@ -60,6 +62,7 @@ MODEL_TITLES = {
     "procedural-waterline": "Waterline (horizontal layers)",
     "mechanistic-front-feedback": "Front feedback (mechanistic, H1: self-organised bands)",
     "mechanistic-liesegang": "Liesegang precipitation (mechanistic, H2; slow without a GPU)",
+    "mechanistic-settling": "Hindered settling (mechanistic, H4: horizontal layers)",
 }
 MODEL_SCHEDULES: dict[str, list[dict[str, object]]] = {
     "procedural-growth": [

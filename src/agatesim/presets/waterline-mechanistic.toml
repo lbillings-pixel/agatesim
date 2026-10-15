@@ -1,0 +1,17 @@
+# Verification preset for the waterline archetype (mechanistic tier, H4):
+# pulses of particles settling with hindered (Kynch) settling pack up from the
+# floor as horizontal layers, with no imposed layer thicknesses (ADR 0016).
+name = "waterline-mechanistic"
+seed = 3
+archetype = "waterline"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-round"
+size_mm = 40
+
+[model]
+kind = "mechanistic-settling"
+gravity_deg = 270

@@ -88,7 +88,7 @@ suture, open void, or quartz infill.
 id = "waterline"
 name = "Waterline (Uruguay-type) horizontal banding"
 rung = 3
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 summary = """

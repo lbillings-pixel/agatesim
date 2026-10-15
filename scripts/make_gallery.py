@@ -5,7 +5,7 @@
 - archetypes.png: the verification preset of each implemented archetype (optical
   forms in their optical view: shadow lit at 30°, iris backlit and seen at 18°).
 - cavities.png:   every preset cavity shape, banded with the fortification model.
-- mechanisms.png: the mechanistic models H1 and H2 side by side, in a nodule and a seam.
+- mechanisms.png: the mechanistic models: H1 and H2 in a nodule and a seam, and H4.
 """
 
 from __future__ import annotations
@@ -91,6 +91,7 @@ def main() -> None:
         _tile(load_preset("liesegang-nodule"), "H2 Liesegang: nodule"),
         _tile(load_preset("seam-mechanistic"), "H1 front feedback: seam"),
         _tile(load_preset("liesegang-seam"), "H2 Liesegang: seam"),
+        _tile(load_preset("waterline-mechanistic"), "H4 hindered settling: floor"),
     ]
     _sheet(mechanisms, columns=2).save(OUT / "mechanisms.png", optimize=True)
     print(f"wrote archetypes.png, cavities.png and mechanisms.png in {OUT}")

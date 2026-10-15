@@ -432,3 +432,19 @@ checked = "sections"
 sections_read = ["model", "conditions for oscillation", "discussion"]
 topics = ["oscillatory-zoning", "impurity", "step-pinning", "bistability", "diffusion"]
 notes = "Read via the PMC page summary (M8). Impurities adsorb on the surface and pin growth steps (Langmuir adsorption kinetics); growth rate is bistable over a range of supersaturation, and with 1D diffusion of solute and impurity this hysteresis gives oscillatory zoning. Needs diffusion-controlled growth (no convection, crystals far apart) and a wide enough bistable range; slower adsorption lengthens the zoning wavelength. No external forcing considered. Proposes impurity-induced hysteresis as a common cause of oscillatory zoning; agate and chalcedony not discussed. An inhibition-based alternative to our catalysis-based H1 feedback."
+
+# --- Sedimentation -----------------------------------------------------------
+
+[[references]]
+id = "kynch1952"
+kind = "article"
+authors = ["Kynch, G. J."]
+year = 1952
+title = "A theory of sedimentation"
+venue = "Transactions of the Faraday Society 48, 166–176"
+doi = "10.1039/TF9524800166"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["sedimentation", "hindered-settling", "kinematic-waves"]
+notes = "The kinematic theory of batch settling: particle concentration depending on height only, with a flux that is a function of concentration; settling interfaces move as kinematic waves and shocks. Basis of the H4 model (ADR 0016). DOI checked to resolve to the RSC record; the paper itself not read."

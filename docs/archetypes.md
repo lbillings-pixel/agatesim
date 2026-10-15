@@ -12,7 +12,7 @@ provisional until the archetype is implemented.
 |---:|---|---|---|---|---|---|
 | 1 | [Fortification (concentric) banding](#fortification) | verified | verified | formation | volcanic, sedimentary | — |
 | 2 | [Vein / seam agate](#seam) | verified | verified | formation | seam | fortification |
-| 3 | [Waterline (Uruguay-type) horizontal banding](#waterline) | verified | pending | formation | volcanic, sedimentary | — |
+| 3 | [Waterline (Uruguay-type) horizontal banding](#waterline) | verified | verified | formation | volcanic, sedimentary | — |
 | 4 | [Combined fortification and waterline banding](#fortification-waterline) | verified | pending | formation | volcanic, sedimentary | fortification, waterline |
 | 5 | [Banded agate with quartz-crystal centre](#quartz-geode) | verified | pending | formation | volcanic, sedimentary | fortification |
 | 6 | [Botryoidal habit](#botryoidal) | verified | pending | formation | volcanic, sedimentary, seam | fortification |
