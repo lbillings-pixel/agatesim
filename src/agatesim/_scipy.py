@@ -26,6 +26,17 @@ def nearest_distance(samples: FloatArray, points: FloatArray) -> NDArray[np.floa
     return cast(NDArray[np.float64], result[0])
 
 
+def distance_to_false(mask: NDArray[np.bool_], dx: float) -> NDArray[np.float64]:
+    """Distance (in units of dx) from each True pixel centre to the nearest False pixel centre."""
+    return cast(NDArray[np.float64], ndimage.distance_transform_edt(mask, sampling=dx))
+
+
+def nearest_index(samples: FloatArray, points: FloatArray) -> NDArray[np.int64]:
+    """Index of the nearest of `samples` (m, 2) for each of `points` (n, 2)."""
+    result: Any = KDTree(samples).query(points, workers=-1)
+    return cast(NDArray[np.int64], result[1])
+
+
 def nearest_true_indices(mask: NDArray[np.bool_]) -> NDArray[np.int64]:
     """For every pixel, the (row, col) index of the nearest True pixel; shape (2, ny, nx)."""
     result: Any = ndimage.distance_transform_edt(~mask, return_indices=True)

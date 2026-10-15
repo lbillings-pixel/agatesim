@@ -27,6 +27,7 @@ class Fields:
     impurity: NDArray[np.float32]  # 0..1, iron-oxide stand-in that controls colour
     translucency: NDArray[np.float32]  # 0 (milky, opaque) .. 1 (clear)
     t_dep: NDArray[np.float32]  # normalized deposition time 0..1; NaN where nothing deposited
+    grain: NDArray[np.int32]  # crystal id for macrocrystalline quartz; -1 elsewhere
 
     def arrays(self) -> dict[str, NDArray[np.generic]]:
         return {
@@ -35,4 +36,5 @@ class Fields:
             "impurity": self.impurity,
             "translucency": self.translucency,
             "t_dep": self.t_dep,
+            "grain": self.grain,
         }

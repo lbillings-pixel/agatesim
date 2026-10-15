@@ -96,6 +96,44 @@ def _host_rock(result: SimulationResult) -> FloatArray:
     return rock
 
 
+QUARTZ_CLEAR = np.array([118.0, 124.0, 136.0])
+QUARTZ_MILKY = np.array([214.0, 214.0, 218.0])
+
+
+def _quartz(result: SimulationResult) -> FloatArray:
+    """Coarse quartz crystals: each grain a glassy tone with a facet gradient,
+    darker at grain boundaries."""
+    f = result.fields
+    shape = result.grid.shape
+    grain = f.grain
+    q = grain >= 0
+    rgb = np.zeros((*shape, 3))
+    if not q.any():
+        return rgb
+    n = int(grain.max()) + 1
+    rng = np.random.default_rng(result.config.seed + 3)
+    tone = rng.uniform(0.0, 0.55, n)  # 0 = water-clear, 1 = milky
+    facet = rng.uniform(0, 2 * np.pi, n)
+    rows, cols = np.nonzero(q)
+    g = grain[rows, cols]
+    counts = np.bincount(g, minlength=n).astype(np.float64)
+    counts[counts == 0] = 1
+    cy = np.bincount(g, rows, minlength=n) / counts
+    cx = np.bincount(g, cols, minlength=n) / counts
+    radius = np.sqrt(counts / np.pi)
+    along = ((cols - cx[g]) * np.cos(facet[g]) + (rows - cy[g]) * np.sin(facet[g])) / radius[g]
+    t = np.clip(tone[g] + 0.18 * along, 0, 1)[:, None]
+    colour = QUARTZ_CLEAR * (1 - t) + QUARTZ_MILKY * t
+    stain = _smoothstep(0.05, 0.4, f.impurity[rows, cols].astype(np.float64))[:, None]
+    colour = colour * (1 - 0.5 * stain) + STAIN[2][1] * 0.5 * stain
+    edge = np.zeros(shape, dtype=bool)
+    for axis in (0, 1):
+        edge |= q & (np.roll(grain, 1, axis=axis) != grain)
+    colour[edge[rows, cols]] *= 0.72
+    rgb[rows, cols] = colour
+    return rgb
+
+
 def render_slab(result: SimulationResult) -> NDArray[np.uint8]:
     f = result.fields
     dx = result.grid.dx
@@ -122,6 +160,9 @@ def render_slab(result: SimulationResult) -> NDArray[np.uint8]:
     rgb = _host_rock(result)
     rgb[phase == Phase.VOID] = VOID
     rgb[chal] = colour[chal]
+    quartz = phase == Phase.QUARTZ
+    if quartz.any():
+        rgb[quartz] = _quartz(result)[quartz]
     return np.clip(np.rint(rgb), 0, 255).astype(np.uint8)
 
 

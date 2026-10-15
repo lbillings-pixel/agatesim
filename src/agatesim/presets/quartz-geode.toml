@@ -1,0 +1,32 @@
+# Verification preset for the quartz-centre geode (procedural tier):
+# chalcedony banding while silica supply is high, then coarse quartz growing
+# inward after supply falls below the quartz threshold, leaving an open centre.
+name = "quartz-geode"
+seed = 6
+archetype = "quartz-geode"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-almond"
+size_mm = 60
+
+[model]
+kind = "procedural-growth"
+gravity_deg = 270
+growth_mm = 18
+band_period = 0.02
+quartz_threshold = 0.35
+quartz_grain_mm = 0.5
+quartz_coarsening = 0.6
+
+[model.schedules.silica]
+base = 1.0
+events = [{ type = "step", at = 0.35, value = 0.3 }]
+
+[model.schedules.settling]
+base = 0.0
+
+[model.schedules.iron]
+base = 0.35

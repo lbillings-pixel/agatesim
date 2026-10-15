@@ -29,22 +29,29 @@ from agatesim.archetypes import load_registry
 from agatesim.config import RunConfig, load_config, load_preset, preset_names
 from agatesim.criteria import evaluate, implemented
 from agatesim.geometry import CAVITY_PRESETS, make_cavity
-from agatesim.models import ProceduralFortification, ProceduralWaterline
+from agatesim.models import ProceduralFortification, ProceduralGrowth, ProceduralWaterline
+from agatesim.models.growth import SCHEDULED
 from agatesim.render import render_slab
 from agatesim.runs import is_run_id, list_runs
 from agatesim.server.jobs import Job, JobManager
 from agatesim.simulate import simulate
+from agatesim.stats import band_statistics
 
 STATIC_DIR = Path(__file__).parent / "static"
 MAX_PREVIEW_RESOLUTION = 512
 MAX_RUN_RESOLUTION = 4096
 MODELS: dict[str, type[BaseModel]] = {
+    "procedural-growth": ProceduralGrowth,
     "procedural-fortification": ProceduralFortification,
     "procedural-waterline": ProceduralWaterline,
 }
 MODEL_TITLES = {
+    "procedural-growth": "Growth history (scheduled conditions)",
     "procedural-fortification": "Fortification (wall-parallel banding)",
     "procedural-waterline": "Waterline (horizontal layers)",
+}
+MODEL_SCHEDULES: dict[str, list[dict[str, object]]] = {
+    "procedural-growth": [v.model_dump(mode="json") for v in SCHEDULED],
 }
 
 
@@ -93,7 +100,12 @@ def _meta() -> dict[str, object]:
             for p in CAVITY_PRESETS.values()
         ],
         "models": [
-            {"kind": kind, "title": MODEL_TITLES[kind], "schema": cls.model_json_schema()}
+            {
+                "kind": kind,
+                "title": MODEL_TITLES[kind],
+                "schema": cls.model_json_schema(),
+                "schedules": MODEL_SCHEDULES.get(kind, []),
+            }
             for kind, cls in MODELS.items()
         ],
         "presets": [
@@ -151,6 +163,7 @@ def create_app(runs_dir: Path, static_dir: Path | None = STATIC_DIR) -> FastAPI:
             "dx_mm": result.grid.dx,
             "elapsed_ms": round(elapsed * 1000),
             "evaluation": _evaluation(config, result),
+            "stats": band_statistics(result).to_json(),
         }
 
     @app.post("/api/runs", status_code=202)
@@ -177,12 +190,17 @@ def create_app(runs_dir: Path, static_dir: Path | None = STATIC_DIR) -> FastAPI:
     @app.get("/api/runs/{run_id}")
     def run_detail(run_id: str) -> dict[str, object]:
         path = run_dir(run_id)
-        metrics = path / "metrics.json"
+
+        def optional(name: str) -> object:
+            p = path / name
+            return json.loads(p.read_text("utf-8")) if p.exists() else None
+
         return {
             "id": run_id,
             "config": load_config(path / "config.toml").model_dump(mode="json"),
             "metadata": json.loads((path / "metadata.json").read_text("utf-8")),
-            "evaluation": json.loads(metrics.read_text("utf-8")) if metrics.exists() else None,
+            "evaluation": optional("metrics.json"),
+            "stats": optional("stats.json"),
         }
 
     @app.get("/api/runs/{run_id}/slab.png")

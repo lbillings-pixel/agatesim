@@ -23,9 +23,12 @@ def test_meta_describes_cavities_models_and_parameters(client: TestClient) -> No
     meta = client.get("/api/meta").json()
     assert len(meta["cavities"]) == 9
     assert {m["kind"] for m in meta["models"]} == {
+        "procedural-growth",
         "procedural-fortification",
         "procedural-waterline",
     }
+    growth = next(m for m in meta["models"] if m["kind"] == "procedural-growth")
+    assert [s["key"] for s in growth["schedules"]] == ["silica", "settling", "iron"]
     fort = next(m for m in meta["models"] if m["kind"] == "procedural-fortification")
     band = fort["schema"]["properties"]["mean_band_thickness_mm"]
     assert band["units"] == "mm"
@@ -42,6 +45,14 @@ def test_preview_returns_images_and_evaluation(client: TestClient) -> None:
     assert body["image"].startswith("data:image/png;base64,")
     assert body["tdep"].startswith("data:image/png;base64,")
     assert body["evaluation"]["archetype"] == "seam"
+    assert body["stats"]["band_count"] > 0
+
+
+def test_preview_accepts_a_scheduled_growth_config(client: TestClient) -> None:
+    config = _config("quartz-geode")
+    response = client.post("/api/preview", json={"config": config, "resolution": 128})
+    assert response.status_code == 200, response.text
+    assert response.json()["stats"]["quartz_fraction"] > 0
 
 
 def test_preview_rejects_invalid_config(client: TestClient) -> None:

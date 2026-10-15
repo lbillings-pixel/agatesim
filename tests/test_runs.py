@@ -17,7 +17,17 @@ def test_run_record_is_complete_and_reproducible(tmp_path: Path) -> None:
     record = write_run(result, tmp_path, started=datetime.now().astimezone(), elapsed_s=0.5)
 
     names = {p.name for p in record.path.iterdir()}
-    assert names == {"config.toml", "metadata.json", "fields.zarr", "slab.png", "metrics.json"}
+    assert names == {
+        "config.toml",
+        "metadata.json",
+        "fields.zarr",
+        "slab.png",
+        "stats.json",
+        "metrics.json",
+    }
+    stats = json.loads((record.path / "stats.json").read_text("utf-8"))
+    assert stats["band_count"] > 0
+    assert stats["thickness_mean_mm"] > 0
 
     # The saved config reproduces the run exactly.
     reloaded = load_config(record.path / "config.toml")

@@ -1,0 +1,30 @@
+# The reverse sequence: horizontal layers settle first and make a flat floor,
+# then wall-parallel bands line the remaining space and drape over that floor
+# (described by Lu & Sunagawa 1994). Judged as the combined archetype.
+name = "waterline-then-fortification"
+seed = 5
+archetype = "fortification-waterline"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-round"
+size_mm = 40
+
+[model]
+kind = "procedural-growth"
+gravity_deg = 270
+growth_mm = 28
+band_period = 0.012
+
+[model.schedules.silica]
+base = 1.0
+
+[model.schedules.settling]
+base = 1.0
+events = [{ type = "step", at = 0.15, value = 0.0 }]
+
+[model.schedules.iron]
+base = 0.1
+events = [{ type = "ramp", start = 0.15, end = 1.0, value = 0.45 }]

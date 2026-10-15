@@ -1,0 +1,30 @@
+# Verification preset for the combined archetype (procedural tier).
+# Sequence like the Artigas specimen (references/images): a wall-parallel rim,
+# then settled horizontal layers, then wall-parallel bands draping the rest.
+name = "fortification-waterline"
+seed = 4
+archetype = "fortification-waterline"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 50
+
+[model]
+kind = "procedural-growth"
+gravity_deg = 270
+growth_mm = 30
+band_period = 0.012
+
+[model.schedules.silica]
+base = 1.0
+
+[model.schedules.settling]
+base = 0.0
+events = [{ type = "pulse", at = 0.25, width = 0.12, value = 1.0 }]
+
+[model.schedules.iron]
+base = 0.15
+events = [{ type = "pulse", at = 0.25, width = 0.12, value = 0.05 }]

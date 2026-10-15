@@ -14,9 +14,11 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_vali
 
 from agatesim.archetypes import load_registry
 from agatesim.geometry import CAVITY_PRESETS
-from agatesim.models import ProceduralFortification, ProceduralWaterline
+from agatesim.models import ProceduralFortification, ProceduralGrowth, ProceduralWaterline
 
-ModelConfig = Annotated[ProceduralFortification | ProceduralWaterline, Field(discriminator="kind")]
+ModelConfig = Annotated[
+    ProceduralFortification | ProceduralWaterline | ProceduralGrowth, Field(discriminator="kind")
+]
 
 
 class GridConfig(BaseModel):

@@ -13,8 +13,10 @@ from agatesim.grid import FloatArray, Grid
 from agatesim.models import (
     Domain,
     ProceduralFortification,
+    ProceduralGrowth,
     ProceduralWaterline,
     run_fortification,
+    run_growth,
     run_waterline,
 )
 
@@ -34,7 +36,7 @@ class SimulationResult:
     @property
     def gravity(self) -> FloatArray:
         """Unit gravity vector; models without gravity are taken as formed upright."""
-        if isinstance(self.config.model, ProceduralWaterline):
+        if isinstance(self.config.model, ProceduralWaterline | ProceduralGrowth):
             return self.config.model.gravity()
         th = np.radians(DEFAULT_GRAVITY_DEG)
         return np.array([np.cos(th), np.sin(th)])
@@ -51,4 +53,6 @@ def simulate(config: RunConfig) -> SimulationResult:
             fields = run_fortification(model, domain, rng)
         case ProceduralWaterline():
             fields = run_waterline(model, domain, rng)
+        case ProceduralGrowth():
+            fields = run_growth(model, domain, rng)
     return SimulationResult(config=config, domain=domain, fields=fields)

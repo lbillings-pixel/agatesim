@@ -124,7 +124,7 @@ record which way was "up" at the time they formed (a geopetal indicator).
 id = "fortification-waterline"
 name = "Combined fortification and waterline banding"
 rung = 4
-status = { procedural = "pending", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification", "waterline"]
@@ -137,18 +137,20 @@ since nature records both sequences.
   [[archetypes.criteria]]
   id = "two-domains"
   description = "Distinct wall-parallel and horizontal band domains coexist."
-  metric = "Both the fortification and waterline orientation criteria pass within their own domains."
+  metric = "Bands in the smaller domain. A band is horizontal if its boundary is straight (RMS < 0.5% of cavity size) and perpendicular to gravity (mean |cos| > 0.95); wall-parallel if clearly curved (RMS > 1%) and not level overall (mean |cos| < 0.9)."
+  min = 3
 
   [[archetypes.criteria]]
-  id = "sequence-honoured"
-  description = "The cross-cutting relationship matches the configured stage order."
-  metric = "The later domain's bands truncate or drape over the earlier domain's, as scheduled."
+  id = "staged"
+  description = "The domains form in a few uninterrupted stages, not interleaved band by band."
+  metric = "Number of uninterrupted runs of one domain, in deposition order (e.g. wall → horizontal → wall is 3). Whether the stage order matches the schedule is checked in tests."
+  max = 4
 
 [[archetypes]]
 id = "quartz-geode"
 name = "Banded agate with quartz-crystal centre"
 rung = 5
-status = { procedural = "pending", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification"]
@@ -159,18 +161,21 @@ toward the centre (and sometimes an open void) as silica supply falls.
 
   [[archetypes.criteria]]
   id = "phase-transition"
-  description = "Microcrystalline banding gives way to macrocrystalline quartz inward."
-  metric = "Phase field switches from chalcedony to quartz along wall-to-centre profiles."
+  description = "Chalcedony lines the wall and macrocrystalline quartz grows inside it."
+  metric = "Fraction of quartz pixels not touching the host rock (0 if either phase is missing)."
+  min = 0.99
 
   [[archetypes.criteria]]
   id = "inward-coarsening"
   description = "Crystal size increases toward the centre."
-  metric = "Grain size increases monotonically with distance from the wall in the quartz zone."
+  metric = "Spearman correlation between each crystal's mean distance from the wall and its size (needs at least 8 crystals)."
+  min = 0.5
 
   [[archetypes.criteria]]
-  id = "supply-controlled"
-  description = "The transition responds to the silica-supply schedule."
-  metric = "Moving the supply drop in time moves the transition depth in the same direction."
+  id = "quartz-last"
+  description = "Quartz formed after the chalcedony banding."
+  metric = "Fraction of quartz deposited no earlier than the last chalcedony. That the transition follows the silica-supply schedule is checked in tests."
+  min = 0.95
 
 [[archetypes]]
 id = "botryoidal"

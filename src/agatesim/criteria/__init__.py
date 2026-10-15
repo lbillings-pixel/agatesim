@@ -9,7 +9,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from agatesim.archetypes import load_registry
-from agatesim.criteria import fortification, seam, waterline
+from agatesim.criteria import combined, fortification, quartz_geode, seam, waterline
 from agatesim.criteria.types import Measurement
 from agatesim.simulate import SimulationResult
 
@@ -17,6 +17,8 @@ EVALUATORS: dict[str, Callable[[SimulationResult], dict[str, Measurement]]] = {
     "fortification": fortification.evaluate,
     "seam": seam.evaluate,
     "waterline": waterline.evaluate,
+    "fortification-waterline": combined.evaluate,
+    "quartz-geode": quartz_geode.evaluate,
 }
 
 

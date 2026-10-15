@@ -2,11 +2,16 @@
 fail on results that don't show its form (negative controls). Without negative
 controls, a criterion could pass everything and verify nothing."""
 
+from collections.abc import Mapping
+
 import pytest
 
 from agatesim.archetypes import Status, Tier, load_registry
 from agatesim.config import RunConfig, load_preset, preset_names
 from agatesim.criteria import Evaluation, evaluate, implemented
+from agatesim.fields import Phase
+from agatesim.models import ProceduralGrowth
+from agatesim.schedules import Schedule
 from agatesim.simulate import simulate
 
 NEGATIVE_RESOLUTION = 384
@@ -88,6 +93,86 @@ def test_coarse_resolution_is_not_judged_on_corners() -> None:
     corners = {r.id: r for r in _evaluate("fortification", coarse).results}["corners-preserved"]
     assert corners.value is None
     assert "too coarse" in corners.detail
+
+
+def _with_schedule(config: RunConfig, key: str, spec: Mapping[str, object]) -> RunConfig:
+    assert isinstance(config.model, ProceduralGrowth)
+    schedules = config.model.schedules.model_copy(update={key: Schedule.model_validate(spec)})
+    return config.model_copy(
+        update={"model": config.model.model_copy(update={"schedules": schedules})}
+    )
+
+
+def _detail(ev: Evaluation, criterion: str) -> str:
+    return next(r.detail for r in ev.results if r.id == criterion)
+
+
+def test_combined_stage_order_follows_the_schedule() -> None:
+    forward = _evaluate("fortification-waterline", load_preset("fortification-waterline"))
+    reverse = _evaluate("fortification-waterline", load_preset("waterline-then-fortification"))
+    assert _detail(forward, "staged") == "sequence: wall → horizontal → wall"
+    assert _detail(reverse, "staged") == "sequence: horizontal → wall"
+
+
+@pytest.mark.parametrize("preset", ["fortification", "waterline"])
+def test_combined_criteria_reject_single_domain(preset: str) -> None:
+    single = load_preset(preset).with_resolution(NEGATIVE_RESOLUTION)
+    assert "two-domains" in _failed(_evaluate("fortification-waterline", single))
+
+
+def test_combined_criteria_reject_interleaved_domains() -> None:
+    pulses = [{"type": "pulse", "at": 0.1 + 0.08 * i, "width": 0.03, "value": 1} for i in range(8)]
+    interleaved = _with_schedule(
+        load_preset("fortification-waterline").with_resolution(NEGATIVE_RESOLUTION),
+        "settling",
+        {"base": 0, "events": pulses},
+    )
+    assert _failed(_evaluate("fortification-waterline", interleaved)) == {"staged"}
+
+
+def test_quartz_criteria_reject_uniform_crystals() -> None:
+    uniform = _with_model(load_preset("quartz-geode"), quartz_coarsening=0.0)
+    assert _failed(_evaluate("quartz-geode", uniform)) == {"inward-coarsening"}
+
+
+def test_quartz_criteria_reject_chalcedony_after_quartz() -> None:
+    steps = [{"type": "step", "at": 0.35, "value": 0.3}, {"type": "step", "at": 0.8, "value": 1.0}]
+    late = _with_schedule(load_preset("quartz-geode"), "silica", {"base": 1, "events": steps})
+    assert "quartz-last" in _failed(_evaluate("quartz-geode", late))
+
+
+def test_quartz_criteria_reject_banding_without_quartz() -> None:
+    fort = load_preset("fortification").with_resolution(NEGATIVE_RESOLUTION)
+    assert _failed(_evaluate("quartz-geode", fort)) == {
+        "phase-transition",
+        "inward-coarsening",
+        "quartz-last",
+    }
+
+
+def test_quartz_transition_follows_silica_supply() -> None:
+    """An earlier drop in silica supply starts the quartz closer to the wall."""
+    depths: list[float] = []
+    for at in (0.2, 0.45):
+        drop = {"base": 1, "events": [{"type": "step", "at": at, "value": 0.3}]}
+        config = _with_schedule(load_preset("quartz-geode").with_resolution(384), "silica", drop)
+        result = simulate(config)
+        quartz = result.fields.phase == Phase.QUARTZ
+        depths.append(float(result.domain.wall_distance[quartz].min()))
+    assert depths[0] < depths[1]
+
+
+def test_growth_model_reproduces_fortification_when_wall_lining_only() -> None:
+    """Cross-model consistency: the growth model with no settling and steady supply
+    passes the fortification criteria in the angular nodule."""
+    base = load_preset("fortification")
+    growth = load_preset("fortification-waterline").model_copy(
+        update={"cavity": base.cavity, "archetype": "fortification"}
+    )
+    growth = _with_schedule(growth, "settling", {"base": 0})
+    growth = _with_model(growth, band_period=0.025, growth_mm=25)  # bands ≈ 8 px apart
+    ev = _evaluate("fortification", growth)
+    assert ev.passed, [r for r in ev.results if not r.passed]
 
 
 def test_unimplemented_archetype_raises() -> None:

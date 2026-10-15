@@ -5,6 +5,7 @@
   metadata.json   code version, seed, library versions, timing
   fields.zarr/    the material fields
   slab.png        rendered slab
+  stats.json      band statistics (agatesim.stats)
   metrics.json    archetype criteria results (if the run names an archetype)
 """
 
@@ -27,6 +28,7 @@ from agatesim.config import load_config
 from agatesim.criteria import Evaluation, evaluate, implemented
 from agatesim.render import render_slab, to_png_image
 from agatesim.simulate import SimulationResult
+from agatesim.stats import band_statistics
 
 LIBRARIES = ("numpy", "scipy", "pillow", "zarr", "pydantic")
 
@@ -134,6 +136,12 @@ def write_run(
     group.create_array("cavity_mask", data=result.domain.mask)
 
     to_png_image(render_slab(result)).save(path / "slab.png")
+
+    (path / "stats.json").write_text(
+        json.dumps(band_statistics(result).to_json(), indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
     evaluation = None
     if config.archetype is not None and config.archetype in implemented():

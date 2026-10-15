@@ -13,8 +13,8 @@ provisional until the archetype is implemented.
 | 1 | [Fortification (concentric) banding](#fortification) | verified | pending | formation | volcanic, sedimentary | — |
 | 2 | [Vein / seam agate](#seam) | verified | pending | formation | seam | fortification |
 | 3 | [Waterline (Uruguay-type) horizontal banding](#waterline) | verified | pending | formation | volcanic, sedimentary | — |
-| 4 | [Combined fortification and waterline banding](#fortification-waterline) | pending | pending | formation | volcanic, sedimentary | fortification, waterline |
-| 5 | [Banded agate with quartz-crystal centre](#quartz-geode) | pending | pending | formation | volcanic, sedimentary | fortification |
+| 4 | [Combined fortification and waterline banding](#fortification-waterline) | verified | pending | formation | volcanic, sedimentary | fortification, waterline |
+| 5 | [Banded agate with quartz-crystal centre](#quartz-geode) | verified | pending | formation | volcanic, sedimentary | fortification |
 | 6 | [Botryoidal habit](#botryoidal) | pending | pending | formation | volcanic, sedimentary, seam | fortification |
 | 7 | [Eye agate](#eye) | pending | pending | formation | volcanic, sedimentary | botryoidal |
 | 8 | [Tube agate](#tube) | pending | pending | formation | volcanic, sedimentary | eye |
@@ -75,8 +75,8 @@ since nature records both sequences.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `two-domains` | Distinct wall-parallel and horizontal band domains coexist. | Both the fortification and waterline orientation criteria pass within their own domains. | provisional |
-| `sequence-honoured` | The cross-cutting relationship matches the configured stage order. | The later domain's bands truncate or drape over the earlier domain's, as scheduled. | provisional |
+| `two-domains` | Distinct wall-parallel and horizontal band domains coexist. | Bands in the smaller domain. A band is horizontal if its boundary is straight (RMS < 0.5% of cavity size) and perpendicular to gravity (mean |cos| > 0.95); wall-parallel if clearly curved (RMS > 1%) and not level overall (mean |cos| < 0.9). | value ≥ 3 |
+| `staged` | The domains form in a few uninterrupted stages, not interleaved band by band. | Number of uninterrupted runs of one domain, in deposition order (e.g. wall → horizontal → wall is 3). Whether the stage order matches the schedule is checked in tests. | value ≤ 4 |
 
 ## Banded agate with quartz-crystal centre
 
@@ -87,9 +87,9 @@ toward the centre (and sometimes an open void) as silica supply falls.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `phase-transition` | Microcrystalline banding gives way to macrocrystalline quartz inward. | Phase field switches from chalcedony to quartz along wall-to-centre profiles. | provisional |
-| `inward-coarsening` | Crystal size increases toward the centre. | Grain size increases monotonically with distance from the wall in the quartz zone. | provisional |
-| `supply-controlled` | The transition responds to the silica-supply schedule. | Moving the supply drop in time moves the transition depth in the same direction. | provisional |
+| `phase-transition` | Chalcedony lines the wall and macrocrystalline quartz grows inside it. | Fraction of quartz pixels not touching the host rock (0 if either phase is missing). | value ≥ 0.99 |
+| `inward-coarsening` | Crystal size increases toward the centre. | Spearman correlation between each crystal's mean distance from the wall and its size (needs at least 8 crystals). | value ≥ 0.5 |
+| `quartz-last` | Quartz formed after the chalcedony banding. | Fraction of quartz deposited no earlier than the last chalcedony. That the transition follows the silica-supply schedule is checked in tests. | value ≥ 0.95 |
 
 ## Botryoidal habit
 

@@ -119,4 +119,5 @@ def fields_from_bands(
         impurity=np.where(filled, bands.impurity[safe], 0.0).astype(np.float32),
         translucency=np.where(filled, bands.translucency[safe], 0.0).astype(np.float32),
         t_dep=np.where(filled, t_dep, np.nan).astype(np.float32),
+        grain=np.full(domain.grid.shape, -1, dtype=np.int32),
     )
