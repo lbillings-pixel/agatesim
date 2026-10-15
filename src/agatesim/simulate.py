@@ -12,12 +12,14 @@ from agatesim.grid import FloatArray, Grid
 from agatesim.models import (
     Domain,
     FrontFeedback,
+    Liesegang,
     ProceduralFortification,
     ProceduralGrowth,
     ProceduralWaterline,
     run_fortification,
     run_front_feedback,
     run_growth,
+    run_liesegang,
     run_waterline,
 )
 
@@ -58,6 +60,8 @@ def simulate(config: RunConfig) -> SimulationResult:
             fields = run_growth(model, domain, rng)
         case FrontFeedback():
             fields = run_front_feedback(model, domain, rng)
+        case Liesegang():
+            fields = run_liesegang(model, domain, rng)
     return SimulationResult(config=config, domain=domain, fields=_with_inclusions(fields, domain))
 
 

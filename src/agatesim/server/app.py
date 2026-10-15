@@ -31,6 +31,7 @@ from agatesim.criteria import evaluate, implemented
 from agatesim.geometry import CAVITY_PRESETS, make_cavity
 from agatesim.models import (
     FrontFeedback,
+    Liesegang,
     ProceduralFortification,
     ProceduralGrowth,
     ProceduralWaterline,
@@ -51,12 +52,14 @@ MODELS: dict[str, type[BaseModel]] = {
     "procedural-fortification": ProceduralFortification,
     "procedural-waterline": ProceduralWaterline,
     "mechanistic-front-feedback": FrontFeedback,
+    "mechanistic-liesegang": Liesegang,
 }
 MODEL_TITLES = {
     "procedural-growth": "Growth history (scheduled conditions)",
     "procedural-fortification": "Fortification (wall-parallel banding)",
     "procedural-waterline": "Waterline (horizontal layers)",
     "mechanistic-front-feedback": "Front feedback (mechanistic, H1: self-organised bands)",
+    "mechanistic-liesegang": "Liesegang precipitation (mechanistic, H2; slow without a GPU)",
 }
 MODEL_SCHEDULES: dict[str, list[dict[str, object]]] = {
     "procedural-growth": [

@@ -32,13 +32,14 @@ from agatesim.geometry import (
 from agatesim.grid import FloatArray
 from agatesim.models import (
     FrontFeedback,
+    Liesegang,
     ProceduralFortification,
     ProceduralGrowth,
     ProceduralWaterline,
 )
 
 ModelConfig = Annotated[
-    ProceduralFortification | ProceduralWaterline | ProceduralGrowth | FrontFeedback,
+    ProceduralFortification | ProceduralWaterline | ProceduralGrowth | FrontFeedback | Liesegang,
     Field(discriminator="kind"),
 ]
 

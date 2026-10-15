@@ -244,7 +244,14 @@ chalcedony, and viscous fingering.
 
    Next: a 2D reaction–diffusion and nucleation model (H2) along the lines of
    [@liu2025] and the pre-nucleation models of [@cartwright2026] §4.1.5.
-5. **Band sequences as records (ADR 0014).** Zoning profiles in other
+5. **Liesegang precipitation (H2, ADR 0015).** In the pre-nucleation model, a
+   metal diffuses in from the wall and precipitates in a silica gel. It gives
+   the Liesegang spacing and width laws. In an angular cavity its rings are
+   wall-parallel and closed, but they round off the corners (turn width 1.6–2.4
+   band spacings, against 0.45 for H1). This supports, within our models, the
+   argument that Liesegang patterns lack agate's sharp corners
+   ([@cartwright2026] §5.1.1).
+6. **Band sequences as records (ADR 0014).** Zoning profiles in other
    minerals are scale-free and anti-persistent (Hurst exponent 0.25–0.45), with
    no periodic component, which [@holten1997] read as environmental forcing.
    Impurity inhibition is a second internal oscillator ([@torii2024]). In our

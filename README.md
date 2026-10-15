@@ -41,7 +41,9 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 - **2D cross-sections first**, with 3D later.
 - **Procedural models first** for fast, controllable results. Mechanistic physics
   follows behind the same interface ([ADR 0003](docs/adr/0003-model-architecture.md)):
-  front feedback (H1) now; reaction–diffusion, phase-field and settling next.
+  front feedback (H1) and Liesegang precipitation (H2) now; settling next. H2's
+  rings round off corners, so it fails the fortification test that H1 passes
+  ([ADR 0015](docs/adr/0015-mechanistic-liesegang.md)).
 - **Competing formation hypotheses are separate, swappable mechanisms**, because
   the science is unsettled ([science notes](docs/science/mechanisms.md)).
 - **Every run is reproducible** from its config, seed and code version.
