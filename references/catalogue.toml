@@ -22,9 +22,10 @@ venue = "Minerals 10(11), 1037"
 doi = "10.3390/min10111037"
 access = "open"
 licence = "CC-BY-4.0"
-checked = "abstract"
-topics = ["mineralogy", "geochemistry", "genesis", "formation-temperature", "host-rocks"]
-notes = "Primary overview. Abstract gives formation temperatures of roughly 20–230 °C from fluid-inclusion and oxygen-isotope data."
+checked = "sections"
+sections_read = ["1", "3", "4.1", "4.2.1", "5.4", "5.5", "6"]
+topics = ["mineralogy", "geochemistry", "genesis", "formation-temperature", "host-rocks", "quartz-transition", "spherulites", "moss", "plume", "tubes"]
+notes = """Primary overview, read 2026-10-15. Key points: crystallisation often starts with spherulitic chalcedony at the wall that continues into fibrous chalcedony (§4.1.2, §5.4, Fig. 29); wall-lining agates have three zones, spherulitic/granular rim, fibrous chalcedony, macrocrystalline quartz centre (§4.1.2); "Macrocrystalline quartz crystallizes when the SiO2 concentration in the mineralizing fluid is low" (§6), with a drop in impurities and defects at the chalcedony–quartz interface (§5.4); Uruguay bands from gravitational sedimentation of sols with flocculated silica particles, needing high silica concentration (§4.1.2); iron pigments are rejected by crystallising quartz and accumulate along the banding (§5.4); visible bands can contain up to 1000 micro-bands per mm (§4.1.2); colour banding governed by self-organisation of the silica matrix rather than Liesegang diffusion (§5.4); "infiltration channels"/"escape tubes" mostly deformation of plastic silica (§5.5); stalactitic SFF and moss agate filaments have Fe-silicate/zeolite cores with concentric chalcedony and possible biosignatures (§5.5); plume agate interpreted as silica-garden self-assembly from osmosis, reaction and buoyancy (§5.5)."""
 
 [[references]]
 id = "moxon2020"
@@ -36,9 +37,10 @@ venue = "Minerals 10(11), 953"
 doi = "10.3390/min10110953"
 access = "open"
 licence = "CC-BY-4.0"
-checked = "citation"
-topics = ["genesis", "history-of-theories", "basic-igneous-hosts"]
-notes = "History of genesis theories for agate in basic igneous hosts; quoted in search results as noting general consensus on formation below 100 °C in those hosts. Read in full before relying on it."
+checked = "sections"
+sections_read = ["2.1", "2.2", "2.4 (gel experiments, Heaney model)", "5"]
+topics = ["genesis", "history-of-theories", "basic-igneous-hosts", "quartz-transition", "liesegang"]
+notes = """History of genesis theories for agate in basic igneous hosts, read in part 2026-10-15. Summary (§5): formation mostly below 100 °C in basic igneous hosts; agate starts as amorphous silica and matures over geological time (moganite slowly converts to quartz, crystallites coarsen); "little support" now for agate formation by metal-ion diffusion into a silica gel. Describes Heaney's mechanism: a weakly polymerised silica solution forms chalcedony and leaves dilute monomeric silicic acid, undersaturated for amorphous silica but saturated for quartz, from which prismatic quartz grows last. Reports gel experiments (Godovikov et al.) in which branched dendrites appear at maximum supersaturation and faceted crystals at minimal supersaturation."""
 
 [[references]]
 id = "cartwright2026"
@@ -100,7 +102,7 @@ access = "closed"
 licence = "publisher copyright; cite only"
 checked = "abstract"
 topics = ["chalcedony-growth", "fibers", "moganite", "low-temperature"]
-notes = "Fibres grow by spiral growth on a screw dislocation from short-chain silica polymers; explains [110] elongation, periodic fibre twisting, Brazil twins and moganite intergrowths. Supports precipitation from slightly saturated solutions below about 100 °C."
+notes = "Fibres grow by spiral growth on a screw dislocation from short-chain silica polymers; explains [110] elongation, periodic fibre twisting, Brazil twins and moganite intergrowths. Supports precipitation from slightly saturated solutions below about 100 °C. As summarised by moxon2020 (§2.4): chalcedony forms from weakly polymerised silica, leaving dilute monomeric silicic acid from which prismatic quartz grows last."
 
 [[references]]
 id = "heaney1995"
@@ -117,18 +119,18 @@ topics = ["banding", "self-organization", "oscillatory-zoning"]
 notes = "Cited elsewhere as proposing oscillating defect concentrations. Abstract not yet read; DOI still to confirm."
 
 [[references]]
-id = "krug1993"
+id = "krug1994"
 kind = "article"
-authors = ["Krug", "Jacob"]
-year = 1993
+authors = ["Krug, H.-J.", "Jacob, K.-H."]
+year = 1994
 title = "Genese und Fragmentierung rhythmischer Bänderungen durch Selbstorganisation"
-venue = "Zeitschrift der Deutschen Geologischen Gesellschaft 144"
+venue = "Zeitschrift der Deutschen Geologischen Gesellschaft 144, 452–460"
 url = "https://www.schweizerbart.de/papers/zdgg_alt/detail/144/94680/Genese_und_Fragmentierung_rhythmischer_Banderungen_durch_Selbstorganisation"
 access = "closed"
 licence = "publisher copyright; cite only"
 checked = "abstract"
 topics = ["banding", "liesegang", "precipitation-diffusion", "self-organization"]
-notes = "Nonlinear precipitation-diffusion model: rhythmic banding by in-situ self-organization, without sedimentation. Authors' initials and exact year still to confirm."
+notes = "Nonlinear precipitation-diffusion model: rhythmic banding by in-situ self-organization, without sedimentation. Authors' initials, year (1994) and pages from the reference list of goetze2020 (ref. 203); earlier recorded here as 1993."
 
 [[references]]
 id = "lu1994"
@@ -144,6 +146,125 @@ licence = "unknown (free to read on J-STAGE); cite only until confirmed"
 checked = "abstract"
 topics = ["waterline", "uruguay-banding", "gravity-settling", "crystallites", "geode"]
 notes = "Fibres are aligned quartz crystallites 8–100 nm long. Uruguay (horizontal) bands are euhedral quartz grains (0.5–4 µm) and/or spherulites (≤100 µm), deposited by gravity after the agate bands and coarse quartz formed. Proposes growth from a hydrothermal solution carrying ~10 nm polymerized particles."
+
+# --- Inclusions: dendrites, filaments, plumes, tubes ---------------------------
+
+[[references]]
+id = "hou2023"
+kind = "article"
+authors = [
+    "Hou, Z.", "Woś, D.", "Tschegg, C.", "Rogowitz, A.", "Rice, A. H. N.", "Nasdala, L.",
+    "Fusseis, F.", "Szymczak, P.", "Grasemann, B.",
+]
+year = 2023
+title = "Three-dimensional mineral dendrites reveal a nonclassical crystallization pathway"
+venue = "Geology 51(7), 626–630"
+doi = "10.1130/G51127.1"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["dendrites", "manganese", "dla", "particle-attachment", "competition", "lattice-boltzmann"]
+notes = """Read in full 2026-10-15 (author-hosted copy). 3D Mn-oxide dendrites in zeolitised tuff grow from a fracture surface by attachment of Mn-oxide nanoparticles formed where Mn-bearing fluid mixes with oxygenated pore water: 'more in line with the diffusion-limited aggregation model' (chopard1991) than the viscous-fingering model (garciaruiz1994). Dendrites compete for particles: abundance falls and width rises with distance from the base, with lengths N(L) ~ L^-α, α ≈ 1.25. Finite particle concentration adds a diffusive length scale, so the forest is not fully scale-free (3D fractal dimension rising from ~2.70 to 2.80). Core–rim banding records discrete fluid pulses, with particles reaching dendrite tips first. A lattice-Boltzmann reaction–diffusion–aggregation model reproduces the morphology; higher concentrations give bulkier dendrites."""
+
+[[references]]
+id = "chopard1991"
+kind = "article"
+authors = ["Chopard, B.", "Herrmann, H. J.", "Vicsek, T."]
+year = 1991
+title = "Structure and growth mechanism of mineral dendrites"
+venue = "Nature 353, 409–412"
+doi = "10.1038/353409a0"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "abstract"
+topics = ["dendrites", "manganese", "iron", "fractal", "reaction-diffusion"]
+notes = "Dendrites of hydrous Fe or Mn oxides on limestone surfaces form when supersaturated solutions penetrate the rock and precipitate on exposure to air. Analyses their fractal properties and proposes a lattice reaction–diffusion model in which reaction conditions account for the observed variation in fractal dimension."
+
+[[references]]
+id = "garciaruiz1994"
+kind = "book"
+authors = ["García-Ruiz, J. M.", "Otálora, F.", "Sánchez-Navas, A.", "Higes-Rolando, F. J."]
+year = 1994
+title = "The formation of manganese dendrites as the mineral record of flow structures"
+venue = "In Fractals and Dynamic Systems in Geoscience (Springer), 307–318"
+doi = "10.1007/978-3-662-07304-9_23"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["dendrites", "manganese", "viscous-fingering"]
+notes = "Citation from the reference list of hou2023, which describes it as proposing that dendrites are fingers of infiltrating Mn-rich fluid that solidify on reacting with oxygen (viscous fingering)."
+
+[[references]]
+id = "monecke2023"
+kind = "article"
+authors = ["Monecke, T.", "Reynolds, T. J.", "Taksavasu, T.", "Tharalson, E. R.", "Zeeck, L. R.", "Guzman, M.", "Gissler, G.", "Sherlock, R."]
+year = 2023
+title = "Natural growth of gold dendrites within silica gels"
+venue = "Geology 51, 189–192"
+doi = "10.1130/G48927.1"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["dendrites", "silica-gel", "gold"]
+notes = "Citation from the reference list of hou2023. Relevant as evidence that dendrites can grow inside silica gel before it crystallises; not yet read (publisher page behind a bot check)."
+
+[[references]]
+id = "goetze2020b"
+kind = "article"
+authors = ["Götze, J.", "Hofmann, B.", "Machałowski, T.", "Tsurkan, M. V.", "Jesionowski, T.", "Ehrlich, H.", "Kleeberg, R.", "Ottens, B."]
+year = 2020
+title = "Biosignatures in Subsurface Filamentous Fabrics (SFF) from the Deccan Volcanic Province, India"
+venue = "Minerals 10(6), 540"
+doi = "10.3390/min10060540"
+access = "open"
+licence = "CC-BY-4.0"
+checked = "sections"
+sections_read = ["Abstract", "Results: cavity description (Fig. 4)", "Conclusions"]
+topics = ["moss", "filaments", "stalactites", "tubes", "biosignatures", "celadonite"]
+notes = """Filamentous fabrics in basalt cavities, from pseudo-stalactites to irregular mats, grow on a thread-like centre (fungal chitin found in the innermost core) and are wrapped in concentric layers: Fe-rich phases (Fe oxides, celadonite, smectite), then Ca zeolites, then silica (opal-CT, chalcedony, macrocrystalline quartz). Lengths up to 100 cm with constant diameters. In one cavity, filaments on the ceiling and walls partly show gravity-controlled elongation downward, while the floor holds randomly intergrown filaments embedded in chalcedony 'similar to the so-called moss agate', each with a green inner zone and a chalcedony crust up to 1 cm."""
+
+[[references]]
+id = "haudin2014"
+kind = "article"
+authors = ["Haudin, F.", "Cartwright, J. H. E.", "Brau, F.", "De Wit, A."]
+year = 2014
+title = "Spiral precipitation patterns in confined chemical gardens"
+venue = "Proceedings of the National Academy of Sciences 111(49), 17363–17367"
+doi = "10.1073/pnas.1409552111"
+url = "https://arxiv.org/abs/1411.5099"
+access = "open"
+licence = "publisher terms; preprint on arXiv"
+checked = "abstract"
+topics = ["chemical-gardens", "plume", "self-assembly"]
+notes = "Cited by goetze2020 (ref. 224) for chemical gardens as inorganic self-assembly from osmosis, reaction and buoyancy, its interpretation of plume agate. Abstract: chemical gardens grown in a quasi-2D confined geometry by injecting one reagent solution into another; confinement reduces the influence of buoyancy; a class of self-similar logarithmic spirals is found over a large parameter range."
+
+[[references]]
+id = "granasy2005"
+kind = "article"
+authors = ["Gránásy, L.", "Pusztai, T.", "Tegze, G.", "Warren, J. A.", "Douglas, J. F."]
+year = 2005
+title = "Growth and form of spherulites"
+venue = "Physical Review E 72, 011605"
+url = "https://arxiv.org/abs/cond-mat/0412630"
+access = "open"
+licence = "arXiv preprint; publisher copyright for the journal version"
+checked = "abstract"
+topics = ["spherulites", "phase-field", "botryoidal"]
+notes = "Cited by goetze2020 (ref. 202) for spherulites forming from an amorphous silica precursor. Abstract (via NIST record): phase-field simulations attribute spherulitic growth to randomisation of local crystal orientation as new grains nucleate at the growth front; faceted crystals and symmetric dendrites form when discrete crystal symmetries dominate. A candidate mechanistic model for botryoidal and eye forms (M8). Journal DOI still to confirm."
+
+[[references]]
+id = "oehler1976"
+kind = "article"
+authors = ["Oehler, J. H."]
+year = 1976
+title = "Hydrothermal crystallization of silica gel"
+venue = "Geological Society of America Bulletin 87, 1143–1152"
+url = "https://pubs.geoscienceworld.org/gsa/gsabulletin"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["silica-gel", "crystallization", "timescales"]
+notes = "Citation from the reference list of goetze2020 (ref. 184), which reports that Oehler crystallised silica gel to quartz in the laboratory in 12 h to 180 days under high-pressure/high-temperature conditions that may not apply to agate."
 
 # --- Crystal growth ----------------------------------------------------------
 

@@ -37,6 +37,7 @@ class Checked(StrEnum):
 
     CITATION = "citation"  # bibliographic details confirmed only
     ABSTRACT = "abstract"  # abstract or summary read
+    SECTIONS = "sections"  # abstract plus the sections named in `sections_read`
     FULL_TEXT = "full-text"  # full text read
 
 
@@ -56,6 +57,15 @@ class Reference(BaseModel):
     checked: Checked
     topics: tuple[str, ...] = ()
     notes: str = ""
+    sections_read: tuple[str, ...] = ()  # required when checked = "sections"
+
+    @model_validator(mode="after")
+    def _sections_named(self) -> Reference:
+        if (self.checked is Checked.SECTIONS) != bool(self.sections_read):
+            raise ValueError(
+                f"reference {self.id!r}: list sections_read exactly when checked = 'sections'"
+            )
+        return self
 
     @model_validator(mode="after")
     def _locatable(self) -> Reference:

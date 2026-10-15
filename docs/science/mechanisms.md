@@ -1,9 +1,11 @@
 # Agate formation: what is known, what is debated, and what it means for the model
 
-> **Status: first draft (2026-10-14).** Each claim is limited by how far its source
-> has been read. See the `checked` field in `references/catalogue.toml`. Most
-> sources so far have been checked at citation or abstract level, and reading the
-> full texts is ongoing work.
+> **Status: second draft (2026-10-15).** Each claim is limited by how far its
+> source has been read. See the `checked` field in `references/catalogue.toml`
+> (`sections` means only the listed sections). The two open-access reviews
+> ([@goetze2020], [@moxon2020]) and one dendrite study ([@hou2023]) are now read
+> in full or in large part; most other sources are still at citation or abstract
+> level.
 
 ## 1. What agate is
 
@@ -45,10 +47,35 @@ Agate is banded **chalcedony**, a microcrystalline form of silica (SiO₂).
 There is no consensus ([@goetze2020], [@moxon2020]). The simulator treats each
 hypothesis as a swappable mechanism (ADR 0003).
 
+What the reviews agree on:
+
+- **Agate starts from non-crystalline silica.** Silicic acid accumulates and
+  condenses into silica sols and amorphous silica, the precursors of the agate
+  microstructure. High defect densities point to rapid crystallisation under
+  non-equilibrium conditions ([@goetze2020] §6). Agate then matures over
+  geological time as moganite slowly converts to quartz and crystallites coarsen
+  ([@moxon2020] §5).
+- **Growth starts at the wall as spherulites.** Crystallisation mostly begins at
+  the cavity wall with granular or spherulitic chalcedony, which continues inward
+  into fibrous chalcedony. Many agates show three zones: a spherulitic or
+  granular rim, fibrous chalcedony, and a macrocrystalline quartz centre
+  ([@goetze2020] §4.1.2, §5.4).
+- **Visible bands are bundles of finer ones.** A visible band can hold up to 1000
+  micro-bands per millimetre. Bands differ in silica phase, crystallite size,
+  porosity and finely dispersed pigments such as iron oxides ([@goetze2020]
+  §4.1.2). Iron is rejected by the crystallising quartz and carried along the
+  front, so it collects along the banding ([@goetze2020] §5.4).
+- **Liesegang diffusion in a gel is out of favour as the cause of banding.** Gel
+  experiments do reproduce agate-like patterns, but the reviews find colour
+  banding is governed mainly by self-organisation of the crystallising silica
+  ([@goetze2020] §5.4), and there is "little support" now for metal-ion
+  diffusion into a pre-existing gel ([@moxon2020] §5). H2 stays in the table as a
+  hypothesis to test, not a favoured one.
+
 | # | Hypothesis | Key idea | Sources | Model family |
 |---|---|---|---|---|
 | H1 | Self-organized crystallization | Feedback between growth and composition at the crystallization front produces rhythmic bands without any external cycling. Bands alternate between straight-fibred, trace-element-poor layers and twisted-fibred, trace-element-rich layers. | [@wang1990], [@merino1995], [@heaney1995] | Coupled front growth with concentration feedback (oscillatory zoning) |
-| H2 | Liesegang-type precipitation–diffusion | Supersaturation builds up, nucleates, then depletes, giving periodic precipitation bands in a gel or porous medium, without sedimentation. | [@krug1993], [@jahnke2008], [@liu2025] | Reaction–diffusion with nucleation thresholds; phase-field (Cahn–Hilliard) separation of the precipitate |
+| H2 | Liesegang-type precipitation–diffusion | Supersaturation builds up, nucleates, then depletes, giving periodic precipitation bands in a gel or porous medium, without sedimentation. | [@krug1994], [@jahnke2008], [@liu2025] | Reaction–diffusion with nucleation thresholds; phase-field (Cahn–Hilliard) separation of the precipitate |
 | H3 | Repeated fluid pulses | Each pulse of silica-bearing fluid deposits a layer, so bands record changes in external supply. | Debated in the literature; primary sources to add | Wall-inward deposition driven by a supply schedule |
 | H4 | Gravity settling | Particles too large to stay suspended settle to the cavity floor, forming horizontal (Uruguay, waterline) bands. One study finds these bands are made of euhedral quartz grains (0.5–4 µm) and/or spherulites (≤100 µm), deposited after the wall-lining bands and coarse quartz. | [@lu1994] | Particle sedimentation in a still pool |
 
@@ -56,25 +83,40 @@ H1–H3 explain **wall-parallel (fortification)** banding. H4 explains **waterli
 banding. Nature records both orders of the two stages. In a geode, horizontal
 Uruguay bands can also form a flat floor that later agate bands drape over
 ([@lu1994]). The combined archetype therefore takes its stage order from the run's
-schedule.
+schedule. One review attributes horizontal layers to gravitational sedimentation
+of sols with flocculated silica particles, which needs a high silica
+concentration, so horizontally layered agates are typical of particular
+localities ([@goetze2020] §4.1.2).
 
 ## 5. Forms that grow from points
 
-- **Botryoidal and eye agate** are usually described as spherulitic: banding
-  radiates from nucleation sites as hemispherical growths. A review of
-  spherulites in general is catalogued but not yet read ([@shtukenberg2012]), so
-  for now these descriptions are the simulator's working assumptions, not
-  sourced claims about agate.
-- **Tube agate** shows banding around filaments that cross the cavity. We haven't
-  yet found a peer-reviewed study of how tubes form or what the filaments are.
-  The model treats them only geometrically: given filaments, chalcedony lines
-  them as it lines the wall.
-- **Coarse quartz** crystals in the M4 model coarsen inward by geometric
-  selection: of crystals growing from a surface, those aimed closest to the
-  growth direction outgrow the rest. This is the principle usually credited to
-  van der Drift ([@vanderdrift1967], so far checked only at citation level).
-  Whether this is how quartz in agate geodes coarsens is a question for the full
-  texts.
+- **Botryoidal and eye agate.** Agate growth commonly starts as separate
+  spherulites at the wall that merge into continuous fibrous layers
+  ([@goetze2020] §5.4, Fig. 29), which is the eye-then-layers sequence of the
+  eye preset. Colloform or botryoidal textures are read as precipitation of
+  silica gel in free space ([@goetze2020] §4.1.2). Spherulites in general
+  (reviewed in [@shtukenberg2012], not yet read) have a phase-field model in
+  which growth-front nucleation randomises crystal orientation
+  ([@granasy2005], abstract only): a candidate mechanistic model.
+- **Tube agate.** One review interprets most so-called infiltration channels
+  ("escape tubes") as deformation of still-plastic silica rather than supply
+  channels ([@goetze2020] §5.5). Pseudo-stalactites in basalt cavities are
+  filaments up to 100 cm long with constant diameter, wrapped in concentric
+  layers: Fe-rich phases such as celadonite and smectite, then zeolites, then
+  silica. Fungal chitin was found in some filament cores ([@goetze2020b]). The
+  tube model's geometry (a filament core wrapped by concentric chalcedony)
+  matches that description. Nothing in the model depends on what the filaments
+  are.
+- **Coarse quartz** crystallises "when the SiO2 concentration in the mineralizing
+  fluid is low" ([@goetze2020] §6), with a drop in impurities and defects at the
+  chalcedony–quartz interface (§5.4). Heaney's mechanism, as summarised in
+  [@moxon2020]: a weakly polymerised silica solution forms chalcedony and leaves
+  dilute monomeric silicic acid, undersaturated for amorphous silica but
+  saturated for quartz, from which prismatic quartz grows last. This supports
+  the model's quartz threshold on silica supply (see §7). In the model the
+  crystals coarsen inward by geometric selection, the principle usually credited
+  to van der Drift ([@vanderdrift1967], citation level only). Whether agate
+  quartz does so is still to check.
 
 The procedural model shows a geometric point worth checking against specimens. A
 crust of equally fast spherulites much thicker than their spacing grows towards a
@@ -82,7 +124,45 @@ smooth layer, the envelope of their growth fronts. Large lobes on a thick crust
 therefore need either sparse nucleation or competition between unequal growth
 rates (ADR 0008).
 
-## 6. Optical archetypes
+## 6. Inclusions: dendrites, moss and plumes
+
+"Moss agate" covers at least two different things, and the literature gives each
+its own mechanism.
+
+- **Dendrites of manganese or iron oxide** (dendritic agate). Mineral dendrites
+  form where Fe- or Mn-bearing solutions meet oxygen. Chopard and co-authors
+  modelled them as a lattice reaction–diffusion process whose conditions set the
+  fractal dimension ([@chopard1991], abstract). A study of 3D Mn dendrites found
+  growth by attachment of oxide nanoparticles that diffuse to the dendrites,
+  "more in line with" diffusion-limited aggregation (DLA) than with the
+  competing model of solidified fingers of infiltrating fluid ([@hou2023],
+  [@garciaruiz1994]). In that study dendrites competed for particles, so fewer
+  and wider dendrites reached farther from their base, and a finite particle
+  concentration made the pattern bulkier and not fully scale-free. Particles
+  reached dendrite tips first, and banding inside the dendrites records discrete
+  fluid pulses. Dendrites usually grow on fracture surfaces, but can also grow
+  inside silica gel ([@monecke2023], citation only), and dendrites appear in
+  silica-gel experiments at high supersaturation ([@moxon2020] §2.4).
+- **Green filaments** (moss agate in the narrow sense). In Deccan basalt cavities,
+  filaments with green Fe-silicate cores, randomly intergrown and embedded in
+  chalcedony, are compared to moss agate. Each filament has a chalcedony crust up
+  to 1 cm thick, and some filaments on ceilings and walls hang downward under
+  gravity ([@goetze2020b]). Biosignatures are reported in such fabrics
+  ([@goetze2020] §5.5, [@goetze2020b]).
+- **Plumes** are interpreted as silica gardens: plant-like structures formed by
+  inorganic self-assembly through osmosis, chemical reaction and buoyancy
+  ([@goetze2020] §5.5, citing [@haudin2014]). Buoyancy gives them a preferred
+  direction, upward.
+
+For M5 the simulator grows inclusions by multi-particle DLA (ADR 0009):
+particles start spread through the open space, diffuse, and attach to branches
+rooted on the growth surface. Chalcedony then grows over the inclusions, as it
+grows over tube filaments. A drift of the particles along gravity is a
+procedural stand-in for the buoyant, upward-directed growth of plumes. The
+alternatives stay open: dendrites growing in fractures or gel after the
+chalcedony, and viscous fingering.
+
+## 7. Optical archetypes
 
 - **Shadow agate:** shadows appear to sweep across the slab as it is tilted, an
   effect tied to alternating translucent and opaque bands. We haven't yet found a
@@ -90,9 +170,16 @@ rates (ADR 0008).
   description and treat the mechanism as an open question.
 - **Iris agate:** very fine banding acts as a diffraction grating in thin,
   backlit slices. Reported band densities vary widely between informal sources, so
-  a peer-reviewed measurement is still to be found.
+  a peer-reviewed measurement is still to be found. One review reports up to
+  1000 micro-bands per millimetre inside visible bands ([@goetze2020] §4.1.2),
+  that is spacings down to about 1 µm, the order of magnitude a visible-light
+  grating needs.
+- **Band colours** that the M6 renderer should reproduce: white bands are
+  plate-edge structures that reflect light, clear bands are globular and porous,
+  and blue comes from Tyndall scattering by the micro-particles ([@goetze2020]
+  §5.4).
 
-## 7. What this means for the simulator
+## 8. What this means for the simulator
 
 1. **Output fields the formation models must produce:** phase (chalcedony,
    quartz, moganite, opal, void), impurity concentration (an Fe stand-in for
@@ -111,21 +198,22 @@ rates (ADR 0008).
    **M3 adds formation history** (ADR 0007): scheduled silica supply, settling and
    iron. Wall-lining and settling stages can come in either order, matching both
    sequences in [@lu1994]. Below a silica-supply threshold, coarse quartz crystals
-   grow inward. That threshold follows the common reading that falling
-   supersaturation favours macrocrystalline quartz over chalcedony. We have not
-   yet confirmed that reading in a full-text source, and it sits uneasily with
-   Heaney's note that chalcedony itself precipitates from only slightly saturated
-   solutions ([@heaney1993]). So the threshold is labelled *effective*, and
-   resolving this is an open question below.
+   grow inward. Both reviews support this: quartz crystallises from low silica
+   concentrations, after chalcedony has used up the polymerised silica
+   ([@goetze2020] §6, [@moxon2020] §2.4; see §5). The threshold itself has no
+   measured value, so it stays labelled *effective*.
    **M4 adds nucleation** (ADR 0008): a scheduled spherulitic mode in which
    growth radiates from blue-noise sites on the growth surface (botryoidal and
    eye forms), tubes as growth surfaces inside the cavity, and quartz crystals
    with pointed, elongated growth forms that coarsen by geometric selection.
+   **M5 adds inclusions** (ADR 0009): branched inclusions grown by multi-particle
+   DLA from the growth surface, optionally drifting with gravity for plumes,
+   then enclosed by chalcedony.
 4. **First mechanistic model (later):** a 2D reaction–diffusion and phase-field
    precipitation model along the lines of [@liu2025] (H2), followed by
    front-feedback oscillatory zoning (H1).
 
-## 8. Open questions to resolve by reading the full texts
+## 9. Open questions to resolve by reading the full texts
 
 - Which dimensionless numbers control band spacing in H1 and H2, and what ranges
   do natural agates imply?
@@ -133,12 +221,18 @@ rates (ADR 0008).
   explicitly?
 - Is there a quantitative optical model of the shadow effect?
 - What are measured iris-band spacings, from peer-reviewed sources?
-- What controls the switch from chalcedony to macrocrystalline quartz: silica
-  supersaturation, temperature, growth rate, or impurity content? What do the
-  reviews conclude?
+- ~~What controls the switch from chalcedony to macrocrystalline quartz?~~
+  Both reviews: low silica concentration once the polymerised silica is used up
+  (§5). Still open: is there a measurable concentration, and how do temperature
+  and impurities shift it?
 - What sets spherulite nucleation density and lobe size in botryoidal
   chalcedony, and do natural lobes coarsen by competition as the model's do?
-- What are the filaments in tube agate, and are they there before the
-  chalcedony, or do tubes form as channels during growth?
+- Are tube-agate filaments mostly biogenic templates (as reported for Deccan
+  pseudo-stalactites) or mineral needles, and does it change the banding around
+  them?
 - Does quartz in agate geodes show the orientation selection and inward widening
   predicted by geometric selection?
+- In dendritic agate, do the dendrites grow in the silica before it crystallises
+  (in a gel), or later along fractures? What fractal dimensions are measured on
+  agate dendrites specifically?
+- Plumes as silica gardens: what sets their width and how upright they are?

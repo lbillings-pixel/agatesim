@@ -8,7 +8,7 @@
 - **There is no consensus on how agate bands form** ([@goetze2020], [@moxon2020]).
   Competing ideas include self-organization in a silica gel or at the growth front
   ([@wang1990], [@heaney1995]), Liesegang-type precipitation–diffusion
-  ([@krug1993]), repeated pulses of incoming fluid, and gravity settling of
+  ([@krug1994]), repeated pulses of incoming fluid, and gravity settling of
   particles ([@lu1994]).
 - **The scales span orders of magnitude.** Nodules are centimetres to decimetres
   across. Bands can be micrometres thick, and the crystallites making up the
