@@ -44,5 +44,9 @@
   world coordinates), so previews match full runs.
 - Label every model parameter `physical` or `effective` (ADR 0003).
 - Procedural results are never evidence for a formation mechanism.
+- The owner's specimen photos live in `specimens/` (gitignored) and never enter
+  the repository, a commit, an artifact or any external service. Anything derived
+  from them is written without metadata (they carry GPS). Tests use synthetic
+  photos (`agatesim.specimen.synthetic`).
 - Commits use the no-reply email already set in git config. Never commit secrets
   or personal email addresses. The repo will go public later.

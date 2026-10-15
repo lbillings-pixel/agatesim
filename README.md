@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M6 (optical renderer). All twelve target forms reproduced at the procedural tier.** See the [roadmap](docs/roadmap.md).
+> **Status: M7 (specimen photo analysis, first pass). All twelve target forms reproduced at the procedural tier.** See the [roadmap](docs/roadmap.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -74,6 +74,11 @@ The app runs only on your machine (bound to localhost). It offers:
   plus a **drawing tool** for your own (click corners or sketch freehand; keep
   corners angular or smooth them).
 - **Tubes**: click the preview to place filaments that banding grows around.
+- **Specimens screen**: measure your own specimen photos (they stay on your
+  machine and are shown without metadata). Mark the ruler, and agatesim traces
+  the outline (correcting for the face standing above the ruler), maps the bands,
+  checks the forms it can judge from a photo, and fits a simulated replica in the
+  specimen's own outline.
 - **Optical views**: see the preview as a slab lit from one side (shadow agate:
   move the light and the shadows sweep) or as a backlit thin slice (iris agate:
   change the view angle and the colours shift).
@@ -130,6 +135,7 @@ src/agatesim/
   render.py          slab rendering in diffuse reflected light
   optics.py          optical views: shadow (reflected light) and iris (backlit slice)
   runs.py            run records
+  specimen/          photo analysis: scale, outline, observed fields, identification, replica
   server/            FastAPI backend for the web app (`agatesim serve`)
 web/                 React + TypeScript web app (built into server/static)
 scripts/             gallery generator, Windows start script

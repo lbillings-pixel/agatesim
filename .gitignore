@@ -46,3 +46,8 @@ src/agatesim/server/static/
 # Simulation outputs (runs are reproducible from their configs)
 runs/
 *.zarr/
+
+# The owner's specimen photos stay on this machine (they can carry GPS data in
+# their metadata, and the repo will be public). Only openly licensed reference
+# images go in references/images/.
+specimens/

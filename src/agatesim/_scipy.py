@@ -83,3 +83,56 @@ def local_maxima(field: FloatArray, size: int) -> NDArray[np.bool_]:
     """Pixels equal to the maximum of their size x size neighbourhood."""
     peak = ndimage.maximum_filter(field, size=size, mode="constant", cval=-np.inf)
     return cast(NDArray[np.bool_], field == peak)
+
+
+def open_close(mask: NDArray[np.bool_], iterations: int) -> NDArray[np.bool_]:
+    """Morphological opening then closing (removes specks, then fills small gaps)."""
+    opened = ndimage.binary_opening(mask, structure=FOUR_CONNECTED, iterations=iterations)
+    closed = ndimage.binary_closing(opened, structure=FOUR_CONNECTED, iterations=iterations)
+    return cast(NDArray[np.bool_], closed)
+
+
+def fill_holes(mask: NDArray[np.bool_]) -> NDArray[np.bool_]:
+    return cast(NDArray[np.bool_], ndimage.binary_fill_holes(mask))
+
+
+def dilate(mask: NDArray[np.bool_], iterations: int) -> NDArray[np.bool_]:
+    out = ndimage.binary_dilation(mask, structure=FOUR_CONNECTED, iterations=iterations)
+    return cast(NDArray[np.bool_], out)
+
+
+def gaussian_rgb(rgb: NDArray[np.generic], sigma: float) -> NDArray[np.float64]:
+    """Gaussian blur of each colour channel."""
+    x = np.asarray(rgb, dtype=np.float64)
+    return np.stack([ndimage.gaussian_filter(x[..., c], sigma) for c in range(x.shape[-1])], -1)
+
+
+def colour_gradient(rgb: NDArray[np.generic], sigma: float) -> NDArray[np.uint16]:
+    """Gradient magnitude summed over colour channels, scaled to uint16."""
+    x = gaussian_rgb(rgb, sigma)
+    g = np.zeros(x.shape[:2])
+    for c in range(x.shape[-1]):
+        g += np.hypot(ndimage.sobel(x[..., c], axis=0), ndimage.sobel(x[..., c], axis=1))
+    g = g / max(float(g.max()), 1e-9) * 65535
+    return g.astype(np.uint16)
+
+
+def watershed(gradient: NDArray[np.uint16], markers: NDArray[np.int16]) -> NDArray[np.int16]:
+    """Marker-based watershed (image foresting transform)."""
+    return cast(NDArray[np.int16], ndimage.watershed_ift(gradient, markers.astype(np.int16)))
+
+
+def majority(labels: NDArray[np.int32], passes: int) -> NDArray[np.int32]:
+    """Replace each label by the most common label in its 3x3 neighbourhood
+    (labels -1 are left alone and never spread)."""
+    out = labels.copy()
+    k = int(labels.max()) + 1
+    if k <= 0:
+        return out
+    for _ in range(passes):
+        counts = np.stack(
+            [ndimage.uniform_filter((out == i).astype(np.float64), size=3) for i in range(k)]
+        )
+        winner = np.argmax(counts, axis=0).astype(np.int32)
+        out = np.where(labels >= 0, winner, labels)
+    return out

@@ -34,6 +34,7 @@ from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
 from agatesim.runs import is_run_id, list_runs
 from agatesim.server.jobs import Job, JobManager
+from agatesim.server.specimens import specimen_router
 from agatesim.simulate import SimulationResult, simulate
 from agatesim.stats import band_statistics
 
@@ -158,7 +159,11 @@ def _meta() -> dict[str, object]:
     }
 
 
-def create_app(runs_dir: Path, static_dir: Path | None = STATIC_DIR) -> FastAPI:
+def create_app(
+    runs_dir: Path,
+    static_dir: Path | None = STATIC_DIR,
+    specimens_dir: Path | None = None,
+) -> FastAPI:
     jobs = JobManager(runs_dir)
 
     @asynccontextmanager
@@ -265,6 +270,8 @@ def create_app(runs_dir: Path, static_dir: Path | None = STATIC_DIR) -> FastAPI:
         group = zarr.open_group(store=str(run_dir(run_id) / "fields.zarr"), mode="r")  # pyright: ignore[reportUnknownMemberType]
         t_dep = np.asarray(group["t_dep"])
         return Response(_png(encode_tdep(t_dep)), media_type="image/png")
+
+    app.include_router(specimen_router(specimens_dir or runs_dir.parent / "specimens"))
 
     if static_dir is not None and (static_dir / "index.html").exists():
         app.mount("/", StaticFiles(directory=static_dir, html=True), name="ui")

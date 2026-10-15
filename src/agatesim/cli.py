@@ -95,7 +95,12 @@ def _cmd_serve(args: argparse.Namespace) -> int:
     if not args.no_browser:
         threading.Timer(1.0, webbrowser.open, [url]).start()
     print(f"agatesim UI at {url} (runs saved to {args.runs.resolve()}); Ctrl+C to stop")
-    uvicorn.run(create_app(args.runs), host=args.host, port=args.port, log_level="warning")
+    uvicorn.run(
+        create_app(args.runs, specimens_dir=args.specimens),
+        host=args.host,
+        port=args.port,
+        log_level="warning",
+    )
     return 0
 
 
@@ -126,6 +131,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--host", default="127.0.0.1", help="bind address (default: localhost only)")
     p.add_argument("--port", type=int, default=8000)
     p.add_argument("--runs", type=Path, default=Path("runs"), help="runs directory")
+    p.add_argument(
+        "--specimens",
+        type=Path,
+        default=Path("specimens"),
+        help="folder of specimen photos (stays on this machine)",
+    )
     p.add_argument("--no-browser", action="store_true", help="don't open a browser tab")
     p.set_defaults(func=_cmd_serve)
     return parser

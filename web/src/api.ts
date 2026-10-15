@@ -203,6 +203,77 @@ async function errorMessage(response: Response): Promise<string> {
   return `${response.status} ${response.statusText}`;
 }
 
+export interface SpecimenFile {
+  name: string;
+  bytes: number;
+  has_settings: boolean;
+}
+
+export interface SpecimenSettings {
+  calibration: {
+    p1: [number, number];
+    p2: [number, number];
+    distance_mm: number;
+    face_height_mm: number;
+  } | null;
+  host: Host;
+  up_deg: number;
+  seed: [number, number] | null;
+}
+
+export interface IdentifiedForm {
+  archetype: string;
+  passed: boolean;
+  verdict: string;
+  pass_reliable: boolean;
+  detection_rate: number | null;
+  score: number;
+  criteria: CriterionResult[];
+}
+
+export interface SpecimenAnalysis {
+  mm_per_px: number;
+  camera_height_mm: number | null;
+  outline_px: [number, number][];
+  size_mm: number;
+  outline_mm: [number, number][];
+  host: Host;
+  band_map: string;
+  stats: BandStats;
+  identification: IdentifiedForm[];
+  not_from_photos: Record<string, string>;
+}
+
+export interface Replica {
+  config: RunConfig;
+  image: string;
+  stats: BandStats;
+  target: BandStats;
+  mismatch: number;
+}
+
+const specimenPath = (name: string) => `/api/specimens/${encodeURIComponent(name)}`;
+
+export const specimens = {
+  list: () => request<SpecimenFile[]>("/api/specimens"),
+  upload: async (file: File) => {
+    const response = await fetch(`/api/specimens?name=${encodeURIComponent(file.name)}`, {
+      method: "POST",
+      body: file,
+    });
+    if (!response.ok) throw new Error(await errorMessage(response));
+    return (await response.json()) as { name: string };
+  },
+  photoUrl: (name: string) => `${specimenPath(name)}/photo`,
+  settings: (name: string) => request<SpecimenSettings>(`${specimenPath(name)}/settings`),
+  saveSettings: (name: string, s: SpecimenSettings) =>
+    request<SpecimenSettings>(`${specimenPath(name)}/settings`, { method: "PUT", body: JSON.stringify(s) }),
+  analyse: (name: string, s: SpecimenSettings) =>
+    request<SpecimenAnalysis>(`${specimenPath(name)}/analyse`, { method: "POST", body: JSON.stringify(s) }),
+  replicate: (name: string, s: SpecimenSettings) =>
+    request<Replica>(`${specimenPath(name)}/replicate`, { method: "POST", body: JSON.stringify(s) }),
+};
+
 export const api = {
   meta: () => request<Meta>("/api/meta"),
   preview: (config: RunConfig, resolution: number, signal?: AbortSignal) =>

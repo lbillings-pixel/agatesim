@@ -17,6 +17,7 @@ import { ParamPanel, Slider } from "./components/ParamPanel";
 import { RunBrowser } from "./components/RunBrowser";
 import { ScheduleEditor } from "./components/ScheduleEditor";
 import { SlabView } from "./components/SlabView";
+import { SpecimenWorkbench } from "./components/SpecimenWorkbench";
 import { StatsPanel } from "./components/StatsPanel";
 import { TubePanel } from "./components/TubePanel";
 import { type Control, controlsFor, defaultsFor } from "./lib/schema";
@@ -79,6 +80,7 @@ export function App() {
   const [lastDrawn, setLastDrawn] = useState<Drawn | null>(null);
   const [placingTubes, setPlacingTubes] = useState(false);
   const [tubeRadius, setTubeRadius] = useState(0.3);
+  const [screen, setScreen] = useState<"simulator" | "specimens">("simulator");
   const [light, setLight] = useState<"reflected" | "shadow" | "iris">("reflected");
   const [lightAngle, setLightAngle] = useState(30);
   const [opticsImage, setOpticsImage] = useState<string | null>(null);
@@ -257,6 +259,18 @@ export function App() {
         <div className="brand">
           agatesim <span className="muted small">v{meta.version}</span>
         </div>
+        <div className="toggle" role="radiogroup" aria-label="Screen">
+          {(
+            [
+              ["simulator", "Simulator"],
+              ["specimens", "Specimens"],
+            ] as const
+          ).map(([s, label]) => (
+            <button key={s} type="button" role="radio" aria-checked={screen === s} onClick={() => setScreen(s)}>
+              {label}
+            </button>
+          ))}
+        </div>
         <label className="inline">
           <span className="micro-label">Preset</span>
           <select
@@ -302,6 +316,15 @@ export function App() {
         </div>
       </header>
 
+      {screen === "specimens" ? (
+        <SpecimenWorkbench
+          onOpenReplica={(replica) => {
+            setConfig(replica);
+            setSelected(null);
+            setScreen("simulator");
+          }}
+        />
+      ) : (
       <div className="workspace">
         <aside className="controls" aria-label="Simulation settings">
           <section>
@@ -583,6 +606,7 @@ export function App() {
 
         <RunBrowser runs={runs} jobs={jobs} selected={selected} pinned={pinned} onSelect={setSelected} />
       </div>
+      )}
       {drawer && (
         <CavityDrawer
           initial={drawer === "edit" ? drawn : null}

@@ -144,3 +144,44 @@ def test_optical_views(client: TestClient, view: str) -> None:
             json={"config": config, "resolution": 128, "view": view, "angle_deg": angle},
         ).json()
         assert body["image"].startswith("data:image/png;base64,")
+
+
+def test_specimen_workflow(tmp_path: Path) -> None:
+    """Upload a synthetic photo (with GPS metadata), set its scale, analyse and
+    replicate it; the photo is only ever served without metadata."""
+    import io
+
+    from PIL import Image
+
+    from agatesim.config import RunConfig
+    from agatesim.specimen.synthetic import photograph
+
+    syn = photograph(load_preset("waterline").with_resolution(760))  # validated size
+    exif = Image.Exif()
+    exif[0x8825] = {1: "N", 2: (51.0, 30.0, 0.0)}
+    buffer = io.BytesIO()
+    Image.open(io.BytesIO(syn.jpeg)).save(buffer, format="JPEG", exif=exif, quality=95)
+    folder = tmp_path / "specimens"
+    with TestClient(create_app(tmp_path / "runs", static_dir=None, specimens_dir=folder)) as c:
+        assert (
+            c.post("/api/specimens?name=..%2Fescape.jpg", content=buffer.getvalue()).status_code
+            == 422
+        )
+        assert c.post("/api/specimens?name=slab.jpg", content=buffer.getvalue()).status_code == 201
+        assert [s["name"] for s in c.get("/api/specimens").json()] == ["slab.jpg"]
+        png = c.get("/api/specimens/slab.jpg/photo").content
+        assert len(Image.open(io.BytesIO(png)).getexif()) == 0
+        assert c.post("/api/specimens/slab.jpg/analyse", json={}).status_code == 422  # no scale yet
+
+        (x1, y1), (x2, y2) = syn.ruler_points  # the photo is under the view size: 1:1
+        settings = {"calibration": {"p1": [x1, y1], "p2": [x2, y2], "distance_mm": 100.0}}
+        assert c.put("/api/specimens/slab.jpg/settings", json=settings).status_code == 200
+        assert c.get("/api/specimens/slab.jpg/settings").json()["calibration"]["distance_mm"] == 100
+        body = c.post("/api/specimens/slab.jpg/analyse", json=settings).json()
+        assert body["mm_per_px"] == pytest.approx(syn.mm_per_px, rel=0.01)
+        verdicts = {i["archetype"]: i["verdict"] for i in body["identification"]}
+        assert verdicts["fortification"] == "not confirmed"  # never a false positive
+        replica = c.post("/api/specimens/slab.jpg/replicate", json=settings).json()
+        assert RunConfig.model_validate(replica["config"]).cavity.outline is not None
+        assert replica["image"].startswith("data:image/png;base64,")
+        assert c.get("/api/specimens/..%2Fsecret.jpg/photo").status_code == 404
