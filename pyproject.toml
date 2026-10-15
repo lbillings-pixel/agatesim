@@ -21,6 +21,11 @@ dependencies = [
 [project.scripts]
 agatesim = "agatesim.cli:main"
 
+[project.optional-dependencies]
+gpu = [
+    "cupy-cuda13x[ctk]>=14.2",
+]
+
 [build-system]
 requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"

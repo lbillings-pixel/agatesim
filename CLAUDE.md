@@ -11,7 +11,9 @@
 - Tools: uv (Python 3.12), Node.js LTS, git, gh. If they aren't on PATH in a
   session, refresh it first:
   `$env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User")`
-- GPU: NVIDIA RTX 4070 (12 GB). CI has no GPU.
+- GPU: NVIDIA RTX 4070 (12 GB). CI has no GPU. `uv sync --extra gpu` installs CuPy
+  (cupy-cuda13x with CUDA from PyPI). Set `AGATESIM_GPU=1` to run the
+  reaction–diffusion solver (`agatesim._rd`) on it; results match NumPy to rounding.
 
 ## Commands
 - `uv sync`: install

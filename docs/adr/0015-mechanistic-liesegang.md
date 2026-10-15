@@ -39,9 +39,18 @@ the fortification criteria already measure corners.
    the reaction front's arrival. Slivers holding under 0.5 mm² join their
    neighbours. The precipitate is the iron stand-in.
 5. **Backend.** The solver takes an array module: NumPy, or CuPy on the GPU when
-   `AGATESIM_GPU=1` and CuPy is installed. A test compares the two when a GPU is
-   present. Runs are slow on the CPU: a 15 mm nodule takes about 40 s, and a
-   60 mm seam about 13 minutes.
+   `AGATESIM_GPU=1` and CuPy is installed (`uv sync --extra gpu`: cupy-cuda13x with
+   NVIDIA's CUDA libraries from PyPI). On CuPy, each time step is one fused CUDA
+   kernel. The generic array code was launch-bound at 2.3 ms per step whatever
+   the size. A test compares GPU and CPU results when a GPU is present.
+
+   | Case (RTX 4070) | NumPy | CuPy, generic | CuPy, fused |
+   |---|---|---|---|
+   | 15 mm nodule, 0.04 mm lattice | 36 s | 22 s | 0.5 s |
+   | 50 mm nodule, 0.05 mm lattice (0.5 M cells) | about 2 h (est.) | 155 s | 12 s |
+   | 30 mm seam, 0.02 mm lattice | 806 s | | 2.6 s |
+
+   CI has no GPU, so it runs the small cases on NumPy.
 
 ## Result: the hypothesis test
 
@@ -55,6 +64,13 @@ On a 15 mm angular nodule (0.04 mm lattice), the Liesegang bands are:
 The front-feedback model (H1) scores 0.45 on the same criterion. This is a test
 in the suite.
 
+At full size on the GPU (50 mm nodule, 0.05 mm lattice):
+- Corners are 2.3–4.0 per corner (the criterion caps at 4).
+- Only 20 of 125 bands are closed rings. Inward of about a third of the depth,
+  the rings break into rows of spots. This is the 2D instability of Liesegang
+  rings, and the review counts such ring defects as un-agate-like
+  ([@cartwright2026] §5.1.1).
+
 So, within our models, Cartwright's corner argument holds quantitatively.
 Precipitation controlled by diffusion through the cavity rounds corners. Growth
 controlled locally at the front keeps them. Two cautions:
@@ -66,9 +82,9 @@ H2 therefore **does not** verify fortification at the mechanistic tier, and
 the registry records nothing for it. Sharp-cornered fortification counts as
 evidence against H2 *as modelled here*.
 
-**Seam (one run, before the band-labelling fix).** Mirror symmetry passed
-(0.98). The central suture failed (0.29), so the seam isn't verified either. It
-should be re-run on the GPU.
+**Seam (30 mm, GPU).** Mirror symmetry passed (0.98). The central suture failed
+(0.29), so the seam isn't verified either. Why the last-reached material sits
+off the midline in some sections is not yet diagnosed.
 
 ## Consequences
 
@@ -78,9 +94,8 @@ should be re-run on the GPU.
 
   The sequence statistics of ADR 0014 can measure spacing trends on the
   owner's photos.
-- **The GPU backend is needed for realistic cavities** (50 mm at a 0.05 mm
-  lattice). CuPy needs the CUDA 13 toolkit, either installed locally or as
-  NVIDIA's PyPI packages. That installation waits for the owner's approval.
-- **Still to do:** a fused GPU kernel; Cahn–Hilliard (post-nucleation) ripening
+- **Realistic cavities need the GPU.** In the app, a preview of this model on
+  the CPU can take minutes; with the GPU it takes seconds.
+- **Still to do:** diagnose the seam's suture; Cahn–Hilliard (post-nucleation) ripening
   as a variant [@liu2025]; and H1 run inside the same 2D diffusion field,
   without the uniform-front assumption.
