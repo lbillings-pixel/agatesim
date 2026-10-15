@@ -6,10 +6,12 @@ Milestones end with a check-in: results, images, and the next decisions.
 |---|---|---|
 | **M0: Foundation** | Repository layout, ADRs, archetype registry (12 forms, all pending), reference catalogue, science notes draft, CI | done |
 | **M1: First procedural models** | 2D grid and exact cavity geometry; 9 preset cavity shapes (volcanic, sedimentary, seam); run config and records; procedural fortification, seam and waterline, verified with negative controls; `agatesim run` CLI; PNG output | done |
-| **M2: Web UI v1** | FastAPI backend; React app with parameter panel, preset shape menu, live preview, run browser, slab viewer | next |
-| **M3: Schedules and the combined form** | Conditions that vary over time; combined fortification–waterline; quartz-centre geode | |
+| **M2: Web UI v1** | Rendering touch-up; first openly licensed specimen photos; FastAPI backend; React app with parameter panel, preset shape menu, live preview, run browser, slab viewer | in progress |
+| **M3: Schedules and the combined form** | Conditions that vary over time; combined fortification–waterline; quartz-centre geode; band-statistics module for comparing runs | |
 | **M4: Drawing tool and nucleation** | Freehand cavity drawing; nucleation sites → botryoidal, eye, tube | |
 | **M5: Dendrites** | Diffusion-limited growth → moss, plume | |
 | **M6: Optical renderer** | Translucency and colour → shadow; wave optics → iris | |
-| **M7: Mechanistic models** | Reaction–diffusion / phase-field (H2), front feedback (H1), settling (H4); GPU backend | |
-| **M8: 3D** | Volumetric runs, slicing in the viewer | |
+| **M7: Specimen analysis I** | Photo upload and scale; outline tracing; observed fields from photos; identify forms with the archetype criteria; fit procedural parameters; replica side by side ([ADR 0006](adr/0006-specimen-photo-analysis.md)) | |
+| **M8: Mechanistic models** | Reaction–diffusion / phase-field (H2), front feedback (H1), settling (H4); GPU backend | |
+| **M9: 3D** | Volumetric runs, slicing in the viewer | |
+| **M10: Specimen analysis II** | Simulation-based inference of mechanistic conditions from photos, with uncertainty | |

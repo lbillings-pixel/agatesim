@@ -1,8 +1,14 @@
 """Render a polished-slab view of a result in reflected light.
 
-A first, non-physical renderer (the optical renderer is M6). Under reflected
-light, milky bands look bright, clear bands look dark (light enters and is lost),
-and iron staining tints toward rust.
+A non-physical, appearance-only renderer; the optical renderer arrives in M6.
+It reads only Fields and geometry, so it works for any model. Under reflected
+light on a polished slab:
+
+- milky (opaque) bands scatter light back and look bright;
+- clear bands let light in and look dark blue-grey, with a soft glow from
+  material beneath (approximated by blending in a blurred copy);
+- iron staining tints from ochre through orange to deep red as it increases;
+- each band carries faint finer banding, as natural chalcedony does.
 """
 
 from __future__ import annotations
@@ -11,39 +17,111 @@ import numpy as np
 from numpy.typing import NDArray
 from PIL import Image
 
+from agatesim import _scipy
 from agatesim.archetypes import Host
 from agatesim.fields import Phase
+from agatesim.grid import FloatArray
 from agatesim.simulate import SimulationResult
 
-MILKY = np.array([236.0, 233.0, 226.0])
-CLEAR = np.array([104.0, 114.0, 132.0])
-RUST = np.array([168.0, 66.0, 30.0])
-VOID = np.array([24.0, 24.0, 28.0])
+MILKY = np.array([238.0, 235.0, 228.0])
+CLEAR = np.array([86.0, 96.0, 114.0])
+VOID = np.array([18.0, 18.0, 22.0])
+CELADONITE = np.array([78.0, 98.0, 84.0])  # greenish rind typical of volcanic agates
+# Iron-stain palette: (impurity, colour), interpolated piecewise-linearly.
+STAIN = [
+    (0.0, np.array([214.0, 196.0, 160.0])),
+    (0.35, np.array([204.0, 146.0, 72.0])),
+    (0.65, np.array([182.0, 74.0, 36.0])),
+    (1.0, np.array([118.0, 30.0, 22.0])),
+]
 HOST = {
-    Host.VOLCANIC: np.array([72.0, 72.0, 76.0]),
-    Host.SEDIMENTARY: np.array([194.0, 184.0, 162.0]),
-    Host.SEAM: np.array([108.0, 100.0, 92.0]),
+    Host.VOLCANIC: np.array([66.0, 66.0, 70.0]),
+    Host.SEDIMENTARY: np.array([196.0, 186.0, 164.0]),
+    Host.SEAM: np.array([110.0, 101.0, 92.0]),
 }
+
+SUB_BAND_STRENGTH = 0.35
+GLOW_SIGMA_MM = 0.12
+RIND_MM = 0.25
+
+
+def _stain_colour(iron: FloatArray) -> FloatArray:
+    xs = np.array([p for p, _ in STAIN])
+    return np.stack([np.interp(iron, xs, [c[i] for _, c in STAIN]) for i in range(3)], axis=-1)
+
+
+def _smoothstep(lo: float, hi: float, x: FloatArray) -> FloatArray:
+    t = np.clip((x - lo) / (hi - lo), 0.0, 1.0)
+    return t * t * (3 - 2 * t)
+
+
+def _masked_blur(rgb: FloatArray, mask: NDArray[np.bool_], sigma_px: float) -> FloatArray:
+    """Gaussian blur of `rgb` using only pixels in `mask`, so host rock doesn't bleed in."""
+    weight = _scipy.gaussian(mask.astype(np.float64), sigma_px)
+    weight[weight == 0] = 1.0
+    channels = [_scipy.gaussian(rgb[..., i] * mask, sigma_px) / weight for i in range(3)]
+    return np.stack(channels, axis=-1)
+
+
+def _sub_banding(result: SimulationResult) -> FloatArray:
+    """Faint finer banding within each band, from deposition time, in -1..1."""
+    f = result.fields
+    n = int(f.band.max()) + 1
+    if n <= 0:
+        return np.zeros(result.grid.shape)
+    rng = np.random.default_rng(result.config.seed + 2)
+    cycles = rng.uniform(2.0, 6.0, n)  # fine bands per coarse band
+    amplitude = rng.uniform(0.0, 1.0, n) ** 2  # most bands faint, a few strong
+    phase = rng.uniform(0.0, 2 * np.pi, n)
+    b = np.maximum(f.band, 0)
+    t = np.nan_to_num(f.t_dep.astype(np.float64))
+    return amplitude[b] * np.sin(2 * np.pi * t * n * cycles[b] + phase[b])
+
+
+def _host_rock(result: SimulationResult) -> FloatArray:
+    shape = result.grid.shape
+    dx = result.grid.dx
+    rng = np.random.default_rng(result.config.seed + 1)
+    mottle = _scipy.gaussian(rng.standard_normal(shape), 1.5 / dx, wrap=True)
+    mottle /= float(mottle.std()) or 1.0
+    grain = rng.normal(0.0, 1.0, shape)
+    host = result.domain.cavity.host
+    base = HOST[host]
+    rock = base + (4.0 * mottle + 7.0 * grain)[..., None]
+    if host is Host.VOLCANIC:  # sparse, faint pale phenocryst specks
+        specks = _scipy.gaussian(
+            (rng.random(shape) < 0.0006).astype(np.float64), 0.08 / dx, wrap=True
+        )
+        rock += (40.0 * specks / (float(specks.max()) or 1.0))[..., None]
+    return rock
 
 
 def render_slab(result: SimulationResult) -> NDArray[np.uint8]:
     f = result.fields
-    shape = result.grid.shape
-    rng = np.random.default_rng(result.config.seed + 1)
-    grain = rng.normal(0.0, 1.0, (*shape, 1))
-
-    trans = f.translucency[..., None].astype(np.float64)
-    iron = f.impurity[..., None].astype(np.float64)
-    base = CLEAR * trans + MILKY * (1 - trans)
-    stained = RUST * (0.55 + 0.45 * (1 - trans))  # stains look darker in clear bands
-    chalcedony = base * (1 - iron) + stained * iron + 2.5 * grain
-
-    rgb = np.empty((*shape, 3))
+    dx = result.grid.dx
     phase = f.phase
-    rgb[:] = HOST[result.domain.cavity.host] + 9.0 * grain
+    chal = phase == Phase.CHALCEDONY
+
+    trans = np.clip(f.translucency + SUB_BAND_STRENGTH * 0.5 * _sub_banding(result), 0.0, 1.0)
+    iron = f.impurity.astype(np.float64)
+
+    body = CLEAR * trans[..., None] + MILKY * (1 - trans[..., None])
+    stain = _stain_colour(iron) * (0.55 + 0.45 * (1 - trans))[..., None]
+    strength = _smoothstep(0.05, 0.55, iron)[..., None]
+    colour = body * (1 - strength) + stain * strength
+
+    # Light entering clear bands returns softened by the material beneath.
+    glow = _masked_blur(colour, chal, GLOW_SIGMA_MM / dx)
+    mix = (0.45 * trans)[..., None]
+    colour = colour * (1 - mix) + glow * mix
+
+    if result.domain.cavity.host is Host.VOLCANIC:
+        rind = _smoothstep(RIND_MM, 0.0, result.domain.wall_distance)[..., None] * 0.7
+        colour = colour * (1 - rind) + CELADONITE * rind
+
+    rgb = _host_rock(result)
     rgb[phase == Phase.VOID] = VOID
-    is_chalcedony = phase == Phase.CHALCEDONY
-    rgb[is_chalcedony] = chalcedony[is_chalcedony]
+    rgb[chal] = colour[chal]
     return np.clip(np.rint(rgb), 0, 255).astype(np.uint8)
 
 

@@ -93,7 +93,7 @@ def smooth_noise(domain: Domain, scale_mm: float, rng: np.random.Generator) -> F
     x_lo, y_hi = xmin - pad, ymax + pad
     n_cols = math.ceil((xmax - xmin + 2 * pad) / h) + 1
     n_rows = math.ceil((ymax - ymin + 2 * pad) / h) + 1
-    lattice = _scipy.gaussian(rng.standard_normal((n_rows, n_cols)), sigma=4.0)
+    lattice = _scipy.gaussian(rng.standard_normal((n_rows, n_cols)), sigma=4.0, wrap=True)
     lattice /= float(lattice.std()) or 1.0
     xx, yy = domain.grid.coords()
     return _scipy.bilinear(lattice, (y_hi - yy) / h, (xx - x_lo) / h)

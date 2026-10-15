@@ -32,8 +32,11 @@ def nearest_true_indices(mask: NDArray[np.bool_]) -> NDArray[np.int64]:
     return cast(NDArray[np.int64], result[1])
 
 
-def gaussian(field: FloatArray, sigma: float) -> NDArray[np.float64]:
-    return cast(NDArray[np.float64], ndimage.gaussian_filter(field, sigma=sigma, mode="nearest"))
+def gaussian(field: FloatArray, sigma: float, *, wrap: bool = False) -> NDArray[np.float64]:
+    """Gaussian blur. `wrap` treats the field as periodic, for smoothing noise
+    without edge artefacts."""
+    mode = "wrap" if wrap else "nearest"
+    return cast(NDArray[np.float64], ndimage.gaussian_filter(field, sigma=sigma, mode=mode))
 
 
 def bilinear(field: FloatArray, rows: FloatArray, cols: FloatArray):
