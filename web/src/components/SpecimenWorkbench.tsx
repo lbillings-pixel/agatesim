@@ -9,6 +9,7 @@ import {
   type SpecimenSettings,
   specimens,
 } from "../api";
+import { type Point, distanceTo, project, tick, toggleMark } from "../lib/transect";
 
 const MM_PER_INCH = 25.4;
 const UP_CHOICES: [number, string][] = [
@@ -18,13 +19,17 @@ const UP_CHOICES: [number, string][] = [
   [0, "Right of the photo"],
 ];
 
-type Clicking = "ruler" | "seed" | null;
+type Clicking = "ruler" | "seed" | "line" | "marks" | null;
+
+const ZOOMS = [1, 2, 4];
+const SNAP_PX = 25; // clicks farther than this from the line are ignored while marking
+const TOGGLE_PX = 3; // clicking within this of a mark removes it
 
 interface Props {
   onOpenReplica: (config: RunConfig) => void;
 }
 
-const blank: SpecimenSettings = { calibration: null, host: "volcanic", up_deg: 90, seed: null };
+const blank: SpecimenSettings = { calibration: null, host: "volcanic", up_deg: 90, seed: null, transects: [] };
 
 /** Specimen photos: set the scale, analyse, identify forms, fit a replica. */
 export function SpecimenWorkbench({ onOpenReplica }: Props) {
@@ -41,6 +46,10 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [active, setActive] = useState<number | null>(null);
+  const [lineStart, setLineStart] = useState<Point | null>(null);
+  const [saved, setSaved] = useState(true);
   const imgRef = useRef<HTMLImageElement>(null);
 
   const refresh = () => specimens.list().then(setFiles, (e: unknown) => setError(String(e)));
@@ -54,8 +63,12 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     setReplica(null);
     setError(null);
     setSize(null);
+    setActive(null);
+    setLineStart(null);
+    setSaved(true);
     specimens.settings(n).then((s) => {
-      setSettings(s);
+      setSettings({ ...s, transects: s.transects ?? [] });
+      setActive(s.transects?.length ? 0 : null);
       const c = s.calibration;
       setPoints(c ? [c.p1, c.p2] : []);
       setFaceHeight(c?.face_height_mm ?? 0);
@@ -96,6 +109,27 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     const rect = img.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * img.naturalWidth;
     const y = ((e.clientY - rect.top) / rect.height) * img.naturalHeight;
+    if (clicking === "line") {
+      if (!lineStart) {
+        setLineStart([x, y]);
+        return;
+      }
+      const transects = [...settings.transects, { start: lineStart, end: [x, y] as Point, boundaries: [] }];
+      setSettings({ ...settings, transects });
+      setActive(transects.length - 1);
+      setLineStart(null);
+      setSaved(false);
+      setClicking("marks");
+      return;
+    }
+    if (clicking === "marks") {
+      const line = active === null ? undefined : settings.transects[active];
+      if (!line || distanceTo(line, [x, y]) > SNAP_PX) return;
+      const updated = toggleMark(line, project(line, [x, y]), TOGGLE_PX);
+      setSettings({ ...settings, transects: settings.transects.map((l, i) => (i === active ? updated : l)) });
+      setSaved(false);
+      return;
+    }
     if (clicking === "ruler") {
       const next = points.length >= 2 ? [[x, y] as [number, number]] : [...points, [x, y] as [number, number]];
       setPoints(next);
@@ -235,12 +269,89 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
               </button>
               {busy && <span className="muted small">{busy}…</span>}
             </div>
+            <div className="tool-group" aria-label="Hand-marked bands">
+              <span className="micro-label">Mark bands</span>
+              <button
+                type="button"
+                className={clicking === "line" ? "primary" : undefined}
+                onClick={() => {
+                  setLineStart(null);
+                  setClicking("line");
+                }}
+              >
+                Draw a line
+              </button>
+              <button
+                type="button"
+                className={clicking === "marks" ? "primary" : undefined}
+                disabled={active === null}
+                onClick={() => setClicking(clicking === "marks" ? null : "marks")}
+              >
+                {clicking === "marks" ? "Stop marking" : "Mark boundaries"}
+              </button>
+              {settings.transects.length > 1 && (
+                <select
+                  aria-label="Line to mark"
+                  value={active ?? 0}
+                  onChange={(e) => setActive(Number(e.target.value))}
+                >
+                  {settings.transects.map((l, i) => (
+                    <option key={i} value={i}>
+                      Line {i + 1} ({l.boundaries.length} marks)
+                    </option>
+                  ))}
+                </select>
+              )}
+              <button
+                type="button"
+                disabled={active === null}
+                onClick={() => {
+                  if (active === null) return;
+                  const transects = settings.transects.filter((_, i) => i !== active);
+                  setSettings({ ...settings, transects });
+                  setActive(transects.length ? 0 : null);
+                  setSaved(false);
+                }}
+              >
+                Delete line
+              </button>
+              <button
+                type="button"
+                disabled={saved || busy !== null}
+                onClick={() => {
+                  if (!name) return;
+                  setBusy("Saving marks");
+                  specimens
+                    .saveSettings(name, current())
+                    .then(() => setSaved(true), (e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+                    .finally(() => setBusy(null));
+                }}
+              >
+                {saved ? "Marks saved" : "Save marks"}
+              </button>
+              <label className="inline small">
+                Zoom
+                <select value={zoom} onChange={(e) => setZoom(Number(e.target.value))}>
+                  {ZOOMS.map((z) => (
+                    <option key={z} value={z}>
+                      {z}×
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </div>
           {clicking && (
             <p className="muted small">
               {clicking === "ruler"
                 ? `Click ${points.length === 0 ? "the first" : "the second"} point on the ruler.`
-                : "Click on the specimen."}
+                : clicking === "line"
+                  ? lineStart
+                    ? "Click where the line ends (toward the centre)."
+                    : "Click where the line starts: on the outer wall, crossing the bands."
+                  : clicking === "marks"
+                    ? "Click each boundary between bands along the yellow line; click a mark again to remove it. Zoom in for fine bands, then Save marks."
+                    : "Click on the specimen."}
             </p>
           )}
           {error && (
@@ -251,29 +362,51 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
 
           <div className="specimen-views">
             <figure className="photo-view">
-              <div className="photo-frame">
-                <img
-                  ref={imgRef}
-                  src={specimens.photoUrl(name)}
-                  alt={`Specimen photo ${name}`}
-                  className={clicking ? "clicking" : undefined}
-                  onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
-                  onClick={onClick}
-                />
-                {size && (
-                  <svg viewBox={`0 0 ${size.w} ${size.h}`} className="photo-overlay" aria-hidden="true">
-                    {analysis && (
-                      <polygon points={analysis.outline_px.map(([x, y]) => `${x},${y}`).join(" ")} className="outline" />
-                    )}
-                    {points.length === 2 && (
-                      <line x1={points[0]?.[0]} y1={points[0]?.[1]} x2={points[1]?.[0]} y2={points[1]?.[1]} className="ruler" />
-                    )}
-                    {points.map(([x, y], i) => (
-                      <circle key={i} cx={x} cy={y} r={size.w / 160} className="ruler-point" />
-                    ))}
-                    {settings.seed && <circle cx={settings.seed[0]} cy={settings.seed[1]} r={size.w / 120} className="seed" />}
-                  </svg>
-                )}
+              <div className="photo-scroll">
+                <div className="photo-frame" style={{ width: `${zoom * 100}%` }}>
+                  <img
+                    ref={imgRef}
+                    src={specimens.photoUrl(name)}
+                    alt={`Specimen photo ${name}`}
+                    className={clicking ? "clicking" : undefined}
+                    onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+                    onClick={onClick}
+                  />
+                  {size && (
+                    <svg viewBox={`0 0 ${size.w} ${size.h}`} className="photo-overlay" aria-hidden="true">
+                      {analysis && (
+                        <polygon points={analysis.outline_px.map(([x, y]) => `${x},${y}`).join(" ")} className="outline" />
+                      )}
+                      {points.length === 2 && (
+                        <line x1={points[0]?.[0]} y1={points[0]?.[1]} x2={points[1]?.[0]} y2={points[1]?.[1]} className="ruler" />
+                      )}
+                      {points.map(([x, y], i) => (
+                        <circle key={i} cx={x} cy={y} r={size.w / 160} className="ruler-point" />
+                      ))}
+                      {settings.seed && <circle cx={settings.seed[0]} cy={settings.seed[1]} r={size.w / 120} className="seed" />}
+                      {settings.transects.map((line, i) => (
+                        <g key={i}>
+                          <line
+                            x1={line.start[0]}
+                            y1={line.start[1]}
+                            x2={line.end[0]}
+                            y2={line.end[1]}
+                            className={i === active ? "transect active" : "transect"}
+                          />
+                          {analysis?.transects[i]?.traced.map((t, j) => {
+                            const [a, b] = tick(line, t, size.w / 140);
+                            return <line key={`t${j}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="traced" />;
+                          })}
+                          {line.boundaries.map((t, j) => {
+                            const [a, b] = tick(line, t, size.w / 200);
+                            return <line key={`m${j}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="mark" />;
+                          })}
+                        </g>
+                      ))}
+                      {lineStart && <circle cx={lineStart[0]} cy={lineStart[1]} r={size.w / 250} className="line-start" />}
+                    </svg>
+                  )}
+                </div>
               </div>
               <figcaption className="small">
                 {analysis
@@ -348,6 +481,44 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                   ))}
                 </tbody>
               </table>
+              {analysis.transects.length > 0 && (
+                <>
+                  <h3>Hand-marked bands</h3>
+                  <p className="small muted">
+                    <span className="legend-mark">yellow</span>: your marks ·{" "}
+                    <span className="legend-traced">cyan</span>: boundaries the analysis traced along the same line.
+                    A traced boundary matches a mark within the tolerance shown.
+                  </p>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Line</th>
+                        <th>Marked</th>
+                        <th>Traced</th>
+                        <th>Matched</th>
+                        <th>Found (recall)</th>
+                        <th>Correct (precision)</th>
+                        <th>Mean offset</th>
+                        <th>Tolerance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {analysis.transects.map(({ score: s }, i) => (
+                        <tr key={i}>
+                          <td>{i + 1}</td>
+                          <td className="num">{s.marked}</td>
+                          <td className="num">{s.traced}</td>
+                          <td className="num">{s.matched}</td>
+                          <td className="num">{s.recall === null ? "—" : `${Math.round(100 * s.recall)}%`}</td>
+                          <td className="num">{s.precision === null ? "—" : `${Math.round(100 * s.precision)}%`}</td>
+                          <td className="num">{s.mean_offset_mm === null ? "—" : `${s.mean_offset_mm.toFixed(2)} mm`}</td>
+                          <td className="num">{s.tolerance_mm.toFixed(2)} mm</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )}
               <p className="small muted">
                 Bands traced: {analysis.stats.band_count} · median thickness{" "}
                 {analysis.stats.thickness_median_mm?.toFixed(2) ?? "—"} mm · open {(100 * analysis.stats.open_fraction).toFixed(0)}%

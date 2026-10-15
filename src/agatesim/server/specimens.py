@@ -25,6 +25,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from agatesim.archetypes import Host
 from agatesim.render import render_slab
 from agatesim.simulate import simulate
+from agatesim.specimen.benchmark import Transect, compare
 from agatesim.specimen.fit import replicate
 from agatesim.specimen.identify import NOT_FROM_PHOTOS, identify
 from agatesim.specimen.observe import Observation, band_map, observe
@@ -51,6 +52,9 @@ class SpecimenSettings(BaseModel):
     seed: tuple[float, float] | None = Field(
         default=None, description="A point on the specimen (working-image px), if needed."
     )
+    transects: list[Transect] = Field(
+        default=[], description="Lines with hand-marked band boundaries."
+    )
 
 
 def _png(array: np.ndarray) -> bytes:
@@ -61,6 +65,11 @@ def _png(array: np.ndarray) -> bytes:
 
 def _data_uri(png: bytes) -> str:
     return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
+
+
+def _transect_json(obs: Observation, transect: Transect) -> dict[str, object]:
+    traced, result = compare(obs, transect)
+    return {"traced": [round(t, 5) for t in traced], "score": result.to_json()}
 
 
 def specimen_router(folder: Path) -> APIRouter:
@@ -106,7 +115,7 @@ def specimen_router(folder: Path) -> APIRouter:
             )
         except ValueError as e:
             raise HTTPException(422, f"couldn't analyse the specimen: {e}") from e
-        key = name + settings.model_dump_json()
+        key = name + settings.model_dump_json(exclude={"transects"})
         observations[key] = obs
         if len(observations) > CACHE:
             observations.popitem(last=False)
@@ -183,6 +192,7 @@ def specimen_router(folder: Path) -> APIRouter:
             "stats": band_statistics(result).to_json(),
             "identification": [i.to_json() for i in identify(result)],
             "not_from_photos": NOT_FROM_PHOTOS,
+            "transects": [_transect_json(obs, t) for t in settings.transects],
         }
 
     @router.post("/{name}/replicate")

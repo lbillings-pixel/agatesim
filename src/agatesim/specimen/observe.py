@@ -85,6 +85,7 @@ class Observation:
     crop: tuple[int, int, int, int]  # working-photo box (x0, y0, x1, y1) the grid covers
     outline_mm: NDArray[np.float64]  # cavity outline in world mm (y up), as used
     band_count: int
+    centre_px: tuple[float, float] = (0.0, 0.0)  # working-photo px at world (0, 0)
 
 
 def observe(
@@ -146,6 +147,7 @@ def observe(
         crop=crop,
         outline_mm=outline_mm,
         band_count=int(fields.band.max()) + 1,
+        centre_px=(float(cx), float(cy)),
     )
 
 

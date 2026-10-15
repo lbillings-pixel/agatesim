@@ -398,6 +398,15 @@ td.num { white-space: nowrap; }
 .photo-overlay .ruler { stroke: #f5d76e; stroke-width: 2; vector-effect: non-scaling-stroke; }
 .photo-overlay .ruler-point { fill: #f5d76e; }
 .photo-overlay .seed { fill: none; stroke: #6df2a0; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.photo-scroll { overflow: auto; max-height: 78vh; border-radius: 6px; }
+.photo-scroll .photo-frame img { border-radius: 0; }
+.photo-overlay .transect { stroke: #ffffff; stroke-width: 1.5; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+.photo-overlay .transect.active { stroke: #ffd400; stroke-width: 2; }
+.photo-overlay .mark { stroke: #ffd400; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.photo-overlay .traced { stroke: #00e5ff; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.photo-overlay .line-start { fill: #ffd400; }
+.legend-mark { color: #b38f00; font-weight: 600; }
+.legend-traced { color: #008fa3; font-weight: 600; }
 @media (max-width: 760px) {
   .specimens { grid-template-columns: 1fr; }
   .specimen-list { border-right: 0; border-bottom: 1px solid var(--line); }

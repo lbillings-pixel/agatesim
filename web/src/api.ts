@@ -1,5 +1,7 @@
 // Types and calls for the agatesim backend (src/agatesim/server/app.py).
 
+import type { Transect } from "./lib/transect";
+
 export type Nature = "physical" | "effective" | "imposed";
 
 export interface JsonSchemaProperty {
@@ -219,6 +221,19 @@ export interface SpecimenSettings {
   host: Host;
   up_deg: number;
   seed: [number, number] | null;
+  transects: Transect[];
+}
+
+export interface TransectScore {
+  marked: number;
+  traced: number;
+  matched: number;
+  missed: number;
+  extra: number;
+  precision: number | null;
+  recall: number | null;
+  mean_offset_mm: number | null;
+  tolerance_mm: number;
 }
 
 export interface IdentifiedForm {
@@ -242,6 +257,7 @@ export interface SpecimenAnalysis {
   stats: BandStats;
   identification: IdentifiedForm[];
   not_from_photos: Record<string, string>;
+  transects: { traced: number[]; score: TransectScore }[];
 }
 
 export interface Replica {

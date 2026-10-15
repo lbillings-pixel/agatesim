@@ -187,6 +187,19 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         assert body["mm_per_px"] == pytest.approx(syn.mm_per_px, rel=0.01)
         verdicts = {i["archetype"]: i["verdict"] for i in body["identification"]}
         assert verdicts["fortification"] == "not confirmed"  # never a false positive
+        assert body["transects"] == []
+
+        # Hand-marked boundaries along a line are saved, and scored by the analysis.
+        cx, cy = syn.centre
+        line = {"start": [cx, cy + 150], "end": [cx, cy - 50], "boundaries": [0.2, 0.4, 0.6]}
+        marked = {**settings, "transects": [line]}
+        assert c.put("/api/specimens/slab.jpg/settings", json=marked).status_code == 200
+        saved = c.get("/api/specimens/slab.jpg/settings").json()
+        assert saved["transects"][0]["boundaries"] == [0.2, 0.4, 0.6]
+        (scored,) = c.post("/api/specimens/slab.jpg/analyse", json=marked).json()["transects"]
+        assert scored["score"]["marked"] == 3
+        assert scored["score"]["traced"] == len(scored["traced"]) > 0
+        assert all(0 <= t <= 1 for t in scored["traced"])
         replica = c.post("/api/specimens/slab.jpg/replicate", json=settings).json()
         assert RunConfig.model_validate(replica["config"]).cavity.outline is not None
         assert replica["image"].startswith("data:image/png;base64,")
