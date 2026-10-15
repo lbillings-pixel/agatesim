@@ -81,6 +81,19 @@ class Cavity:
             )
         return found
 
+    def wall_distance_at(self, points: FloatArray) -> FloatArray:
+        """Exact distance (mm) from each point (n, 2) to the wall, either side."""
+        spacing = self.size_mm / 4000
+        return _scipy.nearest_distance(densify(self.vertices, spacing), points)
+
+    def tube_problem(self, centre: FloatArray, radius: float) -> str | None:
+        """Why a tube can't sit here (it must lie wholly inside), or None."""
+        if not point_in_polygon(centre[None, :], self.vertices)[0]:
+            return "lies outside the cavity"
+        if float(self.wall_distance_at(centre[None, :])[0]) <= radius:
+            return "touches the cavity wall"
+        return None
+
     def discretize(self, grid: Grid) -> tuple[NDArray[np.bool_], FloatArray]:
         """Mask of pixels whose centres lie inside the cavity, and each inside
         pixel centre's distance (mm) to the wall (0 outside).
@@ -90,7 +103,7 @@ class Cavity:
         """
         xx, yy = grid.coords()
         centres = np.stack([xx.ravel(), yy.ravel()], axis=1)
-        distance = _scipy.nearest_distance(_densify(self.vertices, grid.dx / 4), centres)
+        distance = _scipy.nearest_distance(densify(self.vertices, grid.dx / 4), centres)
         distance = distance.reshape(grid.shape)
 
         # Fast rasterization, then an exact test for pixels near the wall, where
@@ -104,7 +117,7 @@ class Cavity:
         return mask, np.where(mask, distance, 0.0)
 
 
-def _densify(vertices: FloatArray, spacing: float) -> FloatArray:
+def densify(vertices: FloatArray, spacing: float) -> FloatArray:
     """Points along the closed polygon boundary, no more than `spacing` apart,
     including every vertex (so corners are represented exactly)."""
     end = np.roll(vertices, -1, axis=0)
@@ -145,7 +158,7 @@ def _ellipse(a: float, b: float, n: int = 256) -> FloatArray:
 
 
 def _lens(half_height: float, n: int = 96) -> FloatArray:
-    """Two circular arcs meeting in sharp tips at (±1, 0)."""
+    """Two circular arcs meeting in sharp tips at (Â±1, 0)."""
     h = half_height
     radius = (1 + h * h) / (2 * h)
     c = radius - h
@@ -273,15 +286,109 @@ CAVITY_PRESETS: dict[str, CavityPreset] = {
 }
 
 
+def _place(v: FloatArray, size_mm: float, rotation_deg: float) -> FloatArray:
+    """Rotate, centre on the origin, scale so the longest side is `size_mm`, make CCW."""
+    th = math.radians(rotation_deg)
+    rot = np.array([[math.cos(th), -math.sin(th)], [math.sin(th), math.cos(th)]])
+    v = v.astype(np.float64) @ rot.T
+    lo, hi = v.min(axis=0), v.max(axis=0)
+    v = (v - (lo + hi) / 2) * (size_mm / float(np.max(hi - lo)))
+    return v[::-1].copy() if signed_area(v) < 0 else v
+
+
 def make_cavity(preset: str, size_mm: float, rotation_deg: float = 0.0) -> Cavity:
     """Build a preset cavity, rotated, centred on the origin, longest side `size_mm`."""
     spec = CAVITY_PRESETS[preset]
-    v = spec.unit_shape().astype(np.float64)
-    th = math.radians(rotation_deg)
-    rot = np.array([[math.cos(th), -math.sin(th)], [math.sin(th), math.cos(th)]])
-    v = v @ rot.T
-    lo, hi = v.min(axis=0), v.max(axis=0)
-    v = (v - (lo + hi) / 2) * (size_mm / float(np.max(hi - lo)))
-    if signed_area(v) < 0:
-        v = v[::-1]
-    return Cavity(name=preset, host=spec.host, vertices=v)
+    return Cavity(
+        name=preset, host=spec.host, vertices=_place(spec.unit_shape(), size_mm, rotation_deg)
+    )
+
+
+# --- Drawn shapes -------------------------------------------------------------
+# A drawn outline is a control polygon in any units; only its shape matters. It is
+# used as-is ("angular", keeping every corner) or smoothed by corner cutting.
+
+SMOOTH_ITERATIONS = 4
+MIN_OUTLINE_POINTS = 3
+MAX_OUTLINE_POINTS = 2000
+
+
+def chaikin(vertices: FloatArray, iterations: int = SMOOTH_ITERATIONS) -> FloatArray:
+    """Chaikin corner cutting of a closed polygon: converges to a smooth
+    (quadratic B-spline) curve that stays inside the control polygon's hull."""
+    v = vertices.astype(np.float64)
+    for _ in range(iterations):
+        nxt = np.roll(v, -1, axis=0)
+        v = np.stack([0.75 * v + 0.25 * nxt, 0.25 * v + 0.75 * nxt], axis=1).reshape(-1, 2)
+    return v
+
+
+def _dedupe(vertices: FloatArray) -> FloatArray:
+    """Drop consecutive repeated points (including last == first)."""
+    keep = np.linalg.norm(vertices - np.roll(vertices, 1, axis=0), axis=1) > 1e-12
+    return vertices[keep]
+
+
+def outline_problem(vertices: FloatArray) -> str | None:
+    """Why `vertices` can't be a cavity outline, or None if it can: it needs at
+    least 3 distinct points, a nonzero area and no self-intersections."""
+    v = _dedupe(np.asarray(vertices, dtype=np.float64))
+    n = len(v)
+    if n < MIN_OUTLINE_POINTS:
+        return f"needs at least {MIN_OUTLINE_POINTS} distinct points"
+    extent = float(np.max(v.max(axis=0) - v.min(axis=0)))
+    if extent == 0:
+        return "encloses no area"
+    a, b = v, np.roll(v, -1, axis=0)
+    for i in range(n):
+        # Segment i against every later segment that isn't its neighbour.
+        j = np.arange(i + 2, n if i > 0 else n - 1)
+        if len(j) and _segments_cross(a[i], b[i], a[j], b[j]).any():
+            return "crosses itself"
+    if abs(signed_area(v)) < 1e-6 * extent * extent:
+        return "encloses no area"
+    return None
+
+
+def _segments_cross(
+    p: FloatArray, q: FloatArray, r: FloatArray, s: FloatArray
+) -> NDArray[np.bool_]:
+    """Whether segment pq intersects each segment r[k]s[k] (touching counts)."""
+
+    def orient(a: FloatArray, b: FloatArray, c: FloatArray) -> FloatArray:
+        return (b[..., 0] - a[..., 0]) * (c[..., 1] - a[..., 1]) - (b[..., 1] - a[..., 1]) * (
+            c[..., 0] - a[..., 0]
+        )
+
+    d1, d2 = orient(r, s, p), orient(r, s, q)
+    d3, d4 = orient(p, q, r), orient(p, q, s)
+    proper = (d1 * d2 < 0) & (d3 * d4 < 0)
+
+    def on(a: FloatArray, b: FloatArray, c: FloatArray, d: FloatArray) -> NDArray[np.bool_]:
+        lo, hi = np.minimum(a, b), np.maximum(a, b)
+        inside = np.all((c >= lo - 1e-12) & (c <= hi + 1e-12), axis=-1)
+        return (np.abs(d) < 1e-12) & inside
+
+    touching = on(r, s, p, d1) | on(r, s, q, d2) | on(p, q, r, d3) | on(p, q, s, d4)
+    return proper | touching
+
+
+def drawn_cavity(
+    outline: FloatArray, host: Host, size_mm: float, rotation_deg: float = 0.0, *, smooth: bool
+) -> Cavity:
+    """A cavity from a drawn outline, placed like a preset (centred, longest side
+    `size_mm`). Raises ValueError for an outline that can't bound a cavity."""
+    v = _dedupe(np.asarray(outline, dtype=np.float64))
+    problem = outline_problem(v)
+    if problem is not None:
+        raise ValueError(f"drawn outline {problem}")
+    if smooth:
+        v = chaikin(v)
+    return Cavity(name="drawn", host=host, vertices=_place(v, size_mm, rotation_deg))
+
+
+def circle(centre: FloatArray, radius: float, spacing: float) -> FloatArray:
+    """Points on a circle no more than `spacing` apart."""
+    n = max(8, math.ceil(2 * math.pi * radius / spacing))
+    th = np.linspace(0.0, 2 * math.pi, n, endpoint=False)
+    return centre + radius * np.stack([np.cos(th), np.sin(th)], axis=1)

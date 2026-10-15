@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
 from agatesim.config import RunConfig
-from agatesim.fields import Fields
-from agatesim.geometry import make_cavity
+from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray, Grid
 from agatesim.models import (
     Domain,
@@ -44,9 +43,9 @@ class SimulationResult:
 
 def simulate(config: RunConfig) -> SimulationResult:
     rng = np.random.default_rng(config.seed)
-    cavity = make_cavity(config.cavity.preset, config.cavity.size_mm, config.cavity.rotation_deg)
+    cavity = config.cavity.build()
     grid = Grid.around(cavity.bounds(), config.grid.resolution, config.grid.margin_fraction)
-    domain = Domain.build(cavity, grid)
+    domain = Domain.build(cavity, grid, config.cavity.tube_array())
     model = config.model
     match model:
         case ProceduralFortification():
@@ -55,4 +54,23 @@ def simulate(config: RunConfig) -> SimulationResult:
             fields = run_waterline(model, domain, rng)
         case ProceduralGrowth():
             fields = run_growth(model, domain, rng)
-    return SimulationResult(config=config, domain=domain, fields=fields)
+    return SimulationResult(config=config, domain=domain, fields=_with_inclusions(fields, domain))
+
+
+def _with_inclusions(fields: Fields, domain: Domain) -> Fields:
+    """Mark tube filaments. The growth model grows around them; the older
+    single-form models ignore them, so this only paints them in."""
+    inc = domain.inclusions
+    if inc is None or not inc.any():
+        return fields
+    phase = fields.phase.copy()
+    phase[inc] = Phase.INCLUSION
+    return replace(
+        fields,
+        phase=phase,
+        band=np.where(inc, -1, fields.band).astype(np.int32),
+        t_dep=np.where(inc, np.nan, fields.t_dep).astype(np.float32),
+        grain=np.where(inc, -1, fields.grain).astype(np.int32),
+        translucency=np.where(inc, 0.0, fields.translucency).astype(np.float32),
+        impurity=np.where(inc, 1.0, fields.impurity).astype(np.float32),
+    )

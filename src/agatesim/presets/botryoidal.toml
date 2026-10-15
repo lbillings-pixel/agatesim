@@ -1,0 +1,27 @@
+# Verification preset for botryoidal agate (procedural tier): growth radiates
+# throughout from scattered nucleation sites on the wall. Sites grow at slightly
+# different rates, so the faster lobes overgrow their neighbours and the open
+# centre is lined with a few large hemispherical lobes.
+name = "botryoidal"
+seed = 7
+archetype = "botryoidal"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 50
+
+[model]
+kind = "procedural-growth"
+growth_mm = 9
+band_period = 0.03
+spherulite_spacing_mm = 10
+spherulite_rate_variability = 0.3
+
+[model.schedules.spherulitic]
+base = 1.0
+
+[model.schedules.iron]
+base = 0.3

@@ -19,7 +19,8 @@ growth_mm = 18
 band_period = 0.02
 quartz_threshold = 0.35
 quartz_grain_mm = 0.5
-quartz_coarsening = 0.6
+quartz_elongation = 4
+quartz_axis_scatter_deg = 70
 
 [model.schedules.silica]
 base = 1.0

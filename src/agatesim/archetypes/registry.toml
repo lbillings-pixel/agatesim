@@ -181,7 +181,7 @@ toward the centre (and sometimes an open void) as silica supply falls.
 id = "botryoidal"
 name = "Botryoidal habit"
 rung = 6
-status = { procedural = "pending", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary", "seam"]
 depends_on = ["fortification"]
@@ -193,46 +193,58 @@ spherulitic growth from many nucleation sites. Bands follow the lobes.
   [[archetypes.criteria]]
   id = "lobate-front"
   description = "The final growth surface is made of rounded lobes."
-  metric = "Front curvature is mostly positive, with lobe radii in a configured range."
+  metric = "Fraction of the banding next to the open space whose deposition-time surfaces bulge into it, curving about a centre behind them (radius under 30% of cavity size). Needs open space."
+  min = 0.6
+
+  [[archetypes.criteria]]
+  id = "lobe-count"
+  description = "Many lobes, not a single bulge."
+  metric = "Number of distinct growth centres behind the final growth surface (peaks in the density of curvature centres, each holding at least 1% of the surface pixels). That lobe count rises with nucleation density is checked in tests."
+  min = 5
 
   [[archetypes.criteria]]
   id = "bands-follow-lobes"
-  description = "Internal bands are concentric about lobe centres."
-  metric = "Band contours fit circles about nucleation sites with residual ≤ threshold."
-
-  [[archetypes.criteria]]
-  id = "nucleation-controlled"
-  description = "Nucleation density controls lobe size."
-  metric = "Mean lobe radius decreases as nucleation-site density increases."
+  description = "Internal bands are concentric about the lobes, not parallel to the wall."
+  metric = "Fraction of band-boundary pixels whose band curves about a centre behind it."
+  min = 0.7
 
 [[archetypes]]
 id = "eye"
 name = "Eye agate"
 rung = 7
-status = { procedural = "pending", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["botryoidal"]
 summary = """
-Isolated, circular, concentrically banded "eyes": spherulites nucleated at the
-wall, seen on a cut or weathered surface.
+Isolated, concentrically banded "eyes": spherulites nucleated at the wall. In a
+cross-section they appear as half-ring systems rooted on the wall, overgrown by
+later banding; on a surface ground parallel to the wall they appear as circles.
 """
 
   [[archetypes.criteria]]
   id = "discrete-eyes"
-  description = "Separate circular band systems are present."
-  metric = "Count of concentric systems within a configured range, each with circularity ≥ threshold."
+  description = "Several separate band systems radiate from their own centres."
+  metric = "Number of distinct growth centres of the banding (peaks in the density of band-boundary curvature centres, each holding at least 1% of band-boundary pixels)."
+  min = 3
 
   [[archetypes.criteria]]
   id = "wall-nucleated"
   description = "Eyes are rooted at the cavity wall."
-  metric = "Each eye's centre lies within a tolerance of the original wall."
+  metric = "Fraction of growth centres within 3% of cavity size of the original wall."
+  min = 0.8
+
+  [[archetypes.criteria]]
+  id = "isolated-eyes"
+  description = "The eyes are separate, not a continuous botryoidal crust."
+  metric = "Fraction of the first banding on the wall that is ordinary layering rather than radiating from a centre."
+  min = 0.3
 
 [[archetypes]]
 id = "tube"
 name = "Tube agate"
 rung = 8
-status = { procedural = "pending", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["eye"]
@@ -243,13 +255,15 @@ channels). In cross-section each tube shows up as a small concentric ring system
 
   [[archetypes.criteria]]
   id = "seed-concentric"
-  description = "Bands are concentric about the configured seeds."
-  metric = "Band contours around each seed fit circles with residual ≤ threshold."
+  description = "Bands around each seed are circles about it."
+  metric = "Worst seed's fraction of band boundary in its ring zone (out to halfway to the nearest other solid) lying within 10% of that band's median distance from the seed."
+  min = 0.8
 
   [[archetypes.criteria]]
   id = "seed-placement"
-  description = "Ring systems sit where the seeds were placed."
-  metric = "Ring-system centres match seed positions within tolerance."
+  description = "Ring systems sit where the seeds are."
+  metric = "Worst seed's offset from the centre of its ring system (median of circle fits to its band boundaries), as a fraction of the ring zone's radius."
+  max = 0.1
 
 [[archetypes]]
 id = "moss"

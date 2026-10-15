@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
@@ -22,11 +22,47 @@ class Domain:
     grid: Grid
     mask: NDArray[np.bool_]  # True inside the cavity
     wall_distance: FloatArray  # mm from the cavity wall; 0 outside
+    # Tubes: thin filaments crossing the slab, rows of (x, y, radius) in mm.
+    tubes: FloatArray = field(default_factory=lambda: np.zeros((0, 3)))
+    inclusions: NDArray[np.bool_] | None = None  # True inside a tube
 
     @classmethod
-    def build(cls, cavity: Cavity, grid: Grid) -> Domain:
+    def build(cls, cavity: Cavity, grid: Grid, tubes: FloatArray | None = None) -> Domain:
         mask, distance = cavity.discretize(grid)
-        return cls(cavity=cavity, grid=grid, mask=mask, wall_distance=distance)
+        tubes = np.zeros((0, 3)) if tubes is None else np.asarray(tubes, dtype=np.float64)
+        inclusions = np.zeros_like(mask)
+        if len(tubes):
+            inclusions = mask & (_tube_distance(grid, tubes) <= 0)
+        return cls(
+            cavity=cavity,
+            grid=grid,
+            mask=mask,
+            wall_distance=distance,
+            tubes=tubes,
+            inclusions=inclusions,
+        )
+
+    @property
+    def open_start(self) -> NDArray[np.bool_]:
+        """Open space before anything grows: the cavity minus its inclusions."""
+        return self.mask if self.inclusions is None else self.mask & ~self.inclusions
+
+    def solid_distance(self) -> FloatArray:
+        """Exact distance (mm) from each open pixel to the nearest solid surface,
+        the wall or a tube; 0 elsewhere."""
+        if not len(self.tubes):
+            return self.wall_distance
+        d = np.minimum(self.wall_distance, _tube_distance(self.grid, self.tubes))
+        return np.where(self.open_start, np.maximum(d, 0.0), 0.0)
+
+
+def _tube_distance(grid: Grid, tubes: FloatArray) -> FloatArray:
+    """Signed distance (mm) from each pixel centre to the nearest tube surface."""
+    xx, yy = grid.coords()
+    d = np.full(grid.shape, np.inf)
+    for x, y, r in tubes:
+        d = np.minimum(d, np.hypot(xx - x, yy - y) - r)
+    return d
 
 
 @dataclass(frozen=True)

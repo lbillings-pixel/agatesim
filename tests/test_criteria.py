@@ -3,12 +3,18 @@ fail on results that don't show its form (negative controls). Without negative
 controls, a criterion could pass everything and verify nothing."""
 
 from collections.abc import Mapping
+from dataclasses import replace
 
+import numpy as np
 import pytest
 
+from agatesim import _scipy
 from agatesim.archetypes import Status, Tier, load_registry
 from agatesim.config import RunConfig, load_preset, preset_names
 from agatesim.criteria import Evaluation, evaluate, implemented
+from agatesim.criteria.botryoidal import lobe_count
+from agatesim.criteria.common import pixel_points
+from agatesim.criteria.radial import near_phase
 from agatesim.fields import Phase
 from agatesim.models import ProceduralGrowth
 from agatesim.schedules import Schedule
@@ -131,8 +137,28 @@ def test_combined_criteria_reject_interleaved_domains() -> None:
 
 
 def test_quartz_criteria_reject_uniform_crystals() -> None:
-    uniform = _with_model(load_preset("quartz-geode"), quartz_coarsening=0.0)
-    assert _failed(_evaluate("quartz-geode", uniform)) == {"inward-coarsening"}
+    """Crystals of one size, scattered at random through the quartz."""
+    result = simulate(load_preset("quartz-geode").with_resolution(NEGATIVE_RESOLUTION))
+    f = result.fields
+    quartz = f.phase == Phase.QUARTZ
+    pts = pixel_points(result.grid, quartz)
+    seeds = np.random.default_rng(0).choice(len(pts), size=len(np.unique(f.grain[quartz])))
+    grain = np.full_like(f.grain, -1)
+    grain[quartz] = _scipy.nearest_index(pts[seeds], pts).astype(np.int32)
+    uniform = replace(result, fields=replace(f, grain=grain))
+    assert _failed(evaluate("quartz-geode", uniform)) == {"inward-coarsening"}
+
+
+def test_quartz_crystals_coarsen_by_geometric_selection() -> None:
+    """Coarsening is not imposed: crystals pointing along the growth direction
+    outgrow their neighbours. Fewer crystals reach the open centre than start."""
+    result = simulate(load_preset("quartz-geode").with_resolution(NEGATIVE_RESOLUTION))
+    f = result.fields
+    near_void = (f.phase == Phase.QUARTZ) & near_phase(result, Phase.VOID, 2)
+    near_chal = (f.phase == Phase.QUARTZ) & near_phase(result, Phase.CHALCEDONY, 2)
+    reaching = len(np.unique(f.grain[near_void]))
+    starting = len(np.unique(f.grain[near_chal]))
+    assert reaching < 2 * starting / 3
 
 
 def test_quartz_criteria_reject_chalcedony_after_quartz() -> None:
@@ -178,3 +204,83 @@ def test_growth_model_reproduces_fortification_when_wall_lining_only() -> None:
 def test_unimplemented_archetype_raises() -> None:
     with pytest.raises(NotImplementedError):
         evaluate("iris", simulate(load_preset("fortification").with_resolution(64)))
+
+
+# --- Botryoidal, eye and tube ---------------------------------------------------
+
+
+def _fortification() -> RunConfig:
+    return load_preset("fortification").with_resolution(NEGATIVE_RESOLUTION)
+
+
+def test_radial_criteria_reject_wall_lining() -> None:
+    fort = _fortification()
+    assert _failed(_evaluate("botryoidal", fort)) == {
+        "lobate-front",
+        "lobe-count",
+        "bands-follow-lobes",
+    }
+    assert {"discrete-eyes", "wall-nucleated"} <= _failed(_evaluate("eye", fort))
+    assert _failed(_evaluate("tube", fort)) == {"seed-concentric", "seed-placement"}
+
+
+def test_botryoidal_criteria_reject_lobes_over_wall_parallel_bands() -> None:
+    """A late, thin spherulitic crust: the surface bulges but the bands beneath
+    are ordinary wall-parallel layers."""
+    late = _with_schedule(
+        load_preset("botryoidal").with_resolution(NEGATIVE_RESOLUTION),
+        "spherulitic",
+        {"base": 0, "events": [{"type": "step", "at": 0.8, "value": 1}]},
+    )
+    assert "bands-follow-lobes" in _failed(_evaluate("botryoidal", late))
+
+
+def test_botryoidal_criteria_need_open_space() -> None:
+    eye = load_preset("eye").with_resolution(NEGATIVE_RESOLUTION)
+    lobate = {r.id: r for r in _evaluate("botryoidal", eye).results}["lobate-front"]
+    assert lobate.value is None
+    assert "no open space" in lobate.detail
+
+
+def test_lobe_count_follows_nucleation_density_in_thin_crusts() -> None:
+    """While the crust is thin compared with the site spacing, each site keeps its
+    own lobe. (In thick crusts lobes coarsen by competition instead.)"""
+    counts: list[int] = []
+    for spacing in (3.0, 6.0, 12.0):
+        thin = _with_model(
+            load_preset("botryoidal").with_resolution(256),
+            spherulite_spacing_mm=spacing,
+            spherulite_rate_variability=0.0,
+            growth_mm=2.5,
+        )
+        value, _ = lobe_count(simulate(thin))
+        assert value is not None
+        counts.append(int(value))
+    assert counts[0] > counts[1] > counts[2]
+
+
+def test_eye_criteria_reject_continuous_crust() -> None:
+    crust = load_preset("botryoidal").with_resolution(NEGATIVE_RESOLUTION)
+    assert _failed(_evaluate("eye", crust)) == {"isolated-eyes"}
+
+
+def test_eye_criteria_reject_centres_off_the_wall() -> None:
+    tube = load_preset("tube").with_resolution(NEGATIVE_RESOLUTION)
+    assert _failed(_evaluate("eye", tube)) == {"wall-nucleated"}
+
+
+def test_tube_criteria_reject_bands_that_ignore_the_seeds() -> None:
+    tube = load_preset("tube")
+    ignored = _fortification().model_copy(update={"cavity": tube.cavity, "archetype": "tube"})
+    assert _failed(_evaluate("tube", ignored)) == {"seed-concentric", "seed-placement"}
+
+
+def test_tube_criteria_reject_rings_away_from_their_seeds() -> None:
+    result = simulate(load_preset("tube").with_resolution(NEGATIVE_RESOLUTION))
+    f = result.fields
+    inclusion = f.phase == Phase.INCLUSION
+    moved = np.roll(inclusion, 12, axis=1)
+    phase = np.where(inclusion & ~moved, Phase.CHALCEDONY, f.phase)
+    phase = np.where(moved, Phase.INCLUSION, phase).astype(np.uint8)
+    shifted = replace(result, fields=replace(f, phase=phase))
+    assert "seed-placement" in _failed(evaluate("tube", shifted))

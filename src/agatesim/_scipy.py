@@ -11,7 +11,7 @@ from typing import Any, cast
 
 import numpy as np
 from numpy.typing import NDArray
-from scipy import ndimage
+from scipy import ndimage, special
 from scipy.spatial import KDTree
 
 from agatesim.grid import FloatArray
@@ -65,3 +65,21 @@ def count_components(mask: NDArray[np.bool_], *, eight_connected: bool) -> int:
 def erode(mask: NDArray[np.bool_], iterations: int) -> NDArray[np.bool_]:
     out = ndimage.binary_erosion(mask, structure=FOUR_CONNECTED, iterations=iterations)
     return cast(NDArray[np.bool_], out)
+
+
+def normal_quantile(u: FloatArray) -> NDArray[np.float64]:
+    """Standard normal quantiles of uniform draws (clipped away from 0 and 1)."""
+    return cast(NDArray[np.float64], special.ndtri(np.clip(u, 1e-12, 1 - 1e-12)))
+
+
+def label(mask: NDArray[np.bool_], *, eight_connected: bool) -> NDArray[np.int32]:
+    """Connected-component labels (0 = background, 1..n = components)."""
+    structure = EIGHT_CONNECTED if eight_connected else FOUR_CONNECTED
+    result: Any = ndimage.label(mask, structure=structure)
+    return cast(NDArray[np.int32], result[0])
+
+
+def local_maxima(field: FloatArray, size: int) -> NDArray[np.bool_]:
+    """Pixels equal to the maximum of their size x size neighbourhood."""
+    peak = ndimage.maximum_filter(field, size=size, mode="constant", cval=-np.inf)
+    return cast(NDArray[np.bool_], field == peak)

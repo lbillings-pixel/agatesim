@@ -1,0 +1,27 @@
+# Verification preset for tube agate (procedural tier): four filaments cross the
+# slab, and chalcedony lines them as it lines the wall, so each shows as a ring
+# system where the slab cuts it.
+name = "tube"
+seed = 9
+archetype = "tube"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 40
+tubes = [
+  { x_mm = -6, y_mm = 5, radius_mm = 0.4 },
+  { x_mm = 7, y_mm = 8, radius_mm = 0.3 },
+  { x_mm = 2, y_mm = -6, radius_mm = 0.5 },
+  { x_mm = -9, y_mm = -7, radius_mm = 0.3 },
+]
+
+[model]
+kind = "procedural-growth"
+growth_mm = 30
+band_period = 0.015
+
+[model.schedules.iron]
+base = 0.3

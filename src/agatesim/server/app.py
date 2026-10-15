@@ -167,6 +167,10 @@ def create_app(runs_dir: Path, static_dir: Path | None = STATIC_DIR) -> FastAPI:
             "width": result.grid.nx,
             "height": result.grid.ny,
             "dx_mm": result.grid.dx,
+            # World position (mm) of the image's top-left corner, so the UI can map
+            # clicks to slab coordinates (for placing tubes).
+            "x0_mm": result.grid.x0,
+            "y1_mm": result.grid.y1,
             "elapsed_ms": round(elapsed * 1000),
             "evaluation": _evaluation(config, result),
             "stats": band_statistics(result).to_json(),

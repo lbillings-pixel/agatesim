@@ -28,7 +28,7 @@ def test_meta_describes_cavities_models_and_parameters(client: TestClient) -> No
         "procedural-waterline",
     }
     growth = next(m for m in meta["models"] if m["kind"] == "procedural-growth")
-    assert [s["key"] for s in growth["schedules"]] == ["silica", "settling", "iron"]
+    assert [s["key"] for s in growth["schedules"]] == ["silica", "settling", "spherulitic", "iron"]
     fort = next(m for m in meta["models"] if m["kind"] == "procedural-fortification")
     band = fort["schema"]["properties"]["mean_band_thickness_mm"]
     assert band["units"] == "mm"
@@ -95,3 +95,35 @@ def test_encode_tdep() -> None:
     t = np.array([[0.0, 0.5], [1.0, np.nan]])
     coded = np.asarray(encode_tdep(t))
     assert coded.tolist() == [[0, 127], [254, 255]]
+
+
+def test_preview_of_a_drawn_cavity_with_a_tube(client: TestClient) -> None:
+    config = _config("tube")
+    config["cavity"] = {
+        "outline": [[0, 0], [4, 0], [4, 1], [1, 1], [1, 3], [0, 3]],
+        "host": "volcanic",
+        "smooth": False,
+        "size_mm": 40,
+        "tubes": [{"x_mm": -12, "y_mm": -12, "radius_mm": 0.5}],
+    }
+    body = client.post("/api/preview", json={"config": config, "resolution": 128}).json()
+    assert body["width"] == 128
+    assert body["x0_mm"] < -20 < 20 < body["x0_mm"] + body["width"] * body["dx_mm"]
+    assert body["evaluation"]["archetype"] == "tube"
+
+
+@pytest.mark.parametrize(
+    ("cavity", "message"),
+    [
+        ({"outline": [[0, 0], [2, 2], [2, 0], [0, 2]], "host": "seam"}, "crosses itself"),
+        ({"preset": "vesicle-round", "tubes": [{"x_mm": 40, "y_mm": 0}]}, "outside the cavity"),
+    ],
+)
+def test_invalid_cavities_are_rejected_with_a_reason(
+    client: TestClient, cavity: dict[str, object], message: str
+) -> None:
+    config = _config("tube")
+    config["cavity"] = cavity
+    response = client.post("/api/preview", json={"config": config, "resolution": 128})
+    assert response.status_code == 422
+    assert message in response.text

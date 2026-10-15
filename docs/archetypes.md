@@ -15,9 +15,9 @@ provisional until the archetype is implemented.
 | 3 | [Waterline (Uruguay-type) horizontal banding](#waterline) | verified | pending | formation | volcanic, sedimentary | — |
 | 4 | [Combined fortification and waterline banding](#fortification-waterline) | verified | pending | formation | volcanic, sedimentary | fortification, waterline |
 | 5 | [Banded agate with quartz-crystal centre](#quartz-geode) | verified | pending | formation | volcanic, sedimentary | fortification |
-| 6 | [Botryoidal habit](#botryoidal) | pending | pending | formation | volcanic, sedimentary, seam | fortification |
-| 7 | [Eye agate](#eye) | pending | pending | formation | volcanic, sedimentary | botryoidal |
-| 8 | [Tube agate](#tube) | pending | pending | formation | volcanic, sedimentary | eye |
+| 6 | [Botryoidal habit](#botryoidal) | verified | pending | formation | volcanic, sedimentary, seam | fortification |
+| 7 | [Eye agate](#eye) | verified | pending | formation | volcanic, sedimentary | botryoidal |
+| 8 | [Tube agate](#tube) | verified | pending | formation | volcanic, sedimentary | eye |
 | 9 | [Moss / dendritic agate](#moss) | pending | pending | formation | volcanic, sedimentary, seam | — |
 | 10 | [Plume agate](#plume) | pending | pending | formation | volcanic, sedimentary | moss |
 | 11 | [Shadow agate](#shadow) | pending | pending | optics | volcanic, sedimentary | fortification |
@@ -100,21 +100,23 @@ spherulitic growth from many nucleation sites. Bands follow the lobes.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `lobate-front` | The final growth surface is made of rounded lobes. | Front curvature is mostly positive, with lobe radii in a configured range. | provisional |
-| `bands-follow-lobes` | Internal bands are concentric about lobe centres. | Band contours fit circles about nucleation sites with residual ≤ threshold. | provisional |
-| `nucleation-controlled` | Nucleation density controls lobe size. | Mean lobe radius decreases as nucleation-site density increases. | provisional |
+| `lobate-front` | The final growth surface is made of rounded lobes. | Fraction of the banding next to the open space whose deposition-time surfaces bulge into it, curving about a centre behind them (radius under 30% of cavity size). Needs open space. | value ≥ 0.6 |
+| `lobe-count` | Many lobes, not a single bulge. | Number of distinct growth centres behind the final growth surface (peaks in the density of curvature centres, each holding at least 1% of the surface pixels). That lobe count rises with nucleation density is checked in tests. | value ≥ 5 |
+| `bands-follow-lobes` | Internal bands are concentric about the lobes, not parallel to the wall. | Fraction of band-boundary pixels whose band curves about a centre behind it. | value ≥ 0.7 |
 
 ## Eye agate
 
 <a id="eye"></a>
 
-Isolated, circular, concentrically banded "eyes": spherulites nucleated at the
-wall, seen on a cut or weathered surface.
+Isolated, concentrically banded "eyes": spherulites nucleated at the wall. In a
+cross-section they appear as half-ring systems rooted on the wall, overgrown by
+later banding; on a surface ground parallel to the wall they appear as circles.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `discrete-eyes` | Separate circular band systems are present. | Count of concentric systems within a configured range, each with circularity ≥ threshold. | provisional |
-| `wall-nucleated` | Eyes are rooted at the cavity wall. | Each eye's centre lies within a tolerance of the original wall. | provisional |
+| `discrete-eyes` | Several separate band systems radiate from their own centres. | Number of distinct growth centres of the banding (peaks in the density of band-boundary curvature centres, each holding at least 1% of band-boundary pixels). | value ≥ 3 |
+| `wall-nucleated` | Eyes are rooted at the cavity wall. | Fraction of growth centres within 3% of cavity size of the original wall. | value ≥ 0.8 |
+| `isolated-eyes` | The eyes are separate, not a continuous botryoidal crust. | Fraction of the first banding on the wall that is ordinary layering rather than radiating from a centre. | value ≥ 0.3 |
 
 ## Tube agate
 
@@ -125,8 +127,8 @@ channels). In cross-section each tube shows up as a small concentric ring system
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `seed-concentric` | Bands are concentric about the configured seeds. | Band contours around each seed fit circles with residual ≤ threshold. | provisional |
-| `seed-placement` | Ring systems sit where the seeds were placed. | Ring-system centres match seed positions within tolerance. | provisional |
+| `seed-concentric` | Bands around each seed are circles about it. | Worst seed's fraction of band boundary in its ring zone (out to halfway to the nearest other solid) lying within 10% of that band's median distance from the seed. | value ≥ 0.8 |
+| `seed-placement` | Ring systems sit where the seeds are. | Worst seed's offset from the centre of its ring system (median of circle fits to its band boundaries), as a fraction of the ring zone's radius. | value ≤ 0.1 |
 
 ## Moss / dendritic agate
 

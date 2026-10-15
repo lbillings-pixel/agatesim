@@ -27,6 +27,7 @@ MILKY = np.array([238.0, 235.0, 228.0])
 CLEAR = np.array([86.0, 96.0, 114.0])
 VOID = np.array([18.0, 18.0, 22.0])
 CELADONITE = np.array([78.0, 98.0, 84.0])  # greenish rind typical of volcanic agates
+INCLUSION = np.array([44.0, 30.0, 24.0])  # dark brown stand-in for filament material
 # Iron-stain palette: (impurity, colour), interpolated piecewise-linearly.
 STAIN = [
     (0.0, np.array([214.0, 196.0, 160.0])),
@@ -163,6 +164,7 @@ def render_slab(result: SimulationResult) -> NDArray[np.uint8]:
     quartz = phase == Phase.QUARTZ
     if quartz.any():
         rgb[quartz] = _quartz(result)[quartz]
+    rgb[phase == Phase.INCLUSION] = INCLUSION
     return np.clip(np.rint(rgb), 0, 255).astype(np.uint8)
 
 

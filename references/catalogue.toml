@@ -145,6 +145,36 @@ checked = "abstract"
 topics = ["waterline", "uruguay-banding", "gravity-settling", "crystallites", "geode"]
 notes = "Fibres are aligned quartz crystallites 8–100 nm long. Uruguay (horizontal) bands are euhedral quartz grains (0.5–4 µm) and/or spherulites (≤100 µm), deposited by gravity after the agate bands and coarse quartz formed. Proposes growth from a hydrothermal solution carrying ~10 nm polymerized particles."
 
+# --- Crystal growth ----------------------------------------------------------
+
+[[references]]
+id = "shtukenberg2012"
+kind = "review"
+authors = ["Shtukenberg, A. G.", "Punin, Y. O.", "Gunn, E.", "Kahr, B."]
+year = 2012
+title = "Spherulites"
+venue = "Chemical Reviews 112(3), 1805–1838"
+doi = "10.1021/cr200297f"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["spherulites", "botryoidal", "crystal-growth", "nucleation"]
+notes = "Citation confirmed from two independent reference lists. Not yet read: needed for what controls spherulite size and how spherulitic crusts coarsen."
+
+[[references]]
+id = "vanderdrift1967"
+kind = "article"
+authors = ["van der Drift, A."]
+year = 1967
+title = "Evolutionary selection, a principle governing growth orientation in vapour-deposited layers"
+venue = "Philips Research Reports 22, 267–288"
+url = "https://doi.org/10.1007/s11706-010-0011-6"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["geometric-selection", "competitive-growth", "crystal-orientation"]
+notes = "The geometric-selection (evolutionary selection) principle: in a layer of crystals growing from a surface, those whose fastest growth direction is closest to the surface normal outgrow the rest. The original isn't online; the url is a secondary source that simulates textures with this mechanism (Liu, Raabe and Mao, Front. Mater. Sci. 2010). Volume and pages are from memory and still to confirm."
+
 # --- Modelling methods -------------------------------------------------------
 
 [[references]]

@@ -92,7 +92,7 @@ def read_summary(path: Path) -> RunSummary:
         name=config.name,
         started_utc=meta["started_utc"],
         elapsed_s=meta["elapsed_s"],
-        cavity=config.cavity.preset,
+        cavity=config.cavity.label,
         model=config.model.kind,
         archetype=config.archetype,
         passed=passed,

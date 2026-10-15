@@ -46,7 +46,7 @@ def _cmd_presets(_: argparse.Namespace) -> int:
 
     for name in preset_names():
         c = load_preset(name)
-        print(f"{name:<16} {c.model.kind:<26} cavity={c.cavity.preset}")
+        print(f"{name:<16} {c.model.kind:<26} cavity={c.cavity.label}")
     return 0
 
 
