@@ -1,0 +1,24 @@
+# Verification preset for the waterline archetype (procedural tier).
+name = "waterline"
+seed = 3
+archetype = "waterline"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-round"
+size_mm = 40
+
+[model]
+kind = "procedural-waterline"
+gravity_deg = 270
+fill_height_fraction = 0.45
+mean_layer_thickness_mm = 0.35
+thickness_variability = 0.3
+alternation = 0.6
+opacity_contrast = 0.7
+iron = 0.15
+iron_variability = 0.15
+wobble_mm = 0.02
+wobble_scale_mm = 3.0

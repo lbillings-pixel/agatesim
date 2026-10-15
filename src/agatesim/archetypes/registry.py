@@ -17,13 +17,31 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 
 Slug = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9-]*$")]
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class Status(StrEnum):
     PENDING = "pending"  # catalogued; no implementation yet
     IN_PROGRESS = "in-progress"  # implementation underway; criteria not yet all passing
-    VERIFIED = "verified"  # every criterion passes in CI
+    VERIFIED = "verified"  # a committed preset passes every criterion in CI
+
+
+class Tier(StrEnum):
+    """Model tiers are verified separately (ADR 0005): reproducing a form
+    procedurally says nothing about which mechanism forms it."""
+
+    PROCEDURAL = "procedural"
+    MECHANISTIC = "mechanistic"
+
+
+class TierStatus(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    procedural: Status = Status.PENDING
+    mechanistic: Status = Status.PENDING
+
+    def of(self, tier: Tier) -> Status:
+        return Status(getattr(self, tier.value))
 
 
 class Subsystem(StrEnum):
@@ -44,7 +62,24 @@ class Criterion(BaseModel):
 
     id: Slug
     description: str
-    metric: str  # tentative measurement; refined when the archetype is implemented
+    metric: str  # what is measured; provisional until the archetype is implemented
+    min: float | None = None  # pass if value >= min
+    max: float | None = None  # pass if value <= max
+
+    @model_validator(mode="after")
+    def _ordered_bounds(self) -> Criterion:
+        if self.min is not None and self.max is not None and self.min > self.max:
+            raise ValueError(f"criterion {self.id!r} has min > max")
+        return self
+
+    def pass_condition(self) -> str:
+        if self.min is not None and self.max is not None:
+            return f"{self.min:g} ≤ value ≤ {self.max:g}"
+        if self.min is not None:
+            return f"value ≥ {self.min:g}"
+        if self.max is not None:
+            return f"value ≤ {self.max:g}"
+        return "provisional"
 
 
 class Archetype(BaseModel):
@@ -53,7 +88,7 @@ class Archetype(BaseModel):
     id: Slug
     name: str
     rung: int = Field(ge=1)
-    status: Status
+    status: TierStatus
     subsystem: Subsystem
     hosts: tuple[Host, ...] = Field(min_length=1)
     depends_on: tuple[Slug, ...] = ()
@@ -96,8 +131,21 @@ class Registry(BaseModel):
                         f"{a.id!r} (rung {a.rung}) depends on {dep_id!r} (rung {dep.rung}); "
                         "dependencies must sit on earlier rungs"
                     )
-                if a.status is Status.VERIFIED and dep.status is not Status.VERIFIED:
-                    raise ValueError(f"{a.id!r} is verified but its dependency {dep_id!r} is not")
+                for tier in Tier:
+                    if (
+                        a.status.of(tier) is Status.VERIFIED
+                        and dep.status.of(tier) is not Status.VERIFIED
+                    ):
+                        raise ValueError(
+                            f"{a.id!r} is verified ({tier.value}) but its dependency "
+                            f"{dep_id!r} is not"
+                        )
+            for c in a.criteria:
+                verified = any(a.status.of(t) is Status.VERIFIED for t in Tier)
+                if verified and c.min is None and c.max is None:
+                    raise ValueError(
+                        f"{a.id!r} is verified but criterion {c.id!r} has no threshold"
+                    )
         return self
 
     def get(self, archetype_id: str) -> Archetype:
@@ -130,21 +178,25 @@ def to_markdown(registry: Registry) -> str:
         "     `agatesim archetypes --write docs/archetypes.md`. Do not edit by hand. -->",
         "",
         "Each archetype is an agate form the simulator aims to reproduce. An archetype is",
-        "**verified** only when every criterion below passes against a simulation run.",
-        "Metrics are provisional until the archetype is implemented.",
+        "**verified** for a model tier only when a committed preset using that tier passes",
+        "every criterion below in CI (ADR 0005). Criteria without a threshold are",
+        "provisional until the archetype is implemented.",
         "",
-        "| Rung | Archetype | Status | Subsystem | Hosts | Depends on |",
-        "|---:|---|---|---|---|---|",
+        "| Rung | Archetype | Procedural | Mechanistic | Subsystem | Hosts | Depends on |",
+        "|---:|---|---|---|---|---|---|",
     ]
     for a in registry.by_rung():
         deps = ", ".join(a.depends_on) or "—"
         hosts = ", ".join(h.value for h in a.hosts)
         lines.append(
-            f"| {a.rung} | [{a.name}](#{a.id}) | {a.status.value} | {a.subsystem.value} "
-            f"| {hosts} | {deps} |"
+            f"| {a.rung} | [{a.name}](#{a.id}) | {a.status.procedural.value} "
+            f"| {a.status.mechanistic.value} | {a.subsystem.value} | {hosts} | {deps} |"
         )
     for a in registry.by_rung():
         lines += ["", f"## {a.name}", "", f'<a id="{a.id}"></a>', "", a.summary.strip(), ""]
-        lines += ["| Criterion | Description | Provisional metric |", "|---|---|---|"]
-        lines += [f"| `{c.id}` | {c.description} | {c.metric} |" for c in a.criteria]
+        lines += ["| Criterion | Description | Metric | Pass if |", "|---|---|---|---|"]
+        lines += [
+            f"| `{c.id}` | {c.description} | {c.metric} | {c.pass_condition()} |"
+            for c in a.criteria
+        ]
     return "\n".join(lines) + "\n"

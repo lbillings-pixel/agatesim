@@ -1,6 +1,6 @@
 # agatesim
 
-[![CI](https://github.com/lbillings-pixel/first-app/actions/workflows/ci.yml/badge.svg)](https://github.com/lbillings-pixel/first-app/actions/workflows/ci.yml)
+[![CI](https://github.com/lbillings-pixel/agatesim/actions/workflows/ci.yml/badge.svg)](https://github.com/lbillings-pixel/agatesim/actions/workflows/ci.yml)
 
 **agatesim** simulates how natural agate forms inside its host rock, at the scale of
 a single nodule or seam. By changing environmental and geological conditions over
@@ -8,17 +8,25 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M0 (foundation).** No simulation models yet. See the
-> [roadmap](docs/roadmap.md).
+> **Status: M1 (first procedural models).** See the [roadmap](docs/roadmap.md).
+
+![Verification presets for fortification, seam and waterline agate](docs/images/archetypes.png)
 
 ## What it reproduces so far
 
 Each target form is a rung on the [archetype ladder](docs/archetypes.md). A form
-only counts as reproduced when its quantitative criteria pass in CI.
+counts as reproduced only when a committed preset passes all of its quantitative
+criteria in CI. Each criterion is also tested against results that *lack* its
+form, so it can't pass everything. Procedural and mechanistic models are tracked
+separately: reproducing a form procedurally says nothing about how it forms in
+nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 
-| Form | Status |
-|---|---|
-| Fortification, seam, waterline, combined, quartz-centre geode, botryoidal, eye, tube, moss, plume, shadow, iris | pending |
+| Form | Procedural | Mechanistic |
+|---|---|---|
+| Fortification | ✅ verified | pending |
+| Vein / seam | ✅ verified | pending |
+| Waterline | ✅ verified | pending |
+| Combined, quartz-centre geode, botryoidal, eye, tube, moss, plume, shadow, iris | pending | pending |
 
 ## Approach
 
@@ -29,33 +37,60 @@ only counts as reproduced when its quantitative criteria pass in CI.
 - **Competing formation hypotheses are separate, swappable mechanisms**, because
   the science is unsettled ([science notes](docs/science/mechanisms.md)).
 - **Every run is reproducible** from its config, seed and code version.
+- **Previews show the same agate as full runs.** Geometry is exact and noise is
+  defined in world coordinates, not pixels.
 
 ## Getting started
 
 Requires [uv](https://docs.astral.sh/uv/).
 
 ```sh
-uv sync                    # create the environment and install everything
-uv run agatesim archetypes # list the archetype ladder
-uv run pytest              # run the tests
-uv run pre-commit install  # check each commit with ruff and pyright
+uv sync                                   # create the environment
+uv run agatesim presets                   # shipped run presets
+uv run agatesim cavities                  # preset cavity shapes
+uv run agatesim run fortification         # full run -> runs/<run-id>/
+uv run agatesim run waterline --preview   # quick 256 px preview
+uv run agatesim run my-config.toml        # your own configuration
+uv run agatesim archetypes                # the archetype ladder and its status
+```
+
+Each run directory contains `config.toml` (reproduces the run exactly),
+`metadata.json` (code version, seed, library versions), `fields.zarr` (material
+fields), `slab.png` (rendered slab) and `metrics.json` (archetype criteria).
+
+## Development
+
+```sh
+uv run pytest                             # tests
+uv run ruff check; uv run ruff format     # lint and format
+uv run pyright                            # strict type checking
+uv run pre-commit install                 # run checks on every commit
+uv run python scripts/make_gallery.py     # regenerate docs/images
 ```
 
 ## Project layout
 
 ```
-src/agatesim/        simulation package
-  archetypes/        archetype ladder (registry.toml) and its validation
-  references.py      reference catalogue validation
-tests/               pytest suite
+src/agatesim/
+  archetypes/        archetype ladder (registry.toml): criteria and thresholds
+  presets/           shipped run configs; one per verified archetype
+  models/            formation models (procedural fortification, waterline)
+  criteria/          measurements that judge results against the ladder
+  geometry.py        cavity shapes, exact masks and wall distances
+  config.py          run configuration (TOML)
+  simulate.py        run a configuration
+  render.py          slab rendering (placeholder until the optical renderer, M6)
+  runs.py            run records
+tests/               pytest suite, including negative controls for every criterion
 docs/
   adr/               architecture decision records
   science/           literature notes and model rationale
   archetypes.md      generated from the registry; do not edit by hand
-  roadmap.md
+  images/            generated by scripts/make_gallery.py
 references/          literature catalogue with checking level and licences
 ```
 
 ## License
 
-Not yet chosen. A license will be added before the repository is made public.
+[MIT](LICENSE). Literature and reference material keep their own licences; see
+[references/](references/README.md).

@@ -10,6 +10,8 @@ from agatesim.archetypes.registry import (
     Registry,
     Status,
     Subsystem,
+    Tier,
+    TierStatus,
     load_registry,
     to_markdown,
 )
@@ -21,6 +23,8 @@ __all__ = [
     "Registry",
     "Status",
     "Subsystem",
+    "Tier",
+    "TierStatus",
     "load_registry",
     "to_markdown",
 ]

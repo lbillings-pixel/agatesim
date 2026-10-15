@@ -1,0 +1,23 @@
+# Verification preset for the fortification archetype (procedural tier).
+name = "fortification"
+seed = 1
+archetype = "fortification"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-angular"
+size_mm = 50
+
+[model]
+kind = "procedural-fortification"
+mean_band_thickness_mm = 0.5
+thickness_variability = 0.4
+fill_fraction = 0.9
+alternation = 0.7
+opacity_contrast = 0.85
+iron = 0.3
+iron_variability = 0.3
+wobble_mm = 0.12
+wobble_scale_mm = 2.0

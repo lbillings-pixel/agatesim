@@ -4,21 +4,23 @@
 # Rules (enforced by agatesim.archetypes.registry):
 #   - ids are lowercase slugs and unique
 #   - an archetype may depend only on archetypes on strictly earlier rungs
-#   - "verified" requires every dependency to be verified
+#   - status is tracked per model tier (procedural, mechanistic); ADR 0005
+#   - "verified" at a tier requires every dependency verified at that tier,
+#     and every criterion to have a threshold (min and/or max)
 #
-# Metrics are provisional: they are refined, and given numeric thresholds,
-# when an archetype is implemented. Changing a verified archetype's criteria
-# requires an ADR (see docs/adr/0004-archetype-ladder.md).
+# Metrics are provisional until an archetype is implemented, when they gain
+# thresholds. Changing a verified archetype's criteria requires an ADR
+# (see docs/adr/0004-archetype-ladder.md).
 #
 # After editing, regenerate the docs: agatesim archetypes --write docs/archetypes.md
 
-schema_version = 1
+schema_version = 2
 
 [[archetypes]]
 id = "fortification"
 name = "Fortification (concentric) banding"
 rung = 1
-status = "pending"
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 summary = """
@@ -30,28 +32,32 @@ other archetypes build on.
   [[archetypes.criteria]]
   id = "wall-parallel"
   description = "Bands run parallel to the cavity wall."
-  metric = "Mean |cos θ| between band-contour normals and the distance-to-wall gradient ≥ threshold."
+  metric = "Mean |cos θ| between band-boundary normals and the distance-to-wall gradient."
+  min = 0.9
 
   [[archetypes.criteria]]
   id = "corners-preserved"
   description = "Angular turns in the wall propagate inward as angular turns in the bands."
-  metric = "Curvature peaks of inner bands align with wall corners within an angular tolerance."
+  metric = "Worst, over wall corners, of the median turn width / band spacing for bands near the corner. Turn width is the lateral distance over which a band's direction swings through the middle half of its turn at the corner. Needs bands at least 5 px apart."
+  max = 0.7
 
   [[archetypes.criteria]]
   id = "closed-bands"
   description = "Bands form closed loops around the cavity centre."
-  metric = "Fraction of band contours that are closed ≥ threshold."
+  metric = "Fraction of bands (excluding the innermost) that are one connected ring separating inside from outside."
+  min = 0.9
 
   [[archetypes.criteria]]
   id = "band-count"
   description = "Enough distinct bands to read as banding."
-  metric = "Band count from a wall-to-centre profile within a configured range."
+  metric = "Number of distinct bands present."
+  min = 8
 
 [[archetypes]]
 id = "seam"
 name = "Vein / seam agate"
 rung = 2
-status = "pending"
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["seam"]
 depends_on = ["fortification"]
@@ -63,23 +69,26 @@ suture, open void, or quartz infill.
   [[archetypes.criteria]]
   id = "elongate-host"
   description = "The cavity is a high-aspect-ratio crack."
-  metric = "Cavity aspect ratio ≥ threshold."
+  metric = "Ratio of the cavity's standard deviations along its long and short axes."
+  min = 5
 
   [[archetypes.criteria]]
   id = "mirror-symmetry"
   description = "Band sequences on opposite walls mirror each other about the seam's midline."
-  metric = "Correlation between reflected wall-normal profiles ≥ threshold."
+  metric = "Minimum correlation between each cross-section's band profile and its reflection, over 7 sections across the middle half of the seam."
+  min = 0.8
 
   [[archetypes.criteria]]
   id = "central-suture"
   description = "Growth fronts from the two walls meet at, or leave open, a central plane."
-  metric = "Locus of final growth lies within a tolerance of the medial axis."
+  metric = "Worst offset of the last-deposited material (or void) from each cross-section's midpoint, as a fraction of its width."
+  max = 0.1
 
 [[archetypes]]
 id = "waterline"
 name = "Waterline (Uruguay-type) horizontal banding"
 rung = 3
-status = "pending"
+status = { procedural = "verified", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 summary = """
@@ -90,28 +99,32 @@ record which way was "up" at the time they formed (a geopetal indicator).
   [[archetypes.criteria]]
   id = "gravity-normal"
   description = "Band normals align with the configured gravity vector."
-  metric = "Mean |cos θ| between band normals and gravity ≥ threshold."
+  metric = "Mean |cos θ| between band-boundary normals and gravity."
+  min = 0.95
 
   [[archetypes.criteria]]
   id = "planar"
   description = "Bands are flat, not curved to the wall."
-  metric = "RMS residual of a straight-line fit to each band ≤ threshold."
+  metric = "Worst RMS residual of a straight-line fit to any band boundary, as a fraction of cavity size."
+  max = 0.005
 
   [[archetypes.criteria]]
   id = "floor-confined"
   description = "Horizontal bands occupy the gravitational bottom of the cavity."
-  metric = "Centroid of horizontal-band area lies below the cavity centroid along gravity."
+  metric = "Offset of the banded fill's centroid below the cavity centroid along gravity, as a fraction of cavity size."
+  min = 0.05
 
   [[archetypes.criteria]]
   id = "geopetal-recoverable"
   description = "The gravity direction can be recovered from the result alone."
-  metric = "Gravity direction estimated from the bands matches the configured value within tolerance."
+  metric = "Angle (degrees) between true gravity and 'down' estimated from band orientation and which side the open space is on, without using gravity or deposition order."
+  max = 3
 
 [[archetypes]]
 id = "fortification-waterline"
 name = "Combined fortification and waterline banding"
 rung = 4
-status = "pending"
+status = { procedural = "pending", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification", "waterline"]
@@ -135,7 +148,7 @@ since nature records both sequences.
 id = "quartz-geode"
 name = "Banded agate with quartz-crystal centre"
 rung = 5
-status = "pending"
+status = { procedural = "pending", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification"]
@@ -163,7 +176,7 @@ toward the centre (and sometimes an open void) as silica supply falls.
 id = "botryoidal"
 name = "Botryoidal habit"
 rung = 6
-status = "pending"
+status = { procedural = "pending", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary", "seam"]
 depends_on = ["fortification"]
@@ -191,7 +204,7 @@ spherulitic growth from many nucleation sites. Bands follow the lobes.
 id = "eye"
 name = "Eye agate"
 rung = 7
-status = "pending"
+status = { procedural = "pending", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["botryoidal"]
@@ -214,7 +227,7 @@ wall, seen on a cut or weathered surface.
 id = "tube"
 name = "Tube agate"
 rung = 8
-status = "pending"
+status = { procedural = "pending", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["eye"]
@@ -237,7 +250,7 @@ channels). In cross-section each tube shows up as a small concentric ring system
 id = "moss"
 name = "Moss / dendritic agate"
 rung = 9
-status = "pending"
+status = { procedural = "pending", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary", "seam"]
 summary = """
@@ -259,7 +272,7 @@ chalcedony, grown by diffusion-limited branching.
 id = "plume"
 name = "Plume agate"
 rung = 10
-status = "pending"
+status = { procedural = "pending", mechanistic = "pending" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["moss"]
@@ -282,7 +295,7 @@ chalcedony.
 id = "shadow"
 name = "Shadow agate"
 rung = 11
-status = "pending"
+status = { procedural = "pending", mechanistic = "pending" }
 subsystem = "optics"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification"]
@@ -306,7 +319,7 @@ renderer, not just the formation model.
 id = "iris"
 name = "Iris agate"
 rung = 12
-status = "pending"
+status = { procedural = "pending", mechanistic = "pending" }
 subsystem = "optics"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification", "shadow"]

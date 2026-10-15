@@ -4,9 +4,16 @@ version = "0.0.1"
 description = "Simulation of natural agate formation in nodules and seams, from procedural models to physics."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "lbillings-pixel" }]
 dependencies = [
+    "numpy>=2.5.4",
+    "pillow>=12.3.0",
     "pydantic>=2.9",
+    "scipy>=1.18.1",
+    "tomli-w>=1.2.0",
+    "zarr>=3.4.1",
 ]
 
 [project.scripts]
@@ -44,9 +51,11 @@ select = [
     "PT",       # pytest style
     "RUF",      # ruff-specific
 ]
+# Mathematical notation in docstrings and comments is intentional.
+allowed-confusables = ["−", "ρ", "σ", "θ", "φ", "·", "×", "π"]
 
 [tool.pyright]
-include = ["src", "tests"]
+include = ["src", "tests", "scripts"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 venvPath = "."

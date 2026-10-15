@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from agatesim.archetypes import Status, load_registry, to_markdown
+from agatesim.archetypes import load_registry, to_markdown
 from agatesim.archetypes.registry import parse_registry
 
 EXPECTED_LADDER = [
@@ -35,11 +35,15 @@ def test_docs_archetypes_md_is_in_sync(repo_root: Path) -> None:
 
 
 def _registry_toml(*archetypes: str) -> str:
-    return "schema_version = 1\n" + "\n".join(archetypes)
+    return "schema_version = 2\n" + "\n".join(archetypes)
 
 
 def _archetype(
-    id: str, rung: int, depends_on: list[str] | None = None, status: str = "pending"
+    id: str,
+    rung: int,
+    depends_on: list[str] | None = None,
+    procedural: str = "pending",
+    threshold: str = "min = 0.5",
 ) -> str:
     deps = depends_on or []
     return f"""
@@ -47,7 +51,7 @@ def _archetype(
 id = "{id}"
 name = "{id}"
 rung = {rung}
-status = "{status}"
+status = {{ procedural = "{procedural}" }}
 subsystem = "formation"
 hosts = ["volcanic"]
 depends_on = {deps!r}
@@ -56,6 +60,7 @@ summary = "test"
   id = "c"
   description = "d"
   metric = "m"
+  {threshold}
 """.replace("'", '"')
 
 
@@ -72,9 +77,14 @@ def test_valid_minimal_registry() -> None:
         ((_archetype("a", 2), _archetype("b", 2, ["a"])), "earlier rungs"),
         ((_archetype("a", 2, ["b"]), _archetype("b", 1, ["a"])), "earlier rungs"),
         (
-            (_archetype("a", 1), _archetype("b", 2, ["a"], status="verified")),
-            "is verified but its dependency",
+            (_archetype("a", 1), _archetype("b", 2, ["a"], procedural="verified")),
+            "is verified .procedural. but its dependency",
         ),
+        (
+            (_archetype("a", 1, procedural="verified", threshold=""),),
+            "has no threshold",
+        ),
+        ((_archetype("a", 1, threshold="min = 2\n  max = 1"),), "min > max"),
     ],
 )
 def test_invalid_registries_are_rejected(archetypes: tuple[str, ...], message: str) -> None:
@@ -88,7 +98,12 @@ def test_unknown_fields_are_rejected() -> None:
         parse_registry(text)
 
 
-def test_nothing_is_verified_yet() -> None:
-    # Guards against a status being flipped by hand without a passing preset.
-    # Remove when the first archetype's criteria are implemented in CI.
-    assert all(a.status is not Status.VERIFIED for a in load_registry().archetypes)
+def test_mechanistic_tier_defaults_to_pending() -> None:
+    registry = parse_registry(_registry_toml(_archetype("a", 1, procedural="verified")))
+    assert registry.get("a").status.mechanistic.value == "pending"
+
+
+def test_wrong_schema_version_rejected() -> None:
+    text = _registry_toml(_archetype("a", 1)).replace("schema_version = 2", "schema_version = 1")
+    with pytest.raises(ValidationError, match="schema_version"):
+        parse_registry(text)

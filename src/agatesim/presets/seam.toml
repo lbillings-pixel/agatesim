@@ -1,0 +1,24 @@
+# Verification preset for the seam archetype (procedural tier).
+name = "seam"
+seed = 2
+archetype = "seam"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "seam-straight"
+size_mm = 60
+rotation_deg = 20
+
+[model]
+kind = "procedural-fortification"
+mean_band_thickness_mm = 0.3
+thickness_variability = 0.35
+fill_fraction = 1.0
+alternation = 0.6
+opacity_contrast = 0.8
+iron = 0.2
+iron_variability = 0.2
+wobble_mm = 0.05
+wobble_scale_mm = 3.0
