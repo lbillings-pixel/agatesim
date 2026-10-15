@@ -55,7 +55,7 @@ select = [
     "RUF",      # ruff-specific
 ]
 # Mathematical notation in docstrings and comments is intentional.
-allowed-confusables = ["−", "ρ", "σ", "θ", "φ", "·", "×", "π"]
+allowed-confusables = ["−", "–", "ρ", "σ", "θ", "φ", "·", "×", "π", "γ"]
 
 [tool.pyright]
 include = ["src", "tests", "scripts"]

@@ -225,14 +225,34 @@ chalcedony, and viscous fingering.
    **M5 adds inclusions** (ADR 0009): branched inclusions grown by multi-particle
    DLA from the growth surface, optionally drifting with gravity for plumes,
    then enclosed by chalcedony.
-4. **First mechanistic model (later):** a 2D reaction–diffusion and phase-field
-   precipitation model along the lines of [@liu2025] (H2), followed by
-   front-feedback oscillatory zoning (H1).
+4. **First mechanistic model (M8, ADR 0013): front feedback (H1).** A generic
+   model of the H1 family in the boundary-layer approximation that Wang and
+   Merino introduced for zoned crystals ([@kalischewski2006]). Silica is
+   consumed at the front and slowly resupplied. An impurity is rejected by the
+   front and, once gathered, speeds up crystallisation, as Al³⁺ is proposed to
+   ([@cartwright2026] §5.1.1). Bands then self-organise as a limit cycle,
+   alternating impurity-rich fast growth with impurity-poor slow growth. The
+   model verifies fortification and seam at the mechanistic tier. Two findings
+   to test against nature:
+   - The oscillation needs switch-like (cooperative) catalysis and slow silica
+     resupply. Oscillations are rare at Hill exponent 2 and about 60 times more
+     common at 4.
+   - In a closed cavity, rejected impurity builds up and ends the oscillation
+     within a band or two. Agate trace-element profiles do show a gradual
+     accumulation trend ([@halden2000], abstract), so either the system was
+     open or the real feedback tolerates the build-up.
+
+   Next: a 2D reaction–diffusion and nucleation model (H2) along the lines of
+   [@liu2025] and the pre-nucleation models of [@cartwright2026] §4.1.5.
 
 ## 9. Open questions to resolve by reading the full texts
 
 - Which dimensionless numbers control band spacing in H1 and H2, and what ranges
-  do natural agates imply?
+  do natural agates imply? In our H1 model, band spacing is set by the
+  boundary-layer thickness δ times the cycle length (about 600 δ at the
+  defaults). What is δ in a silica gel or sol?
+- Does impurity-catalysed crystallisation in silica actually behave
+  cooperatively (switch-like), as our H1 model needs to oscillate?
 - What drives fibre twisting, and should the model represent fibre orientation
   explicitly?
 - Is there a quantitative optical model of the shadow effect?

@@ -30,10 +30,16 @@ from agatesim.geometry import (
     make_cavity,
 )
 from agatesim.grid import FloatArray
-from agatesim.models import ProceduralFortification, ProceduralGrowth, ProceduralWaterline
+from agatesim.models import (
+    FrontFeedback,
+    ProceduralFortification,
+    ProceduralGrowth,
+    ProceduralWaterline,
+)
 
 ModelConfig = Annotated[
-    ProceduralFortification | ProceduralWaterline | ProceduralGrowth, Field(discriminator="kind")
+    ProceduralFortification | ProceduralWaterline | ProceduralGrowth | FrontFeedback,
+    Field(discriminator="kind"),
 ]
 
 

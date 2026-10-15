@@ -1,0 +1,17 @@
+# Verification preset for the seam archetype (mechanistic tier, H1): the same
+# front feedback growing inward from both walls of a crack (ADR 0013).
+name = "seam-mechanistic"
+seed = 2
+archetype = "seam"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "seam-straight"
+size_mm = 60
+rotation_deg = 20
+
+[model]
+kind = "mechanistic-front-feedback"
+boundary_layer_mm = 0.0007

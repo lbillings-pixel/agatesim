@@ -53,6 +53,23 @@ def test_verified_archetypes_have_presets() -> None:
             assert a.id in preset_names(), f"{a.id} is verified but has no preset"
             assert load_preset(a.id).model.kind.startswith("procedural-")
             assert a.id in implemented()
+        if a.status.of(Tier.MECHANISTIC) is Status.VERIFIED:
+            name = f"{a.id}-mechanistic"
+            assert name in preset_names(), f"{a.id} is verified (mechanistic) but has no preset"
+            preset = load_preset(name)
+            assert preset.archetype == a.id
+            assert preset.model.kind.startswith("mechanistic-")
+
+
+MECHANISTIC = [
+    a.id for a in load_registry().archetypes if a.status.of(Tier.MECHANISTIC) is Status.VERIFIED
+]
+
+
+@pytest.mark.parametrize("archetype", MECHANISTIC)
+def test_mechanistic_verification_preset_passes(archetype: str) -> None:
+    ev = _evaluate(archetype, load_preset(f"{archetype}-mechanistic"))
+    assert ev.passed, [r for r in ev.results if not r.passed]
 
 
 def test_waterline_criteria_reject_fortification() -> None:

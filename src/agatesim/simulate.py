@@ -11,10 +11,12 @@ from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray, Grid
 from agatesim.models import (
     Domain,
+    FrontFeedback,
     ProceduralFortification,
     ProceduralGrowth,
     ProceduralWaterline,
     run_fortification,
+    run_front_feedback,
     run_growth,
     run_waterline,
 )
@@ -54,6 +56,8 @@ def simulate(config: RunConfig) -> SimulationResult:
             fields = run_waterline(model, domain, rng)
         case ProceduralGrowth():
             fields = run_growth(model, domain, rng)
+        case FrontFeedback():
+            fields = run_front_feedback(model, domain, rng)
     return SimulationResult(config=config, domain=domain, fields=_with_inclusions(fields, domain))
 
 

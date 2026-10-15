@@ -10,8 +10,8 @@ provisional until the archetype is implemented.
 
 | Rung | Archetype | Procedural | Mechanistic | Subsystem | Hosts | Depends on |
 |---:|---|---|---|---|---|---|
-| 1 | [Fortification (concentric) banding](#fortification) | verified | pending | formation | volcanic, sedimentary | — |
-| 2 | [Vein / seam agate](#seam) | verified | pending | formation | seam | fortification |
+| 1 | [Fortification (concentric) banding](#fortification) | verified | verified | formation | volcanic, sedimentary | — |
+| 2 | [Vein / seam agate](#seam) | verified | verified | formation | seam | fortification |
 | 3 | [Waterline (Uruguay-type) horizontal banding](#waterline) | verified | pending | formation | volcanic, sedimentary | — |
 | 4 | [Combined fortification and waterline banding](#fortification-waterline) | verified | pending | formation | volcanic, sedimentary | fortification, waterline |
 | 5 | [Banded agate with quartz-crystal centre](#quartz-geode) | verified | pending | formation | volcanic, sedimentary | fortification |

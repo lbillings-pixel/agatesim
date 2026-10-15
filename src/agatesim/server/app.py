@@ -29,7 +29,12 @@ from agatesim.archetypes import load_registry
 from agatesim.config import RunConfig, load_config, load_preset, preset_names
 from agatesim.criteria import evaluate, implemented
 from agatesim.geometry import CAVITY_PRESETS, make_cavity
-from agatesim.models import ProceduralFortification, ProceduralGrowth, ProceduralWaterline
+from agatesim.models import (
+    FrontFeedback,
+    ProceduralFortification,
+    ProceduralGrowth,
+    ProceduralWaterline,
+)
 from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
 from agatesim.runs import is_run_id, list_runs
@@ -45,11 +50,13 @@ MODELS: dict[str, type[BaseModel]] = {
     "procedural-growth": ProceduralGrowth,
     "procedural-fortification": ProceduralFortification,
     "procedural-waterline": ProceduralWaterline,
+    "mechanistic-front-feedback": FrontFeedback,
 }
 MODEL_TITLES = {
     "procedural-growth": "Growth history (scheduled conditions)",
     "procedural-fortification": "Fortification (wall-parallel banding)",
     "procedural-waterline": "Waterline (horizontal layers)",
+    "mechanistic-front-feedback": "Front feedback (mechanistic, H1: self-organised bands)",
 }
 MODEL_SCHEDULES: dict[str, list[dict[str, object]]] = {
     "procedural-growth": [

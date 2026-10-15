@@ -57,9 +57,9 @@ url = "https://arxiv.org/abs/2412.18999"
 access = "open"
 licence = "arXiv non-exclusive distribution licence 1.0 (preprint); publisher terms for the journal version"
 checked = "sections"
-sections_read = ["5.1.1 Agates"]
+sections_read = ["4.1 Reaction–diffusion systems", "4.1.5 Liesegang patterns", "4.1.6 Oscillatory zoning", "5.1.1 Agates"]
 topics = ["self-organization", "pattern-formation", "soft-matter", "agate", "iris", "liesegang"]
-notes = """Broad framework for geological pattern formation; §5.1.1 reviews agate (read 2026-10-15). Micro-banding of defect-rich chalcedony and macrocrystalline quartz at ~100 µm, with oscillatory zonation of defects at 0.5–5 µm; the change of refractive index along these bands gives iris colours; iris spacing ~2 µm (Fig. 35, after jones1952); 'Zones with iris banding exist in nearly every agate, although they are often concealed by pigmentation.' Growth starts as spherulites at the wall, then common banding equidistant to the walls. Against Liesegang models: no sharp corners, ring defects, Jabłczyński spacing law not seen in agate, gel shrinkage problem. Against external-rhythm models: nearby agates have uncorrelated band sequences. Wang–Merino model: Al3+ accumulating at the front accelerates quartz crystallisation, alternating chalcedony and quartz bands."""
+notes = """Broad framework for geological pattern formation; §5.1.1 reviews agate (read 2026-10-15). Micro-banding of defect-rich chalcedony and macrocrystalline quartz at ~100 µm, with oscillatory zonation of defects at 0.5–5 µm; the change of refractive index along these bands gives iris colours; iris spacing ~2 µm (Fig. 35, after jones1952); 'Zones with iris banding exist in nearly every agate, although they are often concealed by pigmentation.' Growth starts as spherulites at the wall, then common banding equidistant to the walls. Against Liesegang models: no sharp corners, ring defects, Jabłczyński spacing law not seen in agate, gel shrinkage problem. Against external-rhythm models: nearby agates have uncorrelated band sequences. Wang–Merino model: Al3+ accumulating at the front accelerates quartz crystallisation, alternating chalcedony and quartz bands. §4.1.5 (read in M8): Liesegang band positions follow a geometric series x_n ≈ x0 (1 + p)^n; pre-nucleation (Ostwald–Prager supersaturation feedback) and post-nucleation (ripening) models; both may occur in nature. §4.1.6: oscillatory zoning has extrinsic or intrinsic (growth-dynamics) causes; intrinsic examples are growth-rate–partition-coefficient feedback (Mn in calcite) and alternation of end-members of different solubility."""
 
 # --- Banding mechanisms ------------------------------------------------------
 
@@ -372,3 +372,32 @@ licence = "free download from the author's page; copyright retained, do not repo
 checked = "citation"
 topics = ["image-analysis", "anisotropic-diffusion", "structure-tensor"]
 notes = "Standard reference for diffusion with a structure-tensor-steered diffusion tensor. Our growth-order field (agatesim.specimen.ordering) is a steady-state diffusion of this kind, solved between boundary conditions rather than run as a filter."
+
+[[references]]
+id = "kalischewski2006"
+kind = "preprint"
+authors = ["Kalischewski, F.", "Lubashevsky, I.", "Heuer, A."]
+year = 2006
+title = "Boundary-reaction-diffusion model for oscillatory zoning in binary crystals grown from solution"
+venue = "arXiv:cond-mat/0607591"
+url = "https://arxiv.org/abs/cond-mat/0607591"
+access = "open"
+licence = "arXiv licence; check the specific paper"
+checked = "sections"
+sections_read = ["introduction", "model equations", "linear stability"]
+topics = ["oscillatory-zoning", "boundary-layer", "crystal-growth", "self-organization"]
+notes = "Read via the ar5iv HTML (M8). Reviews oscillatory-zoning models: Ortoleva's general principle (autocatalytic or inhibiting coupling at the surface), Haase et al. the first quantitative melt model, and Wang and Merino as introducing the boundary-layer approximation in a series of papers (hydrothermal growth 1990, from solution 1992, from melt 1993); L'Heureux and co-workers' solution-growth models also use it. Their own model treats diffusion explicitly with composition-dependent attachment times; oscillation needs nonideality above a threshold and an influx above a critical value; near threshold quasi-harmonic, at large influx relaxation-like. Journal version still to confirm."
+
+[[references]]
+id = "halden2000"
+kind = "article"
+authors = ["Halden, N. M.", "Campbell, J. L.", "Teesdale, W. J.", "Bryxina, N. A.", "Sheplev, V. S.", "Ripinen, O. I."]
+year = 2000
+title = "Oscillatory zoning in agate: qualitative analysis of the Wang–Merino dynamic model and quantitative estimates of trace-element distribution in a sample from Arc-Bogdo (Mongolia)"
+venue = "Geologiya i Geofizika 41(9), 1287–1297"
+url = "https://repository.geologyscience.ru/handle/123456789/24160"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "abstract"
+topics = ["oscillatory-zoning", "agate", "trace-elements", "bifurcation"]
+notes = "The Wang–Merino model of trace elements precipitating at the crystallisation front of a silica- and water-rich medium has periodic solutions; bifurcation values found and 51 phase portraits catalogued; limit-cycle duration, trace-element range and zone width per cycle estimated. Ion-microprobe Fe, Sr and Zn profiles of an Arc-Bogdo agate show a gradual accumulation trend with two overlapping cycles plus noise."

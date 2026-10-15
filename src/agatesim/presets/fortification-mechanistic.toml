@@ -1,0 +1,16 @@
+# Verification preset for the fortification archetype (mechanistic tier, H1):
+# bands from feedback between growth and an impurity at the crystallisation
+# front, with no imposed band thicknesses or external rhythm (ADR 0013).
+name = "fortification-mechanistic"
+seed = 1
+archetype = "fortification"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-angular"
+size_mm = 50
+
+[model]
+kind = "mechanistic-front-feedback"

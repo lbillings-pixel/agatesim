@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M7.1 (specimen photo analysis: whole bands traced along the photo's band direction). All twelve target forms reproduced at the procedural tier.** See the [roadmap](docs/roadmap.md).
+> **Status: M8 in progress. All twelve target forms reproduced at the procedural tier; fortification and seam also at the mechanistic tier, by self-organised front feedback (H1, [ADR 0013](docs/adr/0013-mechanistic-front-feedback.md)).** See the [roadmap](docs/roadmap.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -23,8 +23,8 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 
 | Form | Procedural | Mechanistic |
 |---|---|---|
-| Fortification | ✅ verified | pending |
-| Vein / seam | ✅ verified | pending |
+| Fortification | ✅ verified | ✅ verified (H1) |
+| Vein / seam | ✅ verified | ✅ verified (H1) |
 | Waterline | ✅ verified | pending |
 | Combined fortification and waterline | ✅ verified | pending |
 | Banded agate with quartz-crystal centre | ✅ verified | pending |
@@ -40,8 +40,8 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 
 - **2D cross-sections first**, with 3D later.
 - **Procedural models first** for fast, controllable results. Mechanistic physics
-  (reaction–diffusion, phase-field, settling) comes later, behind the same
-  interface ([ADR 0003](docs/adr/0003-model-architecture.md)).
+  follows behind the same interface ([ADR 0003](docs/adr/0003-model-architecture.md)):
+  front feedback (H1) now; reaction–diffusion, phase-field and settling next.
 - **Competing formation hypotheses are separate, swappable mechanisms**, because
   the science is unsettled ([science notes](docs/science/mechanisms.md)).
 - **Every run is reproducible** from its config, seed and code version.

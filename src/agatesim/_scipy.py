@@ -7,11 +7,13 @@ rest of the package stays under strict type checking.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any, cast
 
 import numpy as np
 from numpy.typing import NDArray
 from scipy import ndimage, sparse, special
+from scipy.integrate import solve_ivp
 from scipy.sparse import linalg as sparse_linalg
 from scipy.spatial import KDTree
 
@@ -229,3 +231,34 @@ def solve_anisotropic(
     solution = np.asarray(sparse_linalg.spsolve(matrix, rhs), dtype=np.float64)
     out[rows_in, cols_in] = np.clip(solution, 0.0, 1.0)
     return out
+
+
+def solve_ode(
+    rhs: Callable[[float, NDArray[np.float64]], list[float]],
+    y0: list[float],
+    t_max: float,
+    stops: list[Callable[[float, NDArray[np.float64]], float]],
+    max_step: float,
+) -> tuple[float, Callable[[FloatArray], NDArray[np.float64]]]:
+    """Integrate dy/dt = rhs(t, y) from 0 (LSODA, which switches to a stiff method
+    when needed) until t_max or until any stop function crosses zero. Returns the
+    end time and a dense interpolant: times (n,) -> states (len(y0), n)."""
+    for stop in stops:
+        stop.terminal = True  # type: ignore[attr-defined]
+    sol = solve_ivp(
+        rhs,
+        (0.0, t_max),
+        y0,
+        method="LSODA",
+        rtol=1e-7,
+        atol=1e-9,
+        events=stops,
+        dense_output=True,
+        max_step=max_step,
+    )
+    dense = sol.sol
+
+    def sample(times: FloatArray) -> NDArray[np.float64]:
+        return np.asarray(dense(times), dtype=np.float64)
+
+    return float(sol.t[-1]), sample

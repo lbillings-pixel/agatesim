@@ -26,7 +26,11 @@ def test_meta_describes_cavities_models_and_parameters(client: TestClient) -> No
         "procedural-growth",
         "procedural-fortification",
         "procedural-waterline",
+        "mechanistic-front-feedback",
     }
+    h1 = next(m for m in meta["models"] if m["kind"] == "mechanistic-front-feedback")
+    natures = {p.get("nature") for p in h1["schema"]["properties"].values() if "nature" in p}
+    assert natures == {"effective"}  # a mechanistic model imposes nothing
     growth = next(m for m in meta["models"] if m["kind"] == "procedural-growth")
     assert [s["key"] for s in growth["schedules"]] == [
         "silica",

@@ -20,7 +20,7 @@ schema_version = 2
 id = "fortification"
 name = "Fortification (concentric) banding"
 rung = 1
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 summary = """
@@ -57,7 +57,7 @@ other archetypes build on.
 id = "seam"
 name = "Vein / seam agate"
 rung = 2
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "formation"
 hosts = ["seam"]
 depends_on = ["fortification"]
