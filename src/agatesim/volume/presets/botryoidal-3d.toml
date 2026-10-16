@@ -1,0 +1,23 @@
+# Botryoidal agate in 3D (procedural tier): growth radiates throughout from
+# scattered nucleation sites on the wall, so the open centre is lined with
+# hemispherical lobes (ADR 0023).
+name = "botryoidal-3d"
+seed = 7
+archetype = "botryoidal"
+
+[solid]
+preset = "nodule-round"
+size_mm = 50
+
+[model]
+kind = "procedural-growth"
+growth_mm = 9
+band_period = 0.03
+spherulite_spacing_mm = 10
+spherulite_rate_variability = 0.3
+
+[model.schedules.spherulitic]
+base = 1.0
+
+[model.schedules.iron]
+base = 0.3

@@ -26,10 +26,12 @@ from agatesim.grid import FloatArray
 from agatesim.models import (
     FrontFeedback,
     ProceduralFortification,
+    ProceduralGrowth,
     ProceduralWaterline,
     Settling,
     Staged,
 )
+from agatesim.volume.growth import unsupported_in_3d
 from agatesim.volume.models import gravity_vector
 from agatesim.volume.solids import (
     SOLID_PRESETS,
@@ -41,7 +43,12 @@ from agatesim.volume.solids import (
 )
 
 VolumeModelConfig = Annotated[
-    ProceduralFortification | ProceduralWaterline | FrontFeedback | Settling | Staged,
+    ProceduralFortification
+    | ProceduralWaterline
+    | ProceduralGrowth
+    | FrontFeedback
+    | Settling
+    | Staged,
     Field(discriminator="kind"),
 ]
 DEFAULT_GRAVITY_DEG = 270.0
@@ -175,6 +182,10 @@ class VolumeConfig(BaseModel):
             )
         if isinstance(model, ProceduralFortification) and model.corner_rounding_mm > 0:
             raise ValueError("corner rounding isn't available in 3D")
+        if isinstance(model, ProceduralGrowth):
+            problem = unsupported_in_3d(model)
+            if problem is not None:
+                raise ValueError(problem)
         return self
 
     def with_resolution(self, resolution: int) -> VolumeConfig:

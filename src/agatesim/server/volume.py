@@ -31,6 +31,7 @@ MAX_SURVEY_CUTS = 200
 MAX_RUN_RESOLUTION = 384
 CACHE = 4
 VOLUME_KINDS = [
+    "procedural-growth",
     "procedural-fortification",
     "procedural-waterline",
     "mechanistic-front-feedback",

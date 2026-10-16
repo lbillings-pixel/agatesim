@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M9 done: 3D runs judged on cuts ([cuts](docs/images/volume.png)). All twelve target forms reproduced at the procedural tier; fortification, seam, waterline and the combined form also at the mechanistic tier (H1 front feedback, H4 hindered settling, and the two chained). See [mechanisms](docs/images/mechanisms.png).** See the [roadmap](docs/roadmap.md).
+> **Status: M11 done: 3D runs judged on cuts, including growth from nuclei: eyes, lobes and quartz ([cuts](docs/images/volume.png)). All twelve target forms reproduced at the procedural tier; fortification, seam, waterline and the combined form also at the mechanistic tier (H1 front feedback, H4 hindered settling, and the two chained). See [mechanisms](docs/images/mechanisms.png).** See the [roadmap](docs/roadmap.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 

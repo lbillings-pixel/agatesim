@@ -47,6 +47,8 @@ class VolumeSimulation:
         impurity = np.zeros(shape, dtype=np.float32)
         translucency = np.zeros(shape, dtype=np.float32)
         t_dep = np.full(shape, np.nan, dtype=np.float32)
+        grain = np.full(shape, -1, dtype=np.int32)
+        micro = np.full(shape, np.nan, dtype=np.float32)
         inside = np.zeros(shape, dtype=bool)
         for layers, points in grid.chunks():
             ins = self.setting.solid.contains(points)
@@ -57,6 +59,8 @@ class VolumeSimulation:
             impurity[layers] = f.impurity.reshape(part)
             translucency[layers] = f.translucency.reshape(part)
             t_dep[layers] = f.t_dep.reshape(part)
+            grain[layers] = f.grain.reshape(part)
+            micro[layers] = f.micro_spacing_um.reshape(part)
             inside[layers] = ins.reshape(part)
         fields = Fields(
             phase=phase,
@@ -64,8 +68,8 @@ class VolumeSimulation:
             impurity=impurity,
             translucency=translucency,
             t_dep=t_dep,
-            grain=np.full(shape, -1, dtype=np.int32),
-            micro_spacing_um=np.full(shape, np.nan, dtype=np.float32),
+            grain=grain,
+            micro_spacing_um=micro,
         )
         return VolumeResult(grid=grid, fields=fields, inside=inside)
 

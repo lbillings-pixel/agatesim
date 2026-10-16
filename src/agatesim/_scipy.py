@@ -43,6 +43,14 @@ class NearestIndex:
             np.asarray(result[1], dtype=np.int64),
         )
 
+    def query_k(self, points: FloatArray, k: int) -> tuple[NDArray[np.float64], NDArray[np.int64]]:
+        """Distances to, and indices of, the k nearest samples, shaped (n, k)."""
+        result: Any = self._tree.query(points, k=k, workers=-1)
+        return (
+            np.asarray(result[0], dtype=np.float64).reshape(len(points), k),
+            np.asarray(result[1], dtype=np.int64).reshape(len(points), k),
+        )
+
 
 def distance_to_false(mask: NDArray[np.bool_], dx: float) -> NDArray[np.float64]:
     """Distance (in units of dx) from each True pixel centre to the nearest False pixel centre."""

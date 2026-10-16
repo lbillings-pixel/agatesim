@@ -28,6 +28,7 @@ from agatesim.grid import FloatArray
 from agatesim.models import (
     FrontFeedback,
     ProceduralFortification,
+    ProceduralGrowth,
     ProceduralWaterline,
     Settling,
     Staged,
@@ -44,7 +45,14 @@ from agatesim.models.staged import STAGE_SPAN
 from agatesim.volume.solids import BoolArray, Solid
 
 REFERENCE_CELLS = 128  # reference lattice points along the solid's longest side
-VolumeModel = ProceduralFortification | ProceduralWaterline | FrontFeedback | Settling | Staged
+VolumeModel = (
+    ProceduralFortification
+    | ProceduralWaterline
+    | ProceduralGrowth
+    | FrontFeedback
+    | Settling
+    | Staged
+)
 Evaluator = Callable[[FloatArray, BoolArray], Fields]  # (points (n, 3), inside (n,)) -> fields
 
 
@@ -155,6 +163,10 @@ def prepare(model: VolumeModel, setting: Setting, rng: np.random.Generator) -> E
             return _settling(model, setting, rng)
         case Staged():
             return _staged(model, setting, rng)
+        case ProceduralGrowth():
+            from agatesim.volume.growth import prepare_growth  # imports this module
+
+            return prepare_growth(model, setting, rng)
 
 
 def _fortification(

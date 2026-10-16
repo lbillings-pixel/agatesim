@@ -1,0 +1,29 @@
+# Quartz-centre geode in 3D (procedural tier): chalcedony banding while silica
+# supply is high, then coarse quartz crystals growing inward from the banded
+# surface, leaving an open centre (ADR 0023).
+name = "quartz-geode-3d"
+seed = 6
+archetype = "quartz-geode"
+
+[solid]
+preset = "vesicle-almond"
+size_mm = 60
+
+[model]
+kind = "procedural-growth"
+growth_mm = 18
+band_period = 0.02
+quartz_threshold = 0.35
+quartz_grain_mm = 0.5
+quartz_elongation = 4
+quartz_axis_scatter_deg = 70
+
+[model.schedules.silica]
+base = 1.0
+events = [{ type = "step", at = 0.35, value = 0.3 }]
+
+[model.schedules.settling]
+base = 0.0
+
+[model.schedules.iron]
+base = 0.35

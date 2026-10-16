@@ -1,0 +1,25 @@
+# Eye agate in 3D (procedural tier): a brief spherulitic stage grows a few
+# widely spaced hemispherical eyes on the wall, then uniform layers overgrow
+# them. A cut through the middle shows half-rings on the wall; a cut close to
+# the wall shows them as circles (ADR 0023).
+name = "eye-3d"
+seed = 8
+archetype = "eye"
+
+[solid]
+preset = "vesicle-round"
+size_mm = 50
+
+[model]
+kind = "procedural-growth"
+growth_mm = 22
+band_period = 0.02
+spherulite_spacing_mm = 20
+spherulite_rate_variability = 0.1
+
+[model.schedules.spherulitic]
+base = 1.0
+events = [{ type = "step", at = 0.15, value = 0.0 }]
+
+[model.schedules.iron]
+base = 0.3

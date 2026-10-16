@@ -401,7 +401,7 @@ class ProceduralGrowth(BaseModel):
         return np.array([math.cos(th), math.sin(th)])
 
 
-def _stages(mode: NDArray[np.int64]) -> list[tuple[int, int]]:
+def mode_stages(mode: NDArray[np.int64]) -> list[tuple[int, int]]:
     """[start, end) step ranges over which the growth mode is constant."""
     cuts = [0, *(int(i) + 1 for i in np.flatnonzero(mode[1:] != mode[:-1])), len(mode)]
     return list(pairwise(cuts))
@@ -629,7 +629,7 @@ def _assign(
 
 
 @dataclass(frozen=True)
-class _Fill:
+class Fill:
     filled_at: NDArray[np.int64]  # time step at which each pixel fills; -1 if never
     grain: NDArray[np.int32]  # crystal id; -1 elsewhere
     inclusion: NDArray[np.bool_]  # filled by branched inclusions (dendrite stages)
@@ -739,7 +739,7 @@ def _fill(
     rng_sites: np.random.Generator,
     rng_crystals: np.random.Generator,
     rng_dendrites: np.random.Generator,
-) -> _Fill:
+) -> Fill:
     grid, dx = domain.grid, domain.grid.dx
     step_mm = params.growth_mm * supply / TIME_STEPS
     filled_at = np.full(grid.shape, -1, dtype=np.int64)
@@ -750,7 +750,7 @@ def _fill(
     height = -(xx * g[0] + yy * g[1])
     bounds = domain.cavity.bounds()
     crystals = 0
-    for a, b in _stages(mode):
+    for a, b in mode_stages(mode):
         m = Mode(int(mode[a]))
         open_ = domain.open_start & (filled_at < 0)
         if not open_.any():
@@ -814,7 +814,7 @@ def _fill(
         if owner is not None and m is Mode.CRYSTAL:
             grain[rows[new], cols[new]] = (crystals + owner[new]).astype(np.int32)
             crystals += int(owner.max()) + 1 if len(owner) else 0
-    return _Fill(filled_at=filled_at, grain=grain, inclusion=inclusion)
+    return Fill(filled_at=filled_at, grain=grain, inclusion=inclusion)
 
 
 def growth_modes(params: ProceduralGrowth, tau: FloatArray) -> NDArray[np.int64]:
@@ -840,6 +840,22 @@ def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generato
 
     noise = smooth_noise(domain, params.wobble_scale_mm, rng_noise)
     fill = _fill(params, domain, supply, mode, noise, rng_sites, rng_crystals, rng_dendrites)
+    return growth_fields(params, fill, mode, domain.mask, rng_bands, rng_iron, rng_micro)
+
+
+def growth_fields(
+    params: ProceduralGrowth,
+    fill: Fill,
+    mode: NDArray[np.int64],
+    mask: NDArray[np.bool_],
+    rng_bands: np.random.Generator,
+    rng_iron: np.random.Generator,
+    rng_micro: np.random.Generator,
+) -> Fields:
+    """Fields from when each point filled, for arrays of any shape (a slab, a
+    volume or a list of points); mask is True inside the cavity."""
+    tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
+    s = params.schedules
     filled = fill.filled_at >= 0
     step = np.maximum(fill.filled_at, 0)
     t_dep = np.where(filled, tau[step], np.nan)
@@ -865,8 +881,8 @@ def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generato
     band = np.where(chalcedony, bands.index(np.nan_to_num(t_dep)), -1).astype(np.int32)
     safe = np.maximum(band, 0)
 
-    phase = np.full(domain.grid.shape, Phase.HOST, dtype=np.uint8)
-    phase[domain.mask] = Phase.VOID
+    phase = np.full(mask.shape, Phase.HOST, dtype=np.uint8)
+    phase[mask] = Phase.VOID
     phase[chalcedony] = Phase.CHALCEDONY
     phase[quartz] = Phase.QUARTZ
     phase[inclusion] = Phase.INCLUSION

@@ -104,6 +104,17 @@ def _volume() -> None:
         ),
         _cut_tile(staged, SliceConfig(resolution=res), "H1, H4, then H1 stages, 3D: vertical cut"),
     ]
+    eye = prepare_volume(load_volume_preset("eye-3d"))
+    geode = prepare_volume(load_volume_preset("quartz-geode-3d"))
+    tiles += [
+        _cut_tile(eye, SliceConfig(resolution=res), "Eyes, 3D: cut through the middle"),
+        _cut_tile(
+            eye,
+            SliceConfig(tilt_deg=0, offset_mm=18.5, resolution=res),
+            "Eyes, 3D: cut just inside the wall",
+        ),
+        _cut_tile(geode, SliceConfig(resolution=res), "Quartz-centre geode, 3D: vertical cut"),
+    ]
     _sheet(tiles, columns=3).save(OUT / "volume.png", optimize=True)
     print(f"wrote volume.png in {OUT}")
 
