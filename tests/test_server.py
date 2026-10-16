@@ -187,6 +187,10 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         assert [s["name"] for s in c.get("/api/specimens").json()] == ["slab.jpg"]
         png = c.get("/api/specimens/slab.jpg/photo").content
         assert len(Image.open(io.BytesIO(png)).getexif()) == 0
+        detail = Image.open(io.BytesIO(c.get("/api/specimens/slab.jpg/detail").content))
+        assert detail.size == Image.open(io.BytesIO(syn.jpeg)).size
+        assert len(detail.getexif()) == 0
+        assert "exif" not in detail.info
         assert c.post("/api/specimens/slab.jpg/analyse", json={}).status_code == 422  # no scale yet
 
         (x1, y1), (x2, y2) = syn.ruler_points  # the photo is under the view size: 1:1

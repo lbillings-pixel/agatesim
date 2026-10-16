@@ -161,6 +161,20 @@ def specimen_router(folder: Path) -> APIRouter:
     def photo_png(name: str) -> Response:
         return Response(photo(name).png(), media_type="image/png")
 
+    detail_cache: dict[str, bytes] = {}
+
+    @router.get("/{name}/detail")
+    def photo_detail(name: str) -> Response:
+        """The photo at full resolution, for zooming in to mark fine bands. A JPEG
+        written from an array carries no EXIF. Clicks are still in working-image px."""
+        if name not in detail_cache:
+            full = load_photo(path_of(name).read_bytes(), 10**6)
+            buffer = io.BytesIO()
+            Image.fromarray(full.rgb).save(buffer, format="JPEG", quality=92)
+            detail_cache.clear()
+            detail_cache[name] = buffer.getvalue()
+        return Response(detail_cache[name], media_type="image/jpeg")
+
     @router.get("/{name}/settings")
     def get_settings(name: str) -> SpecimenSettings:
         path_of(name)

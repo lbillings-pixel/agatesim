@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { distanceTo, markNear, project, tick, toggleMark, type Transect } from "./transect";
+import { addMark, distanceTo, markNear, project, removeMark, tick, type Transect } from "./transect";
 
 const line: Transect = { start: [0, 0], end: [100, 0], boundaries: [] };
 
@@ -12,12 +12,15 @@ describe("transects", () => {
     expect(distanceTo(line, [25, 7])).toBeCloseTo(7);
   });
 
-  it("adds marks in order, and removes one when clicked again", () => {
-    let l = toggleMark(line, 0.5, 4);
-    l = toggleMark(l, 0.2, 4);
+  it("adds marks in order, however close, and removes the nearest on request", () => {
+    let l = addMark(line, 0.5, 0.5);
+    l = addMark(l, 0.2, 0.5);
+    l = addMark(l, 0.51, 0.5); // 1 px from a mark: a separate boundary
+    l = addMark(l, 0.512, 0.5); // 0.2 px: the same click again
+    expect(l.boundaries).toEqual([0.2, 0.5, 0.51]);
+    l = removeMark(l, 0.508, 4);
     expect(l.boundaries).toEqual([0.2, 0.5]);
-    l = toggleMark(l, 0.51, 4); // 1 px away: removes the mark at 0.5
-    expect(l.boundaries).toEqual([0.2]);
+    expect(removeMark(l, 0.3, 4)).toBe(l);
     expect(markNear(l, 0.3, 4)).toBe(-1);
   });
 

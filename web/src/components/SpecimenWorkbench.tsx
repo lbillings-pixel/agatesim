@@ -9,7 +9,7 @@ import {
   type SpecimenSettings,
   specimens,
 } from "../api";
-import { type Point, distanceTo, project, tick, toggleMark } from "../lib/transect";
+import { type Point, type Transect, addMark, distanceTo, project, removeMark, tick } from "../lib/transect";
 
 const MM_PER_INCH = 25.4;
 const UP_CHOICES: [number, string][] = [
@@ -23,7 +23,8 @@ type Clicking = "ruler" | "seed" | "line" | "marks" | null;
 
 const ZOOMS = [1, 2, 4];
 const SNAP_PX = 25; // clicks farther than this from the line are ignored while marking
-const TOGGLE_PX = 3; // clicking within this of a mark removes it
+const SAME_SCREEN_PX = 1.5; // a click this close to a mark repeats it
+const REMOVE_SCREEN_PX = 8; // a right-click this close to a mark removes it
 
 interface Props {
   onOpenReplica: (config: RunConfig) => void;
@@ -63,6 +64,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     setReplica(null);
     setError(null);
     setSize(null);
+    setZoom(1);
     setActive(null);
     setLineStart(null);
     setSaved(true);
@@ -103,12 +105,37 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     }
   };
 
-  const onClick = (e: React.MouseEvent<HTMLImageElement>) => {
+  // A click in working-image px (the full-resolution detail shown when zoomed in
+  // has the same frame), and the photo px per screen px.
+  const toPhoto = (e: React.MouseEvent<HTMLImageElement>) => {
     const img = imgRef.current;
-    if (!img || !clicking) return;
+    if (!img || !size) return null;
     const rect = img.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * img.naturalWidth;
-    const y = ((e.clientY - rect.top) / rect.height) * img.naturalHeight;
+    const perScreenPx = size.w / rect.width;
+    return { x: (e.clientX - rect.left) * perScreenPx, y: (e.clientY - rect.top) * (size.h / rect.height), perScreenPx };
+  };
+
+  const activeLine = () => (active === null ? undefined : settings.transects[active]);
+
+  const updateLine = (updated: Transect) => {
+    setSettings({ ...settings, transects: settings.transects.map((l, i) => (i === active ? updated : l)) });
+    setSaved(false);
+  };
+
+  const onRightClick = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (clicking !== "marks") return;
+    e.preventDefault();
+    const p = toPhoto(e);
+    const line = activeLine();
+    if (!p || !line) return;
+    const updated = removeMark(line, project(line, [p.x, p.y]), REMOVE_SCREEN_PX * p.perScreenPx);
+    if (updated !== line) updateLine(updated);
+  };
+
+  const onClick = (e: React.MouseEvent<HTMLImageElement>) => {
+    const p = toPhoto(e);
+    if (!p || !clicking) return;
+    const { x, y } = p;
     if (clicking === "line") {
       if (!lineStart) {
         setLineStart([x, y]);
@@ -123,11 +150,10 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
       return;
     }
     if (clicking === "marks") {
-      const line = active === null ? undefined : settings.transects[active];
+      const line = activeLine();
       if (!line || distanceTo(line, [x, y]) > SNAP_PX) return;
-      const updated = toggleMark(line, project(line, [x, y]), TOGGLE_PX);
-      setSettings({ ...settings, transects: settings.transects.map((l, i) => (i === active ? updated : l)) });
-      setSaved(false);
+      const updated = addMark(line, project(line, [x, y]), SAME_SCREEN_PX * p.perScreenPx);
+      if (updated !== line) updateLine(updated);
       return;
     }
     if (clicking === "ruler") {
@@ -350,7 +376,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                     ? "Click where the line ends (toward the centre)."
                     : "Click where the line starts: on the outer wall, crossing the bands."
                   : clicking === "marks"
-                    ? "Click each boundary between bands along the yellow line; click a mark again to remove it. Zoom in for fine bands, then Save marks."
+                    ? "Click each boundary between bands along the yellow line; right-click a mark to remove it. Zoom in (full resolution) for fine bands, then Save marks."
                     : "Click on the specimen."}
             </p>
           )}
@@ -366,10 +392,14 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                 <div className="photo-frame" style={{ width: `${zoom * 100}%` }}>
                   <img
                     ref={imgRef}
-                    src={specimens.photoUrl(name)}
+                    src={zoom > 1 && size ? specimens.detailUrl(name) : specimens.photoUrl(name)}
                     alt={`Specimen photo ${name}`}
                     className={clicking ? "clicking" : undefined}
-                    onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      if (!size) setSize({ w: img.naturalWidth, h: img.naturalHeight }); // the working image
+                    }}
+                    onContextMenu={onRightClick}
                     onError={() =>
                       setError(
                         "The photo didn't load. Check the terminal running agatesim for an error, then reload the page.",

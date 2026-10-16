@@ -45,12 +45,16 @@ export function markNear(line: Transect, t: number, radius: number): number {
   return best;
 }
 
-/** Add a mark at t, or remove the one already within `radius` px of it. */
-export function toggleMark(line: Transect, t: number, radius: number): Transect {
+/** Add a mark at t, however close to others (unless it repeats one within `same` px). */
+export function addMark(line: Transect, t: number, same: number): Transect {
+  if (markNear(line, t, same) >= 0) return line;
+  return { ...line, boundaries: [...line.boundaries, t].sort((a, b) => a - b) };
+}
+
+/** Remove the mark nearest to t, if one is within `radius` px. */
+export function removeMark(line: Transect, t: number, radius: number): Transect {
   const i = markNear(line, t, radius);
-  const boundaries =
-    i >= 0 ? line.boundaries.filter((_, j) => j !== i) : [...line.boundaries, t].sort((a, b) => a - b);
-  return { ...line, boundaries };
+  return i < 0 ? line : { ...line, boundaries: line.boundaries.filter((_, j) => j !== i) };
 }
 
 /** End points of a short tick across the line at t, `half` px each side. */

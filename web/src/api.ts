@@ -281,6 +281,7 @@ export const specimens = {
     return (await response.json()) as { name: string };
   },
   photoUrl: (name: string) => `${specimenPath(name)}/photo`,
+  detailUrl: (name: string) => `${specimenPath(name)}/detail`,
   settings: (name: string) => request<SpecimenSettings>(`${specimenPath(name)}/settings`),
   saveSettings: (name: string, s: SpecimenSettings) =>
     request<SpecimenSettings>(`${specimenPath(name)}/settings`, { method: "PUT", body: JSON.stringify(s) }),
