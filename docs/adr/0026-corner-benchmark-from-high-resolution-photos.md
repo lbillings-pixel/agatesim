@@ -1,6 +1,6 @@
-# 26. A corner benchmark from high-resolution photos (first pass)
+# 26. A corner benchmark from high-resolution photos
 
-- Status: accepted (first pass; time-boxed)
+- Status: accepted (five photos; time-boxed)
 - Date: 2026-10-16
 - Builds on: [ADR 0015](0015-mechanistic-liesegang.md), [ADR 0022](0022-corners-at-the-bands-own-corner.md)
 
@@ -64,14 +64,48 @@ marked on 800 px crops:
   measure can't read H2's slabs: their dense rings defeat the spacing
   estimate. The criterion's own H2 values stand.
 
+### All five photos
+
+Corners were marked on gridded 800 px crops at full resolution. Where nested
+bands meet at a mitre, the mitre measures apply. Where only one boundary turns,
+`measure_marked_boundary` fits arms and a fillet to the long boundary nearest
+the mark (texture edges excluded). It takes the band spacing from the nearest
+neighbouring boundary.
+
+| Photo | Corner | Measure | Turn width / band spacing |
+|---|---|---|---|
+| n02 | four mitres | seam width | 0.03, 0.07, 0.04, 0.11 |
+| n04 | top corner | mitre: seam width / band direction | 0.40 / 0.37 (thin bands, 35 px apart) |
+| n03 | top-left, inner edge of the pale layer | fillet fit | 0 (radius under the 3 px floor; turn 108°) |
+| n01 | right corner, white band | fillet fit | 0.63 (radius 223 px, turn 73°) |
+| polygonal | top corner, inner bands | by eye | visibly rounded arcs; the turn (about 25°) is too gentle to fit |
+
+- A further four corners could not be measured. Two on n04 show no corner at
+  full resolution. n01's top and bottom-left are wavy or confused, and its
+  marked boundaries didn't fit.
+- **H1 and procedural slabs at 4096 px** have bands 36–43 px apart. They read
+  0.09–0.17 band spacings, turn widths of 4–6 px, which is the measure's floor
+  at 3 px.
+
+**So real fortification corners differ between specimens:**
+
+- **Sharp (three of five photos).** In n02, n03 and n04 the corners are as
+  sharp as these photos resolve, within 0.03–0.4 band spacings. That matches
+  H1 or procedural lining at the same relative resolution.
+- **Rounded (two of five).** n01's right corner rounds over 0.63 spacings,
+  just inside the criterion's threshold (0.7). The polygonal agate's inner
+  bands round at a very obtuse corner. Neither approaches H2's 1.6–2.4.
+
+No photo shows the strong rounding H2 produces. Moderate rounding does occur in
+real agates, so a mechanism that never rounds is also not the whole story.
+
 ## Consequences
 
-- Real fortification corners, at this resolution, are sharper than anything
-  diffusion-limited precipitation produced in our runs. That strengthens the
-  case of ADR 0015 with real data. It is still only one specimen measured
-  carefully, and four more await marking.
-- Next steps (backlog):
-  - mark the other four photos;
-  - render the models at the photos' resolution relative to band spacing,
-    so the floor is comparable;
-  - teach the direction measure to step over a seam.
+- Across five specimens, corners range from as sharp as the photos resolve
+  to moderately rounded, but never as rounded as H2's. That strengthens the
+  case of ADR 0015 with real data, and leaves room for a mechanism with some
+  rounding, such as a regularised H1 (ADR 0017 backlog).
+- Backlog:
+  - more specimens, ideally with a scale;
+  - teach the direction measure to step over a seam;
+  - H2 and a regularised H1 measured at the photos' relative resolution.

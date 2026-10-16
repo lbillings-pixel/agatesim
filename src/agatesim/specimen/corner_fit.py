@@ -60,9 +60,9 @@ class CornerMeasure:
         return [b.turn_width_px / self.spacing_px for b in self.boundaries]
 
 
-def edges(rgb: NDArray[np.generic]) -> NDArray[np.bool_]:
+def edges(rgb: NDArray[np.generic], smooth_px: float = SMOOTH_PX) -> NDArray[np.bool_]:
     """Thin colour edges: gradient-magnitude ridges (non-maximum suppression)."""
-    x = _scipy.gaussian_rgb(rgb, SMOOTH_PX)
+    x = _scipy.gaussian_rgb(rgb, smooth_px)
     # Direction from the summed structure tensor, so colour channels agree.
     jxx = jyy = jxy = np.zeros(x.shape[:2])
     for c in range(x.shape[-1]):
@@ -360,6 +360,47 @@ def measure_mitre(
         spacing_px=float(np.median(gaps)) if gaps else None,
         seam_px=float(np.median(seams)) if seams else None,
     )
+
+
+def measure_marked_boundary(
+    rgb: NDArray[np.generic],
+    apex: tuple[float, float],
+    search_px: float,
+    max_radius: float,
+    seed: int = 0,
+    smooth_px: float = SMOOTH_PX,
+    min_points: int = 4 * MIN_EDGE_PX,
+) -> tuple[CornerBoundary | None, float | None]:
+    """Fit arms and a fillet to the band boundary passing nearest a corner
+    marked by hand at `apex` (x, y px), using its points within `search_px`.
+    Also returns the gap (px) to the nearest neighbouring boundary there, as the
+    local band spacing."""
+    edge = edges(rgb, smooth_px)
+    labels = _scipy.label(edge, eight_connected=True)
+    # Only long boundaries: short edges are texture inside bands.
+    sizes = np.bincount(labels.ravel())
+    long = sizes >= min_points
+    long[0] = False
+    labels = np.where(long[labels], labels, 0)
+    rows, cols = np.nonzero(labels > 0)
+    if not len(rows):
+        return None, None
+    pts = np.stack([cols, rows], axis=1).astype(np.float64)
+    lab = labels[rows, cols]
+    a = np.asarray(apex, dtype=np.float64)
+    dist = np.linalg.norm(pts - a, axis=1)
+    near = dist <= search_px
+    if not near.any():
+        return None, None
+    own = int(lab[near][np.argmin(dist[near])])
+    mine = near & (lab == own)
+    fitted = fit_corner(pts[mine], np.random.default_rng(seed), max_radius)
+    others = near & (lab != own)
+    spacing = None
+    if others.sum() >= 10:
+        gaps = _scipy.nearest_distance(pts[others], pts[mine])
+        spacing = float(np.median(gaps))
+    return fitted, spacing
 
 
 def measure_corner(rgb: NDArray[np.generic], max_radius: float, seed: int = 0) -> CornerMeasure:

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 from PIL import Image, ImageDraw, ImageFilter
 
-from agatesim.specimen.corner_fit import measure_corner, measure_mitre
+from agatesim.specimen.corner_fit import measure_corner, measure_marked_boundary, measure_mitre
 
 
 def _nested_corner(
@@ -87,3 +87,19 @@ def test_mitre_width_grows_with_rounding() -> None:
     assert widths[0.0] < 15
     assert widths[0.0] < widths[25.0] < widths[50.0]
     assert widths[50.0] - widths[0.0] == pytest.approx(expected, rel=0.4)
+
+
+@pytest.mark.parametrize("radius", [0.0, 30.0])
+def test_a_marked_boundary_is_fitted(radius: float) -> None:
+    """A corner marked by hand: the boundary through the mark is fitted, and the
+    neighbouring boundary gives the band spacing."""
+    img = _nested_corner(radius, gap=60)
+    apex = np.array([400 * 0.2, 400 * 0.8]) + 60 * 2 / math.sqrt(2) * np.array(
+        [1.0, -1.0]
+    ) / math.sqrt(2) * math.sqrt(2)
+    b, spacing = measure_marked_boundary(
+        img, (float(apex[0]), float(apex[1])), search_px=150, max_radius=80, min_points=40
+    )
+    assert b is not None
+    assert b.radius_px == pytest.approx(radius, abs=max(5.0, 0.25 * radius))
+    assert spacing == pytest.approx(60, rel=0.3)
