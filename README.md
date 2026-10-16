@@ -26,8 +26,9 @@ and which proposed formation mechanisms, can produce them.
   sharply as real ones, but they fall behind the faces, so bands thin toward
   them ([ADR 0028](docs/adr/0028-regularised-h1-at-the-corner.md)).
 - **Real bands mostly don't thin toward corners.** A marker band followed around
-  two of the photos keeps its thickness toward the corners (median 1.04 of
-  mid-face, against the model's 0.68–0.78), a preliminary result
+  three of the photos keeps its thickness toward the corners (median 1.02 of
+  mid-face, 95% interval 0.92–1.11, against the model's 0.68–0.78), a
+  preliminary result
   ([ADR 0029](docs/adr/0029-bands-toward-corners-in-real-agates.md)).
 - **Floor layers settle.** Hindered settling reproduces waterline agate, and
   chained with H1 the combined form

@@ -142,6 +142,11 @@ def dilate(mask: NDArray[np.bool_], iterations: int) -> NDArray[np.bool_]:
     return cast(NDArray[np.bool_], out)
 
 
+def uniform(field: FloatArray, size: int) -> NDArray[np.float64]:
+    """Mean over a size × size window."""
+    return cast(NDArray[np.float64], ndimage.uniform_filter(field, size=size))
+
+
 def close_1d(profile: NDArray[np.bool_], length: int) -> NDArray[np.bool_]:
     """1D morphological closing: bridges False gaps shorter than `length`. The
     profile is padded first, so a run touching an end isn't eroded there."""

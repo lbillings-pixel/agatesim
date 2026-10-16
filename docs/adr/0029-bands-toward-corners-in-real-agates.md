@@ -1,6 +1,6 @@
 # 29. Do bands thin toward corners in real agates?
 
-- Status: accepted (two photos; preliminary)
+- Status: accepted (three photos; preliminary)
 - Date: 2026-10-16
 - Builds on: [ADR 0026](0026-corner-benchmark-from-high-resolution-photos.md), [ADR 0028](0028-regularised-h1-at-the-corner.md)
 
@@ -56,8 +56,10 @@ is if anything an upper bound.
 
 ## Results
 
-Two of the five photos have a marker that rings the polygon: an orange band in
-n02 and n04. The other three have no distinct coloured ring.
+Three of the five photos have a marker that rings the polygon: an orange band
+in n02 and n04, picked out by colour, and a thin milky band in the polygonal
+agate, picked out as a smooth band brighter than its surroundings once the
+uneven lighting is evened out (`kind = "bright"`). n01 and n03 have none.
 
 | Photo | Face | Quarter-way width / mid-face width |
 |---|---|---|
@@ -70,17 +72,26 @@ n02 and n04. The other three have no distinct coloured ring.
 | n04 | bottom | 1.20, 1.04 |
 | n04 | short left face | 1.03, 1.17 |
 | n04 | top-left | 0.45, 0.94 |
+| polygonal | upper-left | 1.27, 0.89 |
+| polygonal | upper-right | 0.83, 0.97 |
 
-- **Median over 18 half-faces: 1.04.** Three fall below 0.85, two of them only
-  just (0.84, 0.83). One is well below (n04 top-left near its left corner,
-  0.45). n02's bottom band thickens toward both corners.
+The polygonal agate's lower faces are skipped: the thin band is missing on the
+lower right and merges with its neighbour near the left corner.
+
+- **Median over 22 half-faces on 11 faces: 1.02, with a 95% interval of
+  0.92–1.11** (from resampling whole faces, since a face's two halves aren't
+  independent). Four half-faces fall below 0.85, three only just (0.83–0.84),
+  one well below (n04 top-left near its left corner, 0.45). n02's bottom band
+  thickens toward both corners.
 - So the marker bands mostly keep their thickness toward corners, as a corner
-  that keeps up predicts. The regularised H1's 0.68–0.78 is not the typical
-  case in these two agates.
+  that keeps up predicts. The regularised H1's 0.68–0.78 lies outside the
+  interval.
 
 ## Caveats
 
-- Two specimens, one marker each, corners marked by eye on gridded crops.
+- Three specimens, one marker each, corners marked by eye on gridded crops.
+  The polygonal agate's thin band is about 10 px wide at the quarter
+  resolution used, so its readings carry about 10% noise.
 - Natural variation along a band is large (0.84–1.79 here), so single faces
   say little; the median does.
 - The model's prediction depends on the cavity's size relative to the
@@ -95,6 +106,5 @@ n02 and n04. The other three have no distinct coloured ring.
   that keep up with their faces: growth that every part of the wall sees
   equally, as in H1's boundary-layer form, rather than growth fed by diffusion
   through the cavity.
-- Backlog: more specimens with marker bands; markers by brightness, not only
-  colour (the polygonal agate's white and grey bands); a confidence interval
-  for the median.
+- Backlog: more specimens with marker bands, ideally photographed under even
+  light.

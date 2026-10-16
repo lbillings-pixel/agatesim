@@ -1,6 +1,7 @@
 """H1 with an interface state: can adsorbed impurity make the front oscillate?
 
     uv run python scripts/h1_surface_stability.py --sets 20000   (all cores; --workers 1 for one)
+    uv run python scripts/h1_surface_stability.py --sets 50000 --seed 2 --q-range 0.001 0.1
 
 Extends scripts/h1_linear_stability.py (same units and front problem) with the
 share θ of growth sites covered by adsorbed impurity, after [@torii2024]:
@@ -281,6 +282,13 @@ def main() -> None:
     parser.add_argument(
         "--transverse", help="for the sets in this .npy file, growth rate against wavenumber"
     )
+    parser.add_argument(
+        "--q-range",
+        nargs=2,
+        type=float,
+        metavar=("LO", "HI"),
+        help="draw the silica uptake q log-uniformly from LO-HI instead (weak depletion: small q)",
+    )
     args = parser.parse_args()
     if args.transverse:
         seeds = [complex(r, i) for r in (-0.5, 0.01, 0.3, 1, 3) for i in (0, 0.2, 1, 1.5, 3, 8)]
@@ -297,6 +305,11 @@ def main() -> None:
                 print(f"U={u:.4f}: " + ", ".join(rates))
         return
     params = sample(np.random.default_rng(args.seed), args.sets)
+    if args.q_range:
+        lo, hi = np.log10(args.q_range)
+        params[:, NAMES.index("q")] = 10 ** np.random.default_rng([args.seed, 1]).uniform(
+            lo, hi, args.sets
+        )
     if args.workers > 1:
         with Pool(args.workers) as pool:
             results = pool.map(classify, params, chunksize=50)
@@ -310,7 +323,9 @@ def main() -> None:
         for u, n in oscillating:
             hits.append(p)
             values = ", ".join(f"{k}={v:.3g}" for k, v in zip(NAMES, p, strict=True))
-            print(f"  set {i}: U={u:.4f}, oscillatory ({n}): {values}", flush=True)
+            state = steady(p, u)
+            s_f = float("nan") if state is None else state[0]
+            print(f"  set {i}: U={u:.4f}, s_f={s_f:.3f}, oscillatory ({n}): {values}", flush=True)
     print(
         f"{len(params)} sets: {bistable} with several steady fronts, {static} static and "
         f"{len(hits)} oscillatory instabilities"

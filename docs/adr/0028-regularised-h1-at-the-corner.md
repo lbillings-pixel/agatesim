@@ -162,9 +162,9 @@ smoothing, not capillarity.
   tested so far makes corners lag or round.
 - **A test on photos.** The thinning of bands toward corners is measurable on
   real agates: [ADR 0029](0029-bands-toward-corners-in-real-agates.md) finds
-  marker bands in two reference photos mostly keep their thickness (median
-  1.04 of mid-face a quarter of the way from a corner, against the model's
-  0.68–0.78).
+  marker bands in three reference photos mostly keep their thickness (median
+  1.02 of mid-face a quarter of the way from a corner, 95% interval
+  0.92–1.11, against the model's 0.68–0.78).
 - **Backlog:**
   - whether a supply that is less diffusion-limited (higher s_f) can oscillate
     at all in this model, since that is what a corner needs;

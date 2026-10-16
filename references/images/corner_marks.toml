@@ -5,11 +5,14 @@
 # the measurements repeatable. Coordinates are full-resolution pixels (x right,
 # y down), marked by eye on gridded crops.
 #
-# Each [[marker]] is a band that rings the polygon and is picked out by colour
-# (hue in degrees, minimum saturation and value, all 0-1 except hue). Its
+# Each [[marker]] is a band that rings the polygon. `kind = "colour"` (the
+# default) picks it out by colour (hue in degrees, minimum saturation and value,
+# 0-1); `kind = "bright"` as a smooth band brighter than its surroundings, at
+# 1/`downscale` resolution (see scripts/marker_band_thinning.py). Its
 # `vertices` are corners of the band's centreline, in order around the polygon;
 # each consecutive pair is a face. `reach_px` is how far either side of a face
-# line the band is looked for.
+# line the band is looked for (full-resolution px); faces listed in `skip` are
+# not measured, for the reason given.
 
 [[marker]]
 photo = "polyhedral-agate-caillois-donation-mnhn-n02.jpg"
@@ -32,3 +35,18 @@ reach_px = 200
 vertices = [[2675, 950], [6550, 2650], [1325, 2725], [800, 2325]]
 faces = ["top-right", "bottom", "short left face", "top-left"]
 notes = "The ring is open at the acute right tip, where the band also splits in two for the last tenth of the top-right face."
+
+[[marker]]
+photo = "polygonal-agate-sitio-garguelo-caillois-donation-mnhn.jpg"
+band = "the thin milky band inside the outer white band"
+kind = "bright"
+downscale = 4
+light_blur_px = 40
+min_relative = 1.06
+max_texture = 0.04
+reach_px = 88
+vertices = [[1020, 1960], [3580, 1072], [5800, 1620], [3660, 4240]]
+faces = ["upper-left", "upper-right", "lower-right", "lower-left"]
+skip = ["lower-right", "lower-left"]
+skip_reason = "the thin band is missing on the lower right and merges with its neighbour near the left corner"
+notes = "The photo is lit from the right, so brightness is taken relative to a 40 px (downscaled) local average. Widths are about 10 px at 1/4 resolution, so each reading carries about 10% noise."
