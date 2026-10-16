@@ -17,11 +17,13 @@ from agatesim.models import (
     ProceduralGrowth,
     ProceduralWaterline,
     Settling,
+    Staged,
     run_fortification,
     run_front_feedback,
     run_growth,
     run_liesegang,
     run_settling,
+    run_staged,
     run_waterline,
 )
 
@@ -41,7 +43,9 @@ class SimulationResult:
     @property
     def gravity(self) -> FloatArray:
         """Unit gravity vector; models without gravity are taken as formed upright."""
-        if isinstance(self.config.model, ProceduralWaterline | ProceduralGrowth | Settling):
+        if isinstance(
+            self.config.model, ProceduralWaterline | ProceduralGrowth | Settling | Staged
+        ):
             return self.config.model.gravity()
         th = np.radians(DEFAULT_GRAVITY_DEG)
         return np.array([np.cos(th), np.sin(th)])
@@ -66,6 +70,8 @@ def simulate(config: RunConfig) -> SimulationResult:
             fields = run_liesegang(model, domain, rng)
         case Settling():
             fields = run_settling(model, domain, rng)
+        case Staged():
+            fields = run_staged(model, domain, rng)
     return SimulationResult(config=config, domain=domain, fields=_with_inclusions(fields, domain))
 
 

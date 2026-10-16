@@ -37,6 +37,7 @@ from agatesim.models import (
     ProceduralGrowth,
     ProceduralWaterline,
     Settling,
+    Staged,
 )
 
 ModelConfig = Annotated[
@@ -45,7 +46,8 @@ ModelConfig = Annotated[
     | ProceduralGrowth
     | FrontFeedback
     | Liesegang
-    | Settling,
+    | Settling
+    | Staged,
     Field(discriminator="kind"),
 ]
 

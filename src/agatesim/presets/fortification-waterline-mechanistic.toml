@@ -1,0 +1,20 @@
+# Verification preset for the combined archetype (mechanistic tier): a
+# front-feedback (H1) rim, then hindered-settling (H4) floor layers, then more
+# H1 bands draping over them. Band and layer thicknesses are not imposed; the
+# stage order and when the first stage ends are (ADR 0020).
+name = "fortification-waterline-mechanistic"
+seed = 4
+archetype = "fortification-waterline"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 50
+
+[model]
+kind = "mechanistic-staged"
+order = "wall-floor-wall"
+gravity_deg = 270
+rim_share = 0.3

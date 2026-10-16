@@ -28,6 +28,7 @@ import math
 from typing import Literal
 
 import numpy as np
+from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict
 
 from agatesim.fields import Fields, Phase
@@ -224,19 +225,35 @@ def layers(packed_at: FloatArray, pause: float) -> np.ndarray:
     return out
 
 
-def run_settling(params: Settling, domain: Domain, rng: np.random.Generator) -> Fields:
+def run_settling(
+    params: Settling,
+    domain: Domain,
+    rng: np.random.Generator,
+    region: NDArray[np.bool_] | None = None,
+) -> Fields:
+    """Settle the pulses in the cavity or, if region is given, in that part of it
+    (the open space left by an earlier stage). The cavity's widths are exact; a
+    region's are counted from its pixels."""
     rng_dose, rng_iron, rng_clarity = rng.spawn(3)
     g = params.gravity()
     xx, yy = domain.grid.coords()
     up = -(xx * g[0] + yy * g[1])  # height along −gravity
-    mask = domain.mask
-    vertices = np.asarray(domain.cavity.vertices, dtype=np.float64)
-    heights = vertices @ (-g)
-    z0 = float(heights.min())
-    z1 = float(heights.max())
-    dz = (z1 - z0) / HEIGHT_CELLS
+    if region is None:
+        mask = domain.mask
+        vertices = np.asarray(domain.cavity.vertices, dtype=np.float64)
+        heights = vertices @ (-g)
+        z0 = float(heights.min())
+        z1 = float(heights.max())
+        dz = (z1 - z0) / HEIGHT_CELLS
+        width = chord_widths(vertices, -g, z0 + (np.arange(HEIGHT_CELLS) + 0.5) * dz)
+    else:
+        mask = region
+        z0 = float(up[region].min()) - 0.5 * domain.grid.dx
+        z1 = float(up[region].max()) + 0.5 * domain.grid.dx
+        dz = (z1 - z0) / HEIGHT_CELLS
+        cells = np.clip(((up[region] - z0) / dz).astype(int), 0, HEIGHT_CELLS - 1)
+        width = np.bincount(cells, minlength=HEIGHT_CELLS) * domain.grid.dx**2 / dz
     cell = np.clip(((up - z0) / dz).astype(int), 0, HEIGHT_CELLS - 1)
-    width = chord_widths(vertices, -g, z0 + (np.arange(HEIGHT_CELLS) + 0.5) * dz)
     packed_at, pulse_of, _ = settle(params, width, dz, rng_dose)
     layer = layers(packed_at, PAUSE * (z1 - z0))
     bed = mask & np.isfinite(packed_at[cell])

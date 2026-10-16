@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M8 done. All twelve target forms reproduced at the procedural tier; fortification, seam and waterline also at the mechanistic tier (H1 front feedback, H4 hindered settling). See [mechanisms](docs/images/mechanisms.png).** See the [roadmap](docs/roadmap.md).
+> **Status: M8 done. All twelve target forms reproduced at the procedural tier; fortification, seam, waterline and the combined form also at the mechanistic tier (H1 front feedback, H4 hindered settling, and the two chained). See [mechanisms](docs/images/mechanisms.png).** See the [roadmap](docs/roadmap.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -26,7 +26,7 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Fortification | ✅ verified | ✅ verified (H1) |
 | Vein / seam | ✅ verified | ✅ verified (H1) |
 | Waterline | ✅ verified | ✅ verified (H4) |
-| Combined fortification and waterline | ✅ verified | pending |
+| Combined fortification and waterline | ✅ verified | ✅ verified (H1 + H4 stages) |
 | Banded agate with quartz-crystal centre | ✅ verified | pending |
 | Botryoidal | ✅ verified | pending |
 | Eye | ✅ verified | pending |
