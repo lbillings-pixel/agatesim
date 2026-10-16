@@ -74,7 +74,7 @@ from pathlib import Path
 import numpy as np
 
 try:
-    import cupy as cp
+    import cupy as cp  # type: ignore[import-not-found]
 except ImportError as error:  # pragma: no cover
     raise SystemExit("needs CuPy: uv sync --extra gpu") from error
 
