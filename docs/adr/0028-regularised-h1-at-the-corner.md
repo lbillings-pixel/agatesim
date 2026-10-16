@@ -96,7 +96,8 @@ Neither changes a straight front, so the 1D oscillation is kept as it is.
 
 ### The corner (quarter of a square cavity, 50 screening lengths across)
 
-Runs with γ above and below γ_c, sets 2, 5 and 6, grids h = 0.05 and 0.025.
+Runs with γ above and below γ_c, sets 2, 5 and 6, grids h = 0.05 and 0.025, and
+h = 0.0125 for set 5 at 1.5 γ_c (to t = 150).
 
 - **The mitres are sharp to moderately rounded.** Bands from the two faces
   meet at a seam on the bisector. Measured on rendered slabs with ADR 0026's
@@ -107,9 +108,8 @@ Runs with γ above and below γ_c, sets 2, 5 and 6, grids h = 0.05 and 0.025.
   74–81% of the speed a sharp corner needs. The lag behind a sharp corner grows
   steadily, to 2.2–4.2 screening lengths (6–11 band spacings, set 5) by the
   end of the runs. More curvature reduces it (set 5 at t = 300: 6.3 at
-  0.3 γ_c, 3.1–4.2 at 1.5 γ_c, 2.2 at 2 γ_c). The lag isn't grid-converged: at
-  t = 150 it is 1.55 at h = 0.05 and 2.33 at h = 0.025 (a run at h = 0.0125 is
-  pending). The finer grid lags more, so the lag is not a coarse-grid artefact.
+  0.3 γ_c, 3.1–4.2 at 1.5 γ_c, 2.2 at 2 γ_c). At t = 150 it is 1.55, 2.33 and
+  2.34 at h = 0.05, 0.025 and 0.0125: converged on the two finer grids.
 - **So the bands become wedges.** Along each face, the lining 13 screening
   lengths from the wall corner is 78–85% as thick as at the face's middle (24.5),
   in every set, γ and grid tested. The fortification archetype is defined by
@@ -169,4 +169,3 @@ smoothing, not capillarity.
   - whether a supply that is less diffusion-limited (higher s_f) can oscillate
     at all in this model, since that is what a corner needs;
   - a sourced silica–water interfacial energy;
-  - the lag's convergence on finer grids.

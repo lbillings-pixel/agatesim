@@ -8,9 +8,36 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M12 done: ten of the twelve forms also run in 3D, judged on cuts ([cuts](docs/images/volume.png)). All twelve target forms reproduced at the procedural tier; fortification, seam, waterline and the combined form also at the mechanistic tier (H1 front feedback, H4 hindered settling, and the two chained). See [mechanisms](docs/images/mechanisms.png).** See the [roadmap](docs/roadmap.md).
+> **Status: M16 done.** All twelve target forms are reproduced at the procedural tier, four also at the mechanistic tier, and ten run in 3D, judged on cuts. Recent work takes on the corner question below. See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
+
+## What we've found
+
+- **Sharp corners point to growth that every part of the wall sees equally.**
+  Fortification bands turn corners sharply. On five high-resolution photos of
+  polyhedral agates, corners turn within 0.03–0.63 band spacings
+  ([ADR 0026](docs/adr/0026-corner-benchmark-from-high-resolution-photos.md)).
+  Liesegang rings round them over 1.6–2.4 in 2D
+  ([ADR 0015](docs/adr/0015-mechanistic-liesegang.md)).
+- **Growth fed by diffusion makes corners lag.** With silica and impurity
+  diffusing through the cavity explicitly, front feedback (H1) needs a small
+  surface tension to keep its front from breaking up. Its corners then turn as
+  sharply as real ones, but they fall behind the faces, so bands thin toward
+  them ([ADR 0028](docs/adr/0028-regularised-h1-at-the-corner.md)).
+- **Real bands mostly don't thin toward corners.** A marker band followed around
+  two of the photos keeps its thickness toward the corners (median 1.04 of
+  mid-face, against the model's 0.68–0.78), a preliminary result
+  ([ADR 0029](docs/adr/0029-bands-toward-corners-in-real-agates.md)).
+- **Floor layers settle.** Hindered settling reproduces waterline agate, and
+  chained with H1 the combined form
+  ([ADR 0016](docs/adr/0016-mechanistic-settling.md),
+  [ADR 0020](docs/adr/0020-staged-mechanisms.md)).
+- **A cut changes what you see.** On random cuts through 3D results, bands look
+  1.07–1.18 times thicker than they are, and some forms show on only a minority
+  of cuts ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)).
+
+These are results within the models tested, not proof of how agate forms.
 
 ## What it reproduces so far
 
@@ -46,9 +73,10 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
   front feedback (H1), Liesegang precipitation (H2) and hindered settling (H4).
   H2's rings round off corners, so it fails the fortification test that H1
   passes ([ADR 0015](docs/adr/0015-mechanistic-liesegang.md)). H1 passes it only
-  in a boundary-layer approximation. With explicit diffusion its front doesn't
-  oscillate, so it makes no bands
-  ([ADR 0017](docs/adr/0017-h1-without-the-boundary-layer.md)).
+  in a boundary-layer approximation
+  ([ADR 0017](docs/adr/0017-h1-without-the-boundary-layer.md)); with explicit
+  diffusion and a surface state it oscillates, but its corners lag
+  ([ADR 0028](docs/adr/0028-regularised-h1-at-the-corner.md)).
 - **Competing formation hypotheses are separate, swappable mechanisms**, because
   the science is unsettled ([science notes](docs/science/mechanisms.md)).
 - **Every run is reproducible** from its config, seed and code version.
@@ -131,6 +159,8 @@ uv run ruff check; uv run ruff format     # lint and format
 uv run pyright                            # strict type checking
 uv run pre-commit install                 # run checks on every commit
 uv run python scripts/make_gallery.py     # regenerate docs/images
+uv run python scripts/regression_hashes.py --write before.json   # before a refactor...
+uv run python scripts/regression_hashes.py --check before.json   # ...and after: results unchanged?
 
 npm --prefix web run dev                  # UI dev server with hot reload (proxies /api to :8000)
 npm --prefix web test                     # UI unit tests (Vitest)
@@ -155,10 +185,12 @@ src/agatesim/
   volume/            3D runs: solids, models evaluated at points, cuts, random-cut surveys
   server/            FastAPI backend for the web app (`agatesim serve`)
 web/                 React + TypeScript web app (built into server/static)
-scripts/             gallery generator, Windows start script
+scripts/             gallery generator, Windows start script, H1 analysis and 2D front solver,
+                     photo measurements, regression hashes
 tests/               pytest suite, including negative controls for every criterion
 docs/
   adr/               architecture decision records
+  glossary.md        plain-language meanings of the terms used
   science/           literature notes and model rationale
   archetypes.md      generated from the registry; do not edit by hand
   images/            generated by scripts/make_gallery.py

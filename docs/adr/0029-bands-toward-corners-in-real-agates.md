@@ -49,7 +49,10 @@ gives a direct prediction.
 **The model's prediction**, from the 2D corner runs of ADR 0028, is the front's
 advance a quarter of the way along a face (12 screening lengths from the wall
 corner, on a face 50 long) over its advance in the middle, in bands laid down
-late: **0.68–0.78** across sets 2, 5 and 6 and two curvature values.
+late: **0.68–0.78** across sets 2, 5 and 6 and two curvature values (grid
+h = 0.025 or 0.05). Halving the grid spacing strengthens the thinning (set 5,
+growth from t = 50 to 150: 0.85 at h = 0.025, 0.75 at h = 0.0125), so this range
+is if anything an upper bound.
 
 ## Results
 
