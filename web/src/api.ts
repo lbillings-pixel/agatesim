@@ -115,6 +115,8 @@ export type ModelConfig = { kind: string; schedules?: Record<string, Schedule> }
 export interface Meta {
   version: string;
   limits: { preview: number; run: number };
+  /** Whether H2 (Liesegang) runs on the GPU; on the CPU it takes many minutes. */
+  gpu: boolean;
   cavities: CavityInfo[];
   models: ModelInfo[];
   presets: { name: string; config: RunConfig }[];

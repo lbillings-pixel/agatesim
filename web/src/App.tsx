@@ -22,6 +22,7 @@ import { StatsPanel } from "./components/StatsPanel";
 import { TubePanel } from "./components/TubePanel";
 import { VolumeWorkbench } from "./components/VolumeWorkbench";
 import { type Control, controlsFor, defaultsFor } from "./lib/schema";
+import { CompareMechanisms } from "./components/CompareMechanisms";
 
 const PREVIEW_RESOLUTIONS = [128, 192, 256, 384];
 const RUN_RESOLUTIONS = [512, 768, 1024, 1536, 2048];
@@ -616,6 +617,8 @@ export function App() {
               ...(pinnedDetail ? [{ title: `Pinned: ${pinnedDetail.config.name}`, stats: pinnedDetail.stats }] : []),
             ]}
           />
+
+          <CompareMechanisms config={config} models={meta.models} resolution={Math.min(512, meta.limits.preview)} gpu={meta.gpu} />
         </main>
 
         <RunBrowser runs={runs} jobs={jobs} selected={selected} pinned={pinned} onSelect={setSelected} />

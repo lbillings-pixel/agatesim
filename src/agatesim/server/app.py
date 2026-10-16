@@ -25,7 +25,7 @@ from PIL import Image
 from pydantic import BaseModel, Field
 from starlette.types import Scope
 
-from agatesim import __version__, optics
+from agatesim import __version__, _rd, optics
 from agatesim.archetypes import load_registry
 from agatesim.config import RunConfig, load_config, load_preset, preset_names
 from agatesim.criteria import evaluate, implemented
@@ -139,6 +139,7 @@ def _meta() -> dict[str, object]:
     return {
         "version": __version__,
         "limits": {"preview": MAX_PREVIEW_RESOLUTION, "run": MAX_RUN_RESOLUTION},
+        "gpu": _rd.gpu_in_use(),  # H2 (Liesegang) is only practical on the GPU
         "cavities": [
             {
                 "name": p.name,

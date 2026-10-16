@@ -30,6 +30,11 @@ def array_module(prefer_gpu: bool | None = None) -> Any:
     return np
 
 
+def gpu_in_use() -> bool:
+    """Whether reaction–diffusion runs on the GPU here (AGATESIM_GPU=1 and a usable GPU)."""
+    return array_module() is not np
+
+
 def to_numpy(array: Any) -> np.ndarray:
     get = getattr(array, "get", None)
     return np.asarray(get() if get is not None else array)

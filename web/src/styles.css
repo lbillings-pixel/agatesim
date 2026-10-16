@@ -437,3 +437,12 @@ td.num { white-space: nowrap; }
   .specimens { grid-template-columns: 1fr; }
   .specimen-list { border-right: 0; border-bottom: 1px solid var(--line); }
 }
+
+.mechanisms { display: grid; gap: 0.6rem; }
+.mechanisms-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.mechanisms-head h2 { font-size: 1rem; margin: 0; }
+.mechanisms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 0.75rem; }
+.mechanisms-grid figure { margin: 0; display: grid; gap: 0.35rem; align-content: start; min-width: 0; }
+.mechanisms-grid img, .mechanisms-placeholder { width: 100%; aspect-ratio: 1; border-radius: 4px; background: var(--slab-bg); object-fit: contain; }
+.mechanisms-placeholder { display: grid; place-items: center; }
+.mechanisms-grid figcaption { display: grid; gap: 0.15rem; }
