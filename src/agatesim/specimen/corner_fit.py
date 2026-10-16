@@ -362,6 +362,63 @@ def measure_mitre(
     )
 
 
+def band_widths_along(
+    mask: NDArray[np.bool_],
+    start: tuple[float, float],
+    end: tuple[float, float],
+    reach_px: float,
+    stations: int = 81,
+    bridge_px: int = 41,
+) -> FloatArray:
+    """Width (px) of a marker band along a face (ADR 0029).
+
+    `mask` marks the band (for example, by its colour); the line from `start` to
+    `end` runs along the band, corner to corner. At each station, the band is
+    measured across the line, `reach_px` each way: gaps shorter than `bridge_px`
+    (cracks across the band) are bridged, and the run nearest the line is the
+    band. Widths are median-filtered over 7 stations; NaN where no band is found."""
+    p0, p1 = np.asarray(start, float), np.asarray(end, float)
+    d = (p1 - p0) / float(np.linalg.norm(p1 - p0))
+    n = np.array([-d[1], d[0]])
+    t = np.arange(-reach_px, reach_px + 1.0)
+    centre = len(t) // 2
+    out = np.full(stations, np.nan)
+    for i, f in enumerate(np.linspace(0.0, 1.0, stations)):
+        line = p0 + f * (p1 - p0) + t[:, None] * n
+        rows, cols = np.rint(line[:, 1]).astype(int), np.rint(line[:, 0]).astype(int)
+        ok = (rows >= 0) & (rows < mask.shape[0]) & (cols >= 0) & (cols < mask.shape[1])
+        prof = np.zeros(len(t), dtype=bool)
+        prof[ok] = mask[rows[ok], cols[ok]]
+        prof = _scipy.close_1d(prof, bridge_px)
+        runs = _scipy.runs(prof)
+        if runs:
+            lo, hi = min(runs, key=lambda r: abs((r[0] + r[1]) / 2 - centre))
+            out[i] = float(hi - lo)
+    filled = _scipy.median_1d(np.nan_to_num(out, nan=0.0), 7)
+    return np.where(filled > 0, filled, np.nan)
+
+
+def face_thinning(widths: FloatArray) -> tuple[float | None, float | None]:
+    """Band width a quarter of the way along a face from each corner (stations at
+    0.2–0.3 and 0.7–0.8) over the width in its middle (0.4–0.6): about 1 where
+    the band keeps its thickness, below 1 where it thins toward the corner. The
+    regularised H1 gives about 0.68–0.78 in bands laid down late (ADR 0028)."""
+    f = np.linspace(0.0, 1.0, len(widths))
+
+    def mean(lo: float, hi: float) -> float | None:
+        sel = (f >= lo - 1e-9) & (f <= hi + 1e-9) & np.isfinite(widths)
+        return float(np.mean(widths[sel])) if sel.any() else None
+
+    mid = mean(0.4, 0.6)
+    if not mid:
+        return None, None
+    near_a, near_b = mean(0.2, 0.3), mean(0.7, 0.8)
+    return (
+        None if near_a is None else near_a / mid,
+        None if near_b is None else near_b / mid,
+    )
+
+
 def measure_marked_boundary(
     rgb: NDArray[np.generic],
     apex: tuple[float, float],

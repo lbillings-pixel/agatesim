@@ -1,6 +1,6 @@
 """H1 with an interface state: can adsorbed impurity make the front oscillate?
 
-    uv run python scripts/h1_surface_stability.py --sets 20000
+    uv run python scripts/h1_surface_stability.py --sets 20000   (all cores; --workers 1 for one)
 
 Extends scripts/h1_linear_stability.py (same units and front problem) with the
 share θ of growth sites covered by adsorbed impurity, after [@torii2024]:
@@ -21,10 +21,10 @@ in Re λ > 0 are counted, split into static (real) and oscillatory (complex)
 ones. β = 0 is pure inhibition.
 
 Result (ADR 0017, second amendment): 7 of 20,000 sets have an oscillatory
-instability. A 1D front-frame simulation confirms the exact growth rate and
-period (0.021 and 4.86 against 0.0210 and 4.88). One set has a limit cycle that
-converges with the grid (200, 400 and 800 cells: period 3.97, step 0.11
-screening lengths per cycle).
+instability (a re-run of seed 0 for ADR 0028 finds 9). A 1D front-frame
+simulation confirms the exact growth rate and period (0.021 and 4.86 against
+0.0210 and 4.88). One set has a limit cycle that converges with the grid
+(200, 400 and 800 cells: period 3.97, step 0.11 screening lengths per cycle).
 
 `--transverse hits.npy` adds ripples along the front (wavenumber k). In 6 of the
 7 sets, a stationary instability grows faster the shorter the ripple, with no
@@ -38,6 +38,8 @@ converged answer without such a mechanism.
 from __future__ import annotations
 
 import argparse
+import os
+from multiprocessing import Pool
 
 import numpy as np
 from h1_linear_stability import _k  # run as a script: scripts/ is on the path
@@ -252,11 +254,30 @@ def real_unstable(p, u, re_max=40.0):
     return int(np.count_nonzero(np.sign(f[1:]) != np.sign(f[:-1])))
 
 
+def classify(p):
+    """(several steady fronts?, static instabilities, [(U, oscillatory roots)]) for one set."""
+    speeds = steady_speeds(p)
+    n_static = 0
+    oscillating = []
+    for u in speeds:
+        total = unstable_count(p, u)
+        if total == 0:
+            continue
+        real = real_unstable(p, u)
+        n_static += real > 0
+        if total > real:
+            oscillating.append((u, total - real))
+    return len(speeds) > 1, n_static, oscillating
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     parser.add_argument("--sets", type=int, default=20000)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--out", default="surface_hits.npy")
+    parser.add_argument(
+        "--workers", type=int, default=os.cpu_count() or 1, help="processes (default: all cores)"
+    )
     parser.add_argument(
         "--transverse", help="for the sets in this .npy file, growth rate against wavenumber"
     )
@@ -276,21 +297,20 @@ def main() -> None:
                 print(f"U={u:.4f}: " + ", ".join(rates))
         return
     params = sample(np.random.default_rng(args.seed), args.sets)
+    if args.workers > 1:
+        with Pool(args.workers) as pool:
+            results = pool.map(classify, params, chunksize=50)
+    else:
+        results = map(classify, params)
     hits = []
     bistable = static = 0
-    for i, p in enumerate(params):
-        speeds = steady_speeds(p)
-        bistable += len(speeds) > 1
-        for u in speeds:
-            total = unstable_count(p, u)
-            if total == 0:
-                continue
-            real = real_unstable(p, u)
-            static += real > 0
-            if total > real:
-                hits.append(p)
-                values = ", ".join(f"{k}={v:.3g}" for k, v in zip(NAMES, p, strict=True))
-                print(f"  set {i}: U={u:.4f}, oscillatory ({total - real}): {values}", flush=True)
+    for i, (p, (several, n_static, oscillating)) in enumerate(zip(params, results, strict=True)):
+        bistable += several
+        static += n_static
+        for u, n in oscillating:
+            hits.append(p)
+            values = ", ".join(f"{k}={v:.3g}" for k, v in zip(NAMES, p, strict=True))
+            print(f"  set {i}: U={u:.4f}, oscillatory ({n}): {values}", flush=True)
     print(
         f"{len(params)} sets: {bistable} with several steady fronts, {static} static and "
         f"{len(hits)} oscillatory instabilities"

@@ -8,7 +8,13 @@ import numpy as np
 import pytest
 from PIL import Image, ImageDraw, ImageFilter
 
-from agatesim.specimen.corner_fit import measure_corner, measure_marked_boundary, measure_mitre
+from agatesim.specimen.corner_fit import (
+    band_widths_along,
+    face_thinning,
+    measure_corner,
+    measure_marked_boundary,
+    measure_mitre,
+)
 
 
 def _nested_corner(
@@ -103,3 +109,35 @@ def test_a_marked_boundary_is_fitted(radius: float) -> None:
     assert b is not None
     assert b.radius_px == pytest.approx(radius, abs=max(5.0, 0.25 * radius))
     assert spacing == pytest.approx(60, rel=0.3)
+
+
+def _marker_band(taper: float, size: int = 900, width: float = 60.0) -> np.ndarray:
+    """A horizontal marker band along a face from x = 0 to x = size (corner to
+    corner). Its width is `taper` times the mid-face width at the corners and
+    rises linearly to the full width in the middle; a few cracks cross it."""
+    yy, xx = np.mgrid[0:size, 0:size].astype(float)
+    frac = np.abs(xx / size - 0.5) * 2  # 0 mid-face, 1 at a corner
+    w = width * (1 - (1 - taper) * frac)
+    band = np.abs(yy - size / 2) <= w / 2
+    for x in (180, 520, 700):  # cracks
+        band[:, x : x + 6] = False
+    return band
+
+
+@pytest.mark.parametrize("taper", [1.0, 0.6])
+def test_band_widths_read_how_a_marker_band_thins_toward_corners(taper: float) -> None:
+    widths = band_widths_along(_marker_band(taper), (0.0, 450.0), (899.0, 450.0), reach_px=120)
+    left, right = face_thinning(widths)
+    # a quarter of the way along (0.2-0.3), frac = 0.4-0.6; the middle (0.4-0.6), frac 0-0.2
+    expected = (1 - (1 - taper) * 0.5) / (1 - (1 - taper) * 0.1)
+    assert left == pytest.approx(expected, abs=0.05)
+    assert right == pytest.approx(expected, abs=0.05)
+
+
+def test_band_widths_tell_a_thinning_band_from_a_uniform_one() -> None:
+    """Negative control: a uniform band, cracks and all, must not read as thinning."""
+    line = ((0.0, 450.0), (899.0, 450.0))
+    uniform = face_thinning(band_widths_along(_marker_band(1.0), *line, reach_px=120))
+    thinning = face_thinning(band_widths_along(_marker_band(0.7), *line, reach_px=120))
+    assert all(v is not None and v > 0.95 for v in uniform)
+    assert all(v is not None and v < 0.9 for v in thinning)

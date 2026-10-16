@@ -142,6 +142,29 @@ def dilate(mask: NDArray[np.bool_], iterations: int) -> NDArray[np.bool_]:
     return cast(NDArray[np.bool_], out)
 
 
+def close_1d(profile: NDArray[np.bool_], length: int) -> NDArray[np.bool_]:
+    """1D morphological closing: bridges False gaps shorter than `length`. The
+    profile is padded first, so a run touching an end isn't eroded there."""
+    pad = length
+    padded = np.pad(profile, pad, mode="edge")
+    out = ndimage.binary_closing(padded, structure=np.ones(length, dtype=bool))
+    return cast(NDArray[np.bool_], out[pad:-pad])
+
+
+def runs(profile: NDArray[np.bool_]) -> list[tuple[int, int]]:
+    """(start, stop) of each run of True in a 1D profile."""
+    lab, n = cast(tuple[NDArray[np.int32], int], ndimage.label(profile))
+    out: list[tuple[int, int]] = []
+    for k in range(1, n + 1):
+        idx = np.flatnonzero(lab == k)
+        out.append((int(idx[0]), int(idx[-1]) + 1))
+    return out
+
+
+def median_1d(values: FloatArray, size: int) -> NDArray[np.float64]:
+    return cast(NDArray[np.float64], ndimage.median_filter(values, size=size, mode="nearest"))
+
+
 def gaussian_rgb(rgb: NDArray[np.generic], sigma: float) -> NDArray[np.float64]:
     """Gaussian blur of each colour channel."""
     x = np.asarray(rgb, dtype=np.float64)

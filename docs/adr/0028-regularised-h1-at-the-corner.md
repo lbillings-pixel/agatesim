@@ -160,14 +160,12 @@ smoothing, not capillarity.
   boundary-layer approximation is in effect the assumption that the corner and
   the face see the same fluid. Every explicit-diffusion version of H1 or H2
   tested so far makes corners lag or round.
-- **A new discriminant to test on photos.** Where a corner keeps up, band
-  spacing along the mitre is 1/sin(φ/2) times the spacing on the faces (√2 at
-  a right angle). The regularised H1 predicts about 0.74–0.8 of that, and
-  thinner bands near corners. This can be measured on the five reference
-  photos. The corners marked for ADR 0026 weren't saved, so they need marking
-  again.
+- **A test on photos.** The thinning of bands toward corners is measurable on
+  real agates: [ADR 0029](0029-bands-toward-corners-in-real-agates.md) finds
+  marker bands in two reference photos mostly keep their thickness (median
+  1.04 of mid-face a quarter of the way from a corner, against the model's
+  0.68–0.78).
 - **Backlog:**
-  - the photo test above;
   - whether a supply that is less diffusion-limited (higher s_f) can oscillate
     at all in this model, since that is what a corner needs;
   - a sourced silica–water interfacial energy;
