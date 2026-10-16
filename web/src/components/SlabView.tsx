@@ -1,10 +1,55 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { captioned, type FrameSource, type Stage } from "../lib/animation";
 import { applyGrowth } from "../lib/growth";
+import { ExportAnimation } from "./ExportAnimation";
 import { GrowthControls } from "./GrowthControls";
 
 const VOID_COLOUR = [18, 18, 22] as const; // matches render.VOID
 const SCALE_BAR_MM = [1, 2, 5, 10, 20, 50];
+
+export interface SlabPixels {
+  slab: ImageData;
+  tdep: ImageData;
+}
+
+/** The slab image and its deposition-time image, decoded. */
+export function useSlabPixels(imageSrc: string, tdepSrc: string): SlabPixels | null {
+  const [pixels, setPixels] = useState<SlabPixels | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([loadPixels(imageSrc), loadPixels(tdepSrc)])
+      .then(([slab, tdep]) => {
+        if (!cancelled) setPixels({ slab, tdep });
+      })
+      .catch(() => {
+        if (!cancelled) setPixels(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [imageSrc, tdepSrc]);
+  return pixels;
+}
+
+/** Frames of the slab growing, for exporting the animation. */
+export function slabSource(pixels: SlabPixels): FrameSource {
+  const { slab, tdep } = pixels;
+  const scratch = document.createElement("canvas");
+  scratch.width = slab.width;
+  scratch.height = slab.height;
+  const sctx = scratch.getContext("2d");
+  const out = new ImageData(slab.width, slab.height);
+  return {
+    width: slab.width,
+    height: slab.height,
+    draw: (ctx, t) => {
+      applyGrowth(slab.data, tdep.data, t, VOID_COLOUR, out.data);
+      sctx?.putImageData(out, 0, 0);
+      ctx.drawImage(scratch, 0, 0);
+    },
+  };
+}
 
 async function loadPixels(src: string): Promise<ImageData> {
   const image = new Image();
@@ -38,32 +83,32 @@ interface Props {
   identity: string;
   /** Growth shown, when a parent controls it (and shows the controls itself). */
   growth?: number;
+  /** Formation stages on the growth axis, for labels. */
+  stages?: Stage[];
+  /** File name for exported animations (without extension). */
+  exportName?: string;
 }
 
-export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity, picking, growth: shownGrowth }: Props) {
+export function SlabView({
+  imageSrc,
+  tdepSrc,
+  dxMm,
+  caption,
+  identity,
+  picking,
+  growth: shownGrowth,
+  stages,
+  exportName,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
-  const [pixels, setPixels] = useState<{ slab: ImageData; tdep: ImageData } | null>(null);
+  const pixels = useSlabPixels(imageSrc, tdepSrc);
   const [ownGrowth, setGrowth] = useState(1);
   const growth = shownGrowth ?? ownGrowth;
   const [view, setView] = useState({ zoom: 1, x: 0, y: 0 });
   const [fit, setFit] = useState(1);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([loadPixels(imageSrc), loadPixels(tdepSrc)])
-      .then(([slab, tdep]) => {
-        if (!cancelled) setPixels({ slab, tdep });
-      })
-      .catch(() => {
-        if (!cancelled) setPixels(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [imageSrc, tdepSrc]);
 
   // Reset zoom when a different slab is shown (adjusting state during render,
   // as React recommends, rather than in an effect).
@@ -202,7 +247,15 @@ export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity, picking, 
         )}
         {view.zoom > 1 && <div className="zoom-badge">{view.zoom.toFixed(1)}×</div>}
       </div>
-      {shownGrowth === undefined && <GrowthControls id={identity} value={growth} onChange={setGrowth} />}
+      {shownGrowth === undefined && (
+        <>
+          <GrowthControls id={identity} value={growth} onChange={setGrowth} stages={stages} />
+          <ExportAnimation
+            name={exportName ?? "agate-growth"}
+            source={() => (pixels ? captioned(slabSource(pixels), stages) : null)}
+          />
+        </>
+      )}
       <figcaption>
         {caption}
         <span className="hint">

@@ -46,6 +46,7 @@ from agatesim.server.jobs import Job, JobManager
 from agatesim.server.specimens import specimen_router
 from agatesim.server.volume import volume_router
 from agatesim.simulate import SimulationResult, simulate
+from agatesim.stages import stages_json
 from agatesim.stats import band_statistics
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -251,6 +252,7 @@ def create_app(
             "elapsed_ms": round(elapsed * 1000),
             "evaluation": _evaluation(config, result),
             "stats": band_statistics(result).to_json(),
+            "stages": stages_json(config.model),
         }
 
     @app.post("/api/runs", status_code=202)
@@ -282,9 +284,11 @@ def create_app(
             p = path / name
             return json.loads(p.read_text("utf-8")) if p.exists() else None
 
+        config = load_config(path / "config.toml")
         return {
             "id": run_id,
-            "config": load_config(path / "config.toml").model_dump(mode="json"),
+            "config": config.model_dump(mode="json"),
+            "stages": stages_json(config.model),
             "metadata": json.loads((path / "metadata.json").read_text("utf-8")),
             "evaluation": optional("metrics.json"),
             "stats": optional("stats.json"),

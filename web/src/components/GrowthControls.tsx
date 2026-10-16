@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import { type Stage, stageAt } from "../lib/animation";
 import { advanceGrowth, SPEEDS } from "../lib/growth";
 
 // Longest step taken for one frame: slow frames still play at speed, but a tab
@@ -10,11 +11,14 @@ interface Props {
   id: string;
   value: number; // 0..1, share of formation time shown
   onChange: (value: number) => void;
+  /** Formation stages on the growth axis: the one forming is named. */
+  stages?: Stage[];
 }
 
 /** The growth slider with playback: play or pause, speed and looping, so fast or
  * slow stages of growth can be watched at a comfortable pace. */
-export function GrowthControls({ id, value, onChange }: Props) {
+export function GrowthControls({ id, value, onChange, stages }: Props) {
+  const stage = stageAt(stages, value);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<number>(1);
   const [loop, setLoop] = useState(false);
@@ -70,6 +74,12 @@ export function GrowthControls({ id, value, onChange }: Props) {
         }}
       />
       <output htmlFor={`growth-${id}`}>{Math.round(value * 100)}%</output>
+      <span
+        className="growth-stage muted small"
+        title={stages?.map((s) => `${Math.round(s.start * 100)}–${Math.round(s.end * 100)}%: ${s.label}`).join("\n")}
+      >
+        {stage ?? ""}
+      </span>
       <select
         aria-label="Playback speed"
         value={speed}

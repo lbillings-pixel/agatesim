@@ -540,6 +540,8 @@ export function App() {
                 imageSrc={light !== "reflected" && opticsImage ? opticsImage : preview.image}
                 tdepSrc={preview.tdep}
                 dxMm={preview.dx_mm}
+                stages={preview.stages}
+                exportName={`${config.name}-growth`}
                 caption={`Preview of “${config.name}”`}
                 picking={
                   placingTubes
@@ -558,6 +560,8 @@ export function App() {
                 imageSrc={api.slabUrl(selected)}
                 tdepSrc={api.tdepUrl(selected)}
                 dxMm={selectedDetail.metadata.grid.dx_mm}
+                stages={selectedDetail.stages}
+                exportName={`${selectedDetail.config.name}-growth`}
                 caption={`${selectedDetail.config.name} · ${selectedDetail.metadata.grid.nx}×${selectedDetail.metadata.grid.ny} px`}
               />
             )}
@@ -567,6 +571,8 @@ export function App() {
                 imageSrc={api.slabUrl(pinned)}
                 tdepSrc={api.tdepUrl(pinned)}
                 dxMm={pinnedDetail.metadata.grid.dx_mm}
+                stages={pinnedDetail.stages}
+                exportName={`${pinnedDetail.config.name}-growth`}
                 caption={`Pinned: ${pinnedDetail.config.name}`}
               />
             )}

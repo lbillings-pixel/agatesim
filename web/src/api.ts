@@ -1,5 +1,6 @@
 // Types and calls for the agatesim backend (src/agatesim/server/app.py).
 
+import type { Stage } from "./lib/animation";
 import type { Transect } from "./lib/transect";
 
 export type Nature = "physical" | "effective" | "imposed";
@@ -146,6 +147,7 @@ export interface PreviewResult {
   elapsed_ms: number;
   evaluation: Evaluation | null;
   stats: BandStats;
+  stages?: Stage[];
 }
 
 export interface Job {
@@ -176,6 +178,7 @@ export interface RunDetail {
   metadata: { grid: { nx: number; ny: number; dx_mm: number }; git: { commit: string | null } };
   evaluation: Evaluation | null;
   stats: BandStats | null;
+  stages?: Stage[];
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {

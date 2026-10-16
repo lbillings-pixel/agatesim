@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 from agatesim.criteria import evaluate, implemented
 from agatesim.render import render_slab
 from agatesim.server.jobs import Job, JobManager
+from agatesim.stages import stages_json
 from agatesim.stats import band_statistics
 from agatesim.volume.config import VolumeConfig, load_volume_preset, volume_preset_names
 from agatesim.volume.render import voxel_rgba
@@ -153,6 +154,7 @@ def volume_router(jobs: JobManager) -> APIRouter:
             "gravity_in_plane": c.gravity_in_plane,
             "evaluation": evaluation,
             "stats": band_statistics(result).to_json(),
+            "stages": stages_json(config.model),
             "elapsed_ms": round((time.perf_counter() - t0) * 1000),
         }
 

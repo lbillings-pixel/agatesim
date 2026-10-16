@@ -151,10 +151,17 @@ export interface Volume3DProps {
   busy: boolean;
   /** Share of formation time shown (1 = all), for the growth animation. */
   growth: number;
+  /** Filled with a handle that renders frames for exporting the animation. */
+  exportRef?: { current: Volume3DHandle | null };
+}
+
+export interface Volume3DHandle {
+  /** Draw the view at growth t and return its canvas (read it at once). */
+  renderAt: (t: number) => HTMLCanvasElement | null;
 }
 
 /** A rotatable view of the volume: drag to turn, scroll to zoom. */
-export function Volume3D({ volume, plane, busy, growth }: Volume3DProps) {
+export function Volume3D({ volume, plane, busy, growth, exportRef }: Volume3DProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const glRef = useRef<Gl | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -216,8 +223,8 @@ export function Volume3D({ volume, plane, busy, growth }: Volume3DProps) {
   }, [volume]);
 
 
-  // Draws the current view; scheduled below.
-  function draw() {
+  // Draws the current view (at growth `shown`); scheduled below.
+  function draw(shown: number = growth) {
     const g = glRef.current;
     const canvas = canvasRef.current;
     if (!g || !canvas || !volume || !box || !view) return;
@@ -253,16 +260,26 @@ export function Volume3D({ volume, plane, busy, growth }: Volume3DProps) {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, g.tdep);
     gl.uniform1i(u.tdepTex ?? null, 1);
-    gl.uniform1i(u.growthOn ?? null, volume.tdep && growth < 1 ? 1 : 0);
-    gl.uniform1f(u.cutoff ?? null, Math.round(Math.min(Math.max(growth, 0), 1) * 254));
+    gl.uniform1i(u.growthOn ?? null, volume.tdep && shown < 1 ? 1 : 0);
+    gl.uniform1f(u.cutoff ?? null, Math.round(Math.min(Math.max(shown, 0), 1) * 254));
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
   // Draw whenever anything changes, at most once per frame (a fast drag changes
   // the view many times between frames).
   useEffect(() => {
-    const frame = requestAnimationFrame(draw);
+    const frame = requestAnimationFrame(() => draw());
     return () => cancelAnimationFrame(frame);
+  });
+
+  useEffect(() => {
+    if (!exportRef) return;
+    exportRef.current = {
+      renderAt: (t) => {
+        draw(t);
+        return canvasRef.current;
+      },
+    };
   });
 
   const onPointerDown = (e: React.PointerEvent) => {

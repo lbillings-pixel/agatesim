@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   api,
@@ -13,13 +13,15 @@ import {
   type VoxelVolume,
   volume as volumeApi,
 } from "../api";
+import { captioned, type FrameSource } from "../lib/animation";
 import { type Control, controlsFor, defaultsFor } from "../lib/schema";
+import { ExportAnimation } from "./ExportAnimation";
 import { CriteriaPanel } from "./CriteriaPanel";
 import { GrowthControls } from "./GrowthControls";
 import { ParamPanel, Slider } from "./ParamPanel";
-import { SlabView } from "./SlabView";
+import { SlabView, slabSource, useSlabPixels } from "./SlabView";
 import { StatsPanel } from "./StatsPanel";
-import { Volume3D } from "./Volume3D";
+import { Volume3D, type Volume3DHandle } from "./Volume3D";
 
 const CUT_RESOLUTIONS = [256, 384, 512, 768];
 const VIEW_RESOLUTIONS = [64, 96, 128];
@@ -60,6 +62,27 @@ const CUT_VIEWS: [string, Partial<SliceConfig>][] = [
   ["Top", { tilt_deg: 0, azimuth_deg: 0, offset_mm: 0 }],
 ];
 
+/** The 3D view (as shown on screen) beside the cut, at the cut's height. */
+function sideBySide(view: Volume3DHandle | null, cut: FrameSource): FrameSource {
+  const gap = 8;
+  const probe = view?.renderAt(1);
+  const w3 = probe ? Math.round((probe.width / Math.max(probe.height, 1)) * cut.height) : 0;
+  return {
+    width: w3 + (w3 ? gap : 0) + cut.width,
+    height: cut.height,
+    draw: (ctx, t) => {
+      ctx.fillStyle = "#121316";
+      ctx.fillRect(0, 0, w3 + gap + cut.width, cut.height);
+      const canvas = view?.renderAt(t);
+      if (canvas && w3) ctx.drawImage(canvas, 0, 0, w3, cut.height);
+      ctx.save();
+      ctx.translate(w3 + (w3 ? gap : 0), 0);
+      cut.draw(ctx, t);
+      ctx.restore();
+    },
+  };
+}
+
 const pct = (r: number | null | undefined) => (r === null || r === undefined ? "n/a" : `${Math.round(r * 100)}%`);
 
 interface Props {
@@ -85,6 +108,8 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   const [runRes, setRunRes] = useState(192);
   const [job, setJob] = useState<Job | null>(null);
   const [growth, setGrowth] = useState(1);
+  const view3d = useRef<Volume3DHandle | null>(null);
+  const cutPixels = useSlabPixels(cut?.image ?? "", cut?.tdep ?? "");
 
   useEffect(() => {
     volumeApi
@@ -345,7 +370,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
         )}
 
         <div className="volume-panes">
-          <Volume3D volume={voxels} plane={cut?.plane ?? null} busy={voxelsBusy} growth={growth} />
+          <Volume3D volume={voxels} plane={cut?.plane ?? null} busy={voxelsBusy} growth={growth} exportRef={view3d} />
           {cut && (
             <SlabView
               identity="volume-cut"
@@ -353,6 +378,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
               tdepSrc={cut.tdep}
               dxMm={cut.dx_mm}
               growth={growth}
+              stages={cut.stages}
               caption={
                 `The cut${cut.pieces > 1 ? ` (largest of ${cut.pieces} pieces)` : ""}` +
                 (cut.gravity_in_plane < 0.999 ? ` · gravity ${Math.round(cut.gravity_in_plane * 100)}% in its plane` : "")
@@ -361,7 +387,11 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
           )}
         </div>
 
-        <GrowthControls id="volume" value={growth} onChange={setGrowth} />
+        <GrowthControls id="volume" value={growth} onChange={setGrowth} stages={cut?.stages} />
+        <ExportAnimation
+          name={`${config.name}-growth-3d`}
+          source={() => (cutPixels ? captioned(sideBySide(view3d.current, slabSource(cutPixels)), cut?.stages) : null)}
+        />
 
         <section className="cut-controls" aria-label="The cut">
           <div className="toggle" role="group" aria-label="Standard cuts">
