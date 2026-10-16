@@ -23,8 +23,8 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 
 | Form | Procedural | Mechanistic |
 |---|---|---|
-| Fortification | ✅ verified | ✅ verified (H1) |
-| Vein / seam | ✅ verified | ✅ verified (H1) |
+| Fortification | ✅ verified | ✅ verified (H1, boundary-layer approximation) |
+| Vein / seam | ✅ verified | ✅ verified (H1, boundary-layer approximation) |
 | Waterline | ✅ verified | ✅ verified (H4) |
 | Combined fortification and waterline | ✅ verified | ✅ verified (H1 + H4 stages) |
 | Banded agate with quartz-crystal centre | ✅ verified | pending |
@@ -43,9 +43,10 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
   follows behind the same interface ([ADR 0003](docs/adr/0003-model-architecture.md)):
   front feedback (H1), Liesegang precipitation (H2) and hindered settling (H4).
   H2's rings round off corners, so it fails the fortification test that H1
-  passes ([ADR 0015](docs/adr/0015-mechanistic-liesegang.md)). H1 passes it in
-  a boundary-layer approximation whose limits are recorded in
-  [ADR 0017](docs/adr/0017-h1-without-the-boundary-layer.md).
+  passes ([ADR 0015](docs/adr/0015-mechanistic-liesegang.md)). H1 passes it only
+  in a boundary-layer approximation. With explicit diffusion its front doesn't
+  oscillate, so it makes no bands
+  ([ADR 0017](docs/adr/0017-h1-without-the-boundary-layer.md)).
 - **Competing formation hypotheses are separate, swappable mechanisms**, because
   the science is unsettled ([science notes](docs/science/mechanisms.md)).
 - **Every run is reproducible** from its config, seed and code version.

@@ -98,6 +98,64 @@ interface state with its own kinetics, such as impurity adsorbed on the growth
 surface that catalyses or inhibits growth ([@torii2024]). The exact analysis
 extends to it at little cost: one more equation at the front.
 
+## Second amendment (2026-10-16): a surface state oscillates, but the 2D front is ill-posed
+
+The candidate from the first amendment was tested
+(`scripts/h1_surface_stability.py`). After [@torii2024], impurity adsorbs on
+the growth surface:
+
+- it adsorbs from the solution, desorbs, and is buried by growth;
+- the covered share θ pins growth by 1/(1 + (θ/θ_c)^m), with catalysis optional;
+- adsorption takes impurity from the solution.
+
+The exact characteristic function gains one equation. It passes the same
+check: Φ(0⁺) equals dG/dU − 1.
+
+**1D: genuine oscillation.**
+
+- **Scan:** 7 of 20,000 random sets have a complex pair of unstable roots. One
+  of them is pure inhibition, with no catalysis.
+- **Exact roots confirmed by simulation:** a front-frame simulation started on
+  the unstable state grows at the exact rate and period (0.0209 and 4.86,
+  against 0.0210 and 4.88).
+- **Limit cycles:**
+  - one set has a limit cycle that converges with the grid (200, 400 and 800
+    cells: period 3.97, step 0.110 screening lengths per cycle);
+  - a lab-frame cut-cell scheme, with the front crossing a fixed grid,
+    reproduces it at h = 0.05–0.2;
+  - two more sets have large converged swings;
+  - three jump to another, stable steady front.
+
+**2D: no converged answer.** A level-set cut-cell solver with the same front
+treatment reproduces the 1D limit cycle for a straight front (period 4.00 and
+3.99, step 0.110 and 0.108, at h = 0.2 and 0.1). In a 90° corner:
+
+- the corner lags at both grids (corner ratio about 0.3 and 0.57, where a
+  sharp corner is 1);
+- the front along the walls breaks into patches;
+- the two grids disagree.
+
+**The reason is exact.** I extended the analysis to ripples along the front
+(position ∝ e^(iky + λt)). It checks out at k = 0: a neutral shift mode, and
+the earlier roots. In 6 of the 7 sets, a stationary instability grows faster
+the shorter the ripple (for the cycling set, λ = 0.65 at k = 0.7 and 2.8 at
+k = 5), with no cut-off. The 7th damps short ripples, but in 1D it falls to a
+stable steady front. Nothing in the model smooths the front along itself, so
+in 2D the front breaks up at whatever scale the grid allows. Corner shapes
+can't converge.
+
+**Outcome of the corner test.** H1 can make self-organised bands with explicit
+diffusion when the front has a surface state. But those bands are unstable
+along the front unless a further mechanism smooths it, such as surface
+diffusion of the adsorbed impurity or a curvature effect on growth. Each would
+add a new assumed parameter. So the 2D corner question stays undecided for
+H1. Where the runs do say anything, the corner lags, as H2's does. As agreed
+with the owner, the corner work stops here:
+
+- H1's fortification and seam verifications stand as boundary-layer
+  approximation results;
+- the regularised surface model is backlog.
+
 ## Decision
 
 - The H1 verifications of ADR 0013 stand as **boundary-layer-approximation**
