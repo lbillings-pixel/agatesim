@@ -38,7 +38,7 @@ other archetypes build on.
   [[archetypes.criteria]]
   id = "corners-preserved"
   description = "Angular turns in the wall propagate inward as angular turns in the bands."
-  metric = "Worst, over wall corners, of the median turn width / band spacing for bands near the corner. Turn width is the lateral distance over which a band's direction swings through the middle half of its turn at the corner. Needs bands at least 5 px apart."
+  metric = "Worst, over wall corners, of the median turn width / band spacing for bands near the corner. Turn width is the lateral distance over which a band's direction swings through the middle half of its turn at the corner: where the bisector crosses the band, or at the band's own corner within 4 band spacings of it if that is sharper (ADR 0022). Needs bands at least 5 px apart."
   max = 0.7
 
   [[archetypes.criteria]]

@@ -230,6 +230,15 @@ def test_area_profile_of_a_sphere_matches_its_circles() -> None:
     assert np.allclose(area[middle], exact[middle], rtol=0.06)
 
 
+def test_corners_are_found_where_an_oblique_cut_puts_them() -> None:
+    """On this oblique cut the bands' corners drift off the wall corners'
+    bisectors; the corner test finds them at the bands' own corners (ADR 0022)."""
+    sim = prepare_volume(load_volume_preset("fortification-3d"))
+    cut = SliceConfig(tilt_deg=66.6, azimuth_deg=-31.8, offset_mm=-5.8, resolution=768)
+    ev = {r.id: r for r in evaluate("fortification", sim.cut(cut).result).results}
+    assert ev["corners-preserved"].passed, ev["corners-preserved"].detail
+
+
 def test_staged_cut_shows_wall_floor_wall() -> None:
     config = load_volume_preset("fortification-waterline-mechanistic-3d")
     sim = prepare_volume(config)

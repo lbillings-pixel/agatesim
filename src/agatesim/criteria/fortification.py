@@ -24,6 +24,8 @@ from agatesim.grid import FloatArray
 from agatesim.simulate import SimulationResult
 
 CORNER_PROBE_BANDS = 6
+CORNER_SEARCH_SPACINGS = 4  # how far along a band (in band spacings) its corner is sought
+OWN_CORNER_BELOW = 0.35  # turn widths (× spacing) at the bisector above this look again
 MIN_SPACING_PX = 5
 
 
@@ -91,6 +93,59 @@ def _turn_width(
     return float(mids[high[0]] - mids[low[-1]])
 
 
+def _band_corner(
+    result: SimulationResult,
+    corner: Corner,
+    apex: FloatArray,
+    band_k: int,
+    search: float,
+    normals: tuple[FloatArray, FloatArray],
+    boundary: NDArray[np.bool_],
+) -> FloatArray | None:
+    """Where band k's own corner lies: the point within `search` (mm, along the
+    band) of `apex` where its direction is halfway through its turn. In 2D the
+    corner lies on the wall corner's bisector, at `apex`. On an oblique cut of a
+    3D nodule each face's bands advance across the cut at their own apparent
+    rate, so the corner drifts along the band (ADR 0022)."""
+    grid = result.grid
+    lateral = np.array([-corner.bisector[1], corner.bisector[0]])
+    near = boundary & (result.fields.band == band_k)
+    rows, cols = np.nonzero(near)
+    offset = pixel_points(grid, near) - apex
+    u, w = offset @ lateral, offset @ corner.bisector
+    keep = (np.abs(u) <= search) & (np.abs(w) <= search)
+    if keep.sum() < 6:
+        return None
+    u, w = u[keep], w[keep]
+    nx, ny = normals[0][rows[keep], cols[keep]], normals[1][rows[keep], cols[keep]]
+    phi = np.arctan2(
+        nx * lateral[0] + ny * lateral[1], nx * corner.bisector[0] + ny * corner.bisector[1]
+    )
+    edges = np.arange(-search, search + grid.dx, grid.dx)
+    which = np.digitize(u, edges)
+    profile = np.array(
+        [np.median(phi[which == i]) if np.any(which == i) else np.nan for i in range(1, len(edges))]
+    )
+    mids = (edges[:-1] + edges[1:]) / 2
+    known = np.isfinite(profile)
+    if known.sum() < 4:
+        return None
+    level = 0.5 * (float(np.percentile(phi, 10)) + float(np.percentile(phi, 90)))
+    above = profile[known] > level
+    flips = np.flatnonzero(above[1:] != above[:-1])
+    if len(flips) == 0:
+        return None
+    at = mids[known]
+    crossing = 0.5 * (at[flips] + at[flips + 1])
+    u_c = float(crossing[np.argmin(np.abs(crossing))])
+    w_c = (
+        float(np.median(w[np.abs(u - u_c) <= 2 * grid.dx]))
+        if np.any(np.abs(u - u_c) <= 2 * grid.dx)
+        else 0.0
+    )
+    return apex + u_c * lateral + w_c * corner.bisector
+
+
 def corners_preserved(result: SimulationResult) -> Measurement:
     """Worst ratio, over wall corners, of each band's turn width at the corner
     (see _turn_width) to the band spacing there."""
@@ -118,9 +173,18 @@ def corners_preserved(result: SimulationResult) -> Measurement:
             t = float(along_bisector[j])
             i = int(np.searchsorted(bisector_ray.t, t)) - 1  # last sample before the transition
             band_k = int(bisector_ray.band[i])
-            width = _turn_width(
-                result, c, c.vertex + t * c.bisector, band_k, 2 * spacing, normals, boundary
-            )
+            apex = c.vertex + t * c.bisector
+            width = _turn_width(result, c, apex, band_k, 2 * spacing, normals, boundary)
+            if width is None or width > OWN_CORNER_BELOW * spacing:
+                # The turn isn't sharp where the bisector crosses the band: measure
+                # it at the band's own corner too, and keep the sharper (ADR 0022).
+                own = _band_corner(
+                    result, c, apex, band_k, CORNER_SEARCH_SPACINGS * spacing, normals, boundary
+                )
+                if own is not None:
+                    there = _turn_width(result, c, own, band_k, 2 * spacing, normals, boundary)
+                    if there is not None and (width is None or there < width):
+                        width = there
             if width is not None:
                 ratios.append(width / spacing)
         if not ratios:

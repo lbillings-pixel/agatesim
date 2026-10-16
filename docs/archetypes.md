@@ -34,7 +34,7 @@ other archetypes build on.
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
 | `wall-parallel` | Bands run parallel to the cavity wall. | Mean |cos θ| between band-boundary normals and the distance-to-wall gradient. | value ≥ 0.9 |
-| `corners-preserved` | Angular turns in the wall propagate inward as angular turns in the bands. | Worst, over wall corners, of the median turn width / band spacing for bands near the corner. Turn width is the lateral distance over which a band's direction swings through the middle half of its turn at the corner. Needs bands at least 5 px apart. | value ≤ 0.7 |
+| `corners-preserved` | Angular turns in the wall propagate inward as angular turns in the bands. | Worst, over wall corners, of the median turn width / band spacing for bands near the corner. Turn width is the lateral distance over which a band's direction swings through the middle half of its turn at the corner: where the bisector crosses the band, or at the band's own corner within 4 band spacings of it if that is sharper (ADR 0022). Needs bands at least 5 px apart. | value ≤ 0.7 |
 | `closed-bands` | Bands form closed loops around the cavity centre. | Fraction of bands (excluding the innermost) that are one connected ring separating inside from outside. | value ≥ 0.9 |
 | `band-count` | Enough distinct bands to read as banding. | Number of distinct bands present. | value ≥ 8 |
 

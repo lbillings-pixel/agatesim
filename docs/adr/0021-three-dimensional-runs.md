@@ -107,5 +107,7 @@ through an upright nodule.
   browser ignores them.
 - Growth from nuclei (botryoidal, eye), dendrites, quartz crystals, tubes and
   H2 aren't in 3D yet. H2 in 3D needs the GPU solver.
-- Changing the corner criterion so that it follows each band's own corner
-  would need its own ADR, because the criterion is verified.
+- The corner criterion now also measures each band at its own corner
+  ([ADR 0022](0022-corners-at-the-bands-own-corner.md)). With it, 76%
+  (procedural) and 71% (H1) of random cuts through the 3D fortification
+  presets pass. The table above shows the old test.
