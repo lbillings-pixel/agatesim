@@ -176,3 +176,9 @@ with the owner, the corner work stops here:
     boundary at the level set), then the corner test;
   - whether stick-slip H1 gives the 0.5–5 µm micro-zonation of iris agate;
   - other H1 feedbacks, such as impurity inhibition ([@torii2024]).
+
+## Follow-up (2026-10-16)
+
+The regularised surface model from the backlog was tested in
+[ADR 0028](0028-regularised-h1-at-the-corner.md): a curvature term makes the 2D
+front well posed, the mitres come out sharp, but the corner lags.

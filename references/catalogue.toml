@@ -148,6 +148,21 @@ checked = "abstract"
 topics = ["waterline", "uruguay-banding", "gravity-settling", "crystallites", "geode"]
 notes = "Fibres are aligned quartz crystallites 8–100 nm long. Uruguay (horizontal) bands are euhedral quartz grains (0.5–4 µm) and/or spherulites (≤100 µm), deposited by gravity after the agate bands and coarse quartz formed. Proposes growth from a hydrothermal solution carrying ~10 nm polymerized particles."
 
+[[references]]
+id = "merino1994"
+kind = "article"
+authors = ["Merino, E.", "Wang, Y.", "Deloule, E."]
+year = 1994
+title = "Genesis of banded, fibrous, and twisted quartz by 'catalysis,' unstable crystallization fronts, and substitution: self-organization in agates"
+venue = "Mineralogical Magazine 58A (Goldschmidt Conference Edinburgh 1994), 597–598"
+url = "https://rruff.info/doclib/MinMag/Volume_58A/58A-2-597.pdf"
+access = "open"
+licence = "publisher copyright; free to read; cite only"
+checked = "sections"
+sections_read = ["introduction", "proposed mechanisms", "implications", "start of evidence"]
+topics = ["agate", "banding", "fibres", "morphological-instability", "surface-tension", "catalysis"]
+notes = "Two-page conference abstract, read from the scanned page images (regularised H1, ADR 0028). Their model (Wang and Merino) couples diffusion, growth rate, silica and 'catalyst' concentrations, and the curvature and surface energy of the growth front. Catalyst segregated ahead of the front speeds growth and so its own accumulation, making silica and trace-element concentrations at the front oscillate. At the same time the front is morphologically unstable (citing Sekerka 1973): bumps grow into fingers, which become the fibres. A linear analysis gives a dispersion relation in which high growth-rate constant and catalysis favour fibrosity and surface tension and solubility impede it, with a preferred fibre thickness of a few micrometres. Oscillatory banding needs very low silica diffusivity. No equations or parameter values in the abstract."
+
 # --- Inclusions: dendrites, filaments, plumes, tubes ---------------------------
 
 [[references]]
@@ -313,6 +328,20 @@ checked = "citation"
 topics = ["geometric-selection", "competitive-growth", "crystal-orientation"]
 notes = "The geometric-selection (evolutionary selection) principle: in a layer of crystals growing from a surface, those whose fastest growth direction is closest to the surface normal outgrow the rest. The original isn't online; the url is a secondary source that simulates textures with this mechanism (Liu, Raabe and Mao, Front. Mater. Sci. 2010). Volume and pages are from memory and still to confirm."
 
+[[references]]
+id = "mullins1964"
+kind = "article"
+authors = ["Mullins, W. W.", "Sekerka, R. F."]
+year = 1964
+title = "Stability of a planar interface during solidification of a dilute binary alloy"
+venue = "Journal of Applied Physics 35(2), 444–451"
+doi = "10.1063/1.1713333"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["morphological-instability", "capillarity", "gibbs-thomson", "linear-stability"]
+notes = "Bibliographic details confirmed from indexes (ADR 0028). The classic linear stability analysis of a moving planar growth front to a sinusoidal ripple: diffusion destabilises the front, and capillarity (the Gibbs–Thomson shift of the equilibrium concentration at a curved surface) damps short ripples. Content stated from secondary descriptions; the paper itself has not been read here."
+
 # --- Modelling methods -------------------------------------------------------
 
 [[references]]
@@ -342,6 +371,34 @@ licence = "CC-BY-4.0"
 checked = "abstract"
 topics = ["liesegang", "phase-field", "cahn-hilliard", "reaction-diffusion", "geometry"]
 notes = "Two reactants react and diffuse to form a precipitate that phase-separates under Cahn–Hilliard dynamics (double-well free energy); 2D, no-flux boundaries. Geometry of reactive-fluid distribution and nucleation zones strongly shapes the bands. Close template for our physics stage."
+
+[[references]]
+id = "brower1984"
+kind = "article"
+authors = ["Brower, R. C.", "Kessler, D. A.", "Koplik, J.", "Levine, H."]
+year = 1984
+title = "Geometrical models of interface evolution"
+venue = "Physical Review A 29(3), 1335–1342"
+doi = "10.1103/PhysRevA.29.1335"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["interface-growth", "curvature", "local-models"]
+notes = "Bibliographic details confirmed from an index (ADR 0028). Models in which the normal growth velocity is set locally by the interface's geometry (curvature and its derivatives), as a simplification of diffusion-limited growth. Not read here."
+
+[[references]]
+id = "osher1988"
+kind = "article"
+authors = ["Osher, S.", "Sethian, J. A."]
+year = 1988
+title = "Fronts propagating with curvature-dependent speed: algorithms based on Hamilton–Jacobi formulations"
+venue = "Journal of Computational Physics 79(1), 12–49"
+doi = "10.1016/0021-9991(88)90002-2"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["level-set", "numerical-methods", "curvature"]
+notes = "The level-set method, used by the 2D H1 front solver (ADR 0017, ADR 0028). Cited for the method only."
 
 # --- Image analysis ----------------------------------------------------------
 
