@@ -6,8 +6,14 @@ from __future__ import annotations
 import numpy as np
 
 from agatesim import _scipy
-from agatesim.criteria.common import band_boundaries
-from agatesim.criteria.radial import growth_centres, isochrons, near_phase, wall_distance_of
+from agatesim.criteria.common import band_boundaries, pixel_points
+from agatesim.criteria.radial import (
+    CLUSTER_FRACTION,
+    growth_centres,
+    isochrons,
+    near_phase,
+    wall_distance_of,
+)
 from agatesim.criteria.types import Measurement
 from agatesim.fields import Phase
 from agatesim.simulate import SimulationResult
@@ -16,6 +22,9 @@ FRONT_PX = 7  # the final growth surface: chalcedony this close to the open spac
 WALL_PX = 8  # the first growth: chalcedony this close to the host rock
 CENTRE_VOTES = 0.01  # share of voting pixels a growth centre needs
 WALL_TOLERANCE = 0.03  # of cavity size
+RING_SECTORS = 24  # directions around a centre, for judging whether its rings close
+CLOSED_COVER = 0.75  # share of directions a closed eye's rings cover
+SEED_SEARCH = 0.5  # × a centre's curvature radius: a seed this close makes it a tube
 
 
 def _fraction(numerator: np.ndarray, denominator: np.ndarray) -> float:
@@ -88,13 +97,35 @@ def discrete_eyes(result: SimulationResult) -> Measurement:
 
 
 def wall_nucleated(result: SimulationResult) -> Measurement:
-    """Share of growth centres lying on the original cavity wall."""
-    centres, _ = _eye_centres(result)
+    """Share of growth centres that are eyes rooted at the wall: either on the
+    cavity wall (a cut through the eye's nucleation site), or closed rings with
+    no seed inside them (a cut near and along the wall, which shows the eye as a
+    bullseye; ADR 0024). Rings closed around a seed are tubes, not eyes."""
+    iso = isochrons(result)
+    bb = band_boundaries(result)
+    centres = growth_centres(result, iso, bb, CENTRE_VOTES)
     if not centres:
         return 0.0, "no growth centres"
-    d = wall_distance_of(result, np.array(centres)) / result.domain.cavity.size_mm
-    on_wall = int((d <= WALL_TOLERANCE).sum())
-    return on_wall / len(centres), f"{on_wall} of {len(centres)} centres on the wall"
+    size = result.domain.cavity.size_mm
+    voters = bb & iso.diverging
+    px = pixel_points(result.grid, voters)
+    cx, cy = iso.centre_x[voters], iso.centre_y[voters]
+    xx, yy = result.grid.coords()
+    seeds = result.fields.phase == Phase.INCLUSION
+    on_wall = closed = 0
+    for c in centres:
+        if float(wall_distance_of(result, np.array([[c.x, c.y]]))[0]) / size <= WALL_TOLERANCE:
+            on_wall += 1
+            continue
+        member = np.hypot(cx - c.x, cy - c.y) <= CLUSTER_FRACTION * size
+        angle = np.arctan2(px[member, 1] - c.y, px[member, 0] - c.x)
+        sectors = np.floor((angle + np.pi) / (2 * np.pi) * RING_SECTORS).astype(np.int64)
+        cover = len(np.unique(np.clip(sectors, 0, RING_SECTORS - 1))) / RING_SECTORS
+        seeded = bool(seeds[np.hypot(xx - c.x, yy - c.y) <= SEED_SEARCH * c.radius].any())
+        closed += int(cover >= CLOSED_COVER and not seeded)
+    return (on_wall + closed) / len(centres), (
+        f"{on_wall} of {len(centres)} centres on the wall, {closed} closed eyes off it"
+    )
 
 
 def isolated_eyes(result: SimulationResult) -> Measurement:

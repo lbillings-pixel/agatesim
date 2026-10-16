@@ -90,7 +90,7 @@ class VolumeSimulation:
 def prepare_volume(config: VolumeConfig) -> VolumeSimulation:
     rng = np.random.default_rng(config.seed)
     solid = config.solid.build()
-    setting = Setting.build(solid, config.gravity.vector())
+    setting = Setting.build(solid, config.gravity.vector(), config.solid.filament_array())
     return VolumeSimulation(
         config=config, setting=setting, evaluate=prepare(config.model, setting, rng)
     )

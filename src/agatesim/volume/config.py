@@ -63,6 +63,17 @@ class VolumeGridConfig(BaseModel):
     margin_fraction: float = Field(default=0.04, ge=0, le=0.5, description="Host-rock border.")
 
 
+class FilamentConfig(BaseModel):
+    """A thin straight filament in the cavity (a tube agate seed), from one end to
+    the other, in mm from the cavity's centre."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    start_mm: tuple[float, float, float]
+    end_mm: tuple[float, float, float]
+    radius_mm: float = Field(default=0.3, gt=0, le=10, description="Filament radius.")
+
+
 class SolidConfig(BaseModel):
     """A preset solid, or a drawn outline extruded into a slab-like solid. Exactly
     one of `preset` and `outline` is given."""
@@ -85,6 +96,7 @@ class SolidConfig(BaseModel):
     size_mm: float = Field(default=50.0, gt=0, le=500, description="Longest dimension.")
     yaw_deg: float = Field(default=0.0, description="Turn about the vertical axis.")
     pitch_deg: float = Field(default=0.0, description="Tilt of the long axis up from horizontal.")
+    filaments: list[FilamentConfig] = Field(default_factory=list[FilamentConfig], max_length=200)
 
     @field_validator("preset")
     @classmethod
@@ -101,8 +113,17 @@ class SolidConfig(BaseModel):
             raise ValueError("a drawn `outline` needs a `host` (volcanic, sedimentary or seam)")
         if self.outline is None and (self.host is not None or self.smooth):
             raise ValueError("`host` and `smooth` apply only to a drawn `outline`")
-        self.build()  # raises ValueError for a bad outline
+        solid = self.build()  # raises ValueError for a bad outline
+        for i, fil in enumerate(self.filaments):
+            mid = (np.array(fil.start_mm) + np.array(fil.end_mm)) / 2
+            if not solid.contains(mid[None, :])[0]:
+                raise ValueError(f"filament {i + 1}'s midpoint lies outside the cavity")
         return self
+
+    def filament_array(self) -> FloatArray:
+        """Filaments as rows of (start xyz, end xyz, radius), mm."""
+        rows = [[*f.start_mm, *f.end_mm, f.radius_mm] for f in self.filaments]
+        return np.array(rows, dtype=np.float64).reshape(-1, 7)
 
     @property
     def label(self) -> str:
@@ -182,6 +203,8 @@ class VolumeConfig(BaseModel):
             )
         if isinstance(model, ProceduralFortification) and model.corner_rounding_mm > 0:
             raise ValueError("corner rounding isn't available in 3D")
+        if self.solid.filaments and not isinstance(model, ProceduralGrowth):
+            raise ValueError("filaments (tubes) need the growth model, which grows around them")
         if isinstance(model, ProceduralGrowth):
             problem = unsupported_in_3d(model)
             if problem is not None:

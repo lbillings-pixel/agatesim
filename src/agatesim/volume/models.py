@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 
 import numpy as np
@@ -89,10 +89,16 @@ class Setting:
     solid: Solid
     gravity: FloatArray
     reference: Reference
+    tubes: FloatArray = field(default_factory=lambda: np.zeros((0, 7)))  # (k, 7): ends, radius
 
     @classmethod
-    def build(cls, solid: Solid, gravity: FloatArray) -> Setting:
-        return cls(solid=solid, gravity=gravity, reference=reference_lattice(solid))
+    def build(cls, solid: Solid, gravity: FloatArray, tubes: FloatArray | None = None) -> Setting:
+        return cls(
+            solid=solid,
+            gravity=gravity,
+            reference=reference_lattice(solid),
+            tubes=np.zeros((0, 7)) if tubes is None else np.asarray(tubes, dtype=np.float64),
+        )
 
     def height(self, points: FloatArray) -> FloatArray:
         """Height (mm) above the cavity's lowest point, along −gravity."""

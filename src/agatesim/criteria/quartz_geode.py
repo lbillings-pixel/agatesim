@@ -10,6 +10,8 @@ from agatesim.fields import Phase
 from agatesim.simulate import SimulationResult
 
 MIN_GRAINS = 8
+COARSENING_LEVELS = 10  # curves of equal depth through the quartz
+COARSENING_REACH = 0.8  # share of the quartz layer's depth they span
 
 
 def _ranks(x: NDArray[np.floating]) -> NDArray[np.float64]:
@@ -37,20 +39,33 @@ def phase_transition(result: SimulationResult) -> Measurement:
 
 
 def inward_coarsening(result: SimulationResult) -> Measurement:
-    """Spearman correlation between each crystal's distance from the wall and its size."""
+    """Spearman correlation between depth into the quartz and the mean width of
+    the crystals there: the length of a curve of equal wall distance through the
+    quartz over the number of crystals it crosses. Fewer, wider crystals inward is
+    what geometric selection leaves, on any cut. The deepest fifth is left out:
+    a cut that crosses crystals obliquely shows their pointed tips there (ADR 0024)."""
     grain = result.fields.grain
-    rows, cols = np.nonzero(grain >= 0)
-    g = grain[rows, cols]
-    ids, counts = np.unique(g, return_counts=True)
+    quartz = grain >= 0
+    ids = np.unique(grain[quartz])
     if len(ids) < MIN_GRAINS:
         return None, f"{len(ids)} crystals; need at least {MIN_GRAINS}"
-    depth_sum = np.bincount(
-        g, result.domain.wall_distance[rows, cols], minlength=int(ids.max()) + 1
-    )
-    depth = depth_sum[ids] / counts
-    size = np.sqrt(counts.astype(np.float64)) * result.grid.dx
-    rho = float(np.corrcoef(_ranks(depth), _ranks(size))[0, 1])
-    return rho, f"{len(ids)} crystals"
+    d = result.domain.wall_distance
+    dx = result.grid.dx
+    start, end = (float(v) for v in np.percentile(d[quartz], [2, 98]))
+    span = end - start
+    depths: list[float] = []
+    widths: list[float] = []
+    levels = np.linspace(start + 0.05 * span, start + COARSENING_REACH * span, COARSENING_LEVELS)
+    for level in levels.tolist():
+        curve = quartz & (np.abs(d - level) < dx / 2)
+        crossed = len(np.unique(grain[curve]))
+        if crossed:
+            depths.append(float(level))
+            widths.append(float(curve.sum()) * dx / crossed)
+    if len(depths) < 3:
+        return None, "quartz layer too thin to judge"
+    rho = float(np.corrcoef(_ranks(np.array(depths)), _ranks(np.array(widths)))[0, 1])
+    return rho, (f"{len(ids)} crystals; mean width {widths[0]:.2f} → {widths[-1]:.2f} mm inward")
 
 
 def quartz_last(result: SimulationResult) -> Measurement:

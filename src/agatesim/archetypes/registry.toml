@@ -168,7 +168,7 @@ toward the centre (and sometimes an open void) as silica supply falls.
   [[archetypes.criteria]]
   id = "inward-coarsening"
   description = "Crystal size increases toward the centre."
-  metric = "Spearman correlation between each crystal's mean distance from the wall and its size (needs at least 8 crystals)."
+  metric = "Spearman correlation between depth into the quartz and the mean crystal width along curves of equal wall distance (curve length over crystals crossed), at 10 depths over the outer 80% of the quartz layer (needs at least 8 crystals). Fewer, wider crystals inward survives any cut; ADR 0024."
   min = 0.5
 
   [[archetypes.criteria]]
@@ -231,7 +231,7 @@ later banding; on a surface ground parallel to the wall they appear as circles.
   [[archetypes.criteria]]
   id = "wall-nucleated"
   description = "Eyes are rooted at the cavity wall."
-  metric = "Fraction of growth centres within 3% of cavity size of the original wall."
+  metric = "Fraction of growth centres that are eyes rooted at the wall: within 3% of cavity size of the original wall (a cut through the nucleation sites), or off it with rings closed around at least 75% of directions and no seed inside (a cut along the wall, showing a bullseye; rings around a seed are tubes). ADR 0024."
   min = 0.8
 
   [[archetypes.criteria]]

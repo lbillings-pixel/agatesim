@@ -88,7 +88,7 @@ toward the centre (and sometimes an open void) as silica supply falls.
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
 | `phase-transition` | Chalcedony lines the wall and macrocrystalline quartz grows inside it. | Fraction of quartz pixels not touching the host rock (0 if either phase is missing). | value ≥ 0.99 |
-| `inward-coarsening` | Crystal size increases toward the centre. | Spearman correlation between each crystal's mean distance from the wall and its size (needs at least 8 crystals). | value ≥ 0.5 |
+| `inward-coarsening` | Crystal size increases toward the centre. | Spearman correlation between depth into the quartz and the mean crystal width along curves of equal wall distance (curve length over crystals crossed), at 10 depths over the outer 80% of the quartz layer (needs at least 8 crystals). Fewer, wider crystals inward survives any cut; ADR 0024. | value ≥ 0.5 |
 | `quartz-last` | Quartz formed after the chalcedony banding. | Fraction of quartz deposited no earlier than the last chalcedony. That the transition follows the silica-supply schedule is checked in tests. | value ≥ 0.95 |
 
 ## Botryoidal habit
@@ -115,7 +115,7 @@ later banding; on a surface ground parallel to the wall they appear as circles.
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
 | `discrete-eyes` | Several separate band systems radiate from their own centres. | Number of distinct growth centres of the banding (peaks in the density of band-boundary curvature centres, each holding at least 1% of band-boundary pixels). | value ≥ 3 |
-| `wall-nucleated` | Eyes are rooted at the cavity wall. | Fraction of growth centres within 3% of cavity size of the original wall. | value ≥ 0.8 |
+| `wall-nucleated` | Eyes are rooted at the cavity wall. | Fraction of growth centres that are eyes rooted at the wall: within 3% of cavity size of the original wall (a cut through the nucleation sites), or off it with rings closed around at least 75% of directions and no seed inside (a cut along the wall, showing a bullseye; rings around a seed are tubes). ADR 0024. | value ≥ 0.8 |
 | `isolated-eyes` | The eyes are separate, not a continuous botryoidal crust. | Fraction of the first banding on the wall that is ordinary layering rather than radiating from a centre. | value ≥ 0.3 |
 
 ## Tube agate

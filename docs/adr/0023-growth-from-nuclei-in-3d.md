@@ -88,5 +88,6 @@ model, not established facts.
     nucleation sites;
   - `inward-coarsening` (geode) assumes the cut runs along the crystals.
 
-  Changing either needs an ADR and the owner's approval; both are proposed at
-  the M11 check-in.
+  Both were amended in [ADR 0024](0024-eye-and-geode-tests-on-cuts.md). With
+  the new tests, 30% (eye) and 76% (geode) of random cuts pass. The table
+  above shows the old tests.

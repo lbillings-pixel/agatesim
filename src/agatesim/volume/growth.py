@@ -73,11 +73,15 @@ class _Solid:
     centres: FloatArray | None = None  # (m, 3)
     radii: FloatArray | None = None  # (m,)
     bed: float = -math.inf  # height of the settled bed's top
+    tubes: FloatArray | None = None  # (k, 7): filament ends a, b and radius, grown so far
 
     def distance(self, p: FloatArray, d_wall: FloatArray, h: FloatArray) -> FloatArray:
         """Distance from points to the solid: positive in the open space, zero or
         negative inside it. d_wall and h are the points' wall distances and heights."""
         d = np.minimum(d_wall - self.wall, h - self.bed)
+        if self.tubes is not None:
+            for tube in self.tubes:
+                d = np.minimum(d, segment_distance(p, tube[:3], tube[3:6]) - tube[6])
         if self.centres is None or self.radii is None or not len(self.radii):
             return d
         centres, radii = self.centres, self.radii
@@ -98,6 +102,7 @@ class _Solid:
             centres=self.centres,
             radii=None if self.radii is None else self.radii + thickness,
             bed=self.bed + thickness,
+            tubes=None if self.tubes is None else self.tubes + np.r_[np.zeros(6), thickness],
         )
 
     def with_balls(self, centres: FloatArray, radii: FloatArray) -> _Solid:
@@ -108,6 +113,13 @@ class _Solid:
             centres=np.concatenate([self.centres, centres]),
             radii=np.concatenate([self.radii, radii]),
         )
+
+
+def segment_distance(p: FloatArray, a: FloatArray, b: FloatArray) -> FloatArray:
+    """Distance from points (n, 3) to the segment from a to b."""
+    ab = b - a
+    t = np.clip(((p - a) @ ab) / max(float(ab @ ab), 1e-12), 0.0, 1.0)
+    return np.linalg.norm(p - (a + t[:, None] * ab), axis=1)
 
 
 @dataclass(frozen=True)
@@ -359,7 +371,8 @@ def prepare_growth(
     s = ref.spacing
     ref_h = setting.height(ref.points)
 
-    solid = _Solid()
+    tubes = setting.tubes if len(setting.tubes) else None
+    solid = _Solid(tubes=tubes)
     stages: list[_Stage] = []
     crystals = 0
     for a, b in mode_stages(mode):
@@ -406,8 +419,12 @@ def prepare_growth(
         wobble = params.wobble_mm * noise(points) if params.wobble_mm > 0 else np.zeros(n)
         filled_at = np.full(n, -1, dtype=np.int64)
         grain = np.full(n, -1, dtype=np.int32)
+        # Filaments (tubes) are seeds that later growth lines, like the wall.
+        tube = np.zeros(n, dtype=bool)
+        for t in setting.tubes:
+            tube |= inside & (segment_distance(points, t[:3], t[3:6]) <= t[6])
         for st in stages:
-            open_idx = np.flatnonzero(inside & (filled_at < 0))
+            open_idx = np.flatnonzero(inside & ~tube & (filled_at < 0))
             if not len(open_idx):
                 break
             p = points[open_idx]
@@ -433,10 +450,19 @@ def prepare_growth(
             filled_at[open_idx[new]] = st.start + k[new]
             if owner is not None and st.mode is Mode.CRYSTAL:
                 grain[open_idx[new]] = (st.crystal_offset + owner[new]).astype(np.int32)
-        fill = Fill(filled_at=filled_at, grain=grain, inclusion=np.zeros(n, dtype=bool))
-        return growth_fields(
+        fill = Fill(filled_at=filled_at, grain=grain, inclusion=tube)
+        fields = growth_fields(
             params, fill, mode, inside, _same(rng_bands), _same(rng_iron), _same(rng_micro)
         )
+        if tube.any():
+            # Tint 0: filament cores are reported as Fe-silicates such as celadonite.
+            fields = replace(
+                fields,
+                impurity=np.where(tube, 0.0, fields.impurity).astype(np.float32),
+                translucency=np.where(tube, 0.0, fields.translucency).astype(np.float32),
+                t_dep=np.where(tube, np.nan, fields.t_dep).astype(np.float32),
+            )
+        return fields
 
     return evaluate
 

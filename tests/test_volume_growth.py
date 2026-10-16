@@ -24,15 +24,17 @@ def test_nucleation_presets_pass_on_their_configured_cut(name: str) -> None:
 
 def test_eyes_become_circles_on_a_cut_near_the_wall() -> None:
     """Through the middle, eyes are half-rings rooted on the wall; on a cut just
-    inside the wall they are closed rings centred away from the cut's edge."""
+    inside the wall they are closed rings centred away from the cut's edge, which
+    the eye test counts as eyes too (ADR 0024)."""
     sim = prepare_volume(load_volume_preset("eye-3d"))
     middle = {r.id: r for r in evaluate("eye", sim.cut(SliceConfig(resolution=512)).result).results}
-    near_wall = sim.cut(SliceConfig(tilt_deg=0, offset_mm=18.0, resolution=512)).result
+    near_wall = sim.cut(SliceConfig(tilt_deg=0, offset_mm=19.0, resolution=512)).result
     top = {r.id: r for r in evaluate("eye", near_wall).results}
     assert middle["wall-nucleated"].passed
     assert top["discrete-eyes"].value is not None
     assert top["discrete-eyes"].value >= 1
-    assert top["wall-nucleated"].value == 0.0  # no eye centre on the cut's outline
+    assert top["wall-nucleated"].passed
+    assert top["wall-nucleated"].detail.startswith("0 of")  # none on the cut's outline
 
 
 def test_quartz_crystals_coarsen_inward_in_3d() -> None:
@@ -67,6 +69,8 @@ def test_quartz_never_touches_the_wall_and_comes_last() -> None:
     ev = {r.id: r for r in evaluate("quartz-geode", result).results}
     assert ev["phase-transition"].passed
     assert ev["quartz-last"].passed
+    # Crystal width along curves of equal depth survives the cut (ADR 0024).
+    assert ev["inward-coarsening"].passed, ev["inward-coarsening"].detail
 
 
 def test_cuts_are_the_growth_model_at_their_pixels() -> None:
@@ -106,3 +110,25 @@ def test_histories_3d_cant_follow_are_rejected(
             solid=SolidConfig(preset="vesicle-round"),
             model=model,
         )
+
+
+def test_filaments_show_as_rings_across_and_stripes_along() -> None:
+    """Filaments hanging from the roof: a horizontal cut crosses them, showing
+    ring systems around each (tube agate); a vertical cut runs along one."""
+    config = load_volume_preset("tube-3d")
+    sim = prepare_volume(config)
+    across = sim.cut(SliceConfig(tilt_deg=0, resolution=512)).result
+    ev = evaluate("tube", across)
+    assert ev.passed, ev.to_json()
+    along = sim.cut(SliceConfig(tilt_deg=90, azimuth_deg=0, offset_mm=2, resolution=256)).result
+    seed = along.fields.phase == Phase.INCLUSION
+    rows, cols = np.nonzero(seed)
+    assert seed.any()
+    assert np.ptp(rows) > 5 * max(np.ptp(cols), 1)  # a long vertical stripe
+
+
+def test_filaments_need_the_growth_model() -> None:
+    data = load_volume_preset("tube-3d").model_dump(mode="json")
+    data["model"] = {"kind": "procedural-fortification"}
+    with pytest.raises(ValueError, match="filaments"):
+        VolumeConfig.model_validate(data)
