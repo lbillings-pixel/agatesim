@@ -370,6 +370,11 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                     alt={`Specimen photo ${name}`}
                     className={clicking ? "clicking" : undefined}
                     onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+                    onError={() =>
+                      setError(
+                        "The photo didn't load. Check the terminal running agatesim for an error, then reload the page.",
+                      )
+                    }
                     onClick={onClick}
                   />
                   {size && (
@@ -412,7 +417,9 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                 {analysis
                   ? `${analysis.size_mm.toFixed(1)} mm across · ${(1000 * analysis.mm_per_px).toFixed(1)} µm per pixel` +
                     (analysis.camera_height_mm ? ` · perspective corrected (camera ≈ ${analysis.camera_height_mm.toFixed(0)} mm up)` : "")
-                  : "Mark the scale, then Analyse."}
+                  : size
+                    ? "Mark the scale, then Analyse."
+                    : "Loading the photo…"}
               </figcaption>
             </figure>
             {analysis && (

@@ -103,6 +103,16 @@ def test_unknown_or_malicious_run_ids_are_404(client: TestClient) -> None:
     assert client.get("/api/jobs/nope").status_code == 404
 
 
+def test_the_page_is_never_cached_but_its_scripts_are(tmp_path: Path) -> None:
+    static = tmp_path / "static"
+    (static / "assets").mkdir(parents=True)
+    (static / "index.html").write_text("<script src='assets/app-1a2b.js'></script>")
+    (static / "assets" / "app-1a2b.js").write_text("")
+    with TestClient(create_app(tmp_path / "runs", static_dir=static)) as c:
+        assert c.get("/").headers["cache-control"] == "no-cache"
+        assert "cache-control" not in c.get("/assets/app-1a2b.js").headers
+
+
 def test_encode_tdep() -> None:
     t = np.array([[0.0, 0.5], [1.0, np.nan]])
     coded = np.asarray(encode_tdep(t))

@@ -23,6 +23,7 @@ from fastapi.staticfiles import StaticFiles
 from numpy.typing import NDArray
 from PIL import Image
 from pydantic import BaseModel, Field
+from starlette.types import Scope
 
 from agatesim import __version__, optics
 from agatesim.archetypes import load_registry
@@ -172,6 +173,17 @@ def _meta() -> dict[str, object]:
     }
 
 
+class _FreshPage(StaticFiles):
+    """The UI's files, with the page itself never cached: after an update the
+    browser fetches the new page, which names the new (hashed) scripts."""
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        response = await super().get_response(path, scope)
+        if not path.startswith("assets"):
+            response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
 def create_app(
     runs_dir: Path,
     static_dir: Path | None = STATIC_DIR,
@@ -287,5 +299,5 @@ def create_app(
     app.include_router(specimen_router(specimens_dir or runs_dir.parent / "specimens"))
 
     if static_dir is not None and (static_dir / "index.html").exists():
-        app.mount("/", StaticFiles(directory=static_dir, html=True), name="ui")
+        app.mount("/", _FreshPage(directory=static_dir, html=True), name="ui")
     return app
