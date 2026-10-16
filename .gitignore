@@ -51,3 +51,6 @@ runs/
 # their metadata, and the repo will be public). Only openly licensed reference
 # images go in references/images/.
 specimens/
+
+# Full-resolution reference photos, fetched by scripts/fetch_reference_images.py
+references/images/full/
