@@ -25,6 +25,7 @@ from agatesim.geometry import MAX_OUTLINE_POINTS, MIN_OUTLINE_POINTS, drawn_cavi
 from agatesim.grid import FloatArray
 from agatesim.models import (
     FrontFeedback,
+    Liesegang,
     ProceduralFortification,
     ProceduralGrowth,
     ProceduralWaterline,
@@ -47,6 +48,7 @@ VolumeModelConfig = Annotated[
     | ProceduralWaterline
     | ProceduralGrowth
     | FrontFeedback
+    | Liesegang
     | Settling
     | Staged,
     Field(discriminator="kind"),

@@ -136,6 +136,135 @@ def liesegang(
     return to_numpy(p)[1:-1, 1:-1], to_numpy(first)[1:-1, 1:-1], step
 
 
+def liesegang3(
+    xp: Any,
+    inside: np.ndarray,
+    *,
+    a0: float,
+    d_b: float,
+    d_c: float,
+    rate: float,
+    nucleation: float,
+    spreading: float,
+    solubility: float,
+    growth: float,
+    deepest: tuple[int, int, int],
+    max_steps: int,
+    record_every: int = 50,
+) -> tuple[np.ndarray, np.ndarray, int]:
+    """The kinetics of `liesegang` on a 3D lattice (six neighbours). One fused
+    CUDA kernel per step on a GPU; vectorised NumPy otherwise (slow; tests use
+    small lattices). Returns precipitate, front arrival time and step count."""
+    m = np.pad(inside, 1)
+    shape = m.shape
+    n = m.size
+    plane = shape[1] * shape[2]
+    width = shape[2]
+    deep = ((deepest[0] + 1) * shape[1] + deepest[1] + 1) * shape[2] + deepest[2] + 1
+    dt = 0.15 / max(1.0, d_b, d_c)  # six neighbours: a smaller stable step than in 2D
+    if xp is not np and hasattr(xp, "RawKernel"):
+        kernel = xp.RawKernel(_STEP3_SOURCE, "liesegang_step3")
+        mask = xp.asarray(m.astype(np.uint8)).ravel()
+        fields = [xp.zeros(n, dtype=xp.float64) for _ in range(4)]
+        fields[1] = mask.astype(xp.float64)
+        spare = [xp.empty_like(f) for f in fields]
+        first = xp.full(n, xp.nan)
+        threads = 256
+        blocks = (n + threads - 1) // threads
+        args = (
+            np.int32(n), np.int32(width), np.int32(plane), np.float64(dt), np.float64(a0),
+            np.float64(d_b), np.float64(d_c), np.float64(rate), np.float64(nucleation),
+            np.float64(spreading), np.float64(solubility), np.float64(growth),
+        )  # fmt: skip
+        step = 0
+        for step in range(1, max_steps + 1):
+            kernel((blocks,), (threads,), (*fields, *spare, mask, *args))
+            fields, spare = spare, fields
+            if step % record_every == 0:
+                first = xp.where(xp.isnan(first) & (fields[0] > 0.5), step * dt, first)
+                if float(fields[0][deep]) > 0.05 * a0:
+                    break
+        first = xp.where(xp.isnan(first) & (fields[0] > 0.5), step * dt, first)
+        p = to_numpy(fields[3]).reshape(shape)
+        t = to_numpy(first).reshape(shape)
+        return p[1:-1, 1:-1, 1:-1], t[1:-1, 1:-1, 1:-1], step
+    # NumPy: the same update on flat arrays.
+    ins = m.ravel().astype(bool)
+    idx = np.flatnonzero(ins)
+    offsets = (-plane, plane, -width, width, -1, 1)
+    nb_inside = [ins[idx + o] for o in offsets]
+    walls = sum((~ni).astype(np.float64) for ni in nb_inside)
+    a = np.zeros(n)
+    b = ins.astype(np.float64)
+    c = np.zeros(n)
+    p = np.zeros(n)
+    first = np.full(n, np.nan)
+    step = 0
+    for step in range(1, max_steps + 1):
+        ai, bi, ci, pi = a[idx], b[idx], c[idx], p[idx]
+        la = walls * (a0 - ai)
+        lb = np.zeros_like(ai)
+        lc = np.zeros_like(ai)
+        near = pi > 0
+        for o, ni in zip(offsets, nb_inside, strict=True):
+            j = idx + o
+            la += np.where(ni, a[j] - ai, 0.0)
+            lb += np.where(ni, b[j] - bi, 0.0)
+            lc += np.where(ni, c[j] - ci, 0.0)
+            near |= ni & (p[j] > 0)
+        r = np.minimum(rate * ai * bi, 0.5 * np.minimum(ai, bi) / dt)
+        nucleated = (ci >= nucleation) | ((pi > 0) & (ci > solubility)) | (near & (ci > spreading))
+        g = np.where(nucleated, growth * np.maximum(ci - solubility, 0.0), 0.0)
+        a[idx] = ai + dt * (la - r)
+        b[idx] = bi + dt * (d_b * lb - r)
+        c[idx] = ci + dt * (d_c * lc + r - g)
+        p[idx] = pi + dt * g
+        if step % record_every == 0:
+            first = np.where(np.isnan(first) & (a > 0.5), step * dt, first)
+            if a[deep] > 0.05 * a0:
+                break
+    first = np.where(np.isnan(first) & (a > 0.5), step * dt, first)
+    return p.reshape(shape)[1:-1, 1:-1, 1:-1], first.reshape(shape)[1:-1, 1:-1, 1:-1], step
+
+
+_STEP3_SOURCE = r"""
+extern "C" __global__ void liesegang_step3(
+    const double* a, const double* b, const double* c, const double* p,
+    double* a2, double* b2, double* c2, double* p2, const unsigned char* inside,
+    const int n, const int width, const int plane, const double dt, const double a0,
+    const double d_b, const double d_c, const double rate, const double nucleation,
+    const double spreading, const double solubility, const double growth)
+{
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i >= n) return;
+    if (!inside[i]) { a2[i] = a[i]; b2[i] = b[i]; c2[i] = c[i]; p2[i] = p[i]; return; }
+    // The same order as the NumPy path; the lattice is padded on every side.
+    const int nb[6] = {i - plane, i + plane, i - width, i + width, i - 1, i + 1};
+    double la = 0.0, lb = 0.0, lc = 0.0, walls = 0.0;
+    bool near = p[i] > 0.0;
+    for (int k = 0; k < 6; ++k) {
+        const int j = nb[k];
+        if (inside[j]) {
+            la += a[j] - a[i]; lb += b[j] - b[i]; lc += c[j] - c[i];
+            if (p[j] > 0.0) near = true;
+        } else {
+            walls += 1.0;
+        }
+    }
+    la += walls * (a0 - a[i]);
+    double r = fmin(rate * a[i] * b[i], 0.5 * fmin(a[i], b[i]) / dt);
+    bool has = p[i] > 0.0;
+    bool nucleated = (c[i] >= nucleation) || (has && c[i] > solubility)
+        || (near && c[i] > spreading);
+    double g = nucleated ? growth * fmax(c[i] - solubility, 0.0) : 0.0;
+    a2[i] = a[i] + dt * (la - r);
+    b2[i] = b[i] + dt * (d_b * lb - r);
+    c2[i] = c[i] + dt * (d_c * lc + r - g);
+    p2[i] = p[i] + dt * g;
+}
+"""
+
+
 _STEP_SOURCE = r"""
 extern "C" __global__ void liesegang_step(
     const double* a, const double* b, const double* c, const double* p,

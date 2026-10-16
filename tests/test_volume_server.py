@@ -26,7 +26,7 @@ def test_meta_lists_solids_presets_and_models(client: TestClient) -> None:
     meta = client.get("/api/volume/meta").json()
     assert {s["name"] for s in meta["solids"]} >= {"nodule-angular", "seam-slab", "vesicle-lobate"}
     assert "fortification-mechanistic-3d" in {p["name"] for p in meta["presets"]}
-    assert "mechanistic-liesegang" not in meta["kinds"]
+    assert "mechanistic-liesegang" in meta["kinds"]  # H2 in 3D (ADR 0027)
 
 
 def test_cut_returns_an_image_judged_like_a_slab(client: TestClient) -> None:

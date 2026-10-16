@@ -27,6 +27,7 @@ from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models import (
     FrontFeedback,
+    Liesegang,
     ProceduralFortification,
     ProceduralGrowth,
     ProceduralWaterline,
@@ -50,6 +51,7 @@ VolumeModel = (
     | ProceduralWaterline
     | ProceduralGrowth
     | FrontFeedback
+    | Liesegang
     | Settling
     | Staged
 )
@@ -173,6 +175,10 @@ def prepare(model: VolumeModel, setting: Setting, rng: np.random.Generator) -> E
             from agatesim.volume.growth import prepare_growth  # imports this module
 
             return prepare_growth(model, setting, rng)
+        case Liesegang():
+            from agatesim.volume.liesegang import prepare_liesegang  # imports this module
+
+            return prepare_liesegang(model, setting, rng)
 
 
 def _fortification(

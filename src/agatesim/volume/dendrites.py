@@ -38,9 +38,11 @@ class Lattice3:
     shape: tuple[int, int, int]  # (nx, ny, nz); flat index = i + nx (j + ny k)
 
     @classmethod
-    def around(cls, lo: FloatArray, hi: FloatArray, h: float) -> Lattice3:
+    def around(
+        cls, lo: FloatArray, hi: FloatArray, h: float, max_cells: int = MAX_CELLS
+    ) -> Lattice3:
         extent = hi - lo
-        h = max(h, float(np.prod(extent) / MAX_CELLS) ** (1 / 3))
+        h = max(h, float(np.prod(extent) / max_cells) ** (1 / 3))
         n = np.ceil(extent / h).astype(np.int64) + 2
         centre = (lo + hi) / 2
         return cls(

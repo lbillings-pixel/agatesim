@@ -38,6 +38,7 @@ VOLUME_KINDS = [
     "mechanistic-front-feedback",
     "mechanistic-settling",
     "mechanistic-staged",
+    "mechanistic-liesegang",
 ]
 
 

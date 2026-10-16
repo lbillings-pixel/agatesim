@@ -121,7 +121,7 @@ def _lattice_grid(domain: Domain, spacing_mm: float) -> Grid:
     return Grid.around(domain.cavity.bounds(), resolution, 0.02)
 
 
-def _bands_by_arrival(
+def bands_by_arrival(
     arrival: FloatArray, zone: np.ndarray, inside: np.ndarray, min_cells: int
 ) -> np.ndarray:
     """Band index: the switches between precipitate and clear gel, in order of the
@@ -179,7 +179,7 @@ def run_liesegang(params: Liesegang, domain: Domain, rng: np.random.Generator) -
     level = 0.25 * float(np.median(p[p > 1e-3])) if (p > 1e-3).any() else np.inf
     zone = inside & (p > level)
     min_cells = max(4, round(MIN_BAND_MM2 / params.lattice_mm**2))
-    band = _bands_by_arrival(arrival, zone, inside, min_cells)
+    band = bands_by_arrival(arrival, zone, inside, min_cells)
     stain = np.clip(p / max(float(np.percentile(p[inside], 99)), 1e-9), 0, 1)
     t_dep = np.where(inside, arrival / max(float(np.max(arrival[inside])), 1e-9), np.nan)
     # Sample the lattice at the output pixel centres (nearest cell). An output
