@@ -15,7 +15,8 @@ its thickness. The distance from a point to the solid at any stage is then the
 smallest distance to a piece, which is exact for each of them. So a stage's
 arrival depth can be evaluated at any point, and cuts at any resolution show
 the model's own answer. Crystals end the chain: their union isn't kept, so no
-stage may follow them in 3D (nor dendrites, which aren't in 3D yet).
+stage may follow them in 3D. Filaments (tubes) and branched inclusions (ADR 0025)
+are pieces of the solid too.
 
 Nucleation sites are spread on the growth surface from the fixed reference
 lattice, with every random draw made before filtering, so the sites don't
@@ -46,6 +47,7 @@ from agatesim.models.growth import (
     growth_modes,
     mode_stages,
 )
+from agatesim.volume.dendrites import Aggregate3, Lattice3, grow
 from agatesim.volume.models import Evaluator, Setting, SmoothNoise3
 from agatesim.volume.solids import BoolArray
 
@@ -57,8 +59,6 @@ def unsupported_in_3d(params: ProceduralGrowth) -> str | None:
     """Why this growth history can't run in 3D, or None."""
     tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
     mode = growth_modes(params, tau)
-    if (mode == Mode.DENDRITE).any():
-        return "dendrite growth isn't available in 3D yet"
     stages = [Mode(int(mode[a])) for a, _ in mode_stages(mode)]
     if Mode.CRYSTAL in stages[:-1]:
         return "in 3D, quartz crystals must be the last stage"
@@ -74,6 +74,7 @@ class _Solid:
     radii: FloatArray | None = None  # (m,)
     bed: float = -math.inf  # height of the settled bed's top
     tubes: FloatArray | None = None  # (k, 7): filament ends a, b and radius, grown so far
+    aggregates: tuple[tuple[Aggregate3, float], ...] = ()  # branched inclusions, offsets
 
     def distance(self, p: FloatArray, d_wall: FloatArray, h: FloatArray) -> FloatArray:
         """Distance from points to the solid: positive in the open space, zero or
@@ -82,6 +83,8 @@ class _Solid:
         if self.tubes is not None:
             for tube in self.tubes:
                 d = np.minimum(d, segment_distance(p, tube[:3], tube[3:6]) - tube[6])
+        for aggregate, offset in self.aggregates:
+            d = np.minimum(d, aggregate.distance(p) - offset)
         if self.centres is None or self.radii is None or not len(self.radii):
             return d
         centres, radii = self.centres, self.radii
@@ -103,6 +106,7 @@ class _Solid:
             radii=None if self.radii is None else self.radii + thickness,
             bed=self.bed + thickness,
             tubes=None if self.tubes is None else self.tubes + np.r_[np.zeros(6), thickness],
+            aggregates=tuple((a, offset + thickness) for a, offset in self.aggregates),
         )
 
     def with_balls(self, centres: FloatArray, radii: FloatArray) -> _Solid:
@@ -341,6 +345,40 @@ def _settle_owners(metric: _Metric, setting: Setting, solid: _Solid) -> None:
     metric.propagate(nodes[open_], ref.points[open_], d[open_], s)
 
 
+def _grow_aggregate(
+    params: ProceduralGrowth, setting: Setting, solid: _Solid, rng: np.random.Generator
+) -> Aggregate3:
+    """Branched inclusions grown from sites on the growth surface into the open
+    space (as in 2D: sites, optionally only low ones, then aggregation)."""
+    rng_sites, rng_grow = rng.spawn(2)
+    lo, hi = setting.solid.bounds()
+    lattice = Lattice3.around(lo, hi, params.dendrite_width_mm)
+    centres = lattice.centres()
+    inside = setting.solid.contains(centres)
+    free = np.zeros(lattice.size, dtype=bool)
+    c = centres[inside]
+    d_wall = setting.solid.wall_distance(c)
+    free[np.flatnonzero(inside)] = solid.distance(c, d_wall, setting.height(c)) > 0
+    sites = _place_sites(setting, solid, params.dendrite_spacing_mm, rng_sites)
+    points, normals = sites.points, sites.normals
+    if params.dendrite_start_height < 1 and len(points):
+        height = setting.height(points)
+        low = height <= float(height.min()) + params.dendrite_start_height * float(np.ptp(height))
+        points, normals = points[low], normals[low]
+    seeds = lattice.index(points + normals * lattice.h)
+    return grow(
+        lattice,
+        free,
+        seeds,
+        density=params.dendrite_density,
+        amount=params.dendrite_amount,
+        sticking=params.dendrite_sticking,
+        upward=params.dendrite_upward,
+        gravity=setting.gravity,
+        rng=rng_grow,
+    )
+
+
 @dataclass(frozen=True, eq=False)
 class _Stage:
     mode: Mode
@@ -351,6 +389,7 @@ class _Stage:
     metric: _Metric | None = None
     crystal_offset: int = 0
     settled_heights: FloatArray | None = None  # sorted heights of the open reference points
+    aggregate: Aggregate3 | None = None  # dendrite stages
 
 
 def prepare_growth(
@@ -359,9 +398,7 @@ def prepare_growth(
     problem = unsupported_in_3d(params)
     if problem is not None:
         raise ValueError(problem)
-    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, _rng_dendrites, rng_micro = rng.spawn(
-        7
-    )
+    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = rng.spawn(7)
     tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
     supply = np.clip(params.schedules.silica.sample(tau), 0.0, 1.0)
     mode = growth_modes(params, tau)
@@ -392,6 +429,10 @@ def prepare_growth(
             _settle_owners(metric, setting, solid)
             stages.append(_Stage(m, a, b, cumulative, solid, metric=metric))
             solid = solid.with_balls(sites.points, metric.rate * total)
+        elif m is Mode.DENDRITE:
+            aggregate = _grow_aggregate(params, setting, solid, rng_dendrites.spawn(1)[0])
+            stages.append(_Stage(m, a, b, cumulative, solid, aggregate=aggregate))
+            solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0)))
         elif m is Mode.CRYSTAL:
             sites = _place_sites(setting, solid, params.quartz_grain_mm, rng_crystals.spawn(1)[0])
             metric = _Crystals(sites, params.quartz_elongation, params.quartz_axis_scatter_deg)
@@ -423,12 +464,22 @@ def prepare_growth(
         tube = np.zeros(n, dtype=bool)
         for t in setting.tubes:
             tube |= inside & (segment_distance(points, t[:3], t[3:6]) <= t[6])
+        dendrite = np.zeros(n, dtype=bool)
         for st in stages:
             open_idx = np.flatnonzero(inside & ~tube & (filled_at < 0))
             if not len(open_idx):
                 break
             p = points[open_idx]
             owner = None
+            if st.mode is Mode.DENDRITE:
+                assert st.aggregate is not None
+                order = st.aggregate.order_at(p)
+                hit = np.isfinite(order)
+                span = st.end - st.start
+                steps = st.start + np.minimum(np.floor(order[hit] * span), span - 1)
+                filled_at[open_idx[hit]] = steps.astype(np.int64)
+                dendrite[open_idx[hit]] = True
+                continue
             if st.mode is Mode.SETTLING:
                 assert st.settled_heights is not None
                 level = h[open_idx] + 0.15 * wobble[open_idx]
@@ -450,7 +501,7 @@ def prepare_growth(
             filled_at[open_idx[new]] = st.start + k[new]
             if owner is not None and st.mode is Mode.CRYSTAL:
                 grain[open_idx[new]] = (st.crystal_offset + owner[new]).astype(np.int32)
-        fill = Fill(filled_at=filled_at, grain=grain, inclusion=tube)
+        fill = Fill(filled_at=filled_at, grain=grain, inclusion=tube | dendrite)
         fields = growth_fields(
             params, fill, mode, inside, _same(rng_bands), _same(rng_iron), _same(rng_micro)
         )

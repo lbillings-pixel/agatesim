@@ -1,0 +1,30 @@
+# Plume agate in 3D (procedural tier): red-brown inclusions rise from the lower
+# part of a vesicle, because particles stick more readily to the tops of
+# branches; chalcedony then encloses them (ADR 0025).
+name = "plume-3d"
+seed = 11
+archetype = "plume"
+
+[solid]
+preset = "vesicle-round"
+size_mm = 40
+
+[model]
+kind = "procedural-growth"
+growth_mm = 26
+band_period = 0.03
+opacity_contrast = 0.3
+dendrite_spacing_mm = 6
+dendrite_density = 0.02
+dendrite_amount = 0.06
+dendrite_sticking = 0.5
+dendrite_upward = 0.9
+dendrite_start_height = 0.45
+dendrite_tint = 0.5
+
+[model.schedules.dendrite]
+base = 1.0
+events = [{ type = "step", at = 0.25, value = 0.0 }]
+
+[model.schedules.iron]
+base = 0.05

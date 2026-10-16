@@ -87,7 +87,6 @@ def test_cuts_are_the_growth_model_at_their_pixels() -> None:
 @pytest.mark.parametrize(
     ("schedules", "problem"),
     [
-        ({"dendrite": Schedule(base=1.0)}, "dendrite"),
         (
             {
                 "silica": Schedule.model_validate(

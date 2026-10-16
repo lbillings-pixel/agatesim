@@ -115,6 +115,16 @@ def _volume() -> None:
         ),
         _cut_tile(geode, SliceConfig(resolution=res), "Quartz-centre geode, 3D: vertical cut"),
     ]
+    tube = prepare_volume(load_volume_preset("tube-3d"))
+    moss = prepare_volume(load_volume_preset("moss-3d"))
+    plume = prepare_volume(load_volume_preset("plume-3d"))
+    tiles += [
+        _cut_tile(
+            tube, SliceConfig(tilt_deg=0, resolution=res), "Tubes, 3D: cut across the filaments"
+        ),
+        _cut_tile(moss, SliceConfig(resolution=res), "Moss, 3D: vertical cut"),
+        _cut_tile(plume, SliceConfig(resolution=res), "Plume, 3D: vertical cut"),
+    ]
     _sheet(tiles, columns=3).save(OUT / "volume.png", optimize=True)
     print(f"wrote volume.png in {OUT}")
 
