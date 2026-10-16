@@ -1,0 +1,21 @@
+# The fortification archetype in 3D (procedural tier): bands at fixed depths
+# from the walls of a flat-faced nodule; the default cut is vertical.
+name = "fortification-3d"
+seed = 1
+archetype = "fortification"
+
+[solid]
+preset = "nodule-angular"
+size_mm = 50
+
+[model]
+kind = "procedural-fortification"
+mean_band_thickness_mm = 0.5
+thickness_variability = 0.4
+fill_fraction = 0.9
+alternation = 0.7
+opacity_contrast = 0.85
+iron = 0.3
+iron_variability = 0.3
+wobble_mm = 0.12
+wobble_scale_mm = 2.0

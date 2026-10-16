@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M8 done. All twelve target forms reproduced at the procedural tier; fortification, seam, waterline and the combined form also at the mechanistic tier (H1 front feedback, H4 hindered settling, and the two chained). See [mechanisms](docs/images/mechanisms.png).** See the [roadmap](docs/roadmap.md).
+> **Status: M9 done: 3D runs judged on cuts ([cuts](docs/images/volume.png)). All twelve target forms reproduced at the procedural tier; fortification, seam, waterline and the combined form also at the mechanistic tier (H1 front feedback, H4 hindered settling, and the two chained). See [mechanisms](docs/images/mechanisms.png).** See the [roadmap](docs/roadmap.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -38,7 +38,9 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 
 ## Approach
 
-- **2D cross-sections first**, with 3D later.
+- **2D cross-sections first, then 3D.** A 3D run treats the cavity as a solid and
+  is judged on planar cuts, as a collector judges a cut stone
+  ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)).
 - **Procedural models first** for fast, controllable results. Mechanistic physics
   follows behind the same interface ([ADR 0003](docs/adr/0003-model-architecture.md)):
   front feedback (H1), Liesegang precipitation (H2) and hindered settling (H4).
@@ -84,6 +86,10 @@ The app runs only on your machine (bound to localhost). It offers:
   the outline (correcting for the face standing above the ruler), maps the bands,
   checks the forms it can judge from a photo, and fits a simulated replica in the
   specimen's own outline.
+- **3D screen**: a cavity as a solid (vesicles, an angular nodule, lobed and
+  lumpy nodules, sheet-like seams), a rotatable 3D view opened at a cut, and
+  the cut itself as a slab, judged like any 2D result. Tilt and move the cut,
+  or survey random cuts to see how often a cut shows the form.
 - **Optical views**: see the preview as a slab lit from one side (shadow agate:
   move the light and the shadows sweep) or as a backlit thin slice (iris agate:
   change the view angle and the colours shift).
@@ -106,6 +112,9 @@ uv run agatesim run fortification         # full run -> runs/<run-id>/
 uv run agatesim run waterline --preview   # quick 256 px preview
 uv run agatesim run my-config.toml        # your own configuration
 uv run agatesim archetypes                # the archetype ladder and its status
+uv run agatesim volume presets            # shipped 3D presets
+uv run agatesim volume run fortification-mechanistic-3d --survey 60   # 3D run + random cuts
+uv run agatesim volume survey waterline-3d --cuts 100                 # judge random cuts only
 ```
 
 Each run directory contains `config.toml` (reproduces the run exactly),
@@ -141,6 +150,7 @@ src/agatesim/
   optics.py          optical views: shadow (reflected light) and iris (backlit slice)
   runs.py            run records
   specimen/          photo analysis: scale, outline, observed fields, identification, replica
+  volume/            3D runs: solids, models evaluated at points, cuts, random-cut surveys
   server/            FastAPI backend for the web app (`agatesim serve`)
 web/                 React + TypeScript web app (built into server/static)
 scripts/             gallery generator, Windows start script

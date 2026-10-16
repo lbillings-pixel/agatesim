@@ -1,0 +1,16 @@
+# The seam archetype in 3D (mechanistic tier, H1): front feedback grows inward
+# from both walls of a sheet-like crack.
+name = "seam-mechanistic-3d"
+seed = 2
+archetype = "seam"
+
+[solid]
+preset = "seam-slab"
+size_mm = 60
+
+[slice]  # across the sheet
+tilt_deg = 0
+
+[model]
+kind = "mechanistic-front-feedback"
+boundary_layer_mm = 0.0007

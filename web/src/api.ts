@@ -292,6 +292,115 @@ export const specimens = {
     request<Replica>(`${specimenPath(name)}/replicate`, { method: "POST", body: JSON.stringify(s) }),
 };
 
+// --- 3D runs (src/agatesim/server/volume.py) ---
+
+export interface SolidConfig {
+  preset?: string | null;
+  outline?: [number, number][] | null;
+  host?: Host | null;
+  smooth?: boolean;
+  depth_fraction?: number;
+  size_mm: number;
+  yaw_deg: number;
+  pitch_deg: number;
+}
+
+export interface SliceConfig {
+  tilt_deg: number;
+  azimuth_deg: number;
+  offset_mm: number;
+  resolution: number;
+}
+
+export interface VolumeConfig {
+  name: string;
+  seed: number;
+  archetype?: string | null;
+  grid: { resolution: number; margin_fraction: number };
+  solid: SolidConfig;
+  gravity: { tilt_deg: number; azimuth_deg: number };
+  model: ModelConfig;
+  slice: SliceConfig;
+}
+
+export interface VolumeMeta {
+  solids: { name: string; host: Host; description: string }[];
+  presets: { name: string; config: VolumeConfig }[];
+  kinds: string[];
+  limits: { cut: number; view: number; survey: number; run: number };
+}
+
+export interface CutPlane {
+  origin: [number, number, number];
+  u: [number, number, number];
+  v: [number, number, number];
+  normal: [number, number, number];
+}
+
+export interface CutResult extends PreviewResult {
+  plane: CutPlane;
+  pieces: number;
+  gravity_in_plane: number;
+}
+
+export interface VoxelVolume {
+  nx: number;
+  ny: number;
+  nz: number;
+  dx_mm: number;
+  origin_mm: [number, number, number];
+  elapsed_ms: number;
+  rgba: Uint8Array;
+}
+
+export interface SurveySummary {
+  archetype: string | null;
+  cuts: number;
+  judged: number;
+  pass_rate: number | null;
+  criteria: Record<string, number | null>;
+  by_gravity_in_plane: { gravity_in_plane: [number, number]; cuts: number; pass_rate: number | null }[];
+  true_thickness_mm: number | null;
+  apparent_over_true?: { q25: number; median: number; q75: number };
+}
+
+export interface SurveyResult {
+  summary: SurveySummary;
+  elapsed_ms: number;
+}
+
+export const volume = {
+  meta: () => request<VolumeMeta>("/api/volume/meta"),
+  cut: (config: VolumeConfig, resolution: number, signal?: AbortSignal) =>
+    request<CutResult>("/api/volume/cut", {
+      method: "POST",
+      body: JSON.stringify({ config, resolution }),
+      signal,
+    }),
+  voxels: async (config: VolumeConfig, resolution: number, signal?: AbortSignal): Promise<VoxelVolume> => {
+    const response = await fetch("/api/volume/voxels", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ config, resolution }),
+      signal,
+    });
+    if (!response.ok) throw new Error(await errorMessage(response));
+    const header = JSON.parse(response.headers.get("X-Volume") ?? "{}") as Omit<VoxelVolume, "rgba">;
+    return { ...header, rgba: new Uint8Array(await response.arrayBuffer()) };
+  },
+  survey: (config: VolumeConfig, cuts: number, resolution: number, signal?: AbortSignal) =>
+    request<SurveyResult>("/api/volume/survey", {
+      method: "POST",
+      body: JSON.stringify({ config, cuts, resolution }),
+      signal,
+    }),
+  startRun: (config: VolumeConfig, surveyCuts: number) =>
+    request<Job>("/api/volume/runs", {
+      method: "POST",
+      body: JSON.stringify({ config, survey_cuts: surveyCuts }),
+    }),
+};
+
 export const api = {
   meta: () => request<Meta>("/api/meta"),
   preview: (config: RunConfig, resolution: number, signal?: AbortSignal) =>

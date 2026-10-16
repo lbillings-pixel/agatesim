@@ -1,0 +1,12 @@
+# The fortification archetype in 3D (mechanistic tier, H1): front feedback
+# grows bands inward from every face of a flat-faced nodule (ADR 0013, 0021).
+name = "fortification-mechanistic-3d"
+seed = 1
+archetype = "fortification"
+
+[solid]
+preset = "nodule-angular"
+size_mm = 50
+
+[model]
+kind = "mechanistic-front-feedback"

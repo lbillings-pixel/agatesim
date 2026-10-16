@@ -8,9 +8,13 @@ import time
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from agatesim import __version__
 from agatesim.archetypes import load_registry, to_markdown
+
+if TYPE_CHECKING:
+    from agatesim.volume.config import VolumeConfig
 
 PREVIEW_RESOLUTION = 256
 
@@ -78,6 +82,133 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0 if ev.passed or not args.check else 1
 
 
+VOLUME_PREVIEW_RESOLUTION = 96
+
+
+def _volume_config(args: argparse.Namespace) -> VolumeConfig:
+    from agatesim.volume.config import load_volume_config, load_volume_preset
+
+    source = Path(args.config)
+    config = (
+        load_volume_config(source) if source.suffix == ".toml" else load_volume_preset(args.config)
+    )
+    if args.preview:
+        config = config.with_resolution(VOLUME_PREVIEW_RESOLUTION)
+    if args.resolution is not None:
+        config = config.with_resolution(args.resolution)
+    return config
+
+
+def _print_survey(summary: dict[str, object]) -> None:
+    print(f"  {summary['judged']} of {summary['cuts']} random cuts judged")
+    rate = summary["pass_rate"]
+    if rate is not None:
+        print(f"  pass rate {rate:.0%}")
+        criteria = summary["criteria"]
+        assert isinstance(criteria, dict)
+        for cid, r in criteria.items():  # pyright: ignore[reportUnknownVariableType]
+            print(f"    {cid!s:<22} {'n/a' if r is None else f'{r:.0%}'}")
+    ratio = summary.get("apparent_over_true")
+    if isinstance(ratio, dict):
+        print(
+            f"  apparent / true band thickness: median {ratio['median']:.2f} "
+            f"(quartiles {ratio['q25']:.2f}-{ratio['q75']:.2f})"
+        )
+
+
+def _cmd_volume_run(args: argparse.Namespace) -> int:
+    from agatesim.volume.runs import write_volume_run
+    from agatesim.volume.simulate import prepare_volume
+    from agatesim.volume.survey import survey
+
+    config = _volume_config(args)
+    started = datetime.now().astimezone()
+    t0 = time.perf_counter()
+    sim = prepare_volume(config)
+    found = survey(sim, args.survey, args.cut_resolution, seed=config.seed) if args.survey else None
+    path, ev = write_volume_run(
+        sim, args.out, started=started, elapsed_s=time.perf_counter() - t0, survey=found
+    )
+    print(f"run written to {path}")
+    if found is not None:
+        _print_survey(found.summary())
+    if ev is None:
+        return 0
+    for r in ev.results:
+        mark = "PASS" if r.passed else "FAIL"
+        value = "n/a" if r.value is None else f"{r.value:.4g}"
+        print(f"  {mark}  {r.id:<22} {value:>10}  {r.detail}")
+    print(f"{ev.archetype} (configured cut): {'PASSED' if ev.passed else 'FAILED'}")
+    return 0 if ev.passed or not args.check else 1
+
+
+def _cmd_volume_survey(args: argparse.Namespace) -> int:
+    import json
+
+    from agatesim.volume.simulate import prepare_volume
+    from agatesim.volume.survey import survey
+
+    config = _volume_config(args)
+    found = survey(prepare_volume(config), args.cuts, args.cut_resolution, seed=args.seed)
+    if args.json is not None:
+        path: Path = args.json
+        path.write_text(json.dumps(found.to_json(), indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {path}")
+    print(f"{config.name}:")
+    _print_survey(found.summary())
+    return 0
+
+
+def _cmd_volume_presets(_: argparse.Namespace) -> int:
+    from agatesim.volume.config import load_volume_preset, volume_preset_names
+
+    for name in volume_preset_names():
+        c = load_volume_preset(name)
+        print(f"{name:<40} {c.model.kind:<26} solid={c.solid.label}")
+    return 0
+
+
+def _cmd_volume_solids(_: argparse.Namespace) -> int:
+    from agatesim.volume.solids import SOLID_PRESETS
+
+    for p in SOLID_PRESETS.values():
+        print(f"{p.name:<18} {p.host.value:<12} {p.description}")
+    return 0
+
+
+def _add_volume(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:  # pyright: ignore[reportPrivateUsage]
+    vol = sub.add_parser("volume", help="3D runs: cavities as solids, judged on cuts")
+    vsub = vol.add_subparsers(dest="volume_command", required=True)
+
+    def source(p: argparse.ArgumentParser) -> None:
+        p.add_argument("config", help="3D preset name (see `agatesim volume presets`) or a .toml")
+        p.add_argument(
+            "--preview", action="store_true", help=f"{VOLUME_PREVIEW_RESOLUTION}³ voxels"
+        )
+        p.add_argument("--resolution", type=int, help="voxels along the longest side")
+        p.add_argument("--cut-resolution", type=int, default=512, help="pixels per surveyed cut")
+
+    p = vsub.add_parser("run", help="run a 3D simulation and write its record")
+    source(p)
+    p.add_argument("--out", type=Path, default=Path("runs"), help="runs directory (default: runs)")
+    p.add_argument("--survey", type=int, default=0, metavar="N", help="also judge N random cuts")
+    p.add_argument("--check", action="store_true", help="exit 1 if the configured cut fails")
+    p.set_defaults(func=_cmd_volume_run)
+
+    p = vsub.add_parser("survey", help="judge random cuts through a 3D run")
+    source(p)
+    p.add_argument("--cuts", type=int, default=60)
+    p.add_argument("--seed", type=int, default=0, help="seed for the cut planes")
+    p.add_argument("--json", type=Path, metavar="PATH", help="write every cut to a JSON file")
+    p.set_defaults(func=_cmd_volume_survey)
+
+    p = vsub.add_parser("presets", help="list the shipped 3D presets")
+    p.set_defaults(func=_cmd_volume_presets)
+
+    p = vsub.add_parser("solids", help="list the preset 3D cavity shapes")
+    p.set_defaults(func=_cmd_volume_solids)
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     import threading
     import webbrowser
@@ -126,6 +257,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--resolution", type=int, help="override grid resolution")
     p.add_argument("--check", action="store_true", help="exit 1 if archetype criteria fail")
     p.set_defaults(func=_cmd_run)
+
+    _add_volume(sub)
 
     p = sub.add_parser("serve", help="start the local web app")
     p.add_argument("--host", default="127.0.0.1", help="bind address (default: localhost only)")

@@ -140,6 +140,15 @@ def _quartz(result: SimulationResult) -> FloatArray:
     return rgb
 
 
+def chalcedony_colour(trans: FloatArray, iron: FloatArray) -> FloatArray:
+    """Colour of chalcedony from its translucency and iron staining, before the
+    glow of light returning from beneath."""
+    body = CLEAR * trans[..., None] + MILKY * (1 - trans[..., None])
+    stain = _stain_colour(iron) * (0.55 + 0.45 * (1 - trans))[..., None]
+    strength = _smoothstep(0.05, 0.55, iron)[..., None]
+    return body * (1 - strength) + stain * strength
+
+
 def render_slab(result: SimulationResult) -> NDArray[np.uint8]:
     f = result.fields
     dx = result.grid.dx
@@ -148,11 +157,7 @@ def render_slab(result: SimulationResult) -> NDArray[np.uint8]:
 
     trans = np.clip(f.translucency + SUB_BAND_STRENGTH * 0.5 * _sub_banding(result), 0.0, 1.0)
     iron = f.impurity.astype(np.float64)
-
-    body = CLEAR * trans[..., None] + MILKY * (1 - trans[..., None])
-    stain = _stain_colour(iron) * (0.55 + 0.45 * (1 - trans))[..., None]
-    strength = _smoothstep(0.05, 0.55, iron)[..., None]
-    colour = body * (1 - strength) + stain * strength
+    colour = chalcedony_colour(trans, iron)
 
     # Light entering clear bands returns softened by the material beneath.
     glow = _masked_blur(colour, chal, GLOW_SIGMA_MM / dx)

@@ -20,6 +20,7 @@ import { SlabView } from "./components/SlabView";
 import { SpecimenWorkbench } from "./components/SpecimenWorkbench";
 import { StatsPanel } from "./components/StatsPanel";
 import { TubePanel } from "./components/TubePanel";
+import { VolumeWorkbench } from "./components/VolumeWorkbench";
 import { type Control, controlsFor, defaultsFor } from "./lib/schema";
 
 const PREVIEW_RESOLUTIONS = [128, 192, 256, 384];
@@ -80,7 +81,7 @@ export function App() {
   const [lastDrawn, setLastDrawn] = useState<Drawn | null>(null);
   const [placingTubes, setPlacingTubes] = useState(false);
   const [tubeRadius, setTubeRadius] = useState(0.3);
-  const [screen, setScreen] = useState<"simulator" | "specimens">("simulator");
+  const [screen, setScreen] = useState<"simulator" | "volume" | "specimens">("simulator");
   const [light, setLight] = useState<"reflected" | "shadow" | "iris">("reflected");
   const [lightAngle, setLightAngle] = useState(30);
   const [opticsImage, setOpticsImage] = useState<string | null>(null);
@@ -263,6 +264,7 @@ export function App() {
           {(
             [
               ["simulator", "Simulator"],
+              ["volume", "3D"],
               ["specimens", "Specimens"],
             ] as const
           ).map(([s, label]) => (
@@ -271,6 +273,8 @@ export function App() {
             </button>
           ))}
         </div>
+        {screen === "simulator" && (
+        <>
         <label className="inline">
           <span className="micro-label">Preset</span>
           <select
@@ -314,9 +318,13 @@ export function App() {
             Run full resolution
           </button>
         </div>
+        </>
+        )}
       </header>
 
-      {screen === "specimens" ? (
+      {screen === "volume" ? (
+        <VolumeWorkbench models={meta.models} archetypes={meta.archetypes} />
+      ) : screen === "specimens" ? (
         <SpecimenWorkbench
           onOpenReplica={(replica) => {
             setConfig(replica);

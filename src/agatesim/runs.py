@@ -33,7 +33,7 @@ from agatesim.stats import band_statistics
 LIBRARIES = ("numpy", "scipy", "pillow", "zarr", "pydantic")
 
 
-def _git_state() -> dict[str, object]:
+def git_state() -> dict[str, object]:
     root = Path(__file__).resolve().parents[2]
     try:
         commit = subprocess.run(
@@ -153,7 +153,7 @@ def write_run(
     metadata = {
         "run_id": run_id,
         "agatesim_version": __version__,
-        "git": _git_state(),
+        "git": git_state(),
         "config_sha256": config.digest(),
         "seed": config.seed,
         "grid": {"nx": grid.nx, "ny": grid.ny, "dx_mm": grid.dx},

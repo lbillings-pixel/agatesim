@@ -1,0 +1,21 @@
+# The waterline archetype in 3D (procedural tier): flat layers filling the
+# floor of a vesicle.
+name = "waterline-3d"
+seed = 3
+archetype = "waterline"
+
+[solid]
+preset = "vesicle-round"
+size_mm = 40
+
+[model]
+kind = "procedural-waterline"
+fill_height_fraction = 0.45
+mean_layer_thickness_mm = 0.35
+thickness_variability = 0.3
+alternation = 0.6
+opacity_contrast = 0.7
+iron = 0.15
+iron_variability = 0.15
+wobble_mm = 0.02
+wobble_scale_mm = 3.0

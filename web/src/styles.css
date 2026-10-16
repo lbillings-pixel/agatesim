@@ -301,6 +301,25 @@ figcaption { font-size: 0.85rem; }
 .hint { color: var(--muted); }
 .run-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
+/* 3D screen: no run browser column; the 3D view and the cut side by side. */
+.workspace.volume { grid-template-columns: 330px minmax(0, 1fr); }
+.volume-panes { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+.volume-view { margin: 0; display: grid; gap: 0.5rem; min-width: 0; }
+.volume-stage {
+  position: relative;
+  height: min(62vh, 640px);
+  background: var(--slab-bg);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.volume-stage canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.volume-stage canvas:active { cursor: grabbing; }
+.volume-note { position: absolute; left: 12px; top: 10px; color: #e6e6e6; }
+.volume-caption { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.cut-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.7rem; align-items: end; }
+.survey { display: grid; gap: 0.6rem; }
+.survey-result p { margin: 0; }
+
 .criteria-panel {
   background: var(--surface);
   border: 1px solid var(--line);

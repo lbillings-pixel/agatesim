@@ -25,6 +25,7 @@ are left out. This mirrors H1's uniform front (ADR 0013).
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
@@ -253,27 +254,76 @@ def run_settling(
         dz = (z1 - z0) / HEIGHT_CELLS
         cells = np.clip(((up[region] - z0) / dz).astype(int), 0, HEIGHT_CELLS - 1)
         width = np.bincount(cells, minlength=HEIGHT_CELLS) * domain.grid.dx**2 / dz
-    cell = np.clip(((up - z0) / dz).astype(int), 0, HEIGHT_CELLS - 1)
+    column = settle_column(params, width, z0, z1, rng_dose, rng_iron, rng_clarity)
+    return column.fields(up, mask)
+
+
+@dataclass(frozen=True)
+class SettledColumn:
+    """The settled bed against height, bottom first: when each height cell packed
+    (NaN if never), its layer and the properties of the pulse that formed it."""
+
+    z0: float  # height of the column's floor, mm
+    dz: float
+    packed_at: FloatArray
+    layer: NDArray[np.int64]
+    pulse_of: NDArray[np.int64]
+    iron: FloatArray  # per pulse
+    clarity: FloatArray  # per pulse
+
+    @property
+    def top(self) -> float:
+        """Height of the top of the bed (the floor if nothing packed)."""
+        bed = np.flatnonzero(np.isfinite(self.packed_at))
+        return self.z0 + (int(bed[-1]) + 1) * self.dz if len(bed) else self.z0
+
+    def fields(self, up: FloatArray, mask: NDArray[np.bool_]) -> Fields:
+        """Fields at points with heights up (mm), mask True in the open space. Arrays
+        of any shape (a slab, a volume, or a list of points)."""
+        cell = np.clip(((up - self.z0) / self.dz).astype(int), 0, len(self.packed_at) - 1)
+        packed_at = self.packed_at
+        bed = mask & np.isfinite(packed_at[cell])
+        band = np.where(bed, self.layer[cell], -1).astype(np.int32)
+        t_end = float(np.nanmax(packed_at)) if np.isfinite(packed_at).any() else 1.0
+        t_dep = np.where(bed, packed_at[cell] / max(t_end, 1e-9), np.nan)
+        source = np.maximum(self.pulse_of[cell], 0)  # the supply that formed each cell
+        phase = np.full(up.shape, Phase.HOST, dtype=np.uint8)
+        phase[mask] = Phase.VOID
+        phase[bed] = Phase.CHALCEDONY
+        return Fields(
+            phase=phase,
+            band=band,
+            impurity=np.where(bed, self.iron[source], 0.0).astype(np.float32),
+            translucency=np.where(bed, self.clarity[source], 0.0).astype(np.float32),
+            t_dep=t_dep.astype(np.float32),
+            grain=np.full(up.shape, -1, dtype=np.int32),
+            micro_spacing_um=np.full(up.shape, np.nan, dtype=np.float32),
+        )
+
+
+def settle_column(
+    params: Settling,
+    width: FloatArray,
+    z0: float,
+    z1: float,
+    rng_dose: np.random.Generator,
+    rng_iron: np.random.Generator,
+    rng_clarity: np.random.Generator,
+) -> SettledColumn:
+    """Settle the pulses in a column from z0 to z1 with the given widths per height
+    cell (in 3D, cross-section areas)."""
+    dz = (z1 - z0) / len(width)
     packed_at, pulse_of, _ = settle(params, width, dz, rng_dose)
-    layer = layers(packed_at, PAUSE * (z1 - z0))
-    bed = mask & np.isfinite(packed_at[cell])
-    band = np.where(bed, layer[cell], -1).astype(np.int32)
-    t_end = float(np.nanmax(packed_at)) if np.isfinite(packed_at).any() else 1.0
-    t_dep = np.where(bed, packed_at[cell] / max(t_end, 1e-9), np.nan)
     iron = np.clip(
         params.iron + params.iron_variability * rng_iron.uniform(-1, 1, params.pulses), 0, 1
     )
     clarity = rng_clarity.uniform(0.25, 0.85, params.pulses)  # per-pulse supply property
-    source = np.maximum(pulse_of[cell], 0)  # the supply that formed each cell
-    phase = np.full(domain.grid.shape, Phase.HOST, dtype=np.uint8)
-    phase[mask] = Phase.VOID
-    phase[bed] = Phase.CHALCEDONY
-    return Fields(
-        phase=phase,
-        band=band,
-        impurity=np.where(bed, iron[source], 0.0).astype(np.float32),
-        translucency=np.where(bed, clarity[source], 0.0).astype(np.float32),
-        t_dep=t_dep.astype(np.float32),
-        grain=np.full(domain.grid.shape, -1, dtype=np.int32),
-        micro_spacing_um=np.full(domain.grid.shape, np.nan, dtype=np.float32),
+    return SettledColumn(
+        z0=z0,
+        dz=dz,
+        packed_at=packed_at,
+        layer=layers(packed_at, PAUSE * (z1 - z0)),
+        pulse_of=pulse_of,
+        iron=iron,
+        clarity=clarity,
     )

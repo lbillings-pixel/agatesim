@@ -1,0 +1,14 @@
+# The combined archetype in 3D (mechanistic tier): an H1 rim, H4 floor layers,
+# then H1 bands draping over them (ADR 0020, 0021).
+name = "fortification-waterline-mechanistic-3d"
+seed = 4
+archetype = "fortification-waterline"
+
+[solid]
+preset = "nodule-round"
+size_mm = 50
+
+[model]
+kind = "mechanistic-staged"
+order = "wall-floor-wall"
+rim_share = 0.3

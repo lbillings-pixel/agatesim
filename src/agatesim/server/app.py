@@ -44,6 +44,7 @@ from agatesim.render import render_slab
 from agatesim.runs import is_run_id, list_runs
 from agatesim.server.jobs import Job, JobManager
 from agatesim.server.specimens import specimen_router
+from agatesim.server.volume import volume_router
 from agatesim.simulate import SimulationResult, simulate
 from agatesim.stats import band_statistics
 
@@ -300,6 +301,7 @@ def create_app(
         return Response(_png(encode_tdep(t_dep)), media_type="image/png")
 
     app.include_router(specimen_router(specimens_dir or runs_dir.parent / "specimens"))
+    app.include_router(volume_router(jobs))
 
     if static_dir is not None and (static_dir / "index.html").exists():
         app.mount("/", _FreshPage(directory=static_dir, html=True), name="ui")

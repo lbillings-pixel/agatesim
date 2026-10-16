@@ -224,9 +224,9 @@ def supply_forcing(params: FrontFeedback, duration: float, rng: np.random.Genera
     return Forcing(time=np.arange(count) * step, factor=factor)
 
 
-def _filled_share(domain: Domain) -> tuple[FloatArray, FloatArray]:
-    """Depth samples (mm) and the share of the cavity lying shallower."""
-    d = domain.wall_distance[domain.mask]
+def _filled_share(d: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """Depth samples (mm) and the share of the cavity lying shallower, from the
+    wall distances of equal-sized samples of the cavity (pixels or voxels)."""
     deepest = float(d.max())
     depths = np.linspace(0.0, deepest, GEOMETRY_SAMPLES)
     share = np.searchsorted(np.sort(d), depths) / d.size
@@ -236,7 +236,16 @@ def _filled_share(domain: Domain) -> tuple[FloatArray, FloatArray]:
 def front_history(
     params: FrontFeedback, domain: Domain, forcing: Forcing | None = None
 ) -> FrontHistory:
-    depths, share = _filled_share(domain)
+    return history_from_distances(params, domain.wall_distance[domain.mask], forcing)
+
+
+def history_from_distances(
+    params: FrontFeedback, distances: FloatArray, forcing: Forcing | None = None
+) -> FrontHistory:
+    """The front's history in a cavity given by the wall distances (mm) of
+    equal-sized samples of it. It doesn't depend on the cavity's dimension: in 3D
+    the samples are voxels and the filled share is a share of volume."""
+    depths, share = _filled_share(distances)
     slope = np.gradient(share, depths)  # d(filled share) / d(depth)
     deepest = float(depths[-1])
     beta, ac, n = params.catalysis, params.catalysis_threshold, params.cooperativity
@@ -316,11 +325,18 @@ def front_history(
 def forced_history(params: FrontFeedback, domain: Domain, rng: np.random.Generator) -> FrontHistory:
     """The front's history, with the supply forcing if there is one. The forcing is
     drawn over 1.5 × the unforced run's duration, so its statistics cover the run."""
-    history = front_history(params, domain)
+    return forced_history_from(params, domain.wall_distance[domain.mask], rng)
+
+
+def forced_history_from(
+    params: FrontFeedback, distances: FloatArray, rng: np.random.Generator
+) -> FrontHistory:
+    """forced_history for a cavity given by sample wall distances."""
+    history = history_from_distances(params, distances)
     if params.supply_noise <= 0:
         return history
     forcing = supply_forcing(params, 1.5 * float(history.time[-1]), rng)
-    return front_history(params, domain, forcing)
+    return history_from_distances(params, distances, forcing)
 
 
 def band_edges(history: FrontHistory) -> FloatArray:
@@ -339,8 +355,13 @@ def band_edges(history: FrontHistory) -> FloatArray:
 def run_front_feedback(params: FrontFeedback, domain: Domain, rng: np.random.Generator) -> Fields:
     # Without forcing nothing is random: the rhythm is self-organised, not drawn.
     history = forced_history(params, domain, rng)
-    d = domain.wall_distance
-    mask = domain.mask
+    return history_fields(history, domain.wall_distance, domain.mask)
+
+
+def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]) -> Fields:
+    """Fields at points with wall distances d (mm), mask True inside the cavity:
+    each point takes the front's state when the front reached its depth. Arrays
+    of any shape (a slab, a volume, or a list of points)."""
     grown = mask & (d <= history.stopped_mm)
     depth = history.depth_mm
     # Each pixel takes the front's state when the front reached its depth.
@@ -355,7 +376,7 @@ def run_front_feedback(params: FrontFeedback, domain: Domain, rng: np.random.Gen
     log_c = np.log(np.maximum(incorporated, 1e-12))
     lo, hi = (float(log_c[chal].min()), float(log_c[chal].max())) if chal.any() else (0.0, 1.0)
     stain = np.clip((log_c - lo) / max(hi - lo, 1e-9), 0, 1)
-    phase = np.full(domain.grid.shape, Phase.HOST, dtype=np.uint8)
+    phase = np.full(d.shape, Phase.HOST, dtype=np.uint8)
     phase[mask] = Phase.VOID
     phase[chal] = Phase.CHALCEDONY
     phase[quartz] = Phase.QUARTZ
@@ -369,6 +390,6 @@ def run_front_feedback(params: FrontFeedback, domain: Domain, rng: np.random.Gen
             np.float32
         ),
         t_dep=np.where(grown, time, np.nan).astype(np.float32),
-        grain=np.full(domain.grid.shape, -1, dtype=np.int32),
-        micro_spacing_um=np.full(domain.grid.shape, np.nan, dtype=np.float32),
+        grain=np.full(d.shape, -1, dtype=np.int32),
+        micro_spacing_um=np.full(d.shape, np.nan, dtype=np.float32),
     )

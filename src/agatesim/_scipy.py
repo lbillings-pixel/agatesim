@@ -15,7 +15,7 @@ from numpy.typing import NDArray
 from scipy import ndimage, sparse, special
 from scipy.integrate import solve_ivp
 from scipy.sparse import linalg as sparse_linalg
-from scipy.spatial import KDTree
+from scipy.spatial import ConvexHull, KDTree
 
 from agatesim.grid import FloatArray
 
@@ -27,6 +27,21 @@ def nearest_distance(samples: FloatArray, points: FloatArray) -> NDArray[np.floa
     """Distance from each of `points` (n, 2) to the nearest of `samples` (m, 2)."""
     result: Any = KDTree(samples).query(points, workers=-1)
     return cast(NDArray[np.float64], result[0])
+
+
+class NearestIndex:
+    """A k-d tree over sample points, for repeated nearest-sample queries."""
+
+    def __init__(self, samples: FloatArray) -> None:
+        self._tree = KDTree(samples)
+
+    def query(self, points: FloatArray) -> tuple[NDArray[np.float64], NDArray[np.int64]]:
+        """Distance to, and index of, the nearest sample for each point."""
+        result: Any = self._tree.query(points, workers=-1)
+        return (
+            np.asarray(result[0], dtype=np.float64),
+            np.asarray(result[1], dtype=np.int64),
+        )
 
 
 def distance_to_false(mask: NDArray[np.bool_], dx: float) -> NDArray[np.float64]:
@@ -57,6 +72,21 @@ def bilinear(field: FloatArray, rows: FloatArray, cols: FloatArray):
     """Sample `field` at fractional (row, col) positions by bilinear interpolation."""
     out = ndimage.map_coordinates(field, [rows, cols], order=1, mode="nearest")
     return cast(NDArray[np.float64], out)
+
+
+def linear_at(field: FloatArray, coords: list[FloatArray]) -> NDArray[np.float64]:
+    """Sample an n-dimensional `field` at fractional indices (one array per axis) by
+    linear interpolation."""
+    out = ndimage.map_coordinates(field, coords, order=1, mode="nearest")
+    return cast(NDArray[np.float64], out)
+
+
+def hull_planes(points: FloatArray) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """The convex hull of 3D points as planes n·x ≤ b with unit outward normals n,
+    one per face (coplanar triangles merged)."""
+    equations = np.asarray(ConvexHull(points).equations, dtype=np.float64)  # n·x + c ≤ 0
+    unique = np.unique(np.round(equations, 9), axis=0)
+    return unique[:, :3], -unique[:, 3]
 
 
 def count_components(mask: NDArray[np.bool_], *, eight_connected: bool) -> int:

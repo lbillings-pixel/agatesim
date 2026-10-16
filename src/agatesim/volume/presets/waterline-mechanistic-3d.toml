@@ -1,0 +1,13 @@
+# The waterline archetype in 3D (mechanistic tier, H4): particle pulses settle
+# in the vesicle and pack up from its floor; the column's widths are the
+# vesicle's cross-section areas (ADR 0016, 0021).
+name = "waterline-mechanistic-3d"
+seed = 3
+archetype = "waterline"
+
+[solid]
+preset = "vesicle-round"
+size_mm = 40
+
+[model]
+kind = "mechanistic-settling"

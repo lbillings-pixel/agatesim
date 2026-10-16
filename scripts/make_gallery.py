@@ -7,10 +7,14 @@
 - cavities.png:   every preset cavity shape, banded with the fortification model.
 - mechanisms.png: the mechanistic models: H1 and H2 in a nodule and a seam, H4, and
   H1 and H4 chained as stages.
+- volume.png:     cuts through 3D runs at several angles (ADR 0021).
+
+`--only volume` renders just volume.png.
 """
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Callable
 from pathlib import Path
 
@@ -24,6 +28,8 @@ from agatesim.criteria import implemented
 from agatesim.geometry import CAVITY_PRESETS
 from agatesim.render import render_slab, to_png_image
 from agatesim.simulate import SimulationResult, simulate
+from agatesim.volume.config import SliceConfig, load_volume_preset
+from agatesim.volume.simulate import VolumeSimulation, prepare_volume
 
 OUT = Path(__file__).resolve().parents[1] / "docs" / "images"
 TILE = 360
@@ -50,7 +56,14 @@ OPTICAL_VIEWS: dict[str, Callable[[SimulationResult], NDArray[np.uint8]]] = {
 def _tile(config: RunConfig, label: str) -> Image.Image:
     result = simulate(config)
     view = OPTICAL_VIEWS.get(config.archetype or "")
-    slab = to_png_image(view(result) if view else render_slab(result))
+    return _framed(to_png_image(view(result) if view else render_slab(result)), label)
+
+
+def _cut_tile(sim: VolumeSimulation, cut: SliceConfig, label: str) -> Image.Image:
+    return _framed(to_png_image(render_slab(sim.cut(cut).result)), label)
+
+
+def _framed(slab: Image.Image, label: str) -> Image.Image:
     slab.thumbnail((TILE, TILE), Image.Resampling.LANCZOS)
     tile = Image.new("RGB", (TILE, TILE + LABEL_H), BACKGROUND)
     tile.paste(slab, ((TILE - slab.width) // 2, (TILE - slab.height) // 2))
@@ -70,8 +83,36 @@ def _sheet(tiles: list[Image.Image], columns: int) -> Image.Image:
     return sheet
 
 
+def _volume() -> None:
+    h1 = prepare_volume(load_volume_preset("fortification-mechanistic-3d"))
+    h4 = prepare_volume(load_volume_preset("waterline-mechanistic-3d"))
+    staged = prepare_volume(load_volume_preset("fortification-waterline-mechanistic-3d"))
+    res = 640
+    tiles = [
+        _cut_tile(h1, SliceConfig(resolution=res), "H1 nodule, 3D: front cut"),
+        _cut_tile(h1, SliceConfig(tilt_deg=0, resolution=res), "H1 nodule, 3D: horizontal cut"),
+        _cut_tile(
+            h1,
+            SliceConfig(tilt_deg=55, azimuth_deg=200, offset_mm=6, resolution=res),
+            "H1 nodule, 3D: oblique, off-centre cut",
+        ),
+        _cut_tile(h4, SliceConfig(resolution=res), "H4 vesicle, 3D: vertical cut"),
+        _cut_tile(
+            h4,
+            SliceConfig(tilt_deg=45, azimuth_deg=270, resolution=res),
+            "H4 vesicle, 3D: cut at 45° to gravity",
+        ),
+        _cut_tile(staged, SliceConfig(resolution=res), "H1, H4, then H1 stages, 3D: vertical cut"),
+    ]
+    _sheet(tiles, columns=3).save(OUT / "volume.png", optimize=True)
+    print(f"wrote volume.png in {OUT}")
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
+    if sys.argv[1:] == ["--only", "volume"]:
+        _volume()
+        return
 
     archetypes = [
         _tile(load_preset(a), f"{a} (verification preset)") for a in sorted(implemented())
@@ -97,6 +138,7 @@ def main() -> None:
     ]
     _sheet(mechanisms, columns=2).save(OUT / "mechanisms.png", optimize=True)
     print(f"wrote archetypes.png, cavities.png and mechanisms.png in {OUT}")
+    _volume()
 
 
 if __name__ == "__main__":

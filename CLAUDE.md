@@ -19,6 +19,9 @@
 - `uv sync`: install
 - `uv run pytest` / `uv run ruff check` / `uv run ruff format` / `uv run pyright`
 - `uv run agatesim run <preset|config.toml> [--preview] [--check]`
+- `uv run agatesim volume run|survey <3d-preset>`: 3D runs (ADR 0021). Write 3D
+  runs under the repo's `runs/`: deep paths (the scratchpad) exceed Windows'
+  path limit inside fields.zarr
 - `uv run agatesim archetypes --write docs/archetypes.md`: regenerate after
   editing registry.toml
 - `uv run python scripts/make_gallery.py`: regenerate docs/images after model or

@@ -144,10 +144,21 @@ def fields_from_bands(
 ) -> Fields:
     """Fields where `filled` pixels are banded chalcedony indexed by `coord`; the
     rest of the cavity is void."""
+    return banded_fields(domain.mask, coord, filled, bands, t_dep)
+
+
+def banded_fields(
+    mask: NDArray[np.bool_],
+    coord: FloatArray,
+    filled: NDArray[np.bool_],
+    bands: BandSequence,
+    t_dep: FloatArray,
+) -> Fields:
+    """fields_from_bands for arrays of any shape, mask True inside the cavity."""
     band = np.where(filled, bands.index(coord), -1).astype(np.int32)
     safe = np.maximum(band, 0)
-    phase = np.full(domain.grid.shape, Phase.HOST, dtype=np.uint8)
-    phase[domain.mask] = Phase.VOID
+    phase = np.full(mask.shape, Phase.HOST, dtype=np.uint8)
+    phase[mask] = Phase.VOID
     phase[filled] = Phase.CHALCEDONY
     return Fields(
         phase=phase,
@@ -155,6 +166,6 @@ def fields_from_bands(
         impurity=np.where(filled, bands.impurity[safe], 0.0).astype(np.float32),
         translucency=np.where(filled, bands.translucency[safe], 0.0).astype(np.float32),
         t_dep=np.where(filled, t_dep, np.nan).astype(np.float32),
-        grain=np.full(domain.grid.shape, -1, dtype=np.int32),
-        micro_spacing_um=np.full(domain.grid.shape, np.nan, dtype=np.float32),
+        grain=np.full(mask.shape, -1, dtype=np.int32),
+        micro_spacing_um=np.full(mask.shape, np.nan, dtype=np.float32),
     )

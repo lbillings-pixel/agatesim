@@ -34,7 +34,7 @@ class BandStats:
         return asdict(self)
 
 
-def _wall_rays(result: SimulationResult) -> list[tuple[np.ndarray, np.ndarray]]:
+def wall_rays(result: SimulationResult) -> list[tuple[np.ndarray, np.ndarray]]:
     """Points spread evenly along the wall, each with its inward normal."""
     v = result.domain.cavity.vertices
     end = np.roll(v, -1, axis=0)
@@ -59,7 +59,7 @@ def band_statistics(result: SimulationResult) -> BandStats:
     present = np.unique(f.band[chal])
 
     thicknesses: list[float] = []
-    for origin, normal in _wall_rays(result):
+    for origin, normal in wall_rays(result):
         ray = sample_ray(result, origin, normal, result.domain.cavity.size_mm)
         # Only count the uninterrupted banded run from the wall inward.
         inside = ray.band >= 0
