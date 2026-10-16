@@ -52,6 +52,52 @@ survive.
    in the first cell in 2D). The 2D solver was not committed. Whether H1's
    corners survive explicit diffusion remains open.
 
+## Amendment (2026-10-16): no oscillation at all; findings 3–5 were artefacts
+
+The corner test started by checking that a 2D scheme reproduces the 1D
+stick-slip cycle of the two "converged" sets. Neither cycle survived a careful
+check:
+
+- **The reference isn't converged.** In the front-frame solver, set 0's cycle
+  drops from 0.13 to 0.06 screening lengths between 200 and 400 cells, which is
+  less than one cell either way. Its peak speed falls from 0.74 to 0.41.
+- **A second, independent scheme agrees.** This one is lab-frame and cut-cell:
+  the front crosses a fixed grid, the front cell is balanced exactly, and front
+  values are reconstructed from the flux conditions. Its oscillations also
+  shrink as the grid is refined. Set 1 swings over 0.18–1.10 at h = 0.1 but only
+  0.39–0.64 at h = 0.05, and the residual wobble's period is the time to cross
+  two cells (U × period = 2h).
+  - Both schemes give the same mean front speed (0.127 and 0.44).
+- **Exact linear stability** (`scripts/h1_linear_stability.py`):
+  - **Method.** Steady fronts have exponential profiles. A disturbance
+    ∝ e^(λt) gives a scalar characteristic function Φ(λ) with no grid, and its
+    zeros in Re λ > 0 are counted by the argument principle.
+  - **Checks.** Φ(0⁺) equals dG/dU − 1 to five digits. The steady speeds equal
+    both solvers' mean speeds.
+  - **The two sets.** Both are strongly stable (|Φ| ≥ 31 throughout the plane
+    near the axis).
+  - **All 4,000 sets of the original scan.** None has an oscillatory
+    instability. Five are bistable, with three steady fronts each, and their
+    one unstable state is the middle branch, with a real root.
+
+So H1 with explicit diffusion and moving-front conditions **doesn't
+self-organise bands** anywhere in the sampled space. Findings 3–5 above were
+artefacts of discretising the moving front, and the micro-band scale argument
+(4) falls with them.
+
+**The corner test is moot for this formulation.** A front without bands has
+no band corners to keep. H1's fortification and seam verifications (ADR 0013)
+rest entirely on the boundary-layer approximation, whose oscillating regime has
+no counterpart once diffusion is explicit. The registry still records them as
+verified, with this caveat. Changing that is the owner's decision.
+
+**What could restore banding.** The boundary-layer model oscillates because
+its lumped layer stores impurity and responds with a delay. With explicit
+diffusion, the front has no store of its own. A physical candidate is an
+interface state with its own kinetics, such as impurity adsorbed on the growth
+surface that catalyses or inhibits growth ([@torii2024]). The exact analysis
+extends to it at little cost: one more equation at the front.
+
 ## Decision
 
 - The H1 verifications of ADR 0013 stand as **boundary-layer-approximation**

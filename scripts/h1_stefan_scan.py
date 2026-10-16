@@ -18,6 +18,10 @@ with the bulk (s = a = 1) at x = 40. Many parameter sets run at once on the GPU
 (CuPy). A set "oscillates" if, over the second half of the run, U varies by more
 than 30% of its mean. Rerun the hits at other resolutions (--check, --cells) to
 discard numerical artefacts.
+
+The "oscillations" this finds are discretisation artefacts: their cycles shrink
+with the grid, and scripts/h1_linear_stability.py finds no oscillatory
+instability in the same space (ADR 0017 amendment).
 """
 # pyright: basic
 
