@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { applyGrowth } from "../lib/growth";
+import { GrowthControls } from "./GrowthControls";
 
 const VOID_COLOUR = [18, 18, 22] as const; // matches render.VOID
 const SCALE_BAR_MM = [1, 2, 5, 10, 20, 50];
@@ -35,13 +36,16 @@ interface Props {
   caption: string;
   /** Changes whenever the slab is replaced, to reset zoom. */
   identity: string;
+  /** Growth shown, when a parent controls it (and shows the controls itself). */
+  growth?: number;
 }
 
-export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity, picking }: Props) {
+export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity, picking, growth: shownGrowth }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const [pixels, setPixels] = useState<{ slab: ImageData; tdep: ImageData } | null>(null);
-  const [growth, setGrowth] = useState(1);
+  const [ownGrowth, setGrowth] = useState(1);
+  const growth = shownGrowth ?? ownGrowth;
   const [view, setView] = useState({ zoom: 1, x: 0, y: 0 });
   const [fit, setFit] = useState(1);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
@@ -198,19 +202,7 @@ export function SlabView({ imageSrc, tdepSrc, dxMm, caption, identity, picking }
         )}
         {view.zoom > 1 && <div className="zoom-badge">{view.zoom.toFixed(1)}×</div>}
       </div>
-      <div className="growth">
-        <label htmlFor={`growth-${identity}`}>Growth</label>
-        <input
-          id={`growth-${identity}`}
-          type="range"
-          min={0}
-          max={1}
-          step={0.005}
-          value={growth}
-          onChange={(e) => setGrowth(Number(e.target.value))}
-        />
-        <output htmlFor={`growth-${identity}`}>{Math.round(growth * 100)}%</output>
-      </div>
+      {shownGrowth === undefined && <GrowthControls id={identity} value={growth} onChange={setGrowth} />}
       <figcaption>
         {caption}
         <span className="hint">

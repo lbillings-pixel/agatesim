@@ -100,7 +100,9 @@ The app runs only on your machine (bound to localhost). It offers:
 - **Band statistics** for each result, side by side with a pinned run.
 - **Full-resolution runs** in the background, saved to `runs/`.
 - **Run browser and slab viewer** with zoom, pan, a scale bar, a growth slider
-  that shows the agate forming over time, and side-by-side comparison.
+  that shows the agate forming over time (play, pause, speeds and looping), and
+  side-by-side comparison. On the 3D screen the same control animates the cut
+  and the 3D view together.
 
 ### Command line
 

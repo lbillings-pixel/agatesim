@@ -158,8 +158,10 @@ def volume_router(jobs: JobManager) -> APIRouter:
 
     @router.post("/voxels")
     def voxels(request: VoxelRequest) -> Response:
-        """The volume's colours as raw RGBA bytes (x fastest, then y, then z); the
-        grid is described in the X-Volume header."""
+        """The volume's colours as raw RGBA bytes (x fastest, then y, then z),
+        followed by one byte per voxel of deposition time (0..254 = time 0..1,
+        255 = never), for the growth animation. The grid is described in the
+        X-Volume header."""
         t0 = time.perf_counter()
         volume = prepared.get(request.config).volume(request.resolution)
         grid = volume.grid
@@ -170,9 +172,12 @@ def volume_router(jobs: JobManager) -> APIRouter:
             "dx_mm": grid.dx,
             "origin_mm": list(grid.origin),
             "elapsed_ms": round((time.perf_counter() - t0) * 1000),
+            "tdep": True,
         }
+        t = np.asarray(volume.fields.t_dep, dtype=np.float64)
+        tdep = np.where(np.isnan(t), 255, np.rint(np.clip(t, 0, 1) * 254)).astype(np.uint8)
         return Response(
-            voxel_rgba(volume).tobytes(),
+            voxel_rgba(volume).tobytes() + tdep.tobytes(),
             media_type="application/octet-stream",
             headers={"X-Volume": json.dumps(header)},
         )

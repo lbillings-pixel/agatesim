@@ -48,8 +48,12 @@ def test_a_cut_that_misses_is_an_error_not_a_crash(client: TestClient) -> None:
 def test_voxels_come_as_raw_rgba(client: TestClient) -> None:
     response = client.post("/api/volume/voxels", json={"config": _config(), "resolution": 24})
     header = json.loads(response.headers["X-Volume"])
-    assert len(response.content) == header["nx"] * header["ny"] * header["nz"] * 4
-    alpha = response.content[3::4]
+    n = header["nx"] * header["ny"] * header["nz"]
+    assert header["tdep"]
+    assert len(response.content) == n * 5  # RGBA, then deposition time
+    alpha = response.content[: 4 * n][3::4]
+    tdep = response.content[4 * n :]
+    assert any(t < 255 for t in tdep)  # something deposited
     assert 0 < sum(a == 255 for a in alpha) < len(alpha)  # some filled, some not
 
 

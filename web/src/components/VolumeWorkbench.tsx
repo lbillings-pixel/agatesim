@@ -15,6 +15,7 @@ import {
 } from "../api";
 import { type Control, controlsFor, defaultsFor } from "../lib/schema";
 import { CriteriaPanel } from "./CriteriaPanel";
+import { GrowthControls } from "./GrowthControls";
 import { ParamPanel, Slider } from "./ParamPanel";
 import { SlabView } from "./SlabView";
 import { StatsPanel } from "./StatsPanel";
@@ -83,6 +84,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   const [surveyBusy, setSurveyBusy] = useState(false);
   const [runRes, setRunRes] = useState(192);
   const [job, setJob] = useState<Job | null>(null);
+  const [growth, setGrowth] = useState(1);
 
   useEffect(() => {
     volumeApi
@@ -343,13 +345,14 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
         )}
 
         <div className="volume-panes">
-          <Volume3D volume={voxels} plane={cut?.plane ?? null} busy={voxelsBusy} />
+          <Volume3D volume={voxels} plane={cut?.plane ?? null} busy={voxelsBusy} growth={growth} />
           {cut && (
             <SlabView
               identity="volume-cut"
               imageSrc={cut.image}
               tdepSrc={cut.tdep}
               dxMm={cut.dx_mm}
+              growth={growth}
               caption={
                 `The cut${cut.pieces > 1 ? ` (largest of ${cut.pieces} pieces)` : ""}` +
                 (cut.gravity_in_plane < 0.999 ? ` · gravity ${Math.round(cut.gravity_in_plane * 100)}% in its plane` : "")
@@ -357,6 +360,8 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
             />
           )}
         </div>
+
+        <GrowthControls id="volume" value={growth} onChange={setGrowth} />
 
         <section className="cut-controls" aria-label="The cut">
           <div className="toggle" role="group" aria-label="Standard cuts">

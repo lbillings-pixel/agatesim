@@ -32,8 +32,18 @@ uniform vec3 cutNormal;
 uniform float cutOffset;
 uniform float stepMm;
 uniform vec3 texel;
+uniform highp sampler3D tdepTex;
+uniform bool growthOn;
+uniform float cutoff; // show material deposited by this code (0..254)
 in vec2 ndc;
 out vec4 colour;
+
+// Whether material is shown at uvw: solid, and already deposited when animating.
+float shown(vec3 uvw) {
+  if (texture(volume, uvw).a <= 0.5) return 0.0;
+  if (growthOn && texture(tdepTex, uvw).r * 255.0 > cutoff + 0.5) return 0.0;
+  return 1.0;
+}
 
 void main() {
   vec3 dir = normalize(forward + ndc.x * tanHalf * aspect * right + ndc.y * tanHalf * up);
@@ -64,10 +74,18 @@ void main() {
     vec3 p = eye + t * dir;
     vec3 uvw = (p - boxLo) / boxSize;
     vec4 s = texture(volume, uvw);
-    if (s.a > 0.5) {
+    if (s.a > 0.5 && shown(uvw) > 0.5) {
       vec3 n;
       if (atCut && i == 0) {
         n = cutNormal;
+      } else if (growthOn) {
+        // The growth front: shade by where shown material ends.
+        vec3 o = 1.5 * texel;
+        vec3 g = vec3(
+          shown(uvw + vec3(o.x, 0.0, 0.0)) - shown(uvw - vec3(o.x, 0.0, 0.0)),
+          shown(uvw + vec3(0.0, o.y, 0.0)) - shown(uvw - vec3(0.0, o.y, 0.0)),
+          shown(uvw + vec3(0.0, 0.0, o.z)) - shown(uvw - vec3(0.0, 0.0, o.z)));
+        n = length(g) > 1e-4 ? -normalize(g) : -dir;
       } else {
         vec3 g = vec3(
           texture(volume, uvw + vec3(texel.x, 0.0, 0.0)).a - texture(volume, uvw - vec3(texel.x, 0.0, 0.0)).a,
@@ -90,6 +108,7 @@ interface Gl {
   gl: WebGL2RenderingContext;
   program: WebGLProgram;
   texture: WebGLTexture;
+  tdep: WebGLTexture;
   uniforms: Record<string, WebGLUniformLocation | null>;
 }
 
@@ -115,12 +134,13 @@ function setup(canvas: HTMLCanvasElement): Gl {
     throw new Error(`WebGL program: ${gl.getProgramInfoLog(program) ?? "link error"}`);
   }
   const texture = gl.createTexture();
+  const tdep = gl.createTexture();
   const names = [
     "volume", "boxLo", "boxSize", "eye", "forward", "right", "up", "tanHalf", "aspect",
-    "cutOn", "cutNormal", "cutOffset", "stepMm", "texel",
+    "cutOn", "cutNormal", "cutOffset", "stepMm", "texel", "tdepTex", "growthOn", "cutoff",
   ];
   const uniforms = Object.fromEntries(names.map((n) => [n, gl.getUniformLocation(program, n)]));
-  return { gl, program, texture, uniforms };
+  return { gl, program, texture, tdep, uniforms };
 }
 
 const FOV = 0.6; // vertical field of view, radians
@@ -129,10 +149,12 @@ export interface Volume3DProps {
   volume: VoxelVolume | null;
   plane: CutPlane | null;
   busy: boolean;
+  /** Share of formation time shown (1 = all), for the growth animation. */
+  growth: number;
 }
 
 /** A rotatable view of the volume: drag to turn, scroll to zoom. */
-export function Volume3D({ volume, plane, busy }: Volume3DProps) {
+export function Volume3D({ volume, plane, busy, growth }: Volume3DProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const glRef = useRef<Gl | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -183,6 +205,14 @@ export function Volume3D({ volume, plane, busy }: Volume3DProps) {
     for (const p of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T, gl.TEXTURE_WRAP_R]) {
       gl.texParameteri(gl.TEXTURE_3D, p, gl.CLAMP_TO_EDGE);
     }
+    // Deposition times, for the growth animation: exact per voxel, not blended.
+    gl.bindTexture(gl.TEXTURE_3D, g.tdep);
+    const times = volume.tdep ?? new Uint8Array(volume.nx * volume.ny * volume.nz);
+    gl.texImage3D(gl.TEXTURE_3D, 0, gl.R8, volume.nx, volume.ny, volume.nz, 0, gl.RED, gl.UNSIGNED_BYTE, times);
+    for (const p of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_3D, p, gl.NEAREST);
+    for (const p of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T, gl.TEXTURE_WRAP_R]) {
+      gl.texParameteri(gl.TEXTURE_3D, p, gl.CLAMP_TO_EDGE);
+    }
   }, [volume]);
 
 
@@ -220,6 +250,11 @@ export function Volume3D({ volume, plane, busy }: Volume3DProps) {
     gl.uniform1f(u.cutOffset ?? null, plane ? dot(plane.normal, plane.origin) : 0);
     gl.uniform1f(u.stepMm ?? null, 0.5 * volume.dx_mm);
     gl.uniform3fv(u.texel ?? null, [1 / volume.nx, 1 / volume.ny, 1 / volume.nz]);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_3D, g.tdep);
+    gl.uniform1i(u.tdepTex ?? null, 1);
+    gl.uniform1i(u.growthOn ?? null, volume.tdep && growth < 1 ? 1 : 0);
+    gl.uniform1f(u.cutoff ?? null, Math.round(Math.min(Math.max(growth, 0), 1) * 254));
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 

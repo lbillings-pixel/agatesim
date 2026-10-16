@@ -351,6 +351,8 @@ export interface VoxelVolume {
   origin_mm: [number, number, number];
   elapsed_ms: number;
   rgba: Uint8Array;
+  /** Deposition time per voxel (0..254 = time 0..1, 255 = never), for the growth animation. */
+  tdep: Uint8Array | null;
 }
 
 export interface SurveySummary {
@@ -385,8 +387,16 @@ export const volume = {
       signal,
     });
     if (!response.ok) throw new Error(await errorMessage(response));
-    const header = JSON.parse(response.headers.get("X-Volume") ?? "{}") as Omit<VoxelVolume, "rgba">;
-    return { ...header, rgba: new Uint8Array(await response.arrayBuffer()) };
+    const header = JSON.parse(response.headers.get("X-Volume") ?? "{}") as Omit<VoxelVolume, "rgba" | "tdep"> & {
+      tdep?: boolean;
+    };
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    const n = header.nx * header.ny * header.nz;
+    return {
+      ...header,
+      rgba: bytes.subarray(0, 4 * n),
+      tdep: header.tdep ? bytes.subarray(4 * n, 5 * n) : null,
+    };
   },
   survey: (config: VolumeConfig, cuts: number, resolution: number, signal?: AbortSignal) =>
     request<SurveyResult>("/api/volume/survey", {

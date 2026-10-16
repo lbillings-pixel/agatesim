@@ -295,7 +295,8 @@ button.link { border: 0; background: none; padding: 0; color: var(--accent); tex
   padding: 2px 6px;
   border-radius: 4px;
 }
-.growth { display: grid; grid-template-columns: auto 1fr 3.5rem; align-items: center; gap: 0.6rem; }
+.growth { display: grid; grid-template-columns: auto auto minmax(0, 1fr) 3.5rem auto auto; align-items: center; gap: 0.6rem; }
+.growth .play { min-width: 2.4rem; font-variant-numeric: tabular-nums; }
 .growth output { text-align: right; font-size: 0.85rem; }
 figcaption { font-size: 0.85rem; }
 .hint { color: var(--muted); }
