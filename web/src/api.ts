@@ -234,6 +234,7 @@ export interface TransectScore {
   recall: number | null;
   mean_offset_mm: number | null;
   tolerance_mm: number;
+  chance_recall: number | null;
 }
 
 export interface IdentifiedForm {
@@ -257,7 +258,7 @@ export interface SpecimenAnalysis {
   stats: BandStats;
   identification: IdentifiedForm[];
   not_from_photos: Record<string, string>;
-  transects: { traced: number[]; score: TransectScore }[];
+  transects: { traced: number[]; score: TransectScore; edges: number[]; edge_score: TransectScore }[];
 }
 
 export interface Replica {

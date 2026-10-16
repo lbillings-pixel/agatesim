@@ -42,6 +42,40 @@ from real photos. The owner offered to provide it by hand.
    - The server round-trips the lines and returns their scores.
    - The marking geometry has web unit tests.
 
+## Amendment (2026-10-15): first results, chance level, full-resolution edges
+
+The owner marked 164 boundaries along four lines on three photos. The marks
+are about 0.35 mm apart (median), finer than the 768-px analysis grid
+resolves. Results (summary numbers only, as the photos are private):
+
+- **Chance level.** With marks this close, randomly placed boundaries match many
+  of them. Each score now reports `chance_recall`, the mean recall of as many
+  boundaries placed uniformly between the first and last mark (200 seeded
+  draws). The minimum tolerance drops from 0.2 to 0.1 mm, which is about how
+  precisely a boundary can be clicked at full resolution.
+- **The band tracing** found 7–24% of the marks, close to chance. On finer
+  grids its recall rose, but its precision fell to 0.33–0.47.
+- **A full-resolution boundary detector** (`agatesim.specimen.edges`) works in the
+  photo's own pixels, about 0.07 mm each. It averages along the band direction,
+  and keeps colour changes across the bands that peak and reach half the
+  median peak strength.
+  - On the owner's lines it found 61–73% of the marks, against a chance level
+    of 24–35%, with a precision of 0.38–0.76.
+  - On a synthetic photo it found 0.83 of the marks, with a precision of 0.85.
+  - Its settings were chosen from about 20 tried on the same lines, so these
+    real-photo figures are somewhat optimistic.
+
+  The analysis now reports the detector's score next to the tracing's, and draws
+  its boundaries in orange. It finds boundary positions, not band regions, so it
+  doesn't replace the tracing behind the observed fields.
+
+**What the photos can give.** These photos have uneven lighting, wet surfaces
+and about 0.07 mm per pixel. Band positions can be measured from them to
+within this accuracy. Finer band statistics (thin-band spacing, ring closure)
+need better photos: higher magnification, even diffuse light and a polished
+dry face. The owner and Claude agreed to stop tuning photo band detection here
+and move to the other milestones.
+
 ## Consequences
 
 - The owner's marks become the benchmark for tuning the tracing: thin bands,

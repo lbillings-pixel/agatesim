@@ -405,6 +405,8 @@ td.num { white-space: nowrap; }
 .photo-overlay .mark { stroke: #ffd400; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
 .photo-overlay .traced { stroke: #00e5ff; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .photo-overlay .line-start { fill: #ffd400; }
+.photo-overlay .edge { stroke: #ff8c1a; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.legend-edge { color: #c25e00; font-weight: 600; }
 .legend-mark { color: #b38f00; font-weight: 600; }
 .legend-traced { color: #008fa3; font-weight: 600; }
 @media (max-width: 760px) {

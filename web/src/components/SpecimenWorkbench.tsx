@@ -22,6 +22,7 @@ const UP_CHOICES: [number, string][] = [
 type Clicking = "ruler" | "seed" | "line" | "marks" | null;
 
 const ZOOMS = [1, 2, 4];
+const pct = (x: number | null) => (x === null ? "—" : `${Math.round(100 * x)}%`);
 const SNAP_PX = 25; // clicks farther than this from the line are ignored while marking
 const SAME_SCREEN_PX = 1.5; // a click this close to a mark repeats it
 const REMOVE_SCREEN_PX = 8; // a right-click this close to a mark removes it
@@ -445,6 +446,11 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                             const [a, b] = tick(line, t, size.w / 140);
                             return <line key={`t${j}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="traced" />;
                           })}
+                          {analysis?.transects[i]?.edges.map((t, j) => {
+                            const [a] = tick(line, t, size.w / 140);
+                            const [, b] = tick(line, t, 0);
+                            return <line key={`e${j}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="edge" />;
+                          })}
                           {line.boundaries.map((t, j) => {
                             const [a, b] = tick(line, t, size.w / 200);
                             return <line key={`m${j}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="mark" />;
@@ -536,35 +542,48 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                   <h3>Hand-marked bands</h3>
                   <p className="small muted">
                     <span className="legend-mark">yellow</span>: your marks ·{" "}
-                    <span className="legend-traced">cyan</span>: boundaries the analysis traced along the same line.
-                    A traced boundary matches a mark within the tolerance shown.
+                    <span className="legend-traced">cyan</span>: boundaries of the traced bands along the same line ·{" "}
+                    <span className="legend-edge">orange</span>: boundaries detected at full resolution. A boundary
+                    matches a mark within the tolerance shown. Closely spaced marks are easy to hit by chance, so
+                    compare the recall with the chance level.
                   </p>
                   <table>
                     <thead>
                       <tr>
                         <th>Line</th>
+                        <th>Method</th>
                         <th>Marked</th>
-                        <th>Traced</th>
+                        <th>Found</th>
                         <th>Matched</th>
-                        <th>Found (recall)</th>
-                        <th>Correct (precision)</th>
+                        <th>Recall</th>
+                        <th>By chance</th>
+                        <th>Precision</th>
                         <th>Mean offset</th>
                         <th>Tolerance</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {analysis.transects.map(({ score: s }, i) => (
-                        <tr key={i}>
-                          <td>{i + 1}</td>
-                          <td className="num">{s.marked}</td>
-                          <td className="num">{s.traced}</td>
-                          <td className="num">{s.matched}</td>
-                          <td className="num">{s.recall === null ? "—" : `${Math.round(100 * s.recall)}%`}</td>
-                          <td className="num">{s.precision === null ? "—" : `${Math.round(100 * s.precision)}%`}</td>
-                          <td className="num">{s.mean_offset_mm === null ? "—" : `${s.mean_offset_mm.toFixed(2)} mm`}</td>
-                          <td className="num">{s.tolerance_mm.toFixed(2)} mm</td>
-                        </tr>
-                      ))}
+                      {analysis.transects.flatMap(({ score, edge_score }, i) =>
+                        (
+                          [
+                            ["Traced bands", score],
+                            ["Full-res edges", edge_score],
+                          ] as const
+                        ).map(([method, s]) => (
+                          <tr key={`${i}${method}`}>
+                            <td>{i + 1}</td>
+                            <td>{method}</td>
+                            <td className="num">{s.marked}</td>
+                            <td className="num">{s.traced}</td>
+                            <td className="num">{s.matched}</td>
+                            <td className="num">{pct(s.recall)}</td>
+                            <td className="num">{pct(s.chance_recall)}</td>
+                            <td className="num">{pct(s.precision)}</td>
+                            <td className="num">{s.mean_offset_mm === null ? "—" : `${s.mean_offset_mm.toFixed(2)} mm`}</td>
+                            <td className="num">{s.tolerance_mm.toFixed(2)} mm</td>
+                          </tr>
+                        )),
+                      )}
                     </tbody>
                   </table>
                 </>

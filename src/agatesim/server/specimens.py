@@ -19,13 +19,15 @@ from typing import Any
 import numpy as np
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
+from numpy.typing import NDArray
 from PIL import Image
 from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim.archetypes import Host
 from agatesim.render import render_slab
 from agatesim.simulate import simulate
-from agatesim.specimen.benchmark import Transect, compare
+from agatesim.specimen.benchmark import Transect, compare, score_along
+from agatesim.specimen.edges import EdgeMap, boundary_edges, edge_crossings
 from agatesim.specimen.fit import replicate
 from agatesim.specimen.identify import NOT_FROM_PHOTOS, identify
 from agatesim.specimen.observe import Observation, band_map, observe
@@ -67,9 +69,17 @@ def _data_uri(png: bytes) -> str:
     return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
 
 
-def _transect_json(obs: Observation, transect: Transect) -> dict[str, object]:
+def _transect_json(
+    obs: Observation, transect: Transect, edges: EdgeMap | None
+) -> dict[str, object]:
     traced, result = compare(obs, transect)
-    return {"traced": [round(t, 5) for t in traced], "score": result.to_json()}
+    found = edge_crossings(edges, transect) if edges else []
+    return {
+        "traced": [round(t, 5) for t in traced],
+        "score": result.to_json(),
+        "edges": [round(t, 5) for t in found],
+        "edge_score": score_along(obs, transect, found).to_json(),
+    }
 
 
 def specimen_router(folder: Path) -> APIRouter:
@@ -119,7 +129,22 @@ def specimen_router(folder: Path) -> APIRouter:
         observations[key] = obs
         if len(observations) > CACHE:
             observations.popitem(last=False)
-        return obs, {"mm_per_px": mm_per_px, "camera_height_mm": camera, "seg_outline": seg.outline}
+        return obs, {
+            "mm_per_px": mm_per_px,
+            "camera_height_mm": camera,
+            "seg_outline": seg.outline,
+            "seg_mask": seg.mask,
+        }
+
+    edge_cache: dict[str, EdgeMap] = {}
+
+    def edges_of(name: str, mask: NDArray[np.bool_]) -> EdgeMap:
+        key = name + str(hash(mask.tobytes()))
+        if key not in edge_cache:
+            full = load_photo(path_of(name).read_bytes(), 10**6)
+            edge_cache.clear()
+            edge_cache[key] = boundary_edges(full.rgb, mask, full.shape[1] / mask.shape[1])
+        return edge_cache[key]
 
     @router.get("")
     def list_specimens() -> list[dict[str, object]]:
@@ -195,6 +220,7 @@ def specimen_router(folder: Path) -> APIRouter:
     def analyse(name: str, settings: SpecimenSettings) -> dict[str, object]:
         obs, info = analyse_with(name, settings)
         result = obs.result
+        edges = edges_of(name, info["seg_mask"]) if settings.transects else None
         return {
             "mm_per_px": info["mm_per_px"],
             "camera_height_mm": info["camera_height_mm"],
@@ -206,7 +232,7 @@ def specimen_router(folder: Path) -> APIRouter:
             "stats": band_statistics(result).to_json(),
             "identification": [i.to_json() for i in identify(result)],
             "not_from_photos": NOT_FROM_PHOTOS,
-            "transects": [_transect_json(obs, t) for t in settings.transects],
+            "transects": [_transect_json(obs, t, edges) for t in settings.transects],
         }
 
     @router.post("/{name}/replicate")

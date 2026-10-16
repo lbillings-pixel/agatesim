@@ -20,8 +20,9 @@ from agatesim.grid import FloatArray
 from agatesim.specimen.observe import Observation
 
 MIN_RUN_PX = 2  # traced runs shorter than this (analysis pixels) are slivers, not bands
-MIN_TOLERANCE_MM = 0.2
+MIN_TOLERANCE_MM = 0.1  # about how well a boundary can be clicked at full resolution
 TOLERANCE_SHARE = 0.25  # of the median marked spacing
+CHANCE_DRAWS = 200
 
 
 class Transect(BaseModel):
@@ -45,6 +46,9 @@ class TransectScore:
     recall: float | None  # matched / marked
     mean_offset_mm: float | None
     tolerance_mm: float
+    # The recall as many boundaries placed at random (between the first and last
+    # mark) would get: closely spaced marks are easy to hit by chance.
+    chance_recall: float | None = None
 
     def to_json(self) -> dict[str, object]:
         return asdict(self)
@@ -91,6 +95,33 @@ def score(marked_mm: FloatArray, traced_mm: FloatArray) -> TransectScore:
     traced_mm = np.sort(np.asarray(traced_mm, dtype=np.float64))
     spacing = float(np.median(np.diff(marked_mm))) if len(marked_mm) > 1 else 0.0
     tolerance = max(MIN_TOLERANCE_MM, TOLERANCE_SHARE * spacing)
+    matched, offsets = _match(marked_mm, traced_mm, tolerance)
+    chance = None
+    if len(marked_mm):
+        rng = np.random.default_rng(0)
+        lo, hi = float(marked_mm[0]), float(marked_mm[-1])
+        hits = [
+            _match(marked_mm, rng.uniform(lo, hi, len(traced_mm)), tolerance)[0]
+            for _ in range(CHANCE_DRAWS)
+        ]
+        chance = float(np.mean(hits)) / len(marked_mm)
+    return TransectScore(
+        marked=len(marked_mm),
+        traced=len(traced_mm),
+        matched=matched,
+        missed=len(marked_mm) - matched,
+        extra=len(traced_mm) - matched,
+        precision=matched / len(traced_mm) if len(traced_mm) else None,
+        recall=matched / len(marked_mm) if len(marked_mm) else None,
+        mean_offset_mm=float(np.mean(offsets)) if offsets else None,
+        tolerance_mm=tolerance,
+        chance_recall=chance,
+    )
+
+
+def _match(
+    marked_mm: FloatArray, traced_mm: FloatArray, tolerance: float
+) -> tuple[int, list[float]]:
     pairs = sorted(
         (abs(m - s), i, j)
         for i, m in enumerate(marked_mm)
@@ -106,25 +137,19 @@ def score(marked_mm: FloatArray, traced_mm: FloatArray) -> TransectScore:
         used_m.add(i)
         used_t.add(j)
         offsets.append(d)
-    matched = len(offsets)
-    return TransectScore(
-        marked=len(marked_mm),
-        traced=len(traced_mm),
-        matched=matched,
-        missed=len(marked_mm) - matched,
-        extra=len(traced_mm) - matched,
-        precision=matched / len(traced_mm) if len(traced_mm) else None,
-        recall=matched / len(marked_mm) if len(marked_mm) else None,
-        mean_offset_mm=float(np.mean(offsets)) if offsets else None,
-        tolerance_mm=tolerance,
-    )
+    return len(offsets), offsets
 
 
 def compare(obs: Observation, transect: Transect) -> tuple[list[float], TransectScore]:
     """The traced boundaries along a transect (as t) and their score against the marks."""
     traced = traced_boundaries(obs, transect)
+    return traced, score_along(obs, transect, traced)
+
+
+def score_along(obs: Observation, transect: Transect, found: list[float]) -> TransectScore:
+    """Score boundaries found along a transect (as t) against its marks."""
     p0 = _to_world(obs, *transect.start)
     p1 = _to_world(obs, *transect.end)
     length = float(np.linalg.norm(p1 - p0))
     marked_mm = np.array(transect.boundaries, dtype=np.float64) * length
-    return traced, score(marked_mm, np.array(traced) * length)
+    return score(marked_mm, np.array(found, dtype=np.float64) * length)

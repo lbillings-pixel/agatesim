@@ -214,6 +214,8 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         assert scored["score"]["marked"] == 3
         assert scored["score"]["traced"] == len(scored["traced"]) > 0
         assert all(0 <= t <= 1 for t in scored["traced"])
+        assert scored["edge_score"]["traced"] == len(scored["edges"]) > 0
+        assert scored["edge_score"]["chance_recall"] is not None
         replica = c.post("/api/specimens/slab.jpg/replicate", json=settings).json()
         assert RunConfig.model_validate(replica["config"]).cavity.outline is not None
         assert replica["image"].startswith("data:image/png;base64,")

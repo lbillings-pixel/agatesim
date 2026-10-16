@@ -5,7 +5,8 @@ from __future__ import annotations
 import numpy as np
 
 from agatesim.config import load_preset
-from agatesim.specimen.benchmark import Transect, compare, score
+from agatesim.specimen.benchmark import Transect, compare, score, score_along
+from agatesim.specimen.edges import boundary_edges, edge_crossings
 from agatesim.specimen.observe import observe
 from agatesim.specimen.photo import load_photo
 from agatesim.specimen.segment import segment
@@ -51,3 +52,26 @@ def test_true_boundaries_marked_on_a_synthetic_photo_are_found() -> None:
     assert s.precision is not None
     assert s.recall > 0.6
     assert s.precision > 0.6
+    assert s.chance_recall is not None
+    assert s.recall > 2 * s.chance_recall
+
+    # The full-resolution boundary detector finds them too.
+    edges = boundary_edges(photo.rgb, seg.mask, 1.0)
+    e = score_along(obs, transect, edge_crossings(edges, transect))
+    assert e.recall is not None
+    assert e.precision is not None
+    assert e.chance_recall is not None
+    assert e.recall > 0.6
+    assert e.precision > 0.6
+    assert e.recall > 1.5 * e.chance_recall
+
+
+def test_chance_recall_grows_with_the_number_of_guesses() -> None:
+    marked = np.arange(0.0, 10.0, 0.5)
+    few = score(marked, np.array([3.0]))
+    many = score(marked, np.linspace(0.1, 9.4, 40))
+    assert few.chance_recall is not None
+    assert many.chance_recall is not None
+    assert few.chance_recall <= 1 / len(marked)
+    assert many.chance_recall > 0.3
+    assert score(marked, np.array([])).chance_recall == 0.0
