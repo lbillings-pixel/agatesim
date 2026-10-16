@@ -48,6 +48,8 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [zoom, setZoom] = useState(1);
+  const [noDetail, setNoDetail] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [active, setActive] = useState<number | null>(null);
   const [lineStart, setLineStart] = useState<Point | null>(null);
   const [saved, setSaved] = useState(true);
@@ -65,6 +67,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     setError(null);
     setSize(null);
     setZoom(1);
+    setNoDetail(false);
     setActive(null);
     setLineStart(null);
     setSaved(true);
@@ -333,13 +336,21 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                 disabled={active === null}
                 onClick={() => {
                   if (active === null) return;
+                  if (!confirmDelete) {
+                    setConfirmDelete(true); // a second click deletes
+                    return;
+                  }
                   const transects = settings.transects.filter((_, i) => i !== active);
                   setSettings({ ...settings, transects });
                   setActive(transects.length ? 0 : null);
+                  setConfirmDelete(false);
                   setSaved(false);
                 }}
+                onBlur={() => setConfirmDelete(false)}
               >
-                Delete line
+                {confirmDelete
+                  ? `Click again to delete this line (${settings.transects[active ?? 0]?.boundaries.length ?? 0} marks)`
+                  : "Delete line"}
               </button>
               <button
                 type="button"
@@ -392,7 +403,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                 <div className="photo-frame" style={{ width: `${zoom * 100}%` }}>
                   <img
                     ref={imgRef}
-                    src={zoom > 1 && size ? specimens.detailUrl(name) : specimens.photoUrl(name)}
+                    src={zoom > 1 && size && !noDetail ? specimens.detailUrl(name) : specimens.photoUrl(name)}
                     alt={`Specimen photo ${name}`}
                     className={clicking ? "clicking" : undefined}
                     onLoad={(e) => {
@@ -400,8 +411,10 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                       if (!size) setSize({ w: img.naturalWidth, h: img.naturalHeight }); // the working image
                     }}
                     onContextMenu={onRightClick}
-                    onError={() =>
-                      setError(
+                    onError={(e) =>
+                      e.currentTarget.src.endsWith("/detail")
+                        ? setNoDetail(true) // zoom the working image instead
+                        : setError(
                         "The photo didn't load. Check the terminal running agatesim for an error, then reload the page.",
                       )
                     }
