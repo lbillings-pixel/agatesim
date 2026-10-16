@@ -462,3 +462,17 @@ licence = "publisher copyright; cite only"
 checked = "abstract"
 topics = ["agate", "fractal", "hurst-exponent", "banding", "greyscale-profiles"]
 notes = "Greyscale profiles of an agate's coloured bands analysed by the width (standard deviation at different length scales) and bridge methods: self-affine over about two decades, Hurst exponents 0.36 ± 0.05 and 0.49 ± 0.05. Whether profiles ran across or along the bands, and the interpretation, are not in the abstract."
+
+[[references]]
+id = "moxon2013"
+kind = "article"
+authors = ["Moxon, T.", "Petrone, C. M.", "Reed, S. J. B."]
+year = 2013
+title = "Characterization and genesis of horizontal banding in Brazilian agate: an X-ray diffraction, thermogravimetric and electron microprobe study"
+venue = "Mineralogical Magazine 77(3), 227–248"
+doi = "10.1180/minmag.2013.077.3.02"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "abstract"
+topics = ["waterline", "uruguay-banding", "combined-form", "dating", "stage-order"]
+notes = "Paraná basalt agates with a lower horizontally banded section and an upper chamber of wall-parallel bands. Horizontal bands formed first (about 43–63 Ma), wall-lining bands 7–27 Myr later; the host is 135 Ma. Horizontal bands have more Al and larger crystallites, less moganite and defect water. Proposes a three-stage process: the two band types form separately, then later silica seals the gap to the wall. Read via the Cambridge abstract page (M9)."

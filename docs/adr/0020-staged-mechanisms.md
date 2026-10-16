@@ -18,8 +18,11 @@ process that switches by itself. Lu and Sunagawa [@lu1994] (abstract) propose
 that one silica solution does both. Small particles join the fibrous wall bands,
 while particles grown past a critical size stay in suspension and settle out
 later as Uruguay layers. Götze et al. [@goetze2020] §4.1.2 attribute Uruguay
-bands to gravitational settling of flocculated silica. No source read so far
-says what sets the moment of the switch.
+bands to gravitational settling of flocculated silica. In Brazilian agates the
+two stages are far apart in time. The horizontal bands formed about 43–63 Ma
+ago, and the wall-lining bands 7–27 Myr later [@moxon2013] (abstract). That
+fits stages set apart by a change in conditions. No source read so far says
+what sets the moment of the switch.
 
 ## Decision
 
