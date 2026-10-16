@@ -8,20 +8,28 @@ import json
 import threading
 import time
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 from PIL import Image
 from pydantic import BaseModel, Field
 
 from agatesim.criteria import evaluate, implemented
 from agatesim.render import render_slab
+from agatesim.runs import is_run_id
 from agatesim.server.jobs import Job, JobManager
 from agatesim.stages import stages_json
 from agatesim.stats import band_statistics
-from agatesim.volume.config import VolumeConfig, load_volume_preset, volume_preset_names
+from agatesim.volume.config import (
+    VolumeConfig,
+    load_volume_config,
+    load_volume_preset,
+    volume_preset_names,
+)
 from agatesim.volume.render import voxel_rgba
+from agatesim.volume.runs import list_volume_runs, volume_run_summary
 from agatesim.volume.simulate import VolumeSimulation, prepare_volume
 from agatesim.volume.solids import SOLID_PRESETS
 from agatesim.volume.survey import survey
@@ -98,9 +106,15 @@ def _tdep_image(t_dep: np.ndarray) -> Image.Image:
     return Image.fromarray(coded)
 
 
-def volume_router(jobs: JobManager) -> APIRouter:
+def volume_router(jobs: JobManager, runs_dir: Path) -> APIRouter:
     router = APIRouter(prefix="/api/volume")
     prepared = _Prepared()
+
+    def run_dir(run_id: str) -> Path:
+        path = runs_dir / run_id
+        if not is_run_id(run_id) or not (path / "metadata.json").exists():
+            raise HTTPException(404, f"no run {run_id!r}")
+        return path
 
     @router.get("/meta")
     def meta() -> dict[str, object]:
@@ -196,5 +210,30 @@ def volume_router(jobs: JobManager) -> APIRouter:
         if request.config.grid.resolution > MAX_RUN_RESOLUTION:
             raise HTTPException(422, f"resolution is limited to {MAX_RUN_RESOLUTION} voxels")
         return jobs.submit_volume(request.config, request.survey_cuts)
+
+    @router.get("/runs")
+    def runs() -> list[dict[str, object]]:
+        """Saved 3D runs, newest first (the 2D run browser lists only 2D runs)."""
+        return list_volume_runs(runs_dir)
+
+    @router.get("/runs/{run_id}")
+    def run(run_id: str) -> dict[str, object]:
+        path = run_dir(run_id)
+        try:
+            summary = volume_run_summary(path)
+        except ValueError as error:
+            raise HTTPException(404, str(error)) from error
+        details: dict[str, object] = {
+            "summary": summary,
+            "config": load_volume_config(path / "config.toml").model_dump(mode="json"),
+        }
+        for name in ("metrics", "survey", "stats"):
+            file = path / f"{name}.json"
+            details[name] = json.loads(file.read_text("utf-8")) if file.exists() else None
+        return details
+
+    @router.get("/runs/{run_id}/slab.png")
+    def run_slab(run_id: str) -> FileResponse:
+        return FileResponse(run_dir(run_id) / "slab.png", media_type="image/png")
 
     return router

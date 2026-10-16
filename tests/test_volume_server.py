@@ -73,5 +73,16 @@ def test_survey_and_a_full_run(client: TestClient, tmp_path: Path) -> None:
     run = tmp_path / job["run_id"]
     assert (run / "slab.png").exists()
     assert json.loads((run / "metadata.json").read_text())["kind"] == "volume"
-    # 3D runs don't confuse the 2D run browser.
+    # 3D runs don't confuse the 2D run browser, and have their own list.
     assert job["run_id"] not in {r["id"] for r in client.get("/api/runs").json()}
+    listed = client.get("/api/volume/runs").json()
+    assert [r["id"] for r in listed] == [job["run_id"]]
+    assert listed[0]["solid"] == load_volume_preset("waterline-3d").solid.label
+    assert listed[0]["model"] == config["model"]["kind"]  # pyright: ignore[reportIndexIssue]
+    details = client.get(f"/api/volume/runs/{job['run_id']}").json()
+    assert details["config"]["name"] == config["name"]
+    assert details["summary"]["passed"] == details["metrics"]["passed"]
+    slab = client.get(f"/api/volume/runs/{job['run_id']}/slab.png")
+    assert slab.status_code == 200
+    assert slab.content[1:4] == b"PNG"
+    assert client.get("/api/volume/runs/not-a-run").status_code == 404

@@ -10,6 +10,7 @@ import {
   type SurveyResult,
   type VolumeConfig,
   type VolumeMeta,
+  type VolumeRunSummary,
   type VoxelVolume,
   volume as volumeApi,
 } from "../api";
@@ -22,6 +23,7 @@ import { ParamPanel, Slider } from "./ParamPanel";
 import { SlabView, slabSource, useSlabPixels } from "./SlabView";
 import { StatsPanel } from "./StatsPanel";
 import { Volume3D, type Volume3DHandle } from "./Volume3D";
+import { VolumeRuns } from "./VolumeRuns";
 
 const CUT_RESOLUTIONS = [256, 384, 512, 768];
 const VIEW_RESOLUTIONS = [64, 96, 128];
@@ -108,6 +110,8 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   const [runRes, setRunRes] = useState(192);
   const [job, setJob] = useState<Job | null>(null);
   const [growth, setGrowth] = useState(1);
+  const [savedRuns, setSavedRuns] = useState<VolumeRunSummary[]>([]);
+  const [opening, setOpening] = useState<string | null>(null);
   const view3d = useRef<Volume3DHandle | null>(null);
   const cutPixels = useSlabPixels(cut?.image ?? "", cut?.tdep ?? "");
 
@@ -177,6 +181,12 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   const surveyKey = `${formationKey}|${config?.archetype ?? ""}`;
   const survey = surveyed?.key === surveyKey ? surveyed.result : null;
 
+  // Saved runs: on opening the screen, and again when a run finishes.
+  useEffect(() => {
+    if (job && job.status !== "done") return;
+    volumeApi.runs().then(setSavedRuns, () => undefined);
+  }, [job]);
+
   // Follow a full run until it finishes.
   useEffect(() => {
     if (!job || job.status === "done" || job.status === "failed") return;
@@ -218,6 +228,16 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
         (e: unknown) => setError(e instanceof Error ? e.message : String(e)),
       )
       .finally(() => setSurveyBusy(false));
+  };
+  const openRun = (id: string) => {
+    setOpening(id);
+    volumeApi
+      .run(id)
+      .then(
+        (detail) => setConfig(detail.config),
+        (e: unknown) => setError(e instanceof Error ? e.message : String(e)),
+      )
+      .finally(() => setOpening(null));
   };
   const startRun = () => {
     volumeApi
@@ -454,6 +474,8 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
             </span>
           )}
         </section>
+
+        <VolumeRuns runs={savedRuns} opening={opening} onOpen={openRun} />
       </main>
     </div>
   );

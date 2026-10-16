@@ -25,8 +25,9 @@ import zarr
 from agatesim import __version__
 from agatesim.criteria import Evaluation, evaluate, implemented
 from agatesim.render import render_slab, to_png_image
-from agatesim.runs import LIBRARIES, git_state
+from agatesim.runs import LIBRARIES, git_state, is_run_id
 from agatesim.stats import band_statistics
+from agatesim.volume.config import load_volume_config
 from agatesim.volume.simulate import VolumeSimulation
 from agatesim.volume.survey import Survey
 
@@ -102,3 +103,55 @@ def write_volume_run(
         },
     )
     return path, evaluation
+
+
+def _read_json(path: Path) -> dict[str, object] | None:
+    if not path.exists():
+        return None
+    data: object = json.loads(path.read_text("utf-8"))
+    return data if isinstance(data, dict) else None  # pyright: ignore[reportUnknownVariableType]
+
+
+def volume_run_summary(path: Path) -> dict[str, object]:
+    """What the run browser shows for a 3D run: name, when, solid, model, and how
+    the configured cut and any random-cut survey were judged."""
+    meta = _read_json(path / "metadata.json") or {}
+    if meta.get("kind") != "volume":
+        raise ValueError(f"{path.name} is not a 3D run")
+    config = load_volume_config(path / "config.toml")
+    metrics = _read_json(path / "metrics.json")
+    survey = _read_json(path / "survey.json")
+    summary = survey.get("summary") if survey else None
+    grid = meta.get("grid")
+    return {
+        "id": path.name,
+        "name": config.name,
+        "started_utc": meta.get("started_utc"),
+        "elapsed_s": meta.get("elapsed_s"),
+        "solid": config.solid.label,
+        "model": config.model.kind,
+        "archetype": config.archetype,
+        "passed": None if metrics is None else bool(metrics.get("passed")),
+        "survey": None
+        if not isinstance(summary, dict)
+        else {
+            "cuts": summary.get("cuts"),  # pyright: ignore[reportUnknownMemberType]
+            "pass_rate": summary.get("pass_rate"),  # pyright: ignore[reportUnknownMemberType]
+        },
+        "grid": grid,
+    }
+
+
+def list_volume_runs(out_dir: Path) -> list[dict[str, object]]:
+    """3D runs in `out_dir`, newest first; 2D runs and unreadable directories are skipped."""
+    if not out_dir.is_dir():
+        return []
+    found: list[dict[str, object]] = []
+    for path in out_dir.iterdir():
+        if not (is_run_id(path.name) and (path / "metadata.json").exists()):
+            continue
+        try:
+            found.append(volume_run_summary(path))
+        except (OSError, ValueError, KeyError):
+            continue
+    return sorted(found, key=lambda r: str(r["started_utc"]), reverse=True)

@@ -374,6 +374,24 @@ export interface SurveyResult {
   elapsed_ms: number;
 }
 
+export interface VolumeRunSummary {
+  id: string;
+  name: string;
+  started_utc: string;
+  elapsed_s: number;
+  solid: string;
+  model: string;
+  archetype: string | null;
+  passed: boolean | null;
+  survey: { cuts: number; pass_rate: number | null } | null;
+  grid: { nx: number; ny: number; nz: number; dx_mm: number };
+}
+
+export interface VolumeRunDetail {
+  summary: VolumeRunSummary;
+  config: VolumeConfig;
+}
+
 export const volume = {
   meta: () => request<VolumeMeta>("/api/volume/meta"),
   cut: (config: VolumeConfig, resolution: number, signal?: AbortSignal) =>
@@ -412,6 +430,9 @@ export const volume = {
       method: "POST",
       body: JSON.stringify({ config, survey_cuts: surveyCuts }),
     }),
+  runs: () => request<VolumeRunSummary[]>("/api/volume/runs"),
+  run: (id: string) => request<VolumeRunDetail>(`/api/volume/runs/${id}`),
+  slabUrl: (id: string) => `/api/volume/runs/${id}/slab.png`,
 };
 
 export const api = {

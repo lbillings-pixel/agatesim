@@ -305,7 +305,7 @@ def create_app(
         return Response(_png(encode_tdep(t_dep)), media_type="image/png")
 
     app.include_router(specimen_router(specimens_dir or runs_dir.parent / "specimens"))
-    app.include_router(volume_router(jobs))
+    app.include_router(volume_router(jobs, runs_dir))
 
     if static_dir is not None and (static_dir / "index.html").exists():
         app.mount("/", _FreshPage(directory=static_dir, html=True), name="ui")
