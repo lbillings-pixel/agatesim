@@ -1,4 +1,4 @@
-"""The combined form from chained mechanistic stages (H1 wall, H4 floor)."""
+"""The combined form from chained mechanistic stages (H1 or H2 wall, H4 floor)."""
 
 from __future__ import annotations
 
@@ -79,3 +79,39 @@ def test_preview_matches_full_run() -> None:
     (h_full, w_full), (h_prev, w_prev) = counts(full), counts(preview)
     assert abs(h_full - h_prev) <= 2
     assert abs(w_full - w_prev) <= 0.3 * w_full
+
+
+def test_liesegang_walls_after_a_settled_floor() -> None:
+    """H2 as the wall mechanism (ADR 0033): after the floor stage, Liesegang
+    bands fill the open space above it, so the sequence reads floor then wall.
+    A coarse lattice keeps the CPU run short."""
+    from agatesim.models.liesegang import Liesegang
+
+    config = load_preset("fortification-waterline-mechanistic").with_resolution(RESOLUTION)
+    model = config.model.model_copy(
+        update={
+            "order": "floor-wall",
+            "wall_mechanism": "liesegang",
+            "liesegang": Liesegang(lattice_mm=0.25),
+        }
+    )
+    result = simulate(config.model_copy(update={"model": model}))
+    ev = evaluate("fortification-waterline", result)
+    staged = next(r for r in ev.results if r.id == "staged")
+    assert staged.detail == SEQUENCES["floor-wall"]
+    mask = result.domain.mask
+    assert (result.fields.phase[mask] != Phase.VOID).mean() > 0.99
+
+
+def test_3d_staging_keeps_front_feedback_walls() -> None:
+    from agatesim.volume.config import SolidConfig, VolumeConfig
+
+    staged = load_preset("fortification-waterline-mechanistic").model
+    with pytest.raises(ValueError, match="front feedback"):
+        VolumeConfig(
+            name="x",
+            seed=0,
+            archetype=None,
+            solid=SolidConfig(preset="vesicle-round", size_mm=20),
+            model=staged.model_copy(update={"wall_mechanism": "liesegang"}),
+        )

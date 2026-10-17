@@ -150,11 +150,43 @@ def bands_by_arrival(
     return np.where(inside, switches[which], -1).astype(np.int32)
 
 
-def run_liesegang(params: Liesegang, domain: Domain, rng: np.random.Generator) -> Fields:
+def run_liesegang(
+    params: Liesegang,
+    domain: Domain,
+    rng: np.random.Generator,
+    region: np.ndarray | None = None,
+) -> Fields:
+    """H2 in the cavity, or only in `region` (output pixels; for a later stage,
+    the space earlier stages left open). The reactant then enters through every
+    surface of the region, earlier deposits included (an assumption)."""
     del rng  # deterministic
     lattice = _lattice_grid(domain, params.lattice_mm)
     lat_domain = Domain.build(domain.cavity, lattice)
     inside = lat_domain.mask
+    if region is not None:
+        # the region at the lattice cell centres (nearest output pixel)
+        lx, ly = lattice.coords()
+        cols = np.clip(((lx - domain.grid.x0) / domain.grid.dx).astype(int), 0, domain.grid.nx - 1)
+        rows = np.clip(((domain.grid.y1 - ly) / domain.grid.dx).astype(int), 0, domain.grid.ny - 1)
+        inside = inside & region[rows, cols]
+        lat_domain = Domain(
+            cavity=domain.cavity,
+            grid=lattice,
+            mask=inside,
+            wall_distance=_scipy.distance_to_false(inside, lattice.dx),
+        )
+    if not inside.any():  # the region is thinner than a lattice cell: nothing forms
+        empty = np.full(domain.grid.shape, Phase.HOST, dtype=np.uint8)
+        empty[domain.mask] = Phase.VOID
+        return Fields(
+            phase=empty,
+            band=np.full(domain.grid.shape, -1, dtype=np.int32),
+            impurity=np.zeros(domain.grid.shape, dtype=np.float32),
+            translucency=np.zeros(domain.grid.shape, dtype=np.float32),
+            t_dep=np.full(domain.grid.shape, np.nan, dtype=np.float32),
+            grain=np.full(domain.grid.shape, -1, dtype=np.int32),
+            micro_spacing_um=np.full(domain.grid.shape, np.nan, dtype=np.float32),
+        )
     depth = np.where(inside, lat_domain.wall_distance, -1.0)
     deepest = np.unravel_index(int(np.argmax(depth)), depth.shape)
     xp = _rd.array_module()
@@ -190,7 +222,7 @@ def run_liesegang(params: Liesegang, domain: Domain, rng: np.random.Generator) -
     cols = np.clip(((xx - lattice.x0) / lattice.dx).astype(int), 0, lattice.shape[1] - 1)
     rows = np.clip(((lattice.y1 - yy) / lattice.dx).astype(int), 0, lattice.shape[0] - 1)
     rows, cols = near_r[rows, cols], near_c[rows, cols]
-    mask = domain.mask
+    mask = domain.mask if region is None else domain.mask & region
     out_band = np.where(mask, band[rows, cols], -1).astype(np.int32)
     out_stain = np.where(mask, stain[rows, cols], 0.0)
     out_t = np.where(mask, t_dep[rows, cols], np.nan)

@@ -203,6 +203,8 @@ class VolumeConfig(BaseModel):
             raise ValueError(
                 "in 3D, gravity is set by `gravity.tilt_deg` and `gravity.azimuth_deg`"
             )
+        if isinstance(model, Staged) and model.wall_mechanism != "front-feedback":
+            raise ValueError("in 3D, staged wall bands use front feedback (H1) only")
         if isinstance(model, ProceduralFortification) and model.corner_rounding_mm > 0:
             raise ValueError("corner rounding isn't available in 3D")
         if self.solid.filaments and not isinstance(model, ProceduralGrowth):

@@ -1,4 +1,4 @@
-"""Mechanistic combined form: wall-lining (H1) and settled floor (H4) stages.
+"""Mechanistic combined form: wall-lining (H1 or H2) and settled floor (H4) stages.
 
 Agates that show both forms record a change in conditions during filling: a
 wall-parallel rim, then horizontal layers settled on the floor, then often more
@@ -13,6 +13,10 @@ This model chains the two verified mechanisms in the order given:
   inward from every solid surface: the cavity wall and whatever earlier stages
   left. The first wall stage stops when it has filled `rim_share` of the
   cavity, and the last runs until the space is full or its silica runs out.
+  With `wall_mechanism = "liesegang"`, Liesegang precipitation (H2,
+  `agatesim.models.liesegang`) fills the wall stages instead; in a later stage
+  its reactant enters through every surface of the open space, earlier
+  deposits included (an assumption).
 - **floor**: hindered settling (H4, `agatesim.models.settling`) packs pulses of
   particles up from the lowest point of the open space left so far.
 
@@ -33,10 +37,12 @@ from agatesim import _scipy
 from agatesim.fields import Fields, Phase
 from agatesim.models.base import Domain
 from agatesim.models.front_feedback import FrontFeedback, run_front_feedback
+from agatesim.models.liesegang import Liesegang, run_liesegang
 from agatesim.models.settling import Settling, run_settling
 from agatesim.params import Nature, param
 
 Order = Literal["wall-floor-wall", "wall-floor", "floor-wall"]
+WallMechanism = Literal["front-feedback", "liesegang"]
 STAGE_SPAN = 0.999  # of a stage's time slot, so stages never share a deposition time
 
 
@@ -64,7 +70,14 @@ class Staged(BaseModel):
             "change (the timing of that change, not a property of any band)."
         ),
     )
+    wall_mechanism: WallMechanism = Field(
+        default="front-feedback",
+        description="What makes the wall-lining bands: front feedback (H1) or Liesegang (H2).",
+    )
     wall: FrontFeedback = Field(default_factory=FrontFeedback, description="The H1 wall stages.")
+    liesegang: Liesegang = Field(
+        default_factory=Liesegang, description="The H2 wall stages (wall_mechanism = liesegang)."
+    )
     floor: Settling = Field(default_factory=Settling, description="The H4 floor stage.")
 
     def gravity(self) -> NDArray[np.float64]:
@@ -99,7 +112,11 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
             break
         if stage == "wall":
             sub = _sub_domain(domain, open_space)
-            fields = run_front_feedback(params.wall, sub, stage_rng)
+            if params.wall_mechanism == "liesegang":
+                region = None if np.array_equal(open_space, domain.mask) else open_space
+                fields = run_liesegang(params.liesegang, domain, stage_rng, region=region)
+            else:
+                fields = run_front_feedback(params.wall, sub, stage_rng)
             grown = open_space & (fields.phase != Phase.VOID)
             if i == 0 and i < len(stages) - 1:
                 # The first wall stage stops when it has filled the rim's share.

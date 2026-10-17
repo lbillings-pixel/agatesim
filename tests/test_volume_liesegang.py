@@ -18,7 +18,9 @@ def _ball(n: int) -> np.ndarray:
     return (x - c) ** 2 + (y - c) ** 2 + (z - c) ** 2 < (n / 2 - 1) ** 2
 
 
-def _run(xp: object, n: int, steps: int) -> tuple[np.ndarray, np.ndarray, int]:
+def _run(
+    xp: object, n: int, steps: int, isotropic: bool = True
+) -> tuple[np.ndarray, np.ndarray, int]:
     c = n // 2
     return _rd.liesegang3(
         xp,
@@ -33,6 +35,7 @@ def _run(xp: object, n: int, steps: int) -> tuple[np.ndarray, np.ndarray, int]:
         growth=0.05,
         deepest=(c, c, c),
         max_steps=steps,
+        isotropic=isotropic,
     )
 
 
@@ -50,13 +53,39 @@ def test_the_front_enters_from_every_wall() -> None:
     assert (p > 0).any()
 
 
-def test_gpu_matches_cpu() -> None:
+def _moments(isotropic: bool) -> tuple[float, float, float]:
+    """Second moment, fourth moment and mixed fourth moment of the stencil."""
+    vectors, weights = _rd.stencil3(isotropic)
+    v = np.array(vectors, dtype=float)
+    w = np.array(weights)
+    return (
+        float(w @ v[:, 2] ** 2),
+        float(w @ v[:, 2] ** 4),
+        float(w @ (v[:, 2] ** 2 * v[:, 1] ** 2)),
+    )
+
+
+def test_the_19_point_laplacian_is_isotropic() -> None:
+    """A stencil approximates the Laplacian when its second moment along an axis
+    is 2; its error is the same in every direction when the fourth moment equals
+    three times the mixed one (sum w x^4 = 3 sum w x^2 y^2). The six-neighbour
+    stencil of ADR 0027 is the negative control: it favours the axes."""
+    second, fourth, mixed = _moments(isotropic=True)
+    assert second == pytest.approx(2.0)
+    assert fourth == pytest.approx(3 * mixed)
+    second6, fourth6, mixed6 = _moments(isotropic=False)
+    assert second6 == pytest.approx(2.0)
+    assert fourth6 != pytest.approx(3 * mixed6)
+
+
+@pytest.mark.parametrize("isotropic", [True, False])
+def test_gpu_matches_cpu(isotropic: bool) -> None:
     cupy = pytest.importorskip("cupy")
     if _rd.array_module(prefer_gpu=True) is np:
         pytest.skip("no usable GPU")
     n = 26
-    a = _run(np, n, 500)
-    b = _run(cupy, n, 500)
+    a = _run(np, n, 500, isotropic)
+    b = _run(cupy, n, 500, isotropic)
     assert np.allclose(a[0], b[0], atol=1e-12)
     assert a[2] == b[2]
 

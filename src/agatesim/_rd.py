@@ -141,6 +141,22 @@ def liesegang(
     return to_numpy(p)[1:-1, 1:-1], to_numpy(first)[1:-1, 1:-1], step
 
 
+def stencil3(isotropic: bool) -> tuple[list[tuple[int, int, int]], tuple[float, ...]]:
+    """Neighbour offsets (dz, dy, dx) and weights of the 3D Laplacian (lattice
+    units): the 19-point stencil (faces 1/3, edges 1/6), isotropic to fourth
+    order, or the six face neighbours (weight 1)."""
+    faces = [(-1, 0, 0), (1, 0, 0), (0, -1, 0), (0, 1, 0), (0, 0, -1), (0, 0, 1)]
+    if not isotropic:
+        return faces, (1.0,) * 6
+    pm = (-1, 1)
+    edges = (
+        [(i, j, 0) for i in pm for j in pm]
+        + [(i, 0, j) for i in pm for j in pm]
+        + [(0, i, j) for i in pm for j in pm]
+    )
+    return faces + edges, (1 / 3,) * 6 + (1 / 6,) * 12
+
+
 def liesegang3(
     xp: Any,
     inside: np.ndarray,
@@ -156,19 +172,30 @@ def liesegang3(
     deepest: tuple[int, int, int],
     max_steps: int,
     record_every: int = 50,
+    isotropic: bool = True,
 ) -> tuple[np.ndarray, np.ndarray, int]:
-    """The kinetics of `liesegang` on a 3D lattice (six neighbours). One fused
-    CUDA kernel per step on a GPU; vectorised NumPy otherwise (slow; tests use
-    small lattices). Returns precipitate, front arrival time and step count."""
+    """The kinetics of `liesegang` on a 3D lattice. One fused CUDA kernel per
+    step on a GPU; vectorised NumPy otherwise (slow; tests use small lattices).
+    Returns precipitate, front arrival time and step count.
+
+    `isotropic` (the default) uses the 19-point Laplacian (face neighbours
+    weighted 1/3, edge neighbours 1/6), whose error is the same in every
+    direction to fourth order, and lets precipitate spread to face and edge
+    neighbours. With False, the six face neighbours of ADR 0027, whose
+    error and spreading favour the lattice axes, so the spots line up with them."""
     m = np.pad(inside, 1)
     shape = m.shape
     n = m.size
     plane = shape[1] * shape[2]
     width = shape[2]
     deep = ((deepest[0] + 1) * shape[1] + deepest[1] + 1) * shape[2] + deepest[2] + 1
-    dt = 0.15 / max(1.0, d_b, d_c)  # six neighbours: a smaller stable step than in 2D
+    dt = 0.15 / max(1.0, d_b, d_c)  # stable for both stencils (19-point: dt < 0.375)
+    vectors, weights = stencil3(isotropic)
+    offsets = tuple(dz * plane + dy * width + dx for dz, dy, dx in vectors)
     if xp is not np and hasattr(xp, "RawKernel"):
         kernel = xp.RawKernel(_STEP3_SOURCE, "liesegang_step3")
+        off_d = xp.asarray(np.array(offsets, dtype=np.int64))
+        w_d = xp.asarray(np.array(weights, dtype=np.float64))
         mask = xp.asarray(m.astype(np.uint8)).ravel()
         fields = [xp.zeros(n, dtype=xp.float64) for _ in range(4)]
         fields[1] = mask.astype(xp.float64)
@@ -177,7 +204,7 @@ def liesegang3(
         threads = 256
         blocks = (n + threads - 1) // threads
         args = (
-            np.int32(n), np.int32(width), np.int32(plane), np.float64(dt), np.float64(a0),
+            np.int32(n), off_d, w_d, np.int32(len(offsets)), np.float64(dt), np.float64(a0),
             np.float64(d_b), np.float64(d_c), np.float64(rate), np.float64(nucleation),
             np.float64(spreading), np.float64(solubility), np.float64(growth),
         )  # fmt: skip
@@ -196,9 +223,8 @@ def liesegang3(
     # NumPy: the same update on flat arrays.
     ins = m.ravel().astype(bool)
     idx = np.flatnonzero(ins)
-    offsets = (-plane, plane, -width, width, -1, 1)
     nb_inside = [ins[idx + o] for o in offsets]
-    walls = sum((~ni).astype(np.float64) for ni in nb_inside)
+    walls = sum(w * (~ni).astype(np.float64) for w, ni in zip(weights, nb_inside, strict=True))
     a = np.zeros(n)
     b = ins.astype(np.float64)
     c = np.zeros(n)
@@ -211,11 +237,11 @@ def liesegang3(
         lb = np.zeros_like(ai)
         lc = np.zeros_like(ai)
         near = pi > 0
-        for o, ni in zip(offsets, nb_inside, strict=True):
+        for o, w, ni in zip(offsets, weights, nb_inside, strict=True):
             j = idx + o
-            la += np.where(ni, a[j] - ai, 0.0)
-            lb += np.where(ni, b[j] - bi, 0.0)
-            lc += np.where(ni, c[j] - ci, 0.0)
+            la += np.where(ni, w * (a[j] - ai), 0.0)
+            lb += np.where(ni, w * (b[j] - bi), 0.0)
+            lc += np.where(ni, w * (c[j] - ci), 0.0)
             near |= ni & (p[j] > 0)
         r = np.minimum(rate * ai * bi, 0.5 * np.minimum(ai, bi) / dt)
         nucleated = (ci >= nucleation) | ((pi > 0) & (ci > solubility)) | (near & (ci > spreading))
@@ -236,24 +262,26 @@ _STEP3_SOURCE = r"""
 extern "C" __global__ void liesegang_step3(
     const double* a, const double* b, const double* c, const double* p,
     double* a2, double* b2, double* c2, double* p2, const unsigned char* inside,
-    const int n, const int width, const int plane, const double dt, const double a0,
+    const int n, const long long* offsets, const double* weights, const int count,
+    const double dt, const double a0,
     const double d_b, const double d_c, const double rate, const double nucleation,
     const double spreading, const double solubility, const double growth)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i >= n) return;
     if (!inside[i]) { a2[i] = a[i]; b2[i] = b[i]; c2[i] = c[i]; p2[i] = p[i]; return; }
-    // The same order as the NumPy path; the lattice is padded on every side.
-    const int nb[6] = {i - plane, i + plane, i - width, i + width, i - 1, i + 1};
+    // The same order and weights as the NumPy path; the lattice is padded on
+    // every side, so face and edge neighbours of an inside cell are in bounds.
     double la = 0.0, lb = 0.0, lc = 0.0, walls = 0.0;
     bool near = p[i] > 0.0;
-    for (int k = 0; k < 6; ++k) {
-        const int j = nb[k];
+    for (int k = 0; k < count; ++k) {
+        const long long j = i + offsets[k];
+        const double w = weights[k];
         if (inside[j]) {
-            la += a[j] - a[i]; lb += b[j] - b[i]; lc += c[j] - c[i];
+            la += w * (a[j] - a[i]); lb += w * (b[j] - b[i]); lc += w * (c[j] - c[i]);
             if (p[j] > 0.0) near = true;
         } else {
-            walls += 1.0;
+            walls += w;
         }
     }
     la += walls * (a0 - a[i]);
