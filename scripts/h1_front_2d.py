@@ -41,7 +41,8 @@ values now taken from a fit along the normal):
   the plain 5-point Laplacian with ghost values at solid neighbours, so the flux
   condition holds at the true front position, not at a node.
 - Mirror (no-flux) outer boundaries. Explicit Euler; dt = 0.2 h² / max(D, 1),
-  also limited by the curvature term. U is clamped at zero (no dissolution).
+  also limited by the curvature term, and shrunk so the front moves at most 5%
+  of a cell per step. U is clamped at zero (no dissolution).
 - Every node the front passes records its deposition time, speed, coverage and
   incorporated impurity K(U) a_f: the band record.
 
@@ -351,6 +352,7 @@ class Front2D:
         # coefficient g_s γ (g_s = ∂U/∂s); keep that explicit step stable too
         if gamma_k > 0:
             self.dt = min(self.dt, 0.1 * h * h / (st["g_s"] * gamma_k))
+        self.dt0 = self.dt  # the largest stable step; run() shrinks it for fast fronts
         self.t = 0.0
         phi = np.asarray(phi0, dtype=float)
         dist = np.maximum(phi, 0.0)
@@ -471,17 +473,19 @@ class Front2D:
 
     def run(self, t_end: float, every: float, probe) -> list:
         """Advance to t_end, re-initialising as the front moves; call probe(self)
-        every `every` time units and collect what it returns."""
+        every `every` time units and collect what it returns. The step shrinks
+        when the front speeds up, so it never moves more than 5% of a cell per
+        step (switch-like catalysis can make a corner run very fast)."""
         out = []
         next_probe = self.t
-        umax = 0.0
         since = 0
         while self.t < t_end:
             self.step()
             since += 1
-            if since % 50 == 0:
+            if since % 5 == 0:
                 umax = float(cp.max(cp.abs(self.U.ravel()[self.idx])))
-                self._moved += umax * 50 * self.dt
+                self._moved += umax * 5 * self.dt
+                self.dt = min(self.dt0, 0.05 * self.h / max(umax, 1e-12))
                 if self._moved > 0.25 * self.h:
                     self.reinitialise()
                     self._moved = 0.0
