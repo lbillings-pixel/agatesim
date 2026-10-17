@@ -1,5 +1,5 @@
 import type { Nature } from "../api";
-import { type Choice, type Control, type Field, formatValue } from "../lib/schema";
+import { type Choice, type Control, type Field, formatValue, isUsed } from "../lib/schema";
 
 const NATURE_HELP: Record<Nature, string> = {
   physical: "A measurable environmental condition.",
@@ -79,11 +79,13 @@ interface Props {
 }
 
 /** A model's settings: sliders for numbers, menus for choices, and a collapsible
- * section for each nested model (such as one stage of a staged model). */
+ * section for each nested model (such as one stage of a staged model). Settings
+ * that don't matter for the current choices (a stage the order leaves out) are
+ * hidden. */
 export function ParamPanel({ fields, values, onChange, idPrefix = "param" }: Props) {
   return (
     <div className="params">
-      {fields.map((f) => {
+      {fields.filter((f) => isUsed(f, values, fields)).map((f) => {
         const id = `${idPrefix}-${f.key}`;
         const value = values[f.key];
         switch (f.type) {

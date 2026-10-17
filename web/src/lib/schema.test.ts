@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import type { ModelSchema } from "../api";
+
 import {
-  controlFor, controlsFor, defaultsFor, fieldsFor, formatValue, labelFor, niceStep, withSetting,
+  controlFor, controlsFor, defaultsFor, fieldsFor, formatValue, isUsed, labelFor, niceStep, withSetting,
 } from "./schema";
 
 describe("labelFor", () => {
@@ -75,7 +77,7 @@ describe("formatValue", () => {
 
 describe("fieldsFor", () => {
   // The shape of a staged model's pydantic schema, cut down.
-  const schema = {
+  const schema: ModelSchema = {
     properties: {
       kind: { type: "string", const: "mechanistic-staged" },
       order: { type: "string", default: "wall-floor", enum: ["wall-floor", "floor-wall"], description: "Stages." },
@@ -129,5 +131,44 @@ describe("withSetting", () => {
 
   it("creates a group missing from the values", () => {
     expect(withSetting({ kind: "x" }, ["dendrite", "tint"], 0)).toEqual({ kind: "x", dendrite: { tint: 0 } });
+  });
+});
+
+describe("isUsed", () => {
+  // A staged model's stage groups, with the hints its schema carries.
+  const schema: ModelSchema = {
+    properties: {
+      order: { type: "string", default: "wall-floor-wall", enum: ["wall-floor-wall", "spherulite-wall", "dendrite-wall"] },
+      wall_mechanism: {
+        type: "string", default: "front-feedback", enum: ["front-feedback", "liesegang"],
+        used_when: [{ order: ["wall"] }],
+      },
+      wall: {
+        $ref: "#/$defs/Stage",
+        used_when: [{ order: ["spherulite"] }, { order: ["wall"], wall_mechanism: ["front-feedback"] }],
+      },
+      liesegang: { $ref: "#/$defs/Stage", used_when: [{ order: ["wall"], wall_mechanism: ["liesegang"] }] },
+      floor: { $ref: "#/$defs/Stage", used_when: [{ order: ["floor"] }] },
+      dendrite: { $ref: "#/$defs/Stage", used_when: [{ order: ["dendrite"] }] },
+    },
+    $defs: { Stage: { properties: { rate: { type: "number", default: 1, minimum: 0 } } } },
+  };
+  const fields = fieldsFor(schema);
+  const shown = (values: Record<string, unknown>) =>
+    fields.filter((f) => isUsed(f, values, fields)).map((f) => f.key);
+
+  it("uses the defaults when nothing is set", () => {
+    expect(shown({})).toEqual(["order", "wall_mechanism", "wall", "floor"]);
+  });
+
+  it("shows only the stages the order has", () => {
+    expect(shown({ order: "dendrite-wall" })).toEqual(["order", "wall_mechanism", "wall", "dendrite"]);
+  });
+
+  it("follows the wall mechanism, but the spherulite stage always uses H1", () => {
+    expect(shown({ wall_mechanism: "liesegang" })).toEqual(["order", "wall_mechanism", "liesegang", "floor"]);
+    expect(shown({ order: "spherulite-wall", wall_mechanism: "liesegang" })).toEqual([
+      "order", "wall_mechanism", "wall", "liesegang",
+    ]);
   });
 });

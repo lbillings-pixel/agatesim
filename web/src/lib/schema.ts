@@ -97,10 +97,11 @@ export interface Group {
   fields: Field[];
 }
 
-export type Field =
+export type Field = (
   | ({ type: "number" } & Control)
   | ({ type: "choice" } & Choice)
-  | ({ type: "group" } & Group);
+  | ({ type: "group" } & Group)
+) & { usedWhen?: Record<string, string[]>[] };
 
 function choiceFor(key: string, p: JsonSchemaProperty): Choice | null {
   const options = (p.enum ?? []).filter((o): o is string => typeof o === "string");
@@ -126,13 +127,37 @@ export function fieldsFor(schema: ModelSchema, properties = schema.properties): 
         Object.entries(nested.properties).filter(([k]) => !(k in properties)),
       );
       const fields = fieldsFor(schema, inner);
-      return fields.length ? [{ type: "group", key, label: labelFor(key), description: p.description ?? "", fields }] : [];
+      const group: Field = { type: "group", key, label: labelFor(key), description: p.description ?? "", fields };
+      return fields.length ? [withUse(group, p)] : [];
     }
     const choice = choiceFor(key, p);
-    if (choice) return [{ type: "choice", ...choice }];
+    if (choice) return [withUse({ type: "choice", ...choice }, p)];
     const control = controlFor(key, p);
-    return control ? [{ type: "number", ...control }] : [];
+    return control ? [withUse({ type: "number", ...control }, p)] : [];
   });
+}
+
+function withUse(field: Field, p: JsonSchemaProperty): Field {
+  return p.used_when ? { ...field, usedWhen: p.used_when } : field;
+}
+
+/** Whether a field matters given its siblings' values (their defaults where unset):
+ * for one of its `usedWhen` alternatives, each named sibling's value is one of the
+ * listed values, or a stage order ("wall-floor") with one of them as a stage. */
+export function isUsed(field: Field, values: Record<string, unknown>, siblings: Field[]): boolean {
+  if (!field.usedWhen) return true;
+  const valueOf = (key: string): string => {
+    const v = values[key];
+    if (typeof v === "string") return v;
+    const sibling = siblings.find((f) => f.key === key);
+    return sibling?.type === "choice" ? sibling.defaultValue : "";
+  };
+  return field.usedWhen.some((alt) =>
+    Object.entries(alt).every(([key, wanted]) => {
+      const v = valueOf(key);
+      return wanted.includes(v) || v.split("-").some((part) => wanted.includes(part));
+    }),
+  );
 }
 
 /** A copy of `values` with the setting at `path` (keys into nested settings) replaced. */

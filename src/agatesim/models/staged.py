@@ -36,7 +36,7 @@ the bands inside each stage is mechanistic.
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -54,6 +54,13 @@ from agatesim.params import Nature, param
 Order = Literal["wall-floor-wall", "wall-floor", "floor-wall", "dendrite-wall", "spherulite-wall"]
 WallMechanism = Literal["front-feedback", "liesegang"]
 STAGE_SPAN = 0.999  # of a stage's time slot, so stages never share a deposition time
+
+
+def used_when(*alternatives: dict[str, list[str]]) -> dict[str, Any]:
+    """Schema hint for the app: a setting matters only when, for one of the
+    alternatives, every named sibling's value is one of the listed values or
+    is a stage order containing one of them as a stage."""
+    return {"used_when": list(alternatives)}
 
 
 class DendriteStage(BaseModel):
@@ -146,21 +153,29 @@ class Staged(BaseModel):
     wall_mechanism: WallMechanism = Field(
         default="front-feedback",
         description="What makes the wall-lining bands: front feedback (H1) or Liesegang (H2).",
+        json_schema_extra=used_when({"order": ["wall"]}),
     )
     wall: FrontFeedback = Field(
         default_factory=FrontFeedback,
         description="The H1 wall and spherulite stages (with the front-feedback wall mechanism).",
+        json_schema_extra=used_when(
+            {"order": ["spherulite"]}, {"order": ["wall"], "wall_mechanism": ["front-feedback"]}
+        ),
     )
     liesegang: Liesegang = Field(
         default_factory=Liesegang,
         description="The H2 wall stages (with the Liesegang wall mechanism).",
+        json_schema_extra=used_when({"order": ["wall"], "wall_mechanism": ["liesegang"]}),
     )
     floor: Settling = Field(
-        default_factory=Settling, description="The H4 floor stage (orders with a floor)."
+        default_factory=Settling,
+        description="The H4 floor stage (orders with a floor).",
+        json_schema_extra=used_when({"order": ["floor"]}),
     )
     dendrite: DendriteStage = Field(
         default_factory=DendriteStage,
         description="The dendrite stage: branched inclusions (the dendrite-wall order).",
+        json_schema_extra=used_when({"order": ["dendrite"]}),
     )
 
     def gravity(self) -> NDArray[np.float64]:

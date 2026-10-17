@@ -18,6 +18,8 @@ export interface JsonSchemaProperty {
   $ref?: string;
   units?: string;
   nature?: Nature;
+  /** The setting matters only when one of these holds (see `isUsed` in lib/schema). */
+  used_when?: Record<string, string[]>[];
 }
 
 /** A pydantic JSON schema: fields, and the nested models they refer to. */
