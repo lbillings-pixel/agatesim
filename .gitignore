@@ -54,3 +54,6 @@ specimens/
 
 # Full-resolution reference photos, fetched by scripts/fetch_reference_images.py
 references/images/full/
+
+# Session handoff notes for coding agents: local only (personal details, session links)
+HANDOFF.md
