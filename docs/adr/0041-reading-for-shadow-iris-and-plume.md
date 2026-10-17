@@ -1,6 +1,6 @@
 # 41. Reading for shadow, iris and plume agate
 
-- Status: accepted (a record of reading; the criterion change in §2 is proposed, awaiting the owner)
+- Status: accepted (a record of reading; the criterion change proposed in §2 was approved and made in [ADR 0042](0042-iris-spacing-from-measured-gratings.md))
 - Date: 2026-10-17
 - Follows: [ADR 0035](0035-what-the-mechanistic-tier-requires.md)
 
@@ -70,7 +70,7 @@ From the full text of [@jones1952] (pp. 578–584):
 ## Consequences
 
 - Shadow, iris and plume stay pending at the mechanistic tier.
-- Next steps, in order of readiness: (1) the owner's decision on the iris
-  spacing range; (2) iris by a micrometre-scale H1 rhythm in clear bands;
+- Next steps, in order of readiness: (1) the iris spacing range (done, ADR
+  0042); (2) iris by a micrometre-scale H1 rhythm in clear bands;
   (3) a chemical-garden growth model for plume, after reading on such models;
   (4) a source linking growth rate to water content, for shadow.

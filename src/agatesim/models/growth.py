@@ -358,10 +358,12 @@ class ProceduralGrowth(BaseModel):
     micro_band_um: float = param(
         2.0,
         gt=0,
-        le=50,
+        le=100,
         units="µm",
         nature=Nature.IMPOSED,
-        description="Mean spacing of the regular micro-bands (about 2 µm reported for iris agate).",
+        description=(
+            "Mean spacing of the regular micro-bands (measured iris gratings: about 1.7–64 µm)."
+        ),
     )
     micro_band_variability: float = param(
         0.25,

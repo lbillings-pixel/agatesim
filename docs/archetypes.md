@@ -179,5 +179,5 @@ diffraction grating. Needs wave-optics rendering.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `grating-spacing` | Band spacing is fine enough to diffract visible light. | Median micro-band spacing (µm) where regular micro-banding is visible (pigment < 0.3, translucency > 0.4); reported oscillatory zonation is 0.5–5 µm, iris bands about 2 µm. | 0.5 ≤ value ≤ 5 |
+| `grating-spacing` | Band spacing is fine enough to diffract visible light. | Median micro-band spacing (µm) where regular micro-banding is visible (pigment < 0.3, translucency > 0.4); measured iris gratings run from about 1.7 to 64 µm (Jones 1952; ADR 0042). | 1 ≤ value ≤ 65 |
 | `spectral-dispersion` | Transmitted light separates into colours at angles the grating equation predicts. | Median difference (nm) between the wavelength of the rendered colour (from its hue) and the first order predicted by d·sin θ = λ, over pixels where that prediction is 450–630 nm, at views of 12°, 16° and 20°. | value ≤ 15 |

@@ -466,13 +466,23 @@ def test_iris_criteria_reject_agate_without_micro_banding() -> None:
     assert _failed(_evaluate("iris", plain)) == {"grating-spacing", "spectral-dispersion"}
 
 
-def test_iris_criteria_reject_coarse_banding() -> None:
-    """Spacings of tens of micrometres (as in some non-peer-reviewed accounts)
-    would not be the reported iris structure."""
+@pytest.mark.parametrize("spacing_um", [0.5, 80.0])
+def test_iris_criteria_reject_spacings_outside_measured_gratings(spacing_um: float) -> None:
+    """Iris gratings measure about 1.7-64 um (jones1952; ADR 0042): finer or
+    coarser micro-banding fails the spacing test. (The dispersion test only
+    checks the renderer against the grating equation, so it may still pass.)"""
+    off = _with_model(
+        load_preset("iris").with_resolution(NEGATIVE_RESOLUTION), micro_band_um=spacing_um
+    )
+    assert "grating-spacing" in _failed(_evaluate("iris", off))
+
+
+def test_iris_accepts_coarse_gratings_like_measured_ones() -> None:
+    """A 20 um grating is within the range Jones measured (ADR 0042)."""
     coarse = _with_model(
         load_preset("iris").with_resolution(NEGATIVE_RESOLUTION), micro_band_um=20.0
     )
-    assert _failed(_evaluate("iris", coarse)) == {"grating-spacing"}
+    assert _evaluate("iris", coarse).passed
 
 
 def test_iris_is_hidden_by_pigment() -> None:
