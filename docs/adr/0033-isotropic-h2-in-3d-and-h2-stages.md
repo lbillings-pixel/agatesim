@@ -1,6 +1,6 @@
 # 33. Isotropic H2 in 3D, and H2 as a staged wall mechanism
 
-- Status: accepted
+- Status: accepted (amended 2026-10-17: the re-tune was tried and closed)
 - Date: 2026-10-16
 - Builds on: [ADR 0020](0020-staged-mechanisms.md), [ADR 0027](0027-liesegang-in-3d.md)
 
@@ -74,3 +74,28 @@
 - H2 can now be staged with settled layers, as one possible history of the
   combined form. Whether a real agate's rings could form after its floor
   layers is a question for the literature.
+
+## Amendment (2026-10-17): the re-tune, tried and closed
+
+Two time-boxed scans on the GPU, judged on the preset's configured cut
+(768 px), tried to restore the band count:
+
+| Changed | Values | Bands on the cut |
+|---|---|---|
+| spreading threshold c_sp | 0.30, 0.32, 0.33, 0.34 | 5, 3, 7, 4 |
+| incoming concentration a₀ | 30, 45, 70, 100 | 5, 5, 2, 2 |
+
+Neither has a trend, and none passes fortification (every cut stayed
+wall-parallel, 0.90–0.97, with all bands closed). The cut shows why: the
+precipitate forms spots about one lattice cell (0.1 mm) across rather than
+continuous rings, with 46 separate zones along one row through the middle, a
+thick rim at the wall and a few rings near the centre. The band labelling
+then finds only a few bands. The lattice is already at the GPU memory limit
+for the 40 mm nodule, so the spots are not resolved, and no threshold change
+removes them.
+
+**Owner decision: recorded and closed.** The preset is unchanged and the
+re-tune leaves the backlog. More bands would not change a conclusion: H2
+fails fortification in 3D, and the corner question it served is closed
+(ADR 0034). A finer lattice in a smaller cavity is the way to test whether
+rings return, if it is ever needed.

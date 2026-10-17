@@ -217,3 +217,19 @@ def test_mechanistic_iris_passes_the_iris_tests() -> None:
     verifies iris at the mechanistic tier."""
     ev = evaluate("iris", simulate(load_preset("iris-mechanistic")))
     assert ev.passed, ev.to_json()
+
+
+def test_milky_and_clear_switch_where_the_bands_are_drawn() -> None:
+    """ADR 0048: chalcedony is either milky or clear, milky on the impurity-rich
+    side of the level where H1 draws its band edges, so neighbouring bands
+    alternate."""
+    result = simulate(_config())
+    f = result.fields
+    chal = f.phase == Phase.CHALCEDONY
+    assert np.allclose(np.unique(f.translucency[chal]), [0.15, 0.9])
+    milky = chal & (f.translucency < 0.5)
+    # Impurity rises with the incorporated impurity, so every milky pixel is
+    # stained more than every clear one.
+    assert f.impurity[milky].min() >= f.impurity[chal & ~milky].max()
+    per_band = [float(f.translucency[chal & (f.band == b)].mean()) for b in np.unique(f.band[chal])]
+    assert np.mean(np.abs(np.diff(per_band))) > 0.6

@@ -1,0 +1,22 @@
+# Verification preset for shadow agate (mechanistic tier): front-feedback (H1)
+# bands in a 2 mm slab. Each cycle's fast, impurity-rich half is milky and its
+# slow half clear (a stated assumption, ADR 0048), so light entering a clear
+# band reaches the milky band beside it at depth, and the shadow inside each
+# clear band moves to the other side when the light does.
+name = "shadow-mechanistic"
+seed = 12
+archetype = "shadow"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 40
+
+[optics]
+thickness_mm = 2
+band_tilt_deg = 0
+
+[model]
+kind = "mechanistic-front-feedback"

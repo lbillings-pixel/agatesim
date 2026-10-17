@@ -172,7 +172,9 @@ chalcedony, and viscous fingering.
   beside it at depth, so the shadow inside each clear band moves to the other
   side when the light does. It is a single-scattering model of a slab whose bands
   run straight down. Its scattering and absorption coefficients are effective
-  values, not measurements.
+  values, not measurements. At the mechanistic tier, H1's bands make shadow
+  agate under a stated, unsourced link: each cycle's impurity-rich half milky,
+  its impurity-poor half clear (ADR 0048).
 - **Iris agate:** micro-banding acts as a diffraction grating. A review reports
   oscillatory micro-zonation of defects at 0.5–5 µm, with refractive-index
   changes along these bands giving the iris colours, and an iris band spacing of

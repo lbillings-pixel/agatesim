@@ -59,6 +59,7 @@ impurity-poor, clear part of each visible cycle (ADR 0043).
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, replace
 from typing import Literal
 
@@ -75,6 +76,7 @@ from agatesim.params import Nature, param, used_when
 
 GEOMETRY_SAMPLES = 400  # depths at which the cavity's filled share is tabulated
 TRACE_SAMPLES = 20000  # depths at which the front's history is tabulated
+MILKY, CLEAR = 0.15, 0.9  # translucency of milky and clear chalcedony (and of quartz: clear)
 
 
 class FrontFeedback(BaseModel):
@@ -509,10 +511,21 @@ def micro_spacing(params: FrontFeedback, history: FrontHistory) -> FloatArray:
     spacing = history.velocity * period * params.micro_boundary_layer_um**2 / delta_um
     c = np.log(np.maximum(history.incorporated, 1e-12))
     chal = ~history.quartz
-    level = 0.5 * (float(c[chal].min()) + float(c[chal].max()))
+    level = milky_level(history)
     clear = chal & (c <= level)
     out[clear] = spacing[clear]
     return out
+
+
+def milky_level(history: FrontHistory) -> float:
+    """The geometric midrange of the incorporated impurity over the chalcedony,
+    as a log: bands are drawn where it is crossed, and the impurity-rich side is
+    milky (ADR 0048). Infinite if there is no chalcedony to speak of."""
+    c = np.log(np.maximum(history.incorporated, 1e-12))
+    chal = ~history.quartz
+    if chal.sum() < 2:
+        return math.inf
+    return 0.5 * (float(c[chal].min()) + float(c[chal].max()))
 
 
 def band_edges(history: FrontHistory) -> FloatArray:
@@ -522,7 +535,7 @@ def band_edges(history: FrontHistory) -> FloatArray:
     chal = ~history.quartz
     if chal.sum() < 2:
         return np.zeros(0)
-    level = 0.5 * (float(c[chal].min()) + float(c[chal].max()))
+    level = milky_level(history)
     above = c > level
     cross = np.flatnonzero((above[1:] != above[:-1]) & chal[1:])
     return np.unique(history.depth_mm[cross + 1])
@@ -584,6 +597,11 @@ def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]
     log_c = np.log(np.maximum(incorporated, 1e-12))
     lo, hi = (float(log_c[chal].min()), float(log_c[chal].max())) if chal.any() else (0.0, 1.0)
     stain = np.clip((log_c - lo) / max(hi - lo, 1e-9), 0, 1)
+    # Milky or clear (ADR 0048, an assumption): the impurity-rich, fast half of
+    # each cycle is milky, the rest clear, switching where the bands are drawn,
+    # as if the fibre type changed with the band. H1 pairs trace-element-rich
+    # bands with twisted fibres.
+    milky = log_c > milky_level(history)
     phase = np.full(d.shape, Phase.HOST, dtype=np.uint8)
     phase[mask] = Phase.VOID
     phase[chal] = Phase.CHALCEDONY
@@ -592,11 +610,9 @@ def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]
         phase=phase,
         band=band,
         impurity=np.where(chal, 0.6 * stain, 0.0).astype(np.float32),
-        # Impurity-rich, fast-grown bands milky; impurity-poor bands clear (an
-        # assumption: H1 pairs trace-element-rich bands with twisted fibres).
-        translucency=np.where(chal, 0.9 - 0.75 * stain, np.where(quartz, 0.9, 0.0)).astype(
-            np.float32
-        ),
+        translucency=np.where(
+            chal, np.where(milky, MILKY, CLEAR), np.where(quartz, CLEAR, 0.0)
+        ).astype(np.float32),
         t_dep=np.where(grown, time, np.nan).astype(np.float32),
         grain=np.full(d.shape, -1, dtype=np.int32),
         micro_spacing_um=(

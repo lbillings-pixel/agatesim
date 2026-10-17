@@ -322,7 +322,7 @@ reaction and buoyancy.
 id = "shadow"
 name = "Shadow agate"
 rung = 11
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "optics"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification"]
