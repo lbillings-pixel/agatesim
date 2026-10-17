@@ -446,3 +446,12 @@ td.num { white-space: nowrap; }
 .mechanisms-grid img, .mechanisms-placeholder { width: 100%; aspect-ratio: 1; border-radius: 4px; background: var(--slab-bg); object-fit: contain; }
 .mechanisms-placeholder { display: grid; place-items: center; }
 .mechanisms-grid figcaption { display: grid; gap: 0.15rem; }
+
+.glossary { max-width: min(46rem, calc(100vw - 32px)); max-height: 85vh; border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.25rem; background: var(--surface); color: inherit; }
+.glossary::backdrop { background: rgb(0 0 0 / 0.45); }
+.glossary-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; position: sticky; top: 0; background: inherit; padding-bottom: 0.5rem; }
+.glossary-head h2 { margin: 0; font-size: 1.1rem; }
+.glossary h3 { font-size: 0.95rem; margin: 1rem 0 0.35rem; }
+.glossary ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; }
+.glossary p { margin: 0.4rem 0; }
+.glossary-ref { text-decoration: underline dotted; }

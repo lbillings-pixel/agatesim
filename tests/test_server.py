@@ -221,3 +221,8 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         assert RunConfig.model_validate(replica["config"]).cavity.outline is not None
         assert replica["image"].startswith("data:image/png;base64,")
         assert c.get("/api/specimens/..%2Fsecret.jpg/photo").status_code == 404
+
+
+def test_glossary_is_served(client: TestClient) -> None:
+    body = client.get("/api/glossary").json()
+    assert body["markdown"].startswith("# Glossary")

@@ -439,6 +439,7 @@ export const volume = {
 
 export const api = {
   meta: () => request<Meta>("/api/meta"),
+  glossary: () => request<{ markdown: string }>("/api/glossary"),
   preview: (config: RunConfig, resolution: number, signal?: AbortSignal) =>
     request<PreviewResult>("/api/preview", {
       method: "POST",

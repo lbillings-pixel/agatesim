@@ -23,6 +23,7 @@ import { TubePanel } from "./components/TubePanel";
 import { VolumeWorkbench } from "./components/VolumeWorkbench";
 import { type Control, controlsFor, defaultsFor } from "./lib/schema";
 import { CompareMechanisms } from "./components/CompareMechanisms";
+import { Glossary } from "./components/Glossary";
 
 const PREVIEW_RESOLUTIONS = [128, 192, 256, 384];
 const RUN_RESOLUTIONS = [512, 768, 1024, 1536, 2048];
@@ -274,6 +275,7 @@ export function App() {
             </button>
           ))}
         </div>
+        <Glossary />
         {screen === "simulator" && (
         <>
         <label className="inline">

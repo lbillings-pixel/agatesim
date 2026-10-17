@@ -50,6 +50,7 @@ from agatesim.stages import stages_json
 from agatesim.stats import band_statistics
 
 STATIC_DIR = Path(__file__).parent / "static"
+GLOSSARY = Path(__file__).resolve().parents[3] / "docs" / "glossary.md"  # in a source checkout
 MAX_PREVIEW_RESOLUTION = 512
 MAX_RUN_RESOLUTION = 4096
 MODELS: dict[str, type[BaseModel]] = {
@@ -213,6 +214,13 @@ def create_app(
     @app.get("/api/meta")
     def meta() -> dict[str, object]:
         return _meta()
+
+    @app.get("/api/glossary")
+    def glossary() -> dict[str, str]:
+        """The plain-language glossary (docs/glossary.md), as Markdown."""
+        if not GLOSSARY.exists():
+            raise HTTPException(404, "the glossary ships with the source checkout only")
+        return {"markdown": GLOSSARY.read_text("utf-8")}
 
     simulations = _Simulations()
 
