@@ -1,6 +1,6 @@
 # 30. H1 with weak silica depletion
 
-- Status: accepted (exploratory; the corner is not settled)
+- Status: accepted (amended: the corner of set 28923 settled, ADR 0032)
 - Date: 2026-10-16
 - Builds on: [ADR 0017](0017-h1-without-the-boundary-layer.md), [ADR 0028](0028-regularised-h1-at-the-corner.md), [ADR 0029](0029-bands-toward-corners-in-real-agates.md)
 
@@ -75,3 +75,25 @@ depleted? If it can, would its corners keep up?
   search found agate formation still debated between open (pulsed inflow) and
   closed systems, and no study testing pressure-driven mixing. Open idea,
   untested.
+
+## Amendment (2026-10-16): the corner, with a solver for fast fronts
+
+With the solver of [ADR 0032](0032-a-front-solver-for-fast-fronts.md), set
+28923's corner (a quarter of a cavity 120 screening lengths across, no
+smoothing) runs repeatably and agrees between h = 0.1 and 0.05:
+
+- **The corner runs ahead.** Its tip on the bisector reaches 12.7–13.2
+  screening lengths by t = 3, where a sharp corner keeping pace with the faces
+  would be at 7.6; by t = 12 it is at 37–39 against 21. The fastest front
+  reaches 13.6 (h = 0.1), against a peak of 3.4 on a straight front.
+- **The fast state spreads along the faces.** The middle of each face keeps its
+  rhythmic pace (about 1 screening length per time unit) until the fast zone
+  reaches it, then grows 2.5–3 times faster.
+- **The rhythm ends.** Apart from a thin early layer, the cavity fills with one
+  uniform deposit: no bands. Sharp corners, but no fortification.
+
+So in this set the corner doesn't lag (as in ADR 0028) but overshoots: the
+impurity rejected from two walls switches the catalysis on, and the fast state
+takes over. Set 43597 was not re-run. A weakly depleted set with gentler
+catalysis (smaller n) remains the case to try: it might keep its rhythm in a
+corner without either lagging or running away.

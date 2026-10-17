@@ -35,7 +35,12 @@ values now taken from a fit along the normal):
   coverage law alone is bistable.)
 - **Front values and the boundary condition.** Along a node's normal, s and a are
   sampled (bilinear, from fluid nodes only) at 2h and 3h into the fluid, and a
-  quadratic with the front's flux condition as its slope is fitted. Its value at
+  quadratic with the front's flux condition as its slope is fitted. Where the
+  layer ahead of a fast front is thinner than the grid resolves (m h > 0.65, m
+  its quasi-steady decay rate; blended from m h = 0.35), the layer's
+  exponential shape is used instead,
+  with the value at 2h as its outside value; the layer then travels with the
+  front, and the fluid sees only its outside value (ADR 0032). Its value at
   the front gives s_f and a_f (within 0.1% of the exact steady front at
   h = 0.05); its value at a solid node is that node's ghost value. The fluid uses
   the plain 5-point Laplacian with ghost values at solid neighbours, so the flux
@@ -143,7 +148,24 @@ __device__ __forceinline__ bool is_master(const double* phi, int nx, int ny, int
         || at(phi, nx, ny, i, j + 1) <= 0 || at(phi, nx, ny, i, j - 1) <= 0;
 }
 
-struct Front { double nx, ny, fx, fy, kf, s0, gs, As, a0, ga, Aa; };
+struct Front {
+    double nx, ny, fx, fy, kf, s0, gs, As, a0, ga, Aa;
+    double ws, wa;         // weight of the thin-layer treatment, 0..1
+    double s_inf, a_inf;   // values just outside a thin layer (its ghost values)
+};
+
+// A boundary layer of decay rate m (quasi-steady, ahead of a front moving at u)
+// is resolved by the grid while m h < THIN_LO: front values come from the
+// quadratic fit. Beyond THIN_HI it isn't, and they come from the layer's known
+// exponential shape. In between the two are blended, so a front speeding up
+// doesn't jump between treatments.
+#define THIN_LO 0.35
+#define THIN_HI 0.65
+
+__device__ __forceinline__ double thin_weight(double mh) {
+    double w = (mh - THIN_LO) / (THIN_HI - THIN_LO);
+    return fmin(fmax(w, 0.0), 1.0);
+}
 
 // Normal, foot point (grid units), curvature at the foot and the fitted
 // profiles along the normal, for node (i, j) given the front speed u and coverage th.
@@ -170,9 +192,32 @@ __device__ Front front_at(const double* phi, const double* s, const double* a, i
     double a1 = bilinear(a, nx, ny, F.fx + 2 * F.nx, F.fy + 2 * F.ny);
     double a2 = bilinear(a, nx, ny, F.fx + 3 * F.nx, F.fy + 3 * F.ny);
     double K = (k0 + u / vt) / (1 + u / vt);
-    fit(s1, s2, 2 * h, 3 * h, 0.0, q * u / D, &F.s0, &F.gs, &F.As);
-    fit(a1, a2, 2 * h, 3 * h, (1 - K) * u - Gam * ka * (1 - th), -Gam * kd * th,
-        &F.a0, &F.ga, &F.Aa);
+    double eps = P[3];
+    double alpha = (1 - K) * u - Gam * ka * (1 - th), beta = -Gam * kd * th;
+    // decay rates of the quasi-steady layers ahead of a front moving at u
+    double ms = (u + sqrt(u * u + 4 * D * eps)) / (2 * D);
+    double ma = (u + sqrt(u * u + 4.0)) / 2;
+    F.ws = thin_weight(ms * h);
+    F.wa = ma - alpha > 1e-9 ? thin_weight(ma * h) : 0.0;
+    // quadratic fits (resolved layers)
+    double s0q, gsq, Asq, a0q, gaq, Aaq;
+    fit(s1, s2, 2 * h, 3 * h, 0.0, q * u / D, &s0q, &gsq, &Asq);
+    if (F.wa < 1) fit(a1, a2, 2 * h, 3 * h, alpha, beta, &a0q, &gaq, &Aaq);
+    else { a0q = a1; gaq = 0; Aaq = 0; }
+    // thin layers: s = S_inf - C exp(-ms xi) with D s'(0) = q u, and
+    // a = A_inf + B exp(-ma xi) with a'(0) = -alpha a(0) + beta
+    double C = q * u / (D * ms);
+    F.s_inf = s1 + C * exp(-2 * h * ms);
+    double s0t = F.s_inf - C;
+    double a0t = a0q;
+    F.a_inf = a1;
+    if (F.wa > 0) {
+        double e1 = exp(-2 * h * ma), r = 1 / (alpha - ma);
+        F.a_inf = (a1 - e1 * beta * r) / (1 - e1 * alpha * r);
+        a0t = F.a_inf + (beta - alpha * F.a_inf) * r;
+    }
+    F.s0 = (1 - F.ws) * s0q + F.ws * s0t; F.gs = gsq; F.As = Asq;
+    F.a0 = (1 - F.wa) * a0q + F.wa * a0t; F.ga = gaq; F.Aa = Aaq;
     return F;
 }
 
@@ -191,11 +236,20 @@ __global__ void master_step(
     double thc = P[13], mm = P[14], gk = P[15];
     double th = theta[id];
     Front F = front_at(phi, s, a, nx, ny, i, j, h, U[id], th, P);
-    double sd = fmax(F.s0 - gk * F.kf, 0.0);
-    double an = pow(fmax(F.a0, 0.0), nn);
-    double un = kv * sd * (1 + beta * an / (pow(ac, nn) + an)) / (1 + pow(fmax(th, 0.0) / thc, mm));
+    // silica at the front cannot exceed the bulk supply (1) by much; the cap keeps a
+    // rare bad fit near a sharp tip or the mirror edge from spiking the speed
+    double sd = fmax(fmin(F.s0, 1.5) - gk * F.kf, 0.0);
+    // catalysis beta a^n / (ac^n + a^n), written as beta / (1 + (ac/a)^n) so a very
+    // large a can't give inf / inf
+    double a0 = fmax(F.a0, 0.0);
+    double cat = a0 > 0 ? beta / (1 + pow(ac / a0, nn)) : 0.0;
+    double un = kv * sd * (1 + cat) / (1 + pow(fmax(th, 0.0) / thc, mm));
     if (P[16] > 0) un = P[16];  // test hook: a front moving at an imposed speed
-    theta[id] = th + dt * (ka * fmax(F.a0, 0.0) * (1 - th) - kd * th - b * un * th);
+    // d(theta)/dt = ka a (1 - theta) - kd theta - b U theta, stepped implicitly:
+    // stable at any dt, and theta stays in [0, 1] (explicit steps overshot when a
+    // corner sped up suddenly)
+    double ads = ka * a0;
+    theta[id] = (th + dt * ads) / (1 + dt * (ads + kd + b * un));
     U[id] = un;
     A0[id] = F.a0;
     S0[id] = F.s0;
@@ -205,7 +259,8 @@ __global__ void master_step(
 // ghost values (solid nodes), move the front and record the band.
 __global__ void band_step(
     const int* idx, int count, int nx, int ny, double h, double dt, double t, const double* P,
-    const double* phi, double* phi_new, double* s, double* a,
+    const double* phi, double* phi_new, const double* s, const double* a,
+    double* s_ghost, double* a_ghost,
     double* theta, double* U, const double* A0,
     double* t_dep, double* u_dep, double* th_dep, double* imp_dep)
 {
@@ -237,8 +292,11 @@ __global__ void band_step(
     else { u = U[best]; th = theta[best]; a0 = A0[best]; }
     if (c <= 0) {  // solid node: ghost values on the fitted profiles along its own normal
         Front F = front_at(phi, s, a, nx, ny, i, j, h, u, th, P);
-        s[id] = F.s0 + F.gs * c + F.As * c * c;
-        a[id] = F.a0 + F.ga * c + F.Aa * c * c;
+        // a thin layer is carried by the front: the fluid sees its outside value
+        double sq = F.s0 + F.gs * c + F.As * c * c, aq = F.a0 + F.ga * c + F.Aa * c * c;
+        // written to separate arrays: other threads' probes may read s and a here
+        s_ghost[id] = (1 - F.ws) * sq + F.ws * F.s_inf;
+        a_ghost[id] = (1 - F.wa) * aq + F.wa * F.a_inf;
     }
     double cn = c - dt * u;
     if (c > 0 && cn <= 0) {
@@ -367,6 +425,7 @@ class Front2D:
         self.t_dep, self.u_dep, self.th_dep, self.imp_dep = nan, nan.copy(), nan.copy(), nan.copy()
         self._phi_new = self.phi.copy()
         self._s2, self._a2 = self.s.copy(), self.a.copy()
+        self._s_ghost, self._a_ghost = self.s.copy(), self.a.copy()
         self._moved = 0.0
         self._rebuild_band()
 
@@ -437,6 +496,8 @@ class Front2D:
                 self._phi_new,
                 self.s,
                 self.a,
+                self._s_ghost,
+                self._a_ghost,
                 self.theta,
                 self.U,
                 self.A0,
@@ -446,6 +507,9 @@ class Front2D:
                 self.imp_dep,
             ),
         )
+        ghosts = self._in_band & (self.phi <= 0)
+        self.s = cp.where(ghosts, self._s_ghost, self.s)
+        self.a = cp.where(ghosts, self._a_ghost, self.a)
         n = self.nx * self.ny
         _DIFFUSE(
             _blocks(n),
@@ -471,6 +535,23 @@ class Front2D:
         self.phi[...] = cp.where(self._in_band, self._phi_new, self.phi)
         self.t += self.dt
 
+    def _failure(self, umax: float) -> str:
+        """Where the front state first went bad, for the error message."""
+        u = self.U.ravel()[self.idx]
+        bad = ~cp.isfinite(u)
+        j = int(cp.argmax(bad)) if bool(bad.any()) else int(cp.argmax(u))
+        i = int(self.idx[j])
+        row, col = divmod(i, self.nx)
+        vals = {
+            name: float(getattr(self, name).ravel()[i])
+            for name in ("phi", "U", "theta", "A0", "S0", "s", "a")
+        }
+        shown = ", ".join(f"{k} {v:.3g}" for k, v in vals.items())
+        return (
+            f"front speed became {umax} at t = {self.t:.4f} (dt {self.dt:.2e}), "
+            f"node x = {col * self.h:.2f}, y = {row * self.h:.2f}: {shown}"
+        )
+
     def run(self, t_end: float, every: float, probe) -> list:
         """Advance to t_end, re-initialising as the front moves; call probe(self)
         every `every` time units and collect what it returns. The step shrinks
@@ -484,6 +565,8 @@ class Front2D:
             since += 1
             if since % 5 == 0:
                 umax = float(cp.max(cp.abs(self.U.ravel()[self.idx])))
+                if not math.isfinite(umax) or self.dt < 1e-12:
+                    raise RuntimeError(self._failure(umax))
                 self._moved += umax * 5 * self.dt
                 self.dt = min(self.dt0, 0.05 * self.h / max(umax, 1e-12))
                 if self._moved > 0.25 * self.h:
@@ -686,6 +769,8 @@ def run_corner(args, p) -> None:
 
     def probe(m):
         snaps.append((m.t, cp.asnumpy(m.phi).astype(np.float32)))
+        umax = float(cp.max(m.U.ravel()[m.idx])) if m.idx.size else 0.0
+        print(f"  t = {m.t:8.3f}  dt = {m.dt:.2e}  fastest front {umax:.3g}", flush=True)
         return m.t
 
     model.run(args.t_end, args.snap_every, probe)
