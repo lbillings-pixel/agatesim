@@ -65,11 +65,22 @@ def formation_stages(model: BaseModel) -> list[Stage]:
             return _growth(model)
         case Staged():
             parts = model.order.split("-")
-            names = {"wall": "wall lining (H1)", "floor": "floor layers (H4)"}
+            wall = (
+                "precipitation bands (H2)"
+                if model.wall_mechanism == "liesegang"
+                else "wall lining (H1)"
+            )
+            names = {
+                "wall": wall,
+                "floor": "floor layers (H4)",
+                "spherulite": "spherulites (H1)",
+                "dendrite": "branched inclusions",
+            }
             n = len(parts)
             return [Stage(i / n, (i + 1) / n, names[p]) for i, p in enumerate(parts)]
         case FrontFeedback():
-            return [Stage(0.0, 1.0, "wall lining (H1)")]
+            label = "spherulites (H1)" if model.growth_form == "spherulitic" else "wall lining (H1)"
+            return [Stage(0.0, 1.0, label)]
         case Settling():
             return [Stage(0.0, 1.0, "floor layers (H4)")]
         case Liesegang():

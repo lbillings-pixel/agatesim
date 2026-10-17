@@ -1,6 +1,6 @@
 // Turn a model's JSON schema (pydantic, with our units/nature extras) into slider controls.
 
-import type { JsonSchemaProperty, Nature } from "../api";
+import type { JsonSchemaProperty, ModelSchema, Nature } from "../api";
 
 export interface Control {
   key: string;
@@ -78,4 +78,73 @@ export function defaultsFor(properties: Record<string, JsonSchemaProperty>): Rec
 export function formatValue(value: number, step: number): string {
   const decimals = Math.max(0, Math.min(4, -Math.floor(Math.log10(step))));
   return value.toFixed(decimals);
+}
+
+/** A choice among named options (a pydantic Literal), shown as a menu. */
+export interface Choice {
+  key: string;
+  label: string;
+  description: string;
+  options: string[];
+  defaultValue: string;
+}
+
+/** A nested model's settings (for example one stage of a staged model). */
+export interface Group {
+  key: string;
+  label: string;
+  description: string;
+  fields: Field[];
+}
+
+export type Field =
+  | ({ type: "number" } & Control)
+  | ({ type: "choice" } & Choice)
+  | ({ type: "group" } & Group);
+
+function choiceFor(key: string, p: JsonSchemaProperty): Choice | null {
+  const options = (p.enum ?? []).filter((o): o is string => typeof o === "string");
+  if (options.length < 2) return null;
+  return {
+    key,
+    label: labelFor(key),
+    description: p.description ?? "",
+    options,
+    defaultValue: typeof p.default === "string" ? p.default : (options[0] ?? ""),
+  };
+}
+
+/** Every setting of a model: numbers, choices, and nested models as groups. A nested
+ * model's field that its parent also has is left out, since the parent's governs
+ * (a staged model's gravity, for example). */
+export function fieldsFor(schema: ModelSchema, properties = schema.properties): Field[] {
+  return Object.entries(properties).flatMap(([key, p]): Field[] => {
+    const ref = p.$ref?.match(/^#\/\$defs\/(.+)$/)?.[1];
+    const nested = ref ? schema.$defs?.[ref] : undefined;
+    if (nested) {
+      const inner = Object.fromEntries(
+        Object.entries(nested.properties).filter(([k]) => !(k in properties)),
+      );
+      const fields = fieldsFor(schema, inner);
+      return fields.length ? [{ type: "group", key, label: labelFor(key), description: p.description ?? "", fields }] : [];
+    }
+    const choice = choiceFor(key, p);
+    if (choice) return [{ type: "choice", ...choice }];
+    const control = controlFor(key, p);
+    return control ? [{ type: "number", ...control }] : [];
+  });
+}
+
+/** A copy of `values` with the setting at `path` (keys into nested settings) replaced. */
+export function withSetting(
+  values: Record<string, unknown>,
+  path: string[],
+  value: unknown,
+): Record<string, unknown> {
+  const [key, ...rest] = path;
+  if (key === undefined) return values;
+  if (rest.length === 0) return { ...values, [key]: value };
+  const inner = values[key];
+  const nested = typeof inner === "object" && inner !== null ? (inner as Record<string, unknown>) : {};
+  return { ...values, [key]: withSetting(nested, rest, value) };
 }

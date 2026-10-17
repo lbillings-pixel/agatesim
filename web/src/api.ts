@@ -14,8 +14,16 @@ export interface JsonSchemaProperty {
   exclusiveMinimum?: number;
   exclusiveMaximum?: number;
   const?: string;
+  enum?: unknown[];
+  $ref?: string;
   units?: string;
   nature?: Nature;
+}
+
+/** A pydantic JSON schema: fields, and the nested models they refer to. */
+export interface ModelSchema {
+  properties: Record<string, JsonSchemaProperty>;
+  $defs?: Record<string, { properties: Record<string, JsonSchemaProperty> }>;
 }
 
 export type ScheduleEvent =
@@ -41,7 +49,7 @@ export interface ScheduledVariable {
 export interface ModelInfo {
   kind: string;
   title: string;
-  schema: { properties: Record<string, JsonSchemaProperty> };
+  schema: ModelSchema;
   schedules: ScheduledVariable[];
 }
 

@@ -200,6 +200,10 @@ button.link { border: 0; background: none; padding: 0; color: var(--accent); tex
 .param-value { margin-left: auto; font-size: 0.85rem; }
 .units { color: var(--muted); }
 .param-help { font-size: 0.78rem; color: var(--muted); }
+.param-group { border-left: 2px solid var(--line); padding-left: 0.7rem; }
+.param-group > summary { cursor: pointer; font-weight: 500; }
+.param-group[open] > summary { margin-bottom: 0.4rem; }
+.param-group > .params { margin-top: 0.6rem; }
 .nature {
   font-size: 0.62rem;
   letter-spacing: 0.06em;

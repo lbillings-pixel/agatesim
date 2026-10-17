@@ -21,7 +21,7 @@ import { SpecimenWorkbench } from "./components/SpecimenWorkbench";
 import { StatsPanel } from "./components/StatsPanel";
 import { TubePanel } from "./components/TubePanel";
 import { VolumeWorkbench } from "./components/VolumeWorkbench";
-import { type Control, controlsFor, defaultsFor } from "./lib/schema";
+import { type Control, defaultsFor, fieldsFor, withSetting } from "./lib/schema";
 import { CompareMechanisms } from "./components/CompareMechanisms";
 import { Glossary } from "./components/Glossary";
 
@@ -171,7 +171,7 @@ export function App() {
 
   const kind = config?.model.kind;
   const model = useMemo(() => meta?.models.find((m) => m.kind === kind) ?? null, [meta, kind]);
-  const controls = useMemo(() => (model ? controlsFor(model.schema.properties) : []), [model]);
+  const fields = useMemo(() => (model ? fieldsFor(model.schema) : []), [model]);
   const cavity = meta?.cavities.find((c) => c.name === config?.cavity.preset);
   const host = cavity?.host ?? config?.cavity.host ?? undefined;
   const drawn = config ? (drawnOf(config) ?? lastDrawn) : null;
@@ -393,9 +393,9 @@ export function App() {
           <section>
             <h2>Parameters</h2>
             <ParamPanel
-              controls={controls}
+              fields={fields}
               values={config.model}
-              onChange={(key, v) => update((c) => ({ ...c, model: { ...c.model, [key]: v } }))}
+              onChange={(path, v) => update((c) => ({ ...c, model: { ...withSetting(c.model, path, v), kind: c.model.kind } }))}
             />
           </section>
 

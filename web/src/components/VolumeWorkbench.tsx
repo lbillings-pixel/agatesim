@@ -15,7 +15,7 @@ import {
   volume as volumeApi,
 } from "../api";
 import { captioned, type FrameSource } from "../lib/animation";
-import { type Control, controlsFor, defaultsFor } from "../lib/schema";
+import { type Control, defaultsFor, fieldsFor, withSetting } from "../lib/schema";
 import { ExportAnimation } from "./ExportAnimation";
 import { CriteriaPanel } from "./CriteriaPanel";
 import { GrowthControls } from "./GrowthControls";
@@ -198,8 +198,8 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
 
   const kind = config?.model.kind;
   const model = useMemo(() => models.find((m) => m.kind === kind) ?? null, [models, kind]);
-  const controls = useMemo(
-    () => (model ? controlsFor(model.schema.properties).filter((c) => !HIDDEN_PARAMS.has(c.key)) : []),
+  const fields = useMemo(
+    () => (model ? fieldsFor(model.schema).filter((f) => !HIDDEN_PARAMS.has(f.key)) : []),
     [model],
   );
 
@@ -323,9 +323,9 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
         <section>
           <h2>Parameters</h2>
           <ParamPanel
-            controls={controls}
+            fields={fields}
             values={config.model}
-            onChange={(key, v) => update((c) => ({ ...c, model: { ...c.model, [key]: v } }))}
+            onChange={(path, v) => update((c) => ({ ...c, model: { ...withSetting(c.model, path, v), kind: c.model.kind } }))}
           />
         </section>
 

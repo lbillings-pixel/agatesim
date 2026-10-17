@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from agatesim.config import load_preset
+from agatesim.config import load_preset, preset_names
 from agatesim.server.app import create_app, encode_tdep
 
 
@@ -226,3 +226,14 @@ def test_specimen_workflow(tmp_path: Path) -> None:
 def test_glossary_is_served(client: TestClient) -> None:
     body = client.get("/api/glossary").json()
     assert body["markdown"].startswith("# Glossary")
+
+
+@pytest.mark.parametrize(
+    "name", [n for n in preset_names() if n.endswith("-mechanistic") and "liesegang" not in n]
+)
+def test_every_mechanistic_preset_previews(client: TestClient, name: str) -> None:
+    """The app's preview builds every response part (stages included) for each
+    mechanistic preset; a new stage once broke only the server."""
+    response = client.post("/api/preview", json={"config": _config(name), "resolution": 96})
+    assert response.status_code == 200, response.text
+    assert response.json()["stages"]

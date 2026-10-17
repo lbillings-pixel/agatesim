@@ -1,5 +1,5 @@
 import type { Nature } from "../api";
-import { type Control, formatValue } from "../lib/schema";
+import { type Choice, type Control, type Field, formatValue } from "../lib/schema";
 
 const NATURE_HELP: Record<Nature, string> = {
   physical: "A measurable environmental condition.",
@@ -43,24 +43,85 @@ export function Slider({ id, control, value, onChange }: SliderProps) {
   );
 }
 
-interface Props {
-  controls: Control[];
-  values: Record<string, unknown>;
-  onChange: (key: string, value: number) => void;
+interface ChoiceMenuProps {
+  id: string;
+  choice: Choice;
+  value: string;
+  onChange: (value: string) => void;
 }
 
-export function ParamPanel({ controls, values, onChange }: Props) {
+export function ChoiceMenu({ id, choice, value, onChange }: ChoiceMenuProps) {
+  return (
+    <div className="param">
+      <div className="param-head">
+        <label htmlFor={id} title={choice.description}>
+          {choice.label}
+        </label>
+      </div>
+      <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
+        {choice.options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+      {choice.description && <p className="param-help">{choice.description}</p>}
+    </div>
+  );
+}
+
+interface Props {
+  fields: Field[];
+  values: Record<string, unknown>;
+  /** A setting changed; `path` holds the keys from the model down to it. */
+  onChange: (path: string[], value: number | string) => void;
+  idPrefix?: string;
+}
+
+/** A model's settings: sliders for numbers, menus for choices, and a collapsible
+ * section for each nested model (such as one stage of a staged model). */
+export function ParamPanel({ fields, values, onChange, idPrefix = "param" }: Props) {
   return (
     <div className="params">
-      {controls.map((c) => (
-        <Slider
-          key={c.key}
-          id={`param-${c.key}`}
-          control={c}
-          value={typeof values[c.key] === "number" ? (values[c.key] as number) : c.defaultValue}
-          onChange={(v) => onChange(c.key, v)}
-        />
-      ))}
+      {fields.map((f) => {
+        const id = `${idPrefix}-${f.key}`;
+        const value = values[f.key];
+        switch (f.type) {
+          case "number":
+            return (
+              <Slider
+                key={f.key}
+                id={id}
+                control={f}
+                value={typeof value === "number" ? value : f.defaultValue}
+                onChange={(v) => onChange([f.key], v)}
+              />
+            );
+          case "choice":
+            return (
+              <ChoiceMenu
+                key={f.key}
+                id={id}
+                choice={f}
+                value={typeof value === "string" ? value : f.defaultValue}
+                onChange={(v) => onChange([f.key], v)}
+              />
+            );
+          case "group":
+            return (
+              <details key={f.key} className="param-group">
+                <summary title={f.description}>{f.label}</summary>
+                {f.description && <p className="param-help">{f.description}</p>}
+                <ParamPanel
+                  fields={f.fields}
+                  values={typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {}}
+                  onChange={(path, v) => onChange([f.key, ...path], v)}
+                  idPrefix={id}
+                />
+              </details>
+            );
+        }
+      })}
     </div>
   );
 }

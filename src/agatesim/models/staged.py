@@ -147,13 +147,20 @@ class Staged(BaseModel):
         default="front-feedback",
         description="What makes the wall-lining bands: front feedback (H1) or Liesegang (H2).",
     )
-    wall: FrontFeedback = Field(default_factory=FrontFeedback, description="The H1 wall stages.")
-    liesegang: Liesegang = Field(
-        default_factory=Liesegang, description="The H2 wall stages (wall_mechanism = liesegang)."
+    wall: FrontFeedback = Field(
+        default_factory=FrontFeedback,
+        description="The H1 wall and spherulite stages (with the front-feedback wall mechanism).",
     )
-    floor: Settling = Field(default_factory=Settling, description="The H4 floor stage.")
+    liesegang: Liesegang = Field(
+        default_factory=Liesegang,
+        description="The H2 wall stages (with the Liesegang wall mechanism).",
+    )
+    floor: Settling = Field(
+        default_factory=Settling, description="The H4 floor stage (orders with a floor)."
+    )
     dendrite: DendriteStage = Field(
-        default_factory=DendriteStage, description="The dendrite stage (branched inclusions)."
+        default_factory=DendriteStage,
+        description="The dendrite stage: branched inclusions (the dendrite-wall order).",
     )
 
     def gravity(self) -> NDArray[np.float64]:
