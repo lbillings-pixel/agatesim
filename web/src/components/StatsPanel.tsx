@@ -1,12 +1,12 @@
 import type { BandStats } from "../api";
 
-type Row = { label: string; value: (s: BandStats) => number | null; format: (v: number) => string };
+export type Row = { label: string; value: (s: BandStats) => number | null; format: (v: number) => string };
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 const mm = (v: number) => `${v.toFixed(3)} mm`;
 const plain = (digits: number) => (v: number) => v.toFixed(digits);
 
-const ROWS: Row[] = [
+export const STATS_ROWS: Row[] = [
   { label: "Bands", value: (s) => s.band_count, format: plain(0) },
   { label: "Mean band thickness", value: (s) => s.thickness_mean_mm, format: mm },
   { label: "Median band thickness", value: (s) => s.thickness_median_mm, format: mm },
@@ -42,7 +42,7 @@ export function StatsPanel({ columns }: { columns: Column[] }) {
           </tr>
         </thead>
         <tbody>
-          {ROWS.map((r) => (
+          {STATS_ROWS.map((r) => (
             <tr key={r.label}>
               <td>{r.label}</td>
               {shown.map((c) => {

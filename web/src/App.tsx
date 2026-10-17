@@ -27,6 +27,8 @@ import { CompareMechanisms } from "./components/CompareMechanisms";
 import { GrowthControls } from "./components/GrowthControls";
 import { RunDiff } from "./components/RunDiff";
 import { Glossary } from "./components/Glossary";
+import { saveBlob } from "./lib/animation";
+import { buildReport } from "./lib/report";
 
 const PREVIEW_RESOLUTIONS = [128, 192, 256, 384];
 const RUN_RESOLUTIONS = [512, 768, 1024, 1536, 2048];
@@ -248,6 +250,31 @@ export function App() {
     const hit = tubes.findIndex((t) => Math.hypot(t.x_mm - x, t.y_mm - y) <= Math.max(1, 3 * t.radius_mm));
     if (hit >= 0) setTubes(tubes.filter((_, i) => i !== hit));
     else setTubes([...tubes, { x_mm: round2(x), y_mm: round2(y), radius_mm: tubeRadius }]);
+  };
+
+  /** Save a self-contained report of the shown result: a saved run, or the preview. */
+  const exportReport = async () => {
+    try {
+      const run = selected ? selectedDetail : undefined;
+      const shown = run ? run.config : config;
+      const image = run ? await dataUrl(api.slabUrl(run.id)) : preview?.image;
+      if (!image) return;
+      const html = buildReport({
+        config: shown,
+        image,
+        evaluation: run ? run.evaluation : (preview?.evaluation ?? null),
+        stats: run ? run.stats : (preview?.stats ?? null),
+        archetypes: meta.archetypes,
+        models: meta.models,
+        description: meta.presets.find((p) => p.name === shown.name)?.description,
+        source: run ? `saved run ${run.metadata.grid.nx}×${run.metadata.grid.ny} px` : `preview ${preview?.width ?? ""}×${preview?.height ?? ""} px`,
+        commit: run?.metadata.git.commit,
+        created: new Date(),
+      });
+      saveBlob(new Blob([html], { type: "text/html" }), `${shown.name}-report.html`);
+    } catch (e) {
+      setPreviewError(e instanceof Error ? e.message : String(e));
+    }
   };
 
   const startRun = () => {
@@ -631,6 +658,16 @@ export function App() {
               <button type="button" onClick={() => setPinned(pinned === selected ? null : selected)}>
                 {pinned === selected ? "Unpin" : "Pin for comparison"}
               </button>
+              <button type="button" onClick={() => void exportReport()}>
+                Export report
+              </button>
+            </div>
+          )}
+          {selected === null && preview && (
+            <div className="run-actions">
+              <button type="button" onClick={() => void exportReport()}>
+                Export report
+              </button>
             </div>
           )}
           {selected === null && pinned && (
@@ -694,4 +731,15 @@ export function App() {
       )}
     </div>
   );
+}
+
+/** An image the server serves, as a data: URL for embedding in a report. */
+async function dataUrl(url: string): Promise<string> {
+  const blob = await (await fetch(url)).blob();
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error ?? new Error("couldn't read the slab image"));
+    reader.readAsDataURL(blob);
+  });
 }

@@ -69,7 +69,7 @@ MODEL_TITLES = {
     "mechanistic-front-feedback": "Front feedback (mechanistic, H1: self-organised bands)",
     "mechanistic-liesegang": "Liesegang precipitation (mechanistic, H2; slow without a GPU)",
     "mechanistic-settling": "Hindered settling (mechanistic, H4: horizontal layers)",
-    "mechanistic-staged": "Wall and floor stages (mechanistic, H1 then H4 and back)",
+    "mechanistic-staged": "Stages (mechanistic: H1 or H2 walls, H4 floors, spherulites, dendrites)",
 }
 MODEL_SCHEDULES: dict[str, list[dict[str, object]]] = {
     "procedural-growth": [
