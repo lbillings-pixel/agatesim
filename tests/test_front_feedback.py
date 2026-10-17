@@ -140,3 +140,39 @@ def test_h1_lines_tube_filaments_like_the_wall() -> None:
     bare = config.model_copy(update={"cavity": config.cavity.model_copy(update={"tubes": []})})
     plain = simulate(bare).fields
     assert np.median(f.band[ring]) < 5 < 15 < np.median(plain.band[ring])
+
+
+def test_the_micro_rhythm_grates_the_clear_bands_only() -> None:
+    """ADR 0043: with micro_rhythm, micro-bands appear in the impurity-poor half
+    of each cycle only, spaced v T δ_m²/δ; off, there are none."""
+    config = load_preset("iris-mechanistic").with_resolution(RESOLUTION)
+    f = simulate(config).fields
+    grated = np.isfinite(f.micro_spacing_um)
+    chal = f.phase == Phase.CHALCEDONY
+    assert 0.2 < grated[chal].mean() < 0.8
+    # Clear bands only: grated pixels carry less of the impurity stain.
+    assert f.impurity[grated].max() <= f.impurity[chal & ~grated].min() + 1e-6
+    off = config.model_copy(
+        update={"model": config.model.model_copy(update={"micro_rhythm": False})}
+    )
+    assert not np.isfinite(simulate(off).fields.micro_spacing_um).any()
+
+
+def test_micro_spacing_scales_with_the_square_of_the_thin_layer() -> None:
+    config = load_preset("iris-mechanistic").with_resolution(256)
+    model = config.model
+    assert isinstance(model, FrontFeedback)
+
+    def median(layer_um: float) -> float:
+        m = model.model_copy(update={"micro_boundary_layer_um": layer_um})
+        f = simulate(config.model_copy(update={"model": m})).fields
+        return float(np.nanmedian(f.micro_spacing_um))
+
+    assert median(0.2) / median(0.1) == pytest.approx(4.0, rel=1e-3)
+
+
+def test_mechanistic_iris_passes_the_iris_tests() -> None:
+    """It passes, but iris can't be verified at the mechanistic tier while its
+    dependency, shadow, isn't (ADR 0043)."""
+    ev = evaluate("iris", simulate(load_preset("iris-mechanistic")))
+    assert ev.passed, ev.to_json()

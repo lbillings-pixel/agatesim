@@ -172,3 +172,29 @@ describe("isUsed", () => {
     ]);
   });
 });
+
+describe("fieldsFor toggles", () => {
+  it("shows booleans as on/off settings with their default", () => {
+    const fields = fieldsFor({
+      properties: { micro_rhythm: { type: "boolean", default: false, description: "A fast rhythm." } },
+    });
+    expect(fields).toEqual([
+      { type: "toggle", key: "micro_rhythm", label: "Micro rhythm", description: "A fast rhythm.", defaultValue: false },
+    ]);
+  });
+});
+
+describe("isUsed with an on/off setting", () => {
+  const fields = fieldsFor({
+    properties: {
+      micro_rhythm: { type: "boolean", default: false },
+      micro_boundary_layer_um: { type: "number", default: 0.1, maximum: 1, used_when: [{ micro_rhythm: ["true"] }] },
+    },
+  });
+  const layer = fields.find((f) => f.key === "micro_boundary_layer_um");
+  if (!layer) throw new Error("missing field");
+  it("hides a setting until the switch it depends on is on", () => {
+    expect(isUsed(layer, {}, fields)).toBe(false);
+    expect(isUsed(layer, { micro_rhythm: true }, fields)).toBe(true);
+  });
+});

@@ -36,7 +36,7 @@ the bands inside each stage is mechanistic.
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -49,18 +49,11 @@ from agatesim.models.front_feedback import FrontFeedback, run_front_feedback
 from agatesim.models.growth import InclusionGrowth, grow_inclusions
 from agatesim.models.liesegang import Liesegang, run_liesegang
 from agatesim.models.settling import Settling, run_settling
-from agatesim.params import Nature, param
+from agatesim.params import Nature, param, used_when
 
 Order = Literal["wall-floor-wall", "wall-floor", "floor-wall", "dendrite-wall", "spherulite-wall"]
 WallMechanism = Literal["front-feedback", "liesegang"]
 STAGE_SPAN = 0.999  # of a stage's time slot, so stages never share a deposition time
-
-
-def used_when(*alternatives: dict[str, list[str]]) -> dict[str, Any]:
-    """Schema hint for the app: a setting matters only when, for one of the
-    alternatives, every named sibling's value is one of the listed values or
-    is a stage order containing one of them as a stage."""
-    return {"used_when": list(alternatives)}
 
 
 class DendriteStage(BaseModel):

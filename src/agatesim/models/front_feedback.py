@@ -43,6 +43,15 @@ spherulites at the wall ([@goetze2020] §4.1.2, [@cartwright2026] §5.1.1). The
 same front history then applies along each point's distance of growth from its
 spherulite, so bands are surfaces of equal growth time about the lobes
 (ADR 0038).
+
+With `micro_rhythm`, the same feedback also runs at a much thinner boundary
+layer (thickness δ_m), as a second, fast rhythm: regular micro-bands, the
+diffraction grating of iris agate ([@jones1952]: lamellae formed while the
+fibres grew, by rhythmic crystallisation, in pure chalcedony only). In the
+same dimensionless units its cycle takes the same time T as the visible
+rhythm's, but its time unit is δ_m²/D instead of δ²/D, so the micro-band
+spacing where the front moves at speed v is v T δ_m²/δ. It shows only in the
+impurity-poor, clear part of each visible cycle (ADR 0043).
 """
 
 from __future__ import annotations
@@ -59,7 +68,7 @@ from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models.base import Domain
 from agatesim.models.growth import grow_crystals, spherulite_distance
-from agatesim.params import Nature, param
+from agatesim.params import Nature, param, used_when
 
 GEOMETRY_SAMPLES = 400  # depths at which the cavity's filled share is tabulated
 TRACE_SAMPLES = 20000  # depths at which the front's history is tabulated
@@ -199,6 +208,25 @@ class FrontFeedback(BaseModel):
             "a property of any band)."
         ),
     )
+    micro_rhythm: bool = Field(
+        default=False,
+        description=(
+            "A second, fast rhythm of the same feedback at a much thinner boundary "
+            "layer, making regular micro-bands (an iris grating) in the clear bands."
+        ),
+    )
+    micro_boundary_layer_um: float = param(
+        0.1,
+        gt=0,
+        le=1,
+        units="µm",
+        nature=Nature.EFFECTIVE,
+        schema_extra=used_when({"micro_rhythm": ["true"]}),
+        description=(
+            "δ_m: thickness of the boundary layer of the fast rhythm (with micro_rhythm); "
+            "sets the micro-band spacing."
+        ),
+    )
     growth_form: Literal["lining", "spherulitic"] = Field(
         default="lining",
         description=(
@@ -263,6 +291,7 @@ class FrontHistory:
     quartz: NDArray[np.bool_]
     stopped_mm: float  # depth where growth stopped (silica exhausted), or the deepest point
     supply: FloatArray  # the bulk-silica forcing factor at each time (1 = none)
+    micro_spacing_um: FloatArray | None = None  # micro-band spacing (µm); NaN where none
 
 
 @dataclass(frozen=True)
@@ -410,10 +439,55 @@ def forced_history_from(
 ) -> FrontHistory:
     """forced_history for a cavity given by sample wall distances."""
     history = history_from_distances(params, distances)
-    if params.supply_noise <= 0:
-        return history
-    forcing = supply_forcing(params, 1.5 * float(history.time[-1]), rng)
-    return history_from_distances(params, distances, forcing)
+    if params.supply_noise > 0:
+        forcing = supply_forcing(params, 1.5 * float(history.time[-1]), rng)
+        history = history_from_distances(params, distances, forcing)
+    if params.micro_rhythm:
+        history = replace(history, micro_spacing_um=micro_spacing(params, history))
+    return history
+
+
+MIN_PEAK_RISE = (
+    0.05  # a speed maximum counts as a cycle if it stands this far (relative) above its troughs
+)
+
+
+def cycle_time(history: FrontHistory) -> float | None:
+    """Median time between the front's speed maxima in the chalcedony: the
+    rhythm's period T (dimensionless), or None if it doesn't oscillate."""
+    chal = ~history.quartz
+    v, t = history.velocity[chal], history.time[chal]
+    if len(v) < 3:
+        return None
+    k = np.flatnonzero((v[1:-1] > v[:-2]) & (v[1:-1] >= v[2:])) + 1
+    window = max(len(v) // 200, 2)
+    peaks = [
+        i
+        for i in k
+        if v[i] - min(v[max(0, i - window) : i].min(), v[i : i + window].min())
+        > MIN_PEAK_RISE * v[i]
+    ]
+    if len(peaks) < 3:
+        return None
+    return float(np.median(np.diff(t[peaks])))
+
+
+def micro_spacing(params: FrontFeedback, history: FrontHistory) -> FloatArray:
+    """Micro-band spacing (µm) at each moment of the history: v T δ_m²/δ where
+    the incorporated impurity is in the lower (clear) half of its range, NaN in
+    the impurity-rich half and where there is no rhythm."""
+    out = np.full(len(history.time), np.nan)
+    period = cycle_time(history)
+    if period is None:
+        return out
+    delta_um = params.boundary_layer_mm * 1000
+    spacing = history.velocity * period * params.micro_boundary_layer_um**2 / delta_um
+    c = np.log(np.maximum(history.incorporated, 1e-12))
+    chal = ~history.quartz
+    level = 0.5 * (float(c[chal].min()) + float(c[chal].max()))
+    clear = chal & (c <= level)
+    out[clear] = spacing[clear]
+    return out
 
 
 def band_edges(history: FrontHistory) -> FloatArray:
@@ -500,5 +574,9 @@ def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]
         ),
         t_dep=np.where(grown, time, np.nan).astype(np.float32),
         grain=np.full(d.shape, -1, dtype=np.int32),
-        micro_spacing_um=np.full(d.shape, np.nan, dtype=np.float32),
+        micro_spacing_um=(
+            np.where(chal, history.micro_spacing_um[idx], np.nan)
+            if history.micro_spacing_um is not None
+            else np.full(d.shape, np.nan)
+        ).astype(np.float32),
     )

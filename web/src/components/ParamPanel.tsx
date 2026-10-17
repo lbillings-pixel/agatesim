@@ -74,7 +74,7 @@ interface Props {
   fields: Field[];
   values: Record<string, unknown>;
   /** A setting changed; `path` holds the keys from the model down to it. */
-  onChange: (path: string[], value: number | string) => void;
+  onChange: (path: string[], value: number | string | boolean) => void;
   idPrefix?: string;
 }
 
@@ -108,6 +108,21 @@ export function ParamPanel({ fields, values, onChange, idPrefix = "param" }: Pro
                 value={typeof value === "string" ? value : f.defaultValue}
                 onChange={(v) => onChange([f.key], v)}
               />
+            );
+          case "toggle":
+            return (
+              <div key={f.key} className="param">
+                <label className="inline" title={f.description}>
+                  <input
+                    id={id}
+                    type="checkbox"
+                    checked={typeof value === "boolean" ? value : f.defaultValue}
+                    onChange={(e) => onChange([f.key], e.target.checked)}
+                  />
+                  {f.label}
+                </label>
+                {f.description && <p className="param-help">{f.description}</p>}
+              </div>
             );
           case "group":
             return (

@@ -1,0 +1,23 @@
+# Verification preset for iris agate (mechanistic tier): front-feedback (H1)
+# bands, with the same feedback running as a second, fast rhythm at a much
+# thinner boundary layer, which lays regular micro-bands in the clear bands.
+# A thin (0.3 mm) slice, backlit and seen off-axis, diffracts them into rainbow
+# colours (ADR 0043).
+name = "iris-mechanistic"
+seed = 13
+archetype = "iris"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-round"
+size_mm = 40
+
+[optics]
+thickness_mm = 0.3
+band_tilt_deg = 0
+
+[model]
+kind = "mechanistic-front-feedback"
+micro_rhythm = true

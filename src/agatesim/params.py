@@ -28,8 +28,10 @@ def param(
     gt: float | None = None,
     le: float | None = None,
     lt: float | None = None,
+    schema_extra: dict[str, Any] | None = None,
 ) -> Any:
-    """A pydantic Field annotated with units and nature in its JSON schema."""
+    """A pydantic Field annotated with units and nature in its JSON schema (plus
+    any `schema_extra`, such as a used_when hint)."""
     return Field(
         default,
         description=description,
@@ -37,5 +39,13 @@ def param(
         gt=gt,
         le=le,
         lt=lt,
-        json_schema_extra={"units": units, "nature": nature.value},
+        json_schema_extra={"units": units, "nature": nature.value, **(schema_extra or {})},
     )
+
+
+def used_when(*alternatives: dict[str, list[str]]) -> dict[str, Any]:
+    """Schema hint for the app: a setting matters only when, for one of the
+    alternatives, every named sibling's value is one of the listed values (on/off
+    settings as "true" or "false") or is a stage order containing one of them
+    as a stage."""
+    return {"used_when": list(alternatives)}

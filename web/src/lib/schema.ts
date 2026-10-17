@@ -89,6 +89,14 @@ export interface Choice {
   defaultValue: string;
 }
 
+/** An on/off setting (a pydantic bool), shown as a checkbox. */
+export interface Toggle {
+  key: string;
+  label: string;
+  description: string;
+  defaultValue: boolean;
+}
+
 /** A nested model's settings (for example one stage of a staged model). */
 export interface Group {
   key: string;
@@ -100,6 +108,7 @@ export interface Group {
 export type Field = (
   | ({ type: "number" } & Control)
   | ({ type: "choice" } & Choice)
+  | ({ type: "toggle" } & Toggle)
   | ({ type: "group" } & Group)
 ) & { usedWhen?: Record<string, string[]>[] };
 
@@ -132,6 +141,16 @@ export function fieldsFor(schema: ModelSchema, properties = schema.properties): 
     }
     const choice = choiceFor(key, p);
     if (choice) return [withUse({ type: "choice", ...choice }, p)];
+    if (p.type === "boolean") {
+      const toggle: Field = {
+        type: "toggle",
+        key,
+        label: labelFor(key),
+        description: p.description ?? "",
+        defaultValue: p.default === true,
+      };
+      return [withUse(toggle, p)];
+    }
     const control = controlFor(key, p);
     return control ? [withUse({ type: "number", ...control }, p)] : [];
   });
@@ -143,14 +162,17 @@ function withUse(field: Field, p: JsonSchemaProperty): Field {
 
 /** Whether a field matters given its siblings' values (their defaults where unset):
  * for one of its `usedWhen` alternatives, each named sibling's value is one of the
- * listed values, or a stage order ("wall-floor") with one of them as a stage. */
+ * listed values (on/off settings as "true" or "false"), or a stage order
+ * ("wall-floor") with one of them as a stage. */
 export function isUsed(field: Field, values: Record<string, unknown>, siblings: Field[]): boolean {
   if (!field.usedWhen) return true;
   const valueOf = (key: string): string => {
     const v = values[key];
-    if (typeof v === "string") return v;
+    if (typeof v === "string" || typeof v === "boolean") return String(v);
     const sibling = siblings.find((f) => f.key === key);
-    return sibling?.type === "choice" ? sibling.defaultValue : "";
+    if (sibling?.type === "choice") return sibling.defaultValue;
+    if (sibling?.type === "toggle") return String(sibling.defaultValue);
+    return "";
   };
   return field.usedWhen.some((alt) =>
     Object.entries(alt).every(([key, wanted]) => {
