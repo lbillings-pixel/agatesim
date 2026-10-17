@@ -285,6 +285,24 @@ def test_eye_criteria_reject_centres_off_the_wall() -> None:
     assert _failed(_evaluate("eye", tube)) == {"wall-nucleated"}
 
 
+def test_eye_criteria_reject_eyes_grown_on_a_thick_lining() -> None:
+    """Negative control for the arc rule (ADR 0031): eyes that nucleate late, on the
+    inner surface of a thick wall lining, have arcs centred far from the wall
+    compared with their size, so they are not eyes rooted at the wall."""
+    late = _with_schedule(
+        load_preset("eye").with_resolution(NEGATIVE_RESOLUTION),
+        "spherulitic",
+        {
+            "base": 0,
+            "events": [
+                {"type": "step", "at": 0.5, "value": 1},
+                {"type": "step", "at": 0.65, "value": 0},
+            ],
+        },
+    )
+    assert "wall-nucleated" in _failed(_evaluate("eye", late))
+
+
 def test_tube_criteria_reject_bands_that_ignore_the_seeds() -> None:
     tube = load_preset("tube")
     ignored = _fortification().model_copy(update={"cavity": tube.cavity, "archetype": "tube"})

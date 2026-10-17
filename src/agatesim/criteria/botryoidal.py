@@ -25,6 +25,7 @@ WALL_TOLERANCE = 0.03  # of cavity size
 RING_SECTORS = 24  # directions around a centre, for judging whether its rings close
 CLOSED_COVER = 0.75  # share of directions a closed eye's rings cover
 SEED_SEARCH = 0.5  # × a centre's curvature radius: a seed this close makes it a tube
+ARC_REACH = 0.75  # × a centre's curvature radius: arcs centred this close to the wall (ADR 0031)
 
 
 def _fraction(numerator: np.ndarray, denominator: np.ndarray) -> float:
@@ -97,10 +98,13 @@ def discrete_eyes(result: SimulationResult) -> Measurement:
 
 
 def wall_nucleated(result: SimulationResult) -> Measurement:
-    """Share of growth centres that are eyes rooted at the wall: either on the
-    cavity wall (a cut through the eye's nucleation site), or closed rings with
-    no seed inside them (a cut near and along the wall, which shows the eye as a
-    bullseye; ADR 0024). Rings closed around a seed are tubes, not eyes."""
+    """Share of growth centres that are eyes rooted at the wall: on the cavity
+    wall (a cut through the eye's nucleation site); closed rings with no seed
+    inside them (a cut near and along the wall, which shows the eye as a
+    bullseye; ADR 0024); or arcs centred within ARC_REACH of their own curvature
+    radius from the wall, with no seed (a cut through the side of an eye's dome,
+    whose rings are arcs centred near the outline; ADR 0031). Rings around a
+    seed are tubes, not eyes."""
     iso = isochrons(result)
     bb = band_boundaries(result)
     centres = growth_centres(result, iso, bb, CENTRE_VOTES)
@@ -112,9 +116,10 @@ def wall_nucleated(result: SimulationResult) -> Measurement:
     cx, cy = iso.centre_x[voters], iso.centre_y[voters]
     xx, yy = result.grid.coords()
     seeds = result.fields.phase == Phase.INCLUSION
-    on_wall = closed = 0
+    on_wall = closed = arcs = 0
     for c in centres:
-        if float(wall_distance_of(result, np.array([[c.x, c.y]]))[0]) / size <= WALL_TOLERANCE:
+        d = float(wall_distance_of(result, np.array([[c.x, c.y]]))[0])
+        if d / size <= WALL_TOLERANCE:
             on_wall += 1
             continue
         member = np.hypot(cx - c.x, cy - c.y) <= CLUSTER_FRACTION * size
@@ -122,9 +127,15 @@ def wall_nucleated(result: SimulationResult) -> Measurement:
         sectors = np.floor((angle + np.pi) / (2 * np.pi) * RING_SECTORS).astype(np.int64)
         cover = len(np.unique(np.clip(sectors, 0, RING_SECTORS - 1))) / RING_SECTORS
         seeded = bool(seeds[np.hypot(xx - c.x, yy - c.y) <= SEED_SEARCH * c.radius].any())
-        closed += int(cover >= CLOSED_COVER and not seeded)
-    return (on_wall + closed) / len(centres), (
-        f"{on_wall} of {len(centres)} centres on the wall, {closed} closed eyes off it"
+        if seeded:
+            continue
+        if cover >= CLOSED_COVER:
+            closed += 1
+        elif d <= ARC_REACH * c.radius:
+            arcs += 1
+    return (on_wall + closed + arcs) / len(centres), (
+        f"{on_wall} of {len(centres)} centres on the wall, {closed} closed eyes and "
+        f"{arcs} arc systems near it"
     )
 
 

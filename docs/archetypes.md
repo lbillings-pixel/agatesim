@@ -115,7 +115,7 @@ later banding; on a surface ground parallel to the wall they appear as circles.
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
 | `discrete-eyes` | Several separate band systems radiate from their own centres. | Number of distinct growth centres of the banding (peaks in the density of band-boundary curvature centres, each holding at least 1% of band-boundary pixels). | value ≥ 3 |
-| `wall-nucleated` | Eyes are rooted at the cavity wall. | Fraction of growth centres that are eyes rooted at the wall: within 3% of cavity size of the original wall (a cut through the nucleation sites), or off it with rings closed around at least 75% of directions and no seed inside (a cut along the wall, showing a bullseye; rings around a seed are tubes). ADR 0024. | value ≥ 0.8 |
+| `wall-nucleated` | Eyes are rooted at the cavity wall. | Fraction of growth centres that are eyes rooted at the wall: within 3% of cavity size of the original wall (a cut through the nucleation sites); or off it with no seed nearby and either rings closed around at least 75% of directions (a cut along the wall, showing a bullseye; ADR 0024) or arcs centred within 0.75 of their curvature radius from the wall (a cut through the side of an eye's dome; ADR 0031). Rings around a seed are tubes. | value ≥ 0.8 |
 | `isolated-eyes` | The eyes are separate, not a continuous botryoidal crust. | Fraction of the first banding on the wall that is ordinary layering rather than radiating from a centre. | value ≥ 0.3 |
 
 ## Tube agate
