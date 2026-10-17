@@ -57,7 +57,7 @@ url = "https://arxiv.org/abs/2412.18999"
 access = "open"
 licence = "arXiv non-exclusive distribution licence 1.0 (preprint); publisher terms for the journal version"
 checked = "sections"
-sections_read = ["4.1 Reaction–diffusion systems", "4.1.5 Liesegang patterns", "4.1.6 Oscillatory zoning", "5.1.1 Agates"]
+sections_read = ["4.1 Reaction–diffusion systems", "4.1.5 Liesegang patterns", "4.1.6 Oscillatory zoning", "4.3 Osmotic processes", "5.1.1 Agates"]
 topics = ["self-organization", "pattern-formation", "soft-matter", "agate", "iris", "liesegang"]
 notes = """Broad framework for geological pattern formation; §5.1.1 reviews agate (read 2026-10-15). Micro-banding of defect-rich chalcedony and macrocrystalline quartz at ~100 µm, with oscillatory zonation of defects at 0.5–5 µm; the change of refractive index along these bands gives iris colours; iris spacing ~2 µm (Fig. 35, after jones1952); 'Zones with iris banding exist in nearly every agate, although they are often concealed by pigmentation.' Growth starts as spherulites at the wall, then common banding equidistant to the walls. Against Liesegang models: no sharp corners, ring defects, Jabłczyński spacing law not seen in agate, gel shrinkage problem. Against external-rhythm models: nearby agates have uncorrelated band sequences. Wang–Merino model: Al3+ accumulating at the front accelerates quartz crystallisation, alternating chalcedony and quartz bands. §4.1.5 (read in M8): Liesegang band positions follow a geometric series x_n ≈ x0 (1 + p)^n; pre-nucleation (Ostwald–Prager supersaturation feedback) and post-nucleation (ripening) models; both may occur in nature. §4.1.6: oscillatory zoning has extrinsic or intrinsic (growth-dynamics) causes; intrinsic examples are growth-rate–partition-coefficient feedback (Mn in calcite) and alternation of end-members of different solubility."""
 
@@ -285,18 +285,47 @@ notes = "Citation from the reference list of goetze2020 (ref. 184), which report
 # --- Optics ------------------------------------------------------------------
 
 [[references]]
+id = "graetsch1985"
+kind = "article"
+authors = ["Graetsch, H.", "Flörke, O. W.", "Miehe, G."]
+year = 1985
+title = "The nature of water in chalcedony and opal-C from Brazilian agate geodes"
+venue = "Physics and Chemistry of Minerals 12(5), 300–306"
+doi = "10.1007/BF00310343"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "abstract"
+topics = ["chalcedony", "water", "translucency", "shadow"]
+notes = "Abstract as excerpted by a search engine, 2026-10-17 (the publisher page needs a sign-in): wall-lining chalcedony grades from translucent grey to milky white bands with decreasing total water content and silanol-to-molecular-water ratio, decreasing BET surface and increasing density; chalcedony holds water at open-pore surfaces and at inner surfaces and defect regions. The physical link between banding and milkiness that a mechanistic shadow agate would need."
+
+[[references]]
+id = "raman1955"
+kind = "article"
+authors = ["Raman, C. V.", "Jayaraman, A."]
+year = 1955
+title = "On the optical behaviour of crypto-crystalline quartz"
+venue = "Proceedings of the Indian Academy of Sciences, Section A 41(1), 1–6"
+doi = "10.1007/BF03050587"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["iris", "diffraction", "fibres"]
+notes = "Citation from Crossref. A search summary attributes iris diffraction to a periodic change of the quartz c-axis orientation along the chalcedony fibres; not read."
+
+[[references]]
 id = "jones1952"
 kind = "article"
 authors = ["Jones, F. T."]
 year = 1952
 title = "Iris agate"
 venue = "American Mineralogist 37(7–8), 578–"
-url = "http://www.minsocam.org/ammin/AM37/AM37_578.pdf"
+url = "https://www.rruff.net/doclib/am/vol37/AM37_578.pdf"
 access = "open"
 licence = "MSA; free to read, cite only"
-checked = "citation"
-topics = ["iris", "diffraction", "micro-banding"]
-notes = "The classic study of iris agate. Cited by cartwright2026 for an iris band spacing of about 2 µm; search summaries describe a grating of thin lamellae of alternating refractive index with chalcedony fibres perpendicular to them. Full text (a scanned PDF) not yet read."
+checked = "sections"
+sections_read = ["abstract", "occurrence", "quality factors", "lines per inch", "correlation of grating lines and crystals", "nature of the lines (pp. 578-584)"]
+topics = ["iris", "diffraction", "micro-banding", "fibres"]
+notes = """Read 2026-10-17, pp. 578-584 of the scanned PDF (text layers decoded locally). Iris colour is diffraction by a grating whose lines are the edges of thin lamellae of alternately higher and lower refractive index. Observed fineness ranges from about 15,000 to 400 lines per inch (about 1.7-64 µm); the figured specimen has about 10,000 (2.5 µm). The lines are always at right angles to the chalcedony needles and continue across neighbouring crystal groups; iris occurs in colourless, pure, low-porosity chalcedony, often in layers next to the quartz centre and with turtleback (spherulitic) growth, never in opal bands. The thin layers have the higher index and are more quartz-like, which rules out more opal in them (though the abstract suggests opal segregation). The author's opinion: the lines formed while the crystals grew, by rhythmic crystallisation like that of some organic melts, not in the manner of ordinary bands. Pages after 584 not read."""
 
 # --- Crystal growth ----------------------------------------------------------
 

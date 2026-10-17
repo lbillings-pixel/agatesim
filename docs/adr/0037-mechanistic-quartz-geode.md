@@ -1,6 +1,6 @@
 # 37. The quartz-centre geode at the mechanistic tier
 
-- Status: accepted
+- Status: accepted (amended 2026-10-17: why a closed cavity stops the banding)
 - Date: 2026-10-17
 - Builds on: [ADR 0008](0008-drawn-cavities-nucleation-and-crystal-growth.md), [ADR 0013](0013-mechanistic-front-feedback.md), [ADR 0035](0035-what-the-mechanistic-tier-requires.md)
 
@@ -65,11 +65,35 @@ couldn't be measured.
 ## Consequences
 
 - Mechanistic tier: 6 of 12 forms.
-- **The closed cavity ends H1's banding early.** As the dissolved silica
-  falls, the front leaves its oscillating range: the preset's chalcedony holds
-  only 3 bands (the same cavity, open: 25), and the incorporated impurity then
-  drifts smoothly, so the rest of the chalcedony looks faintly graded rather
-  than banded (found while building ADR 0038). The geode's criteria don't judge
-  the chalcedony's bands, but the form is described as banded chalcedony giving
-  way to quartz, so this is a limit of the H1 parameter set: one whose
-  oscillation survives falling silica is still to find (backlog).
+- **The closed cavity ends H1's banding early.** The preset's chalcedony holds
+  only 3 bands (the same cavity, open: 25), and the rest of it looks faintly
+  graded rather than banded (found while building ADR 0038). The geode's
+  criteria don't judge the chalcedony's bands, but the form is described as
+  banded chalcedony giving way to quartz, so this is a limit of the model.
+
+## Amendment (2026-10-17): why, and a search for a set that keeps banding
+
+- **Both closed-cavity effects stop the rhythm.** Counting the front-speed
+  cycles in the preset's cavity: open, 12; closed, 1. With the silica falling
+  but the bulk impurity held at its start, 2; with the rejected impurity
+  concentrating in the shrinking fluid but the silica held, 8. Even with
+  silica to spare (inventory 3), a closed cavity gives 1 cycle: as it fills,
+  the bulk drifts out of the narrow range where this set oscillates.
+- **A search for a set whose rhythm survives** (scratch scans, not kept):
+  476 random sets of the six feedback coefficients and the cooperativity
+  around the defaults, judged in the preset's closed cavity. Counting every
+  speed cycle, the best keeps 32, but after two or three full cycles their
+  impurity swing fades to a tenth (0.07 against 1.4 log units), too faint to
+  read as bands. Counting only cycles that swing at least 0.5 log units, the
+  best keeps 5, all within a fraction of a millimetre of the wall. No set
+  tried keeps visible bands through the chalcedony, so the preset is unchanged.
+- **Band finding.** H1 calls a band a crossing of one level, the midpoint of
+  the impurity's range over the whole run, which also misses cycles riding on
+  a strong drift. Judging each cycle against its own peak and trough would
+  count them, but it changes no existing preset by more than one band, and it
+  doesn't make faint cycles visible, so it wasn't adopted.
+- **Where this points.** In this model a well-banded rim needs its fluid
+  resupplied while it bands: an open cavity, as fortification's corners also
+  suggest (ADR 0034). A geode history in which the cavity is open while the
+  chalcedony bands and closes before the quartz grows would fit; it would be a
+  scheduled change in conditions, which ADR 0035 allows. Backlog.

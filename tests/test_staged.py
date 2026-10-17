@@ -145,19 +145,6 @@ def test_moss_preview_grows_the_same_dendrites() -> None:
     assert abs(share(full) - share(preview)) < 0.05 * share(full)
 
 
-def test_3d_staging_has_no_dendrite_stage_yet() -> None:
-    from agatesim.volume.config import SolidConfig, VolumeConfig
-
-    with pytest.raises(ValueError, match="dendrite"):
-        VolumeConfig(
-            name="x",
-            seed=0,
-            archetype=None,
-            solid=SolidConfig(preset="vesicle-round", size_mm=20),
-            model=load_preset("moss-mechanistic").model,
-        )
-
-
 def test_eyes_from_a_spherulite_stage_overgrown_by_h1() -> None:
     """Eye agate at the mechanistic tier (ADR 0039): widely spaced spherulites,
     then lining, pass; densely nucleated spherulites make a crust instead, and

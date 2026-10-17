@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier, nine also at the mechanistic tier, and ten run in 3D, judged on cuts. Current work takes the remaining forms to the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier, nine also at the mechanistic tier, and ten run in 3D, judged on cuts (eight of them mechanistically too). Current work takes the remaining forms to the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -48,9 +48,10 @@ and which proposed formation mechanisms, can produce them.
   filaments gives tubes
   ([ADR 0038](docs/adr/0038-mechanistic-botryoidal.md),
   [ADR 0039](docs/adr/0039-mechanistic-eye-and-tube.md)).
-- **A closed cavity stops the rhythm.** As the dissolved silica falls, H1's
-  front stops oscillating after a few bands, so a geode's chalcedony holds
-  few bands in this model
+- **A closed cavity stops the rhythm.** As a closed cavity fills, its silica
+  falls and the rejected impurity concentrates, and H1's front stops
+  oscillating after a few bands. No parameter set tried keeps visible bands;
+  in this model, a well-banded rim needs a cavity still open to fresh fluid
   ([ADR 0037](docs/adr/0037-mechanistic-quartz-geode.md)).
 - **A cut changes what you see.** On random cuts through 3D results, bands look
   1.07–1.18 times thicker than they are, and some forms show on only a minority

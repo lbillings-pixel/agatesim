@@ -1,0 +1,17 @@
+# Botryoidal agate in 3D (mechanistic tier): front-feedback (H1) growth radiates
+# from scattered nucleation sites on the wall, so its self-organised bands curve
+# about each lobe; the supply ends at half the cavity (ADR 0038, ADR 0040).
+name = "botryoidal-mechanistic-3d"
+seed = 7
+archetype = "botryoidal"
+
+[solid]
+preset = "nodule-round"
+size_mm = 50
+
+[model]
+kind = "mechanistic-front-feedback"
+growth_form = "spherulitic"
+spherulite_spacing_mm = 10
+spherulite_rate_variability = 0.3
+supply_ends_at = 0.5

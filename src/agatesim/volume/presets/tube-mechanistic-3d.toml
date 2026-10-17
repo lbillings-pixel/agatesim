@@ -1,0 +1,22 @@
+# Tube agate in 3D (mechanistic tier): four filaments hang from the roof of a
+# nodule, and front-feedback (H1) growth lines them as it lines the wall. A
+# horizontal cut crosses them, showing each as a ring system (ADR 0039, ADR 0040).
+name = "tube-mechanistic-3d"
+seed = 9
+archetype = "tube"
+
+[solid]
+preset = "nodule-round"
+size_mm = 40
+filaments = [
+  { start_mm = [-6, 5, 20], end_mm = [-6, 5, -10], radius_mm = 0.4 },
+  { start_mm = [7, 8, 20], end_mm = [7, 8, -8], radius_mm = 0.3 },
+  { start_mm = [2, -6, 20], end_mm = [2, -6, -12], radius_mm = 0.5 },
+  { start_mm = [-9, -7, 20], end_mm = [-9, -7, -6], radius_mm = 0.3 },
+]
+
+[slice]  # across the filaments
+tilt_deg = 0
+
+[model]
+kind = "mechanistic-front-feedback"

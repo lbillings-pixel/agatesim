@@ -41,10 +41,12 @@ from agatesim.models.growth import (
     TIME_STEPS,
     TIP_HALF_ANGLE_DEG,
     Fill,
+    InclusionGrowth,
     Mode,
     ProceduralGrowth,
     growth_fields,
     growth_modes,
+    inclusion_growth,
     mode_stages,
 )
 from agatesim.volume.dendrites import Aggregate3, Lattice3, grow
@@ -66,7 +68,7 @@ def unsupported_in_3d(params: ProceduralGrowth) -> str | None:
 
 
 @dataclass(frozen=True)
-class _Solid:
+class GrowthSolid:
     """The solid so far: wall offset, balls and bed (see the module docstring)."""
 
     wall: float = 0.0  # lining grown from the wall, mm
@@ -99,8 +101,8 @@ class _Solid:
             d[lo : lo + CHUNK] = np.minimum(d[lo : lo + CHUNK], balls.min(axis=1))
         return d
 
-    def dilated(self, thickness: float) -> _Solid:
-        return _Solid(
+    def dilated(self, thickness: float) -> GrowthSolid:
+        return GrowthSolid(
             wall=self.wall + thickness,
             centres=self.centres,
             radii=None if self.radii is None else self.radii + thickness,
@@ -109,7 +111,7 @@ class _Solid:
             aggregates=tuple((a, offset + thickness) for a, offset in self.aggregates),
         )
 
-    def with_balls(self, centres: FloatArray, radii: FloatArray) -> _Solid:
+    def with_balls(self, centres: FloatArray, radii: FloatArray) -> GrowthSolid:
         if self.centres is None or self.radii is None:
             return replace(self, centres=centres, radii=radii)
         return replace(
@@ -134,7 +136,7 @@ class _Sites:
 
 
 def _distance_and_gradient(
-    setting: Setting, solid: _Solid, p: FloatArray, step: float
+    setting: Setting, solid: GrowthSolid, p: FloatArray, step: float
 ) -> tuple[FloatArray, FloatArray]:
     """The solid's distance at points, and its gradient by central differences."""
 
@@ -153,8 +155,8 @@ def _distance_and_gradient(
     return d, grad
 
 
-def _place_sites(
-    setting: Setting, solid: _Solid, spacing: float, rng: np.random.Generator
+def place_sites(
+    setting: Setting, solid: GrowthSolid, spacing: float, rng: np.random.Generator
 ) -> _Sites:
     """Blue-noise sites on the growth surface, about `spacing` apart.
 
@@ -293,7 +295,7 @@ class _Metric:
         return times, owner
 
 
-class _Spherulites(_Metric):
+class Spherulites(_Metric):
     def __init__(self, sites: _Sites, rate_sigma: float) -> None:
         super().__init__(sites)
         z = _scipy.normal_quantile(sites.draws[:, 0])
@@ -333,7 +335,7 @@ class _Crystals(_Metric):
         return np.maximum(tip, across / self.side_rate)
 
 
-def _settle_owners(metric: _Metric, setting: Setting, solid: _Solid) -> None:
+def settle_owners(metric: _Metric, setting: Setting, solid: GrowthSolid) -> None:
     """Propagate site ownership over the open reference nodes (see _Metric.propagate)."""
     ref = setting.reference
     s = ref.spacing
@@ -345,35 +347,36 @@ def _settle_owners(metric: _Metric, setting: Setting, solid: _Solid) -> None:
     metric.propagate(nodes[open_], ref.points[open_], d[open_], s)
 
 
-def _grow_aggregate(
-    params: ProceduralGrowth, setting: Setting, solid: _Solid, rng: np.random.Generator
+def grow_aggregate(
+    how: InclusionGrowth, setting: Setting, solid: GrowthSolid, rng: np.random.Generator
 ) -> Aggregate3:
     """Branched inclusions grown from sites on the growth surface into the open
-    space (as in 2D: sites, optionally only low ones, then aggregation)."""
+    space (as in 2D: sites, optionally only low ones, then aggregation). Gravity
+    is the setting's."""
     rng_sites, rng_grow = rng.spawn(2)
     lo, hi = setting.solid.bounds()
-    lattice = Lattice3.around(lo, hi, params.dendrite_width_mm)
+    lattice = Lattice3.around(lo, hi, how.width_mm)
     centres = lattice.centres()
     inside = setting.solid.contains(centres)
     free = np.zeros(lattice.size, dtype=bool)
     c = centres[inside]
     d_wall = setting.solid.wall_distance(c)
     free[np.flatnonzero(inside)] = solid.distance(c, d_wall, setting.height(c)) > 0
-    sites = _place_sites(setting, solid, params.dendrite_spacing_mm, rng_sites)
+    sites = place_sites(setting, solid, how.spacing_mm, rng_sites)
     points, normals = sites.points, sites.normals
-    if params.dendrite_start_height < 1 and len(points):
+    if how.start_height < 1 and len(points):
         height = setting.height(points)
-        low = height <= float(height.min()) + params.dendrite_start_height * float(np.ptp(height))
+        low = height <= float(height.min()) + how.start_height * float(np.ptp(height))
         points, normals = points[low], normals[low]
     seeds = lattice.index(points + normals * lattice.h)
     return grow(
         lattice,
         free,
         seeds,
-        density=params.dendrite_density,
-        amount=params.dendrite_amount,
-        sticking=params.dendrite_sticking,
-        upward=params.dendrite_upward,
+        density=how.density,
+        amount=how.amount,
+        sticking=how.sticking,
+        upward=how.upward,
         gravity=setting.gravity,
         rng=rng_grow,
     )
@@ -385,7 +388,7 @@ class _Stage:
     start: int
     end: int
     reach: FloatArray  # growth (mm) or settled volume (mm³) by each step of the stage
-    solid: _Solid  # the solid when the stage starts
+    solid: GrowthSolid  # the solid when the stage starts
     metric: _Metric | None = None
     crystal_offset: int = 0
     settled_heights: FloatArray | None = None  # sorted heights of the open reference points
@@ -409,7 +412,7 @@ def prepare_growth(
     ref_h = setting.height(ref.points)
 
     tubes = setting.tubes if len(setting.tubes) else None
-    solid = _Solid(tubes=tubes)
+    solid = GrowthSolid(tubes=tubes)
     stages: list[_Stage] = []
     crystals = 0
     for a, b in mode_stages(mode):
@@ -422,21 +425,21 @@ def prepare_growth(
             stages.append(_Stage(m, a, b, cumulative, solid))
             solid = solid.dilated(total)
         elif m is Mode.SPHERULITIC:
-            sites = _place_sites(
-                setting, solid, params.spherulite_spacing_mm, rng_sites.spawn(1)[0]
-            )
-            metric = _Spherulites(sites, params.spherulite_rate_variability)
-            _settle_owners(metric, setting, solid)
+            sites = place_sites(setting, solid, params.spherulite_spacing_mm, rng_sites.spawn(1)[0])
+            metric = Spherulites(sites, params.spherulite_rate_variability)
+            settle_owners(metric, setting, solid)
             stages.append(_Stage(m, a, b, cumulative, solid, metric=metric))
             solid = solid.with_balls(sites.points, metric.rate * total)
         elif m is Mode.DENDRITE:
-            aggregate = _grow_aggregate(params, setting, solid, rng_dendrites.spawn(1)[0])
+            aggregate = grow_aggregate(
+                inclusion_growth(params), setting, solid, rng_dendrites.spawn(1)[0]
+            )
             stages.append(_Stage(m, a, b, cumulative, solid, aggregate=aggregate))
             solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0)))
         elif m is Mode.CRYSTAL:
-            sites = _place_sites(setting, solid, params.quartz_grain_mm, rng_crystals.spawn(1)[0])
+            sites = place_sites(setting, solid, params.quartz_grain_mm, rng_crystals.spawn(1)[0])
             metric = _Crystals(sites, params.quartz_elongation, params.quartz_axis_scatter_deg)
-            _settle_owners(metric, setting, solid)
+            settle_owners(metric, setting, solid)
             stages.append(
                 _Stage(m, a, b, cumulative, solid, metric=metric, crystal_offset=crystals)
             )

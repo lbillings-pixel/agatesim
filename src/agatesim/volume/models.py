@@ -23,7 +23,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from agatesim import _scipy
-from agatesim.fields import Fields, Phase
+from agatesim.fields import Fields
 from agatesim.grid import FloatArray
 from agatesim.models import (
     FrontFeedback,
@@ -35,14 +35,7 @@ from agatesim.models import (
     Staged,
 )
 from agatesim.models.base import banded_fields, make_bands
-from agatesim.models.front_feedback import (
-    FrontHistory,
-    band_edges,
-    forced_history_from,
-    history_fields,
-)
 from agatesim.models.settling import HEIGHT_CELLS, SettledColumn, settle_column
-from agatesim.models.staged import STAGE_SPAN
 from agatesim.volume.solids import BoolArray, Solid
 
 REFERENCE_CELLS = 128  # reference lattice points along the solid's longest side
@@ -153,7 +146,7 @@ def area_profile(
     return np.diff(below) / dz
 
 
-def _wall_distance(setting: Setting, points: FloatArray, inside: BoolArray) -> FloatArray:
+def wall_distance_at(setting: Setting, points: FloatArray, inside: BoolArray) -> FloatArray:
     d = np.zeros(len(points))
     d[inside] = setting.solid.wall_distance(points[inside])
     return d
@@ -166,11 +159,15 @@ def prepare(model: VolumeModel, setting: Setting, rng: np.random.Generator) -> E
         case ProceduralWaterline():
             return _waterline(model, setting, rng)
         case FrontFeedback():
-            return _front_feedback(model, setting, rng)
+            from agatesim.volume.fronts import prepare_front_feedback  # imports this module
+
+            return prepare_front_feedback(model, setting, rng)
         case Settling():
             return _settling(model, setting, rng)
         case Staged():
-            return _staged(model, setting, rng)
+            from agatesim.volume.fronts import prepare_staged  # imports this module
+
+            return prepare_staged(model, setting, rng)
         case ProceduralGrowth():
             from agatesim.volume.growth import prepare_growth  # imports this module
 
@@ -199,7 +196,7 @@ def _fortification(
     noise = SmoothNoise3(setting.solid, params.wobble_scale_mm, rng_noise)
 
     def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
-        d = _wall_distance(setting, points, inside)
+        d = wall_distance_at(setting, points, inside)
         taper = np.clip(d / (2 * params.wobble_mm), 0, 1) if params.wobble_mm > 0 else 0.0
         coord = d + params.wobble_mm * noise(points) * taper
         filled = inside & (coord < depth)
@@ -233,16 +230,7 @@ def _waterline(
     return evaluate
 
 
-def _front_feedback(params: FrontFeedback, setting: Setting, rng: np.random.Generator) -> Evaluator:
-    history = forced_history_from(params, setting.reference.distance, rng)
-
-    def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
-        return history_fields(history, _wall_distance(setting, points, inside), inside)
-
-    return evaluate
-
-
-def _column(
+def column_of(
     params: Settling, setting: Setting, heights: FloatArray, rng: np.random.Generator
 ) -> SettledColumn:
     """Settle the pulses in the region sampled by reference points at `heights`."""
@@ -254,106 +242,10 @@ def _column(
 
 
 def _settling(params: Settling, setting: Setting, rng: np.random.Generator) -> Evaluator:
-    column = _column(params, setting, setting.height(setting.reference.points), rng)
+    column = column_of(params, setting, setting.height(setting.reference.points), rng)
 
     def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
         return column.fields(setting.height(points), inside)
-
-    return evaluate
-
-
-@dataclass(frozen=True)
-class _Stage:
-    kind: str  # "wall" or "floor"
-    rim: float | None  # wall: depth where a first wall stage stops (None: runs to fill)
-    history: FrontHistory | None
-    t_scale: float  # wall: share of the history's time the stage uses
-    column: SettledColumn | None
-    band_count: int
-
-
-def _staged(params: Staged, setting: Setting, rng: np.random.Generator) -> Evaluator:
-    """H1 and H4 chained (agatesim.models.staged). Each stage's solid is either
-    the rim (wall distance up to a depth) or the bed (height up to its top), so
-    the distance to the nearest solid at any later stage is exact:
-    min(wall distance − rim depth, height − bed top)."""
-    order = params.order.split("-")
-    rngs = rng.spawn(len(order))
-    floor = params.floor.model_copy(update={"gravity_deg": params.gravity_deg})
-    ref = setting.reference
-    ref_d = ref.distance
-    ref_h = setting.height(ref.points)
-    total = len(ref_d)
-    rim = 0.0  # wall distance already filled by a rim
-    bed = -np.inf  # height already filled by a bed
-    stages: list[_Stage] = []
-    for i, (stage, stage_rng) in enumerate(zip(order, rngs, strict=True)):
-        open_ref = (ref_d > rim) & (ref_h > bed)
-        if not open_ref.any():
-            break
-        if stage == "wall":
-            dist = np.minimum(ref_d - rim, ref_h - bed)[open_ref]
-            history = forced_history_from(params.wall, dist, stage_rng)
-            limit = None
-            t_scale = 1.0
-            reach = history.stopped_mm
-            if i == 0 and i < len(order) - 1:
-                depths = np.sort(dist)
-                limit = float(depths[min(int(params.rim_share * total), len(depths) - 1)])
-                at = min(int(np.searchsorted(history.depth_mm, limit)), len(history.time) - 1)
-                t_scale = max(float(history.time[at] / history.time[-1]), 1e-9)
-                reach = min(reach, limit)
-                rim = limit
-            count = int(np.searchsorted(band_edges(history), reach, side="right")) + 1
-            stages.append(_Stage("wall", limit, history, t_scale, None, count))
-        else:
-            column = _column(floor, setting, ref_h[open_ref], stage_rng)
-            bed = column.top
-            count = int(column.layer.max()) + 1 if (column.layer >= 0).any() else 0
-            stages.append(_Stage("floor", None, None, 1.0, column, count))
-
-    def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
-        n = len(points)
-        d = _wall_distance(setting, points, inside)
-        h = setting.height(points)
-        phase = np.full(n, Phase.HOST, dtype=np.uint8)
-        phase[inside] = Phase.VOID
-        band = np.full(n, -1, dtype=np.int32)
-        impurity = np.zeros(n, dtype=np.float32)
-        translucency = np.zeros(n, dtype=np.float32)
-        t_dep = np.full(n, np.nan, dtype=np.float32)
-        rim_now, bed_now, next_band = 0.0, -np.inf, 0
-        for i, st in enumerate(stages):
-            open_now = inside & (phase == Phase.VOID)
-            if st.kind == "wall":
-                assert st.history is not None
-                dist = np.where(open_now, np.minimum(d - rim_now, h - bed_now), 0.0)
-                fields = history_fields(st.history, dist, open_now)
-                grown = open_now & (fields.phase != Phase.VOID)
-                if st.rim is not None:
-                    grown &= dist <= st.rim
-                    rim_now = st.rim
-            else:
-                assert st.column is not None
-                fields = st.column.fields(h, open_now)
-                grown = open_now & (fields.phase != Phase.VOID)
-                bed_now = st.column.top
-            band[grown] = np.where(fields.band[grown] >= 0, fields.band[grown] + next_band, -1)
-            next_band += st.band_count
-            phase[grown] = fields.phase[grown]
-            impurity[grown] = fields.impurity[grown]
-            translucency[grown] = fields.translucency[grown]
-            t = np.nan_to_num(fields.t_dep[grown], nan=1.0) / st.t_scale
-            t_dep[grown] = (i + STAGE_SPAN * np.clip(t, 0, 1)) / len(order)
-        return Fields(
-            phase=phase,
-            band=band,
-            impurity=impurity,
-            translucency=translucency,
-            t_dep=t_dep,
-            grain=np.full(n, -1, dtype=np.int32),
-            micro_spacing_um=np.full(n, np.nan, dtype=np.float32),
-        )
 
     return evaluate
 

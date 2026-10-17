@@ -654,7 +654,7 @@ class InclusionGrowth:
         return np.array([math.cos(th), math.sin(th)])
 
 
-def _inclusion_growth(params: ProceduralGrowth) -> InclusionGrowth:
+def inclusion_growth(params: ProceduralGrowth) -> InclusionGrowth:
     return InclusionGrowth(
         spacing_mm=params.dendrite_spacing_mm,
         density=params.dendrite_density,
@@ -834,7 +834,7 @@ def _fill(
         if m is Mode.DENDRITE:
             # Inclusions grow instead of silica; attachment order maps onto the stage.
             order = grow_inclusions(
-                _inclusion_growth(params),
+                inclusion_growth(params),
                 domain,
                 open_,
                 not (filled_at >= 0).any(),

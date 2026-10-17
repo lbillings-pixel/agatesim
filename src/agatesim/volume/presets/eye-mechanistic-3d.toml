@@ -1,0 +1,19 @@
+# Eye agate in 3D (mechanistic tier): a brief H1 stage radiating from a few
+# widely spaced sites on the wall grows banded eyes, then H1 lining overgrows
+# them (ADR 0039, ADR 0040).
+name = "eye-mechanistic-3d"
+seed = 8
+archetype = "eye"
+
+[solid]
+preset = "vesicle-round"
+size_mm = 50
+
+[model]
+kind = "mechanistic-staged"
+order = "spherulite-wall"
+rim_share = 0.1
+
+[model.wall]
+spherulite_spacing_mm = 20
+spherulite_rate_variability = 0.1

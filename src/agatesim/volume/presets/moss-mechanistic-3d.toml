@@ -1,0 +1,21 @@
+# Moss / dendritic agate in 3D (mechanistic tier): branched inclusions grow from
+# scattered points on the wall by 3D aggregation of diffusing particles, then
+# front-feedback (H1) chalcedony encloses every branch (ADR 0036, ADR 0040).
+name = "moss-mechanistic-3d"
+seed = 10
+archetype = "moss"
+
+[solid]
+preset = "nodule-round"
+size_mm = 40
+
+[model]
+kind = "mechanistic-staged"
+order = "dendrite-wall"
+
+[model.dendrite]
+spacing_mm = 4
+density = 0.04
+amount = 0.08
+sticking = 0.5
+tint = 0.0

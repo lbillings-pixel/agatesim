@@ -125,19 +125,6 @@ def test_spherulitic_bands_curve_about_their_sites() -> None:
     assert {"lobe-count", "bands-follow-lobes"} <= {r.id for r in flat.results if not r.passed}
 
 
-def test_3d_has_no_spherulitic_front_feedback_yet() -> None:
-    from agatesim.volume.config import SolidConfig, VolumeConfig
-
-    with pytest.raises(ValueError, match="spherulitic"):
-        VolumeConfig(
-            name="x",
-            seed=0,
-            archetype=None,
-            solid=SolidConfig(preset="vesicle-round", size_mm=20),
-            model=load_preset("botryoidal-mechanistic").model,
-        )
-
-
 def test_h1_lines_tube_filaments_like_the_wall() -> None:
     """ADR 0039: lining grows from every solid surface, so the bands around a
     filament are the first ones, grown from it; without the filaments the same
