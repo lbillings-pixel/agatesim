@@ -17,9 +17,11 @@ export function overallVerdict(evaluation: Evaluation): { label: string; tone: "
 interface Props {
   evaluation: Evaluation | null;
   archetypes: ArchetypeInfo[];
+  /** Whose results these are, when two are shown side by side. */
+  title?: string;
 }
 
-export function CriteriaPanel({ evaluation, archetypes }: Props) {
+export function CriteriaPanel({ evaluation, archetypes, title }: Props) {
   if (!evaluation) {
     return (
       <section className="criteria-panel">
@@ -32,6 +34,7 @@ export function CriteriaPanel({ evaluation, archetypes }: Props) {
   const verdict = overallVerdict(evaluation);
   return (
     <section className="criteria-panel">
+      {title && <p className="muted small criteria-for">{title}</p>}
       <div className="criteria-head">
         <h3>{info?.name ?? evaluation.archetype}</h3>
         <span className={`pill ${verdict.tone}`}>{verdict.label}</span>

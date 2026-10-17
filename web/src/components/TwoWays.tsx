@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { api, type ArchetypeInfo, type Evaluation, type Meta, type PreviewResult, type RunConfig } from "../api";
+import { api, type ArchetypeInfo, type Meta, type PreviewResult, type RunConfig } from "../api";
+import { overallVerdict } from "./CriteriaPanel";
 import { fieldsFor, imposedSettings } from "../lib/schema";
 
 type Preset = Meta["presets"][number];
@@ -21,14 +22,6 @@ export function formPairs(meta: Pick<Meta, "presets" | "archetypes">): FormPair[
       procedural: byName.get(a.id) ?? null,
       mechanistic: byName.get(`${a.id}-mechanistic`) ?? null,
     }));
-}
-
-/** A preview's verdict. A test that can't be judged at preview size (bands finer than
- * it resolves) isn't a failure: the verification runs at full size. */
-export function verdict(evaluation: Evaluation): { label: string; tone: "pass" | "fail" | "na" } {
-  if (evaluation.passed) return { label: "all tests pass", tone: "pass" };
-  if (evaluation.criteria.some((c) => !c.passed && c.value !== null)) return { label: "fails", tone: "fail" };
-  return { label: "can’t judge every test at this size", tone: "na" };
 }
 
 /** Why a form has no mechanistic version yet (ADR 0035). */
@@ -183,7 +176,7 @@ function Version({ preset, result, meta, onOpen }: VersionProps) {
       {evaluation && (
         <table className="twoways-tests">
           <caption className="small">
-            <span className={`pill ${verdict(evaluation).tone}`}>{verdict(evaluation).label}</span>
+            <span className={`pill ${overallVerdict(evaluation).tone}`}>{overallVerdict(evaluation).label}</span>
           </caption>
           <thead>
             <tr>

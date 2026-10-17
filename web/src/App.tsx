@@ -24,6 +24,8 @@ import { TubePanel } from "./components/TubePanel";
 import { VolumeWorkbench } from "./components/VolumeWorkbench";
 import { type Control, defaultsFor, fieldsFor, withSetting } from "./lib/schema";
 import { CompareMechanisms } from "./components/CompareMechanisms";
+import { GrowthControls } from "./components/GrowthControls";
+import { RunDiff } from "./components/RunDiff";
 import { Glossary } from "./components/Glossary";
 
 const PREVIEW_RESOLUTIONS = [128, 192, 256, 384];
@@ -79,6 +81,9 @@ export function App() {
   const [runResolution, setRunResolution] = useState(768);
   const [selected, setSelected] = useState<string | null>(null);
   const [pinned, setPinned] = useState<string | null>(null);
+  // Comparing with a pinned run: one growth slider can drive both slabs.
+  const [linkGrowth, setLinkGrowth] = useState(true);
+  const [sharedGrowth, setSharedGrowth] = useState(1);
   const [details, setDetails] = useState<Record<string, RunDetail>>({});
   const [drawer, setDrawer] = useState<"edit" | "new" | null>(null);
   const [lastDrawn, setLastDrawn] = useState<Drawn | null>(null);
@@ -548,6 +553,22 @@ export function App() {
             </p>
           )}
 
+          {pinnedDetail && (
+            <div className="compare-growth">
+              <label className="inline small">
+                <input type="checkbox" checked={linkGrowth} onChange={(e) => setLinkGrowth(e.target.checked)} />
+                Grow both together
+              </label>
+              {linkGrowth && (
+                <GrowthControls
+                  id="compare"
+                  value={sharedGrowth}
+                  onChange={setSharedGrowth}
+                  stages={selected ? selectedDetail?.stages : preview?.stages}
+                />
+              )}
+            </div>
+          )}
           <div className={`slabs${pinnedDetail ? " compare" : ""}`}>
             {selected === null && preview && (
               <SlabView
@@ -556,6 +577,7 @@ export function App() {
                 tdepSrc={preview.tdep}
                 dxMm={preview.dx_mm}
                 stages={preview.stages}
+                growth={pinnedDetail && linkGrowth ? sharedGrowth : undefined}
                 exportName={`${config.name}-growth`}
                 caption={`Preview of “${config.name}”`}
                 picking={
@@ -576,6 +598,7 @@ export function App() {
                 tdepSrc={api.tdepUrl(selected)}
                 dxMm={selectedDetail.metadata.grid.dx_mm}
                 stages={selectedDetail.stages}
+                growth={pinnedDetail && linkGrowth ? sharedGrowth : undefined}
                 exportName={`${selectedDetail.config.name}-growth`}
                 caption={`${selectedDetail.config.name} · ${selectedDetail.metadata.grid.nx}×${selectedDetail.metadata.grid.ny} px`}
               />
@@ -587,6 +610,7 @@ export function App() {
                 tdepSrc={api.tdepUrl(pinned)}
                 dxMm={pinnedDetail.metadata.grid.dx_mm}
                 stages={pinnedDetail.stages}
+                growth={linkGrowth ? sharedGrowth : undefined}
                 exportName={`${pinnedDetail.config.name}-growth`}
                 caption={`Pinned: ${pinnedDetail.config.name}`}
               />
@@ -617,10 +641,30 @@ export function App() {
             </div>
           )}
 
-          <CriteriaPanel
-            evaluation={selected ? (selectedDetail?.evaluation ?? null) : (preview?.evaluation ?? null)}
-            archetypes={meta.archetypes}
-          />
+          <div className={pinnedDetail ? "criteria-compare" : undefined}>
+            <CriteriaPanel
+              evaluation={selected ? (selectedDetail?.evaluation ?? null) : (preview?.evaluation ?? null)}
+              archetypes={meta.archetypes}
+              title={pinnedDetail ? (selected ? (selectedDetail?.config.name ?? "run") : "Preview") : undefined}
+            />
+            {pinnedDetail && (
+              <CriteriaPanel
+                evaluation={pinnedDetail.evaluation ?? null}
+                archetypes={meta.archetypes}
+                title={`Pinned: ${pinnedDetail.config.name}`}
+              />
+            )}
+          </div>
+
+          {pinnedDetail && (selected ? selectedDetail : config) && (
+            <RunDiff
+              a={{
+                title: selected ? (selectedDetail?.config.name ?? "run") : "Preview",
+                config: selected && selectedDetail ? selectedDetail.config : config,
+              }}
+              b={{ title: `Pinned: ${pinnedDetail.config.name}`, config: pinnedDetail.config }}
+            />
+          )}
 
           <StatsPanel
             columns={[

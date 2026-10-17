@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ArchetypeInfo, RunConfig } from "../api";
 import { fieldsFor, imposedSettings } from "../lib/schema";
-import { formPairs, verdict } from "./TwoWays";
+import { formPairs } from "./TwoWays";
 
 const archetype = (id: string, implemented = true): ArchetypeInfo => ({
   id, name: id, rung: 1, status: { procedural: "verified", mechanistic: "pending" }, implemented, criteria: [],
@@ -47,11 +47,3 @@ describe("imposedSettings", () => {
   });
 });
 
-describe("verdict", () => {
-  const c = (passed: boolean, value: number | null) => ({ id: "x", value, min: null, max: null, passed, detail: "" });
-  it("tells failing apart from too coarse to judge", () => {
-    expect(verdict({ archetype: "a", passed: true, criteria: [c(true, 1)] }).tone).toBe("pass");
-    expect(verdict({ archetype: "a", passed: false, criteria: [c(true, 1), c(false, 0.2)] }).tone).toBe("fail");
-    expect(verdict({ archetype: "a", passed: false, criteria: [c(true, 1), c(false, null)] }).tone).toBe("na");
-  });
-});

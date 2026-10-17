@@ -483,3 +483,14 @@ td.num { white-space: nowrap; }
 .twoways-pending { margin: 0; }
 .twoways-card > button { justify-self: start; }
 @media (max-width: 760px) { .twoways { grid-template-columns: minmax(0, 1fr); } }
+
+/* Comparing a run with a pinned one. */
+.compare-growth { display: grid; gap: 0.4rem; }
+.criteria-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 0.75rem; }
+.criteria-for { margin: 0; }
+.run-diff { display: grid; gap: 0.4rem; }
+.run-diff h3 { margin: 0; font-size: 0.95rem; }
+.table-scroll { overflow-x: auto; }
+.run-diff table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+.run-diff th, .run-diff td { text-align: left; padding: 0.25rem 0.6rem 0.25rem 0; border-top: 1px solid var(--line); vertical-align: top; }
+.run-diff td.num { font-family: var(--font-data); word-break: break-all; }
