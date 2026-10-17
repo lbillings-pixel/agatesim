@@ -11,9 +11,9 @@
   --accent-fg: #ffffff;
   --pass: #2c7a4c;
   --fail: #b03a2a;
-  --na: #8a8f94;
-  --physical: #2f7a6f;
-  --effective: #9a6a1c;
+  --na: #62686e;
+  --physical: #266b61;
+  --effective: #83591a;
   --imposed: #6a5d8a;
   --slab-bg: #121316;
   --font-ui: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -87,7 +87,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   border-bottom: 1px solid var(--line);
   background: var(--pane);
 }
-.brand { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; }
+.brand { margin: 0; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; }
 .inline { display: inline-flex; align-items: center; gap: 0.45rem; }
 .run-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-left: auto; }
 #run-name { width: 11rem; }
@@ -459,6 +459,9 @@ td.num { white-space: nowrap; }
 .glossary ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; }
 .glossary p { margin: 0.4rem 0; }
 .glossary-ref { text-decoration: underline dotted; }
+.tour { max-width: min(32rem, calc(100vw - 32px)); }
+.tour-actions { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
+.tour-steps { display: inline-flex; gap: 0.5rem; }
 
 /* Two ways: each form by the procedural model and by a mechanism, side by side. */
 .twoways { display: grid; grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr); gap: 1.25rem; padding: 1rem; align-items: start; }

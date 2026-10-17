@@ -27,6 +27,7 @@ import { CompareMechanisms } from "./components/CompareMechanisms";
 import { GrowthControls } from "./components/GrowthControls";
 import { RunDiff } from "./components/RunDiff";
 import { Glossary } from "./components/Glossary";
+import { Tour } from "./components/Tour";
 import { saveBlob } from "./lib/animation";
 import { buildReport } from "./lib/report";
 
@@ -292,9 +293,9 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand">
+        <h1 className="brand">
           agatesim <span className="muted small">v{meta.version}</span>
-        </div>
+        </h1>
         <div className="toggle" role="radiogroup" aria-label="Screen">
           {(
             [
@@ -309,6 +310,7 @@ export function App() {
             </button>
           ))}
         </div>
+        <Tour />
         <Glossary />
         {screen === "simulator" && (
         <>
