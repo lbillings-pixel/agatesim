@@ -4,6 +4,7 @@ controls, a criterion could pass everything and verify nothing."""
 
 from collections.abc import Mapping
 from dataclasses import replace
+from typing import cast
 
 import numpy as np
 import pytest
@@ -70,6 +71,37 @@ MECHANISTIC = [
 def test_mechanistic_verification_preset_passes(archetype: str) -> None:
     ev = _evaluate(archetype, load_preset(f"{archetype}-mechanistic"))
     assert ev.passed, [r for r in ev.results if not r.passed]
+
+
+def _imposed(schema: object) -> list[str]:
+    """Paths in a JSON schema to parameters labelled `imposed`."""
+    found: list[str] = []
+
+    def walk(node: object, path: str) -> None:
+        if isinstance(node, dict):
+            items = cast(dict[str, object], node)
+            if items.get("nature") == "imposed":
+                found.append(path)
+            for k, v in items.items():
+                walk(v, f"{path}/{k}")
+        elif isinstance(node, list):
+            for i, v in enumerate(cast(list[object], node)):
+                walk(v, f"{path}/{i}")
+
+    walk(schema, "")
+    return found
+
+
+@pytest.mark.parametrize("archetype", MECHANISTIC)
+def test_mechanistic_verification_imposes_nothing(archetype: str) -> None:
+    """ADR 0035, rule 1: a mechanistic verification preset's model has no
+    parameter that sets a property of the result directly."""
+    model = load_preset(f"{archetype}-mechanistic").model
+    assert _imposed(type(model).model_json_schema()) == []
+
+
+def test_the_imposed_check_finds_procedural_parameters() -> None:
+    assert "/properties/band_period" in _imposed(ProceduralGrowth.model_json_schema())
 
 
 def test_waterline_criteria_reject_fortification() -> None:

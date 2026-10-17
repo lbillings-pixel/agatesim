@@ -1,0 +1,26 @@
+# Verification preset for moss / dendritic agate (mechanistic tier): branched
+# inclusions grow from scattered points on the wall by aggregation of diffusing
+# particles, then front-feedback (H1) chalcedony encloses them, following every
+# branch. Nothing about the inclusions or the bands is imposed; the order of the
+# two stages is (ADR 0036).
+name = "moss-mechanistic"
+seed = 10
+archetype = "moss"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 40
+
+[model]
+kind = "mechanistic-staged"
+order = "dendrite-wall"
+
+[model.dendrite]
+spacing_mm = 4
+density = 0.04
+amount = 0.08
+sticking = 0.5
+tint = 0.0

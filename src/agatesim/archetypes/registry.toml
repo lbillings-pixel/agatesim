@@ -150,7 +150,7 @@ since nature records both sequences.
 id = "quartz-geode"
 name = "Banded agate with quartz-crystal centre"
 rung = 5
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["fortification"]
@@ -269,7 +269,7 @@ channels). In cross-section each tube shows up as a small concentric ring system
 id = "moss"
 name = "Moss / dendritic agate"
 rung = 9
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary", "seam"]
 summary = """

@@ -1,0 +1,20 @@
+# Verification preset for the quartz-centre geode (mechanistic tier): front
+# feedback (H1) bands in a closed cavity draw down the dissolved silica; once it
+# falls below the quartz threshold, quartz crystals nucleate on the chalcedony
+# and coarsen inward by geometric selection, until the silica runs out and
+# leaves an open centre. Nothing is scheduled (ADR 0037).
+name = "quartz-geode-mechanistic"
+seed = 6
+archetype = "quartz-geode"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-almond"
+size_mm = 60
+
+[model]
+kind = "mechanistic-front-feedback"
+silica_inventory = 0.8
+quartz_below = 0.6

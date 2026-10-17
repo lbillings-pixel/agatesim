@@ -635,15 +635,48 @@ class Fill:
     inclusion: NDArray[np.bool_]  # filled by branched inclusions (dendrite stages)
 
 
-def _dendrites(
-    params: ProceduralGrowth,
+@dataclass(frozen=True)
+class InclusionGrowth:
+    """How a dendrite stage grows; the fields mean what ProceduralGrowth's
+    dendrite_* parameters do (upward and start_height are its plume stand-ins)."""
+
+    spacing_mm: float
+    density: float
+    amount: float
+    sticking: float
+    width_mm: float
+    gravity_deg: float
+    upward: float = 0.0
+    start_height: float = 1.0
+
+    def gravity(self) -> FloatArray:
+        th = math.radians(self.gravity_deg)
+        return np.array([math.cos(th), math.sin(th)])
+
+
+def _inclusion_growth(params: ProceduralGrowth) -> InclusionGrowth:
+    return InclusionGrowth(
+        spacing_mm=params.dendrite_spacing_mm,
+        density=params.dendrite_density,
+        amount=params.dendrite_amount,
+        sticking=params.dendrite_sticking,
+        width_mm=params.dendrite_width_mm,
+        gravity_deg=params.gravity_deg,
+        upward=params.dendrite_upward,
+        start_height=params.dendrite_start_height,
+    )
+
+
+def grow_inclusions(
+    how: InclusionGrowth,
     domain: Domain,
     open_: NDArray[np.bool_],
     first: bool,
     rng: np.random.Generator,
 ) -> FloatArray:
     """Grow branched inclusions from the current growth surface into the open
-    space. Returns each pixel's attachment order in [0, 1] (inf where none)."""
+    space. Returns each pixel's attachment order in [0, 1] (inf where none).
+    `first` says the open space is the whole, empty cavity."""
     key = None
     if first:
         # The first stage doesn't depend on the grid, so previews reuse its result.
@@ -651,14 +684,13 @@ def _dendrites(
         key = (
             domain.cavity.vertices.tobytes(),
             domain.tubes.tobytes(),
-            params.gravity_deg,
-            tuple(getattr(params, f) for f in DENDRITE_FIELDS),
+            how,
             repr(getattr(seq, "entropy", None)),
             tuple(getattr(seq, "spawn_key", ())),
         )
         if key in _AGGREGATES:
             return np.where(open_, dendrites.rasterise(_AGGREGATES[key], domain.grid), np.inf)
-    aggregate = _grow_aggregate(params, domain, open_, first, rng)
+    aggregate = _grow_aggregate(how, domain, open_, first, rng)
     if key is not None:
         if len(_AGGREGATES) >= 8:
             _AGGREGATES.pop(next(iter(_AGGREGATES)))
@@ -666,46 +698,37 @@ def _dendrites(
     return np.where(open_, dendrites.rasterise(aggregate, domain.grid), np.inf)
 
 
-DENDRITE_FIELDS = (
-    "dendrite_spacing_mm",
-    "dendrite_density",
-    "dendrite_amount",
-    "dendrite_sticking",
-    "dendrite_upward",
-    "dendrite_start_height",
-    "dendrite_width_mm",
-)
 _AGGREGATES: dict[object, dendrites.Aggregate] = {}
 
 
 def _grow_aggregate(
-    params: ProceduralGrowth,
+    how: InclusionGrowth,
     domain: Domain,
     open_: NDArray[np.bool_],
     first: bool,
     rng: np.random.Generator,
 ) -> dendrites.Aggregate:
     rng_sites, rng_grow = rng.spawn(2)
-    lattice = dendrites.lattice_around(domain.cavity.bounds(), params.dendrite_width_mm)
+    lattice = dendrites.lattice_around(domain.cavity.bounds(), how.width_mm)
     if first:
         # Exact geometry for the empty cavity, so sites and walks don't depend on
         # the simulation grid.
         free = domain.cavity.discretize(lattice)[0]
         if len(domain.tubes):
             free &= tube_distance(lattice, domain.tubes) > 0
-        front = _initial_front(domain, SITE_SEPARATION * params.dendrite_spacing_mm / 10)
+        front = _initial_front(domain, SITE_SEPARATION * how.spacing_mm / 10)
     else:
         xx, yy = lattice.coords()
         sampled, valid = domain.grid.sample(open_, np.stack([xx, yy], axis=-1))
         free = sampled & valid
         front = _pixel_front(domain.grid, open_)
-    sites = _place_sites(front, params.dendrite_spacing_mm, domain.cavity.bounds(), rng_sites)
+    sites = _place_sites(front, how.spacing_mm, domain.cavity.bounds(), rng_sites)
     points = sites.points
-    if params.dendrite_start_height < 1 and len(points):
-        g = params.gravity()
+    if how.start_height < 1 and len(points):
+        g = how.gravity()
         height = -(points @ g)
         lo, hi = float(height.min()), float(height.max())
-        low = height <= lo + params.dendrite_start_height * (hi - lo)
+        low = height <= lo + how.start_height * (hi - lo)
         points = points[low]
         sites = Sites(points=points, normals=sites.normals[low], draws=sites.draws[low])
     seeds = lattice_index(lattice, sites.points + sites.normals * lattice.dx)
@@ -713,13 +736,37 @@ def _grow_aggregate(
         lattice,
         free,
         seeds,
-        density=params.dendrite_density,
-        amount=params.dendrite_amount,
-        sticking=params.dendrite_sticking,
-        upward=params.dendrite_upward,
-        gravity=params.gravity(),
+        density=how.density,
+        amount=how.amount,
+        sticking=how.sticking,
+        upward=how.upward,
+        gravity=how.gravity(),
         rng=rng_grow,
     )
+
+
+def grow_crystals(
+    grid: Grid,
+    open_: NDArray[np.bool_],
+    bounds: tuple[float, float, float, float],
+    rng: np.random.Generator,
+    *,
+    grain_mm: float,
+    elongation: float,
+    scatter_deg: float,
+) -> NDArray[np.int32]:
+    """Quartz crystals nucleated on the surface of the open space and grown into
+    it, competing by geometric selection. Returns the crystal that reaches each
+    open pixel first (-1 elsewhere)."""
+    sites = _place_sites(_pixel_front(grid, open_), grain_mm, bounds, rng)
+    rows, cols = np.nonzero(open_)
+    xx, yy = grid.coords()
+    pts = np.stack([xx[rows, cols], yy[rows, cols]], axis=1)
+    _, owner = _assign(_Crystals(sites, elongation, scatter_deg), pts, len(sites.points), grid.dx)
+    grain = np.full(grid.shape, -1, dtype=np.int32)
+    if len(sites.points):
+        grain[rows, cols] = owner.astype(np.int32)
+    return grain
 
 
 def lattice_index(lattice: Grid, points: FloatArray) -> NDArray[np.int64]:
@@ -757,8 +804,12 @@ def _fill(
             break
         if m is Mode.DENDRITE:
             # Inclusions grow instead of silica; attachment order maps onto the stage.
-            order = _dendrites(
-                params, domain, open_, not (filled_at >= 0).any(), rng_dendrites.spawn(1)[0]
+            order = grow_inclusions(
+                _inclusion_growth(params),
+                domain,
+                open_,
+                not (filled_at >= 0).any(),
+                rng_dendrites.spawn(1)[0],
             )
             new = np.isfinite(order)
             steps = a + np.minimum(np.floor(order * (b - a)), b - a - 1).astype(np.int64)

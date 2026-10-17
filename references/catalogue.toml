@@ -315,6 +315,20 @@ topics = ["spherulites", "botryoidal", "crystal-growth", "nucleation"]
 notes = "Citation confirmed from two independent reference lists. Not yet read: needed for what controls spherulite size and how spherulitic crusts coarsen."
 
 [[references]]
+id = "krapivsky2019"
+kind = "article"
+authors = ["Krapivsky, P. L.", "Nazarov, L. I.", "Tamm, M. V."]
+year = 2019
+title = "Geometrical selection in growing needles"
+venue = "arXiv:1902.01964 (later in J. Stat. Mech., doi 10.1088/1742-5468/ab270c, not confirmed)"
+url = "https://arxiv.org/abs/1902.01964"
+access = "open"
+licence = "arXiv non-exclusive licence; cite only"
+checked = "abstract"
+topics = ["geometric-selection", "competitive-growth"]
+notes = "Needles growing at a uniform rate in random directions from seeds on a substrate, each freezing when its tip hits another: the probability that a seed grows into a large crystal depends on its orientation (geometrical selection). Exact analysis of the long-time behaviour; the abstract gives no coarsening law. Supports geometric selection as a studied mechanism for the quartz of ADR 0037. Read from the arXiv abstract page, 2026-10-17."
+
+[[references]]
 id = "vanderdrift1967"
 kind = "article"
 authors = ["van der Drift, A."]

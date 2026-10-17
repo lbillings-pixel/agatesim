@@ -115,3 +115,44 @@ def test_3d_staging_keeps_front_feedback_walls() -> None:
             solid=SolidConfig(preset="vesicle-round", size_mm=20),
             model=staged.model_copy(update={"wall_mechanism": "liesegang"}),
         )
+
+
+def _moss(resolution: int = RESOLUTION) -> SimulationResult:
+    return simulate(load_preset("moss-mechanistic").with_resolution(resolution))
+
+
+def test_h1_chalcedony_encloses_the_dendrites() -> None:
+    """Moss at the mechanistic tier (ADR 0036): inclusions first, then H1 bands
+    grow over every branch and fill the cavity."""
+    result = _moss()
+    f, mask = result.fields, result.domain.mask
+    inclusion = f.phase == Phase.INCLUSION
+    chalcedony = f.phase == Phase.CHALCEDONY
+    assert 0.02 < inclusion[mask].mean() < 0.2
+    assert (f.phase[mask] != Phase.VOID).all()
+    assert float(np.nanmax(f.t_dep[inclusion])) < 0.5 <= float(np.nanmin(f.t_dep[chalcedony]))
+    assert len(np.unique(f.band[chalcedony])) >= 10
+    assert (f.band[inclusion] == -1).all()
+
+
+def test_moss_preview_grows_the_same_dendrites() -> None:
+    # Pixels finer than the branch width; coarser ones widen thin branches.
+    full, preview = _moss(768), _moss(384)
+
+    def share(r: SimulationResult) -> float:
+        return float((r.fields.phase[r.domain.mask] == Phase.INCLUSION).mean())
+
+    assert abs(share(full) - share(preview)) < 0.05 * share(full)
+
+
+def test_3d_staging_has_no_dendrite_stage_yet() -> None:
+    from agatesim.volume.config import SolidConfig, VolumeConfig
+
+    with pytest.raises(ValueError, match="dendrite"):
+        VolumeConfig(
+            name="x",
+            seed=0,
+            archetype=None,
+            solid=SolidConfig(preset="vesicle-round", size_mm=20),
+            model=load_preset("moss-mechanistic").model,
+        )

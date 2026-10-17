@@ -32,12 +32,15 @@ falls, s_b = s₀ (1 − F/F*) / (1 − F) (F* is the share of the cavity the
 dissolved silica can fill), and rejected impurity builds up,
 a_b = (1 − I) / (1 − F) (I is the impurity already incorporated). Below a
 silica threshold, macrocrystalline quartz grows instead of chalcedony
-([@goetze2020] §6).
+([@goetze2020] §6). In 2D its crystals nucleate on the chalcedony's inner
+surface and compete by geometric selection ([@vanderdrift1967]): the front
+history says when quartz reaches each point, the crystals say which crystal
+fills it (ADR 0037).
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Literal
 
 import numpy as np
@@ -48,6 +51,7 @@ from agatesim import _scipy
 from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models.base import Domain
+from agatesim.models.growth import grow_crystals
 from agatesim.params import Nature, param
 
 GEOMETRY_SAMPLES = 400  # depths at which the cavity's filled share is tabulated
@@ -148,6 +152,32 @@ class FrontFeedback(BaseModel):
         description=(
             "Bulk silica below which quartz grows instead of chalcedony, in a closed "
             "cavity (0 = never)."
+        ),
+    )
+    quartz_grain_mm: float = param(
+        0.6,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Mean spacing of quartz nucleation sites where quartz starts growing.",
+    )
+    quartz_elongation: float = param(
+        4.0,
+        ge=1,
+        le=20,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="How much faster quartz crystals grow along their long axis than across it.",
+    )
+    quartz_axis_scatter_deg: float = param(
+        70.0,
+        ge=0,
+        le=90,
+        units="deg",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Spread of crystal long axes about the surface normal where they nucleate "
+            "(0 = all perpendicular to the surface)."
         ),
     )
     supply_noise: float = param(
@@ -355,7 +385,22 @@ def band_edges(history: FrontHistory) -> FloatArray:
 def run_front_feedback(params: FrontFeedback, domain: Domain, rng: np.random.Generator) -> Fields:
     # Without forcing nothing is random: the rhythm is self-organised, not drawn.
     history = forced_history(params, domain, rng)
-    return history_fields(history, domain.wall_distance, domain.mask)
+    fields = history_fields(history, domain.wall_distance, domain.mask)
+    quartz = fields.phase == Phase.QUARTZ
+    if not quartz.any():
+        return fields
+    # Crystals grow from the chalcedony's inner surface into what was then open.
+    open_ = quartz | (fields.phase == Phase.VOID)
+    grain = grow_crystals(
+        domain.grid,
+        open_,
+        domain.cavity.bounds(),
+        rng.spawn(1)[0],
+        grain_mm=params.quartz_grain_mm,
+        elongation=params.quartz_elongation,
+        scatter_deg=params.quartz_axis_scatter_deg,
+    )
+    return replace(fields, grain=np.where(quartz, grain, -1).astype(np.int32))
 
 
 def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]) -> Fields:

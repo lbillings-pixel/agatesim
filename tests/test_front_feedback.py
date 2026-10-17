@@ -75,3 +75,26 @@ def test_closed_cavity_runs_out_of_silica_into_quartz() -> None:
     chal = phase == Phase.CHALCEDONY
     quartz = phase == Phase.QUARTZ
     assert d[quartz].min() >= d[chal].max() - result.grid.dx  # quartz is last
+
+
+def test_quartz_crystals_fill_only_the_quartz_and_coarsen_inward() -> None:
+    """ADR 0037: crystals nucleate on the chalcedony and fill H1's quartz zone,
+    and fewer, wider crystals survive inward (geometric selection)."""
+    result = simulate(load_preset("quartz-geode-mechanistic").with_resolution(RESOLUTION))
+    f = result.fields
+    quartz = f.phase == Phase.QUARTZ
+    assert ((f.grain >= 0) == quartz).all()
+    d = result.domain.wall_distance
+    shallow, deep = np.quantile(d[quartz], [0.15, 0.85])  # near the wall, near the centre
+
+    def crystals(near: float) -> int:
+        shell = quartz & (np.abs(d - near) < 2 * result.grid.dx)
+        return len(np.unique(f.grain[shell]))
+
+    assert crystals(deep) < 0.8 * crystals(shallow)
+
+
+def test_without_quartz_there_are_no_crystals() -> None:
+    result = simulate(_config())
+    assert not (result.fields.phase == Phase.QUARTZ).any()
+    assert (result.fields.grain == -1).all()

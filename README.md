@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M16 done.** All twelve target forms are reproduced at the procedural tier, four also at the mechanistic tier, and ten run in 3D, judged on cuts. Recent work takes on the corner question below. See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier, six also at the mechanistic tier, and ten run in 3D, judged on cuts. Current work takes the remaining forms to the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -34,6 +34,14 @@ and which proposed formation mechanisms, can produce them.
   chained with H1 the combined form
   ([ADR 0016](docs/adr/0016-mechanistic-settling.md),
   [ADR 0020](docs/adr/0020-staged-mechanisms.md)).
+- **Dendrites by aggregation, enclosed by self-organised bands.** Branched
+  inclusions grown by aggregation of diffusing particles, then enclosed by H1
+  chalcedony, verify moss agate with nothing about either imposed
+  ([ADR 0036](docs/adr/0036-mechanistic-moss.md)).
+- **A quartz centre needs no schedule.** In a closed cavity, H1's bands draw
+  the dissolved silica down until quartz grows instead; its crystals coarsen
+  inward by geometric selection, and an open centre is left when the silica
+  runs out ([ADR 0037](docs/adr/0037-mechanistic-quartz-geode.md)).
 - **A cut changes what you see.** On random cuts through 3D results, bands look
   1.07–1.18 times thicker than they are, and some forms show on only a minority
   of cuts ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)).
@@ -55,11 +63,11 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Vein / seam | ✅ verified | ✅ verified (H1, boundary-layer approximation) |
 | Waterline | ✅ verified | ✅ verified (H4) |
 | Combined fortification and waterline | ✅ verified | ✅ verified (H1 + H4 stages) |
-| Banded agate with quartz-crystal centre | ✅ verified | pending |
+| Banded agate with quartz-crystal centre | ✅ verified | ✅ verified (H1 in a closed cavity, geometric selection) |
 | Botryoidal | ✅ verified | pending |
 | Eye | ✅ verified | pending |
 | Tube | ✅ verified | pending |
-| Moss / dendritic | ✅ verified | pending |
+| Moss / dendritic | ✅ verified | ✅ verified (aggregation, then H1 stages) |
 | Plume | ✅ verified | pending |
 | Shadow | ✅ verified | pending |
 | Iris | ✅ verified | pending |

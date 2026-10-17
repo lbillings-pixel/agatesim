@@ -19,6 +19,11 @@ This model chains the two verified mechanisms in the order given:
   deposits included (an assumption).
 - **floor**: hindered settling (H4, `agatesim.models.settling`) packs pulses of
   particles up from the lowest point of the open space left so far.
+- **dendrite**: branched inclusions grow from the surface of the open space by
+  multi-particle diffusion-limited aggregation (`agatesim.models.dendrites`,
+  ADR 0009), the picture of Mn-oxide dendrites growing by attachment of
+  diffusing particles [@hou2023]. Later stages grow over every branch. Moss
+  agate is a dendrite stage enclosed by an H1 wall stage (ADR 0036).
 
 Each stage reads only the open space the earlier ones left. The order of the
 stages is imposed (nature records several), as is the rim's extent. What makes
@@ -37,13 +42,77 @@ from agatesim import _scipy
 from agatesim.fields import Fields, Phase
 from agatesim.models.base import Domain
 from agatesim.models.front_feedback import FrontFeedback, run_front_feedback
+from agatesim.models.growth import InclusionGrowth, grow_inclusions
 from agatesim.models.liesegang import Liesegang, run_liesegang
 from agatesim.models.settling import Settling, run_settling
 from agatesim.params import Nature, param
 
-Order = Literal["wall-floor-wall", "wall-floor", "floor-wall"]
+Order = Literal["wall-floor-wall", "wall-floor", "floor-wall", "dendrite-wall"]
 WallMechanism = Literal["front-feedback", "liesegang"]
 STAGE_SPAN = 0.999  # of a stage's time slot, so stages never share a deposition time
+
+
+class DendriteStage(BaseModel):
+    """Branched inclusions by aggregation of diffusing particles (ADR 0009),
+    without the procedural model's upward stand-in for plumes."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    spacing_mm: float = param(
+        4.0,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Mean spacing of the points on the growth surface where inclusions start.",
+    )
+    density: float = param(
+        0.04,
+        gt=0,
+        le=0.5,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Concentration of the particles that build inclusions, as a share of the open "
+            "space. Higher values give bulkier, less finely branched inclusions."
+        ),
+    )
+    amount: float = param(
+        0.08,
+        gt=0,
+        le=0.6,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="Total inclusion material, as a share of the open space it grows into.",
+    )
+    sticking: float = param(
+        0.5,
+        gt=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Chance that a particle sticks when it touches an inclusion. Lower values "
+            "give denser, more compact branches."
+        ),
+    )
+    width_mm: float = param(
+        0.12,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Width of the finest branches (the lattice cell the particles walk on).",
+    )
+    tint: float = param(
+        1.0,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.PHYSICAL,
+        description=(
+            "The inclusion mineral, for its colour: 0 = green Fe-silicate (celadonite-like), "
+            "0.5 = red-brown Fe oxide, 1 = black Mn oxide."
+        ),
+    )
 
 
 class Staged(BaseModel):
@@ -79,6 +148,9 @@ class Staged(BaseModel):
         default_factory=Liesegang, description="The H2 wall stages (wall_mechanism = liesegang)."
     )
     floor: Settling = Field(default_factory=Settling, description="The H4 floor stage.")
+    dendrite: DendriteStage = Field(
+        default_factory=DendriteStage, description="The dendrite stage (branched inclusions)."
+    )
 
     def gravity(self) -> NDArray[np.float64]:
         return self.floor.model_copy(update={"gravity_deg": self.gravity_deg}).gravity()
@@ -91,6 +163,40 @@ def _sub_domain(domain: Domain, region: NDArray[np.bool_]) -> Domain:
         return domain
     distance = _scipy.distance_to_false(region, domain.grid.dx)
     return Domain(cavity=domain.cavity, grid=domain.grid, mask=region, wall_distance=distance)
+
+
+def _dendrite_fields(
+    params: Staged,
+    domain: Domain,
+    open_space: NDArray[np.bool_],
+    first: bool,
+    rng: np.random.Generator,
+) -> Fields:
+    """Inclusions grown into the open space; their deposition time is the order
+    in which they attached."""
+    d = params.dendrite
+    how = InclusionGrowth(
+        spacing_mm=d.spacing_mm,
+        density=d.density,
+        amount=d.amount,
+        sticking=d.sticking,
+        width_mm=d.width_mm,
+        gravity_deg=params.gravity_deg,
+    )
+    order = grow_inclusions(how, domain, open_space, first, rng)
+    grown = open_space & np.isfinite(order)
+    shape = domain.grid.shape
+    phase = np.full(shape, Phase.VOID, dtype=np.uint8)
+    phase[grown] = Phase.INCLUSION
+    return Fields(
+        phase=phase,
+        band=np.full(shape, -1, dtype=np.int32),
+        impurity=np.where(grown, d.tint, 0.0).astype(np.float32),
+        translucency=np.zeros(shape, dtype=np.float32),
+        t_dep=np.where(grown, order, np.nan).astype(np.float32),
+        grain=np.full(shape, -1, dtype=np.int32),
+        micro_spacing_um=np.full(shape, np.nan, dtype=np.float32),
+    )
 
 
 def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fields:
@@ -123,6 +229,9 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
                 depths = np.sort(sub.wall_distance[open_space])
                 limit = depths[min(int(params.rim_share * cavity_pixels), len(depths) - 1)]
                 grown &= sub.wall_distance <= limit
+        elif stage == "dendrite":
+            fields = _dendrite_fields(params, domain, open_space, i == 0, stage_rng)
+            grown = open_space & (fields.phase != Phase.VOID)
         else:
             fields = run_settling(floor, domain, stage_rng, region=open_space)
             grown = open_space & (fields.phase != Phase.VOID)
