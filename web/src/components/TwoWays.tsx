@@ -27,9 +27,7 @@ export function formPairs(meta: Pick<Meta, "presets" | "archetypes">): FormPair[
 /** Why a form has no mechanistic version yet (ADR 0035). */
 const PENDING: Record<string, string> = {
   shadow:
-    "The banding mechanism's clear and milky bands don't contrast enough, and making them do so would mean fitting an assumption to the test.",
-  iris: "Needs a process that makes regular micro-bands about 2 µm apart; self-organised banding at that scale is a candidate still to read up.",
-  plume: "Needs a sourced reason for upward growth, such as buoyant flow in a silica garden; the procedural version uses a stand-in.",
+    "The banding mechanism's clear and milky bands don't contrast enough, and no source yet links how fast a band grows to how milky it is (ADR 0041).",
 };
 
 const TIERS = [

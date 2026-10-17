@@ -172,7 +172,7 @@ def test_micro_spacing_scales_with_the_square_of_the_thin_layer() -> None:
 
 
 def test_mechanistic_iris_passes_the_iris_tests() -> None:
-    """It passes, but iris can't be verified at the mechanistic tier while its
-    dependency, shadow, isn't (ADR 0043)."""
+    """ADR 0043; iris no longer depends on shadow (ADR 0045), so this preset
+    verifies iris at the mechanistic tier."""
     ev = evaluate("iris", simulate(load_preset("iris-mechanistic")))
     assert ev.passed, ev.to_json()

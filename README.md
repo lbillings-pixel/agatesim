@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier, ten also at the mechanistic tier, and ten run in 3D, judged on cuts (eight of them mechanistically too). Current work takes the remaining forms to the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier, eleven also at the mechanistic tier, and ten run in 3D, judged on cuts (eight of them mechanistically too). Current work takes the remaining forms to the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -57,6 +57,10 @@ and which proposed formation mechanisms, can produce them.
   lighter inner solution and branching where their membranes rupture, make
   plume agate once chalcedony encloses them; without buoyancy they don't rise
   ([ADR 0044](docs/adr/0044-plume-agate-as-a-silica-garden.md)).
+- **Iris gratings from a fast second rhythm.** The same front feedback, run at a
+  much thinner boundary layer, lays regular micro-bands about 2.5 µm apart in
+  the clear bands, spaced by how fast the front grew
+  ([ADR 0043](docs/adr/0043-a-fast-rhythm-for-iris-agate.md)).
 - **A cut changes what you see.** On random cuts through 3D results, bands look
   1.07–1.18 times thicker than they are, and some forms show on only a minority
   of cuts ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)).
@@ -85,7 +89,7 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Moss / dendritic | ✅ verified | ✅ verified (aggregation, then H1 stages) |
 | Plume | ✅ verified | ✅ verified (chemical-garden tubes, then H1) |
 | Shadow | ✅ verified | pending |
-| Iris | ✅ verified | pending |
+| Iris | ✅ verified | ✅ verified (H1 with a fast second rhythm) |
 
 ## Approach
 

@@ -90,7 +90,7 @@ Chained, they would suggest that fast-grown, defect-rich bands are the wetter,
 more translucent ones: the opposite of H1's current rendering assumption, which
 makes its fast, impurity-rich bands milky (ADR 0013). The chain rests on two
 abstracts and an inference, so nothing is changed. Shadow stays pending. Reversing H1's milky/clear assumption would
-change how every H1 result looks, so it is left to the owner.
+change how every H1 result looks, so it is left to the owner. (The owner chose to keep it, ADR 0045.)
 
 The plume model of next step 3 is in [ADR 0044](0044-plume-agate-as-a-silica-garden.md),
 and the iris rhythm of next step 2 in [ADR 0043](0043-a-fast-rhythm-for-iris-agate.md).

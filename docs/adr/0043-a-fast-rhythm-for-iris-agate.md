@@ -1,6 +1,6 @@
 # 43. A fast rhythm for iris agate
 
-- Status: accepted (iris stays pending at the mechanistic tier; see Consequences)
+- Status: accepted (iris verified at the mechanistic tier once its shadow dependency was removed, [ADR 0045](0045-iris-no-longer-depends-on-shadow.md))
 - Date: 2026-10-17
 - Builds on: [ADR 0010](0010-optical-renderer.md), [ADR 0013](0013-mechanistic-front-feedback.md), [ADR 0041](0041-reading-for-shadow-iris-and-plume.md), [ADR 0042](0042-iris-spacing-from-measured-gratings.md)
 
