@@ -28,6 +28,7 @@ from __future__ import annotations
 import copy
 import math
 from dataclasses import dataclass, replace
+from typing import Protocol
 
 import numpy as np
 from numpy.typing import NDArray
@@ -67,6 +68,15 @@ def unsupported_in_3d(params: ProceduralGrowth) -> str | None:
     return None
 
 
+class Inclusion(Protocol):
+    """An inclusion grown into the open space: branched (agatesim.volume.dendrites)
+    or chemical-garden tubes (agatesim.volume.gardens)."""
+
+    def distance(self, points: FloatArray) -> FloatArray: ...  # negative inside
+
+    def order_at(self, points: FloatArray) -> FloatArray: ...  # growth order; inf outside
+
+
 @dataclass(frozen=True)
 class GrowthSolid:
     """The solid so far: wall offset, balls and bed (see the module docstring)."""
@@ -76,7 +86,7 @@ class GrowthSolid:
     radii: FloatArray | None = None  # (m,)
     bed: float = -math.inf  # height of the settled bed's top
     tubes: FloatArray | None = None  # (k, 7): filament ends a, b and radius, grown so far
-    aggregates: tuple[tuple[Aggregate3, float], ...] = ()  # branched inclusions, offsets
+    aggregates: tuple[tuple[Inclusion, float], ...] = ()  # inclusions, offsets
 
     def distance(self, p: FloatArray, d_wall: FloatArray, h: FloatArray) -> FloatArray:
         """Distance from points to the solid: positive in the open space, zero or
@@ -306,7 +316,7 @@ class Spherulites(_Metric):
         return np.sqrt(np.sum(off * off, axis=2)) / self.rate[idx]
 
 
-class _Crystals(_Metric):
+class Crystals(_Metric):
     """Each crystal's growth form is a prism (rotationally symmetric here) with a
     pointed termination: the tip advances at full rate along the long axis, the
     sides at 1/elongation. Long axes scatter about the surface normal."""
@@ -438,7 +448,7 @@ def prepare_growth(
             solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0)))
         elif m is Mode.CRYSTAL:
             sites = place_sites(setting, solid, params.quartz_grain_mm, rng_crystals.spawn(1)[0])
-            metric = _Crystals(sites, params.quartz_elongation, params.quartz_axis_scatter_deg)
+            metric = Crystals(sites, params.quartz_elongation, params.quartz_axis_scatter_deg)
             settle_owners(metric, setting, solid)
             stages.append(
                 _Stage(m, a, b, cumulative, solid, metric=metric, crystal_offset=crystals)

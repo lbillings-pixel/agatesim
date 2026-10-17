@@ -10,8 +10,8 @@ evaluated at each point from that distance, as in 2D:
 The staged model keeps the solid after each stage exact, as the growth model
 does (agatesim.volume.growth): a wall stage that stops early offsets every
 piece by its depth, a floor stage adds a bed, a spherulite stage that stops
-early adds balls, and a dendrite stage adds its aggregate. A later stage's
-distance to the solid is then the smallest distance to a piece.
+early adds balls, and a dendrite or garden stage adds its inclusions (ADR 0047).
+A later stage's distance to the solid is then the smallest distance to a piece.
 """
 
 from __future__ import annotations
@@ -32,9 +32,11 @@ from agatesim.models.front_feedback import (
 from agatesim.models.growth import InclusionGrowth
 from agatesim.models.settling import SettledColumn
 from agatesim.models.staged import STAGE_SPAN
-from agatesim.volume.dendrites import Aggregate3
+from agatesim.volume.gardens import grow_garden
 from agatesim.volume.growth import (
+    Crystals,
     GrowthSolid,
+    Inclusion,
     Spherulites,
     grow_aggregate,
     place_sites,
@@ -88,7 +90,7 @@ def prepare_front_feedback(
         def evaluate_wall(points: FloatArray, inside: BoolArray) -> Fields:
             return history_fields(history, wall_distance_at(setting, points, inside), inside)
 
-        return evaluate_wall
+        return _with_crystals(params, setting, history, evaluate_wall, rng)
 
     solid = GrowthSolid(tubes=setting.tubes if len(setting.tubes) else None)
     ref_h = setting.height(ref.points)
@@ -116,19 +118,51 @@ def prepare_front_feedback(
         d[idx] = depth(points[idx], d_wall[idx], setting.height(points[idx]))
         return _with_tubes(history_fields(history, d, open_), tube)
 
+    if params.growth_form == "lining":
+        return _with_crystals(params, setting, history, evaluate, rng)
     return evaluate
+
+
+def _with_crystals(
+    params: FrontFeedback,
+    setting: Setting,
+    history: FrontHistory,
+    evaluate: Evaluator,
+    rng: np.random.Generator,
+) -> Evaluator:
+    """H1's quartz filled with crystals, as in 2D (ADR 0037, ADR 0047): they
+    nucleate on the chalcedony's inner surface, the lining's solid offset by
+    the depth where quartz starts, and compete by geometric selection. H1's
+    history says when quartz reaches each point; the crystals say which
+    crystal fills it."""
+    if not history.quartz.any():
+        return evaluate
+    start = float(history.depth_mm[int(np.argmax(history.quartz))])
+    lining = GrowthSolid(tubes=setting.tubes if len(setting.tubes) else None).dilated(start)
+    sites = place_sites(setting, lining, params.quartz_grain_mm, rng.spawn(1)[0])
+    crystals = Crystals(sites, params.quartz_elongation, params.quartz_axis_scatter_deg)
+    settle_owners(crystals, setting, lining)
+
+    def evaluate_crystals(points: FloatArray, inside: BoolArray) -> Fields:
+        fields = evaluate(points, inside)
+        quartz = np.flatnonzero(fields.phase == Phase.QUARTZ)
+        grain = np.full(len(points), -1, dtype=np.int32)
+        grain[quartz] = crystals.assign(points[quartz])[1].astype(np.int32)
+        return replace(fields, grain=grain)
+
+    return evaluate_crystals
 
 
 @dataclass(frozen=True, eq=False)
 class _Stage:
-    kind: str  # "wall", "spherulite", "floor" or "dendrite"
+    kind: str  # "wall", "spherulite", "floor", "dendrite" or "garden"
     solid: GrowthSolid  # the solid when the stage starts
     limit: float | None  # depth where a first stage stops (None: runs to fill)
     history: FrontHistory | None = None
     t_scale: float = 1.0  # share of the history's time the stage uses
     metric: Spherulites | None = None
     column: SettledColumn | None = None
-    aggregate: Aggregate3 | None = None
+    aggregate: Inclusion | None = None
     tint: float = 0.0
     band_count: int = 0
 
@@ -177,6 +211,10 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
             count = int(column.layer.max()) + 1 if (column.layer >= 0).any() else 0
             stages.append(_Stage("floor", solid, None, column=column, band_count=count))
             solid = replace(solid, bed=column.top)
+        elif stage == "garden":
+            garden = grow_garden(params.garden, setting, solid, stage_rng)
+            stages.append(_Stage("garden", solid, None, aggregate=garden, tint=params.garden.tint))
+            solid = replace(solid, aggregates=(*solid.aggregates, (garden, 0.0)))
         else:
             d = params.dendrite
             how = InclusionGrowth(

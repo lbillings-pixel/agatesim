@@ -1,0 +1,15 @@
+# Plume agate in 3D (mechanistic tier): chemical-garden tubes rise from seeds on
+# the cavity floor, turned upward by buoyancy and branching where their
+# membranes rupture; front-feedback (H1) chalcedony then encloses them
+# (ADR 0044, ADR 0047).
+name = "plume-mechanistic-3d"
+seed = 11
+archetype = "plume"
+
+[solid]
+preset = "vesicle-round"
+size_mm = 40
+
+[model]
+kind = "mechanistic-staged"
+order = "garden-wall"

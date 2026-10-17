@@ -1,0 +1,17 @@
+# Quartz-centre geode in 3D (mechanistic tier): front-feedback (H1) bands while
+# the cavity is resupplied; it closes at 0.6 full, the trapped fluid's silica
+# runs down, and quartz crystals nucleate on the chalcedony and coarsen inward
+# by geometric selection, leaving an open centre (ADR 0037, ADR 0046, ADR 0047).
+name = "quartz-geode-mechanistic-3d"
+seed = 6
+archetype = "quartz-geode"
+
+[solid]
+preset = "vesicle-almond"
+size_mm = 60
+
+[model]
+kind = "mechanistic-front-feedback"
+silica_inventory = 0.8
+quartz_below = 0.8
+closes_at = 0.6

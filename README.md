@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier, eleven also at the mechanistic tier, and ten run in 3D, judged on cuts (eight of them mechanistically too). Current work takes the remaining forms to the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier, eleven also at the mechanistic tier, and ten run in 3D, judged on cuts (all ten mechanistically too). Current work takes the remaining forms to the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -67,7 +67,10 @@ and which proposed formation mechanisms, can produce them.
   ([ADR 0043](docs/adr/0043-a-fast-rhythm-for-iris-agate.md)).
 - **A cut changes what you see.** On random cuts through 3D results, bands look
   1.07–1.18 times thicker than they are, and some forms show on only a minority
-  of cuts ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)).
+  of cuts ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)). In 3D the
+  mechanistic plume (garden tubes) passes 79% of random cuts and the
+  mechanistic geode 77%, against 68% and 76% procedurally
+  ([ADR 0047](docs/adr/0047-plume-and-geode-in-3d.md)).
 
 These are results within the models tested, not proof of how agate forms.
 

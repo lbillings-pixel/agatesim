@@ -1,5 +1,6 @@
-"""H1 and the staged model on exact 3D solids (ADR 0040): spherulites,
-filaments, a spherulite stage and a dendrite stage."""
+"""H1 and the staged model on exact 3D solids (ADR 0040, ADR 0047): spherulites,
+filaments, a spherulite stage, a dendrite stage, a garden stage and quartz
+crystals."""
 
 from __future__ import annotations
 
@@ -16,6 +17,8 @@ PRESETS = [
     "eye-mechanistic-3d",
     "tube-mechanistic-3d",
     "moss-mechanistic-3d",
+    "plume-mechanistic-3d",
+    "quartz-geode-mechanistic-3d",
 ]
 
 
@@ -62,3 +65,59 @@ def test_filaments_get_the_first_h1_bands_in_3d() -> None:
             near |= np.roll(np.roll(seed, dy, axis=0), dx, axis=1)
     near &= ~seed & (with_tubes.fields.band >= 0)
     assert np.median(with_tubes.fields.band[near]) < 5 < 15 < np.median(plain.fields.band[near])
+
+
+def test_garden_tubes_rise_in_3d_and_h1_encloses_them() -> None:
+    """Plume agate in 3D (ADR 0047): chemical-garden tubes rise from the floor,
+    and H1 chalcedony grows after them and fills the rest."""
+    vol = prepare_volume(load_volume_preset("plume-mechanistic-3d")).volume(64)
+    f, inside = vol.fields, vol.inside
+    tube = f.phase == Phase.INCLUSION
+    chalcedony = f.phase == Phase.CHALCEDONY
+    assert 0.001 < tube[inside].mean() < 0.2
+    assert float(np.nanmax(f.t_dep[tube])) < 0.5 <= float(np.nanmin(f.t_dep[chalcedony]))
+    assert (f.phase[inside] != Phase.VOID).mean() > 0.99
+
+
+def test_garden_tubes_grow_upward_only_with_buoyancy() -> None:
+    from agatesim.models.gardens import GardenStage
+    from agatesim.volume.gardens import grow_garden
+    from agatesim.volume.growth import GrowthSolid
+
+    sim = prepare_volume(load_volume_preset("plume-mechanistic-3d"))
+    up = -sim.setting.gravity
+
+    def upward(**changes: float) -> float:
+        garden = grow_garden(
+            GardenStage(**changes), sim.setting, GrowthSolid(), np.random.default_rng(3)
+        )
+        d = garden.b - garden.a
+        return float(np.mean(np.abs(d @ up) / np.linalg.norm(d, axis=1)))
+
+    assert upward() > 0.85
+    assert upward(buoyancy=0.0, wander_deg=40.0) < 0.7
+
+
+def test_3d_geode_crystals_fill_only_the_quartz_and_coarsen_inward() -> None:
+    """The mechanistic geode in 3D (ADR 0047): crystals fill H1's quartz, and
+    crystals that reach deeper are bigger, counted by volume from random points."""
+    sim = prepare_volume(load_volume_preset("quartz-geode-mechanistic-3d"))
+    lo, hi = sim.solid.bounds()
+    p = lo + (hi - lo) * np.random.default_rng(0).random((1_500_000, 3))
+    p = p[sim.solid.contains(p)]
+    f = sim.evaluate(p, np.ones(len(p), dtype=bool))
+    quartz = f.phase == Phase.QUARTZ
+    assert quartz.any()
+    assert ((f.grain >= 0) == quartz).all()
+    ids, inv, counts = np.unique(f.grain[quartz], return_inverse=True, return_counts=True)
+    depth = np.bincount(inv, sim.solid.wall_distance(p[quartz])) / counts
+    big = counts >= 8
+    assert len(ids) > 100
+
+    def ranks(a: np.ndarray) -> np.ndarray:
+        r = np.empty(len(a))
+        r[np.argsort(a)] = np.arange(len(a))
+        return r
+
+    rho = float(np.corrcoef(ranks(depth[big]), ranks(counts[big].astype(float)))[0, 1])
+    assert rho > 0.5
