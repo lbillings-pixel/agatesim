@@ -75,6 +75,7 @@ def formation_stages(model: BaseModel) -> list[Stage]:
                 "floor": "floor layers (H4)",
                 "spherulite": "spherulites (H1)",
                 "dendrite": "branched inclusions",
+                "garden": "chemical-garden tubes",
             }
             n = len(parts)
             return [Stage(i / n, (i + 1) / n, names[p]) for i, p in enumerate(parts)]

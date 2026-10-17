@@ -771,6 +771,13 @@ def grow_crystals(
     return grain
 
 
+def wall_sites(domain: Domain, spacing_mm: float, rng: np.random.Generator) -> Sites:
+    """Blue-noise sites about `spacing_mm` apart on the exact cavity wall (and
+    tube surfaces), with their inward normals."""
+    front = _initial_front(domain, SITE_SEPARATION * spacing_mm / 10)
+    return _place_sites(front, spacing_mm, domain.cavity.bounds(), rng)
+
+
 def spherulite_distance(
     domain: Domain,
     first: bool,

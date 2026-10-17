@@ -1,0 +1,19 @@
+# Verification preset for plume agate (mechanistic tier): chemical-garden tubes
+# rise from seeds on the cavity floor, turned upward by buoyancy as their
+# lighter inner solution escapes, and branch where their membranes rupture;
+# front-feedback (H1) chalcedony then encloses them (ADR 0044).
+name = "plume-mechanistic"
+seed = 11
+archetype = "plume"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-round"
+size_mm = 40
+
+[model]
+kind = "mechanistic-staged"
+order = "garden-wall"
+gravity_deg = 270

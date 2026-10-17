@@ -162,3 +162,44 @@ def test_eyes_from_a_spherulite_stage_overgrown_by_h1() -> None:
     )
     crust = evaluate("eye", simulate(config.model_copy(update={"model": dense})))
     assert "isolated-eyes" in {r.id for r in crust.results if not r.passed}
+
+
+def _plume(**garden: float) -> SimulationResult:
+    config = load_preset("plume-mechanistic").with_resolution(RESOLUTION)
+    model = config.model
+    assert isinstance(model, Staged)
+    changed = model.model_copy(update={"garden": model.garden.model_copy(update=garden)})
+    return simulate(config.model_copy(update={"model": changed}))
+
+
+def test_buoyant_garden_tubes_make_plumes() -> None:
+    """Plume agate at the mechanistic tier (ADR 0044): chemical-garden tubes
+    rise from the floor and H1 encloses them. Without buoyancy the tubes wander
+    and no longer grow upward."""
+    plume = evaluate("plume", _plume())
+    assert plume.passed, plume.to_json()
+    limp = evaluate("plume", _plume(buoyancy=0.0, wander_deg=40.0))
+    assert {r.id for r in limp.results if not r.passed} == {"anisotropic-growth"}
+
+
+def test_garden_tubes_rise_from_the_floor_and_ignore_the_grid() -> None:
+    from agatesim.models.gardens import grow_tubes
+
+    config = load_preset("plume-mechanistic")
+    model = config.model
+    assert isinstance(model, Staged)
+    tubes = [
+        grow_tubes(
+            model.garden,
+            simulate(config.with_resolution(r)).domain,
+            model.gravity(),
+            np.random.default_rng(3),
+        )
+        for r in (256, 512)
+    ]
+    assert np.array_equal(tubes[0].a, tubes[1].a)
+    # Every tube starts on the lower half of the cavity and reaches upward.
+    starts = tubes[0].a[tubes[0].order == 0]
+    assert len(starts) >= 3
+    assert (starts[:, 1] < 0).all()
+    assert tubes[0].b[:, 1].max() > starts[:, 1].max() + 3.0

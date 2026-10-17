@@ -23,6 +23,9 @@ This model chains the two verified mechanisms in the order given:
   (`growth_form = "spherulitic"`, ADR 0038), stopping when it has filled
   `rim_share` of the cavity. Eye agate is a spherulite stage overgrown by an
   H1 wall stage (ADR 0039).
+- **garden**: chemical-garden tubes rising from seeds on the cavity floor,
+  driven upward by buoyancy (`agatesim.models.gardens`, ADR 0044). Plume
+  agate is a garden stage enclosed by an H1 wall stage.
 - **dendrite**: branched inclusions grow from the surface of the open space by
   multi-particle diffusion-limited aggregation (`agatesim.models.dendrites`,
   ADR 0009), the picture of Mn-oxide dendrites growing by attachment of
@@ -46,12 +49,15 @@ from agatesim import _scipy
 from agatesim.fields import Fields, Phase
 from agatesim.models.base import Domain
 from agatesim.models.front_feedback import FrontFeedback, run_front_feedback
+from agatesim.models.gardens import GardenStage, grow_tubes, rasterise_tubes
 from agatesim.models.growth import InclusionGrowth, grow_inclusions
 from agatesim.models.liesegang import Liesegang, run_liesegang
 from agatesim.models.settling import Settling, run_settling
 from agatesim.params import Nature, param, used_when
 
-Order = Literal["wall-floor-wall", "wall-floor", "floor-wall", "dendrite-wall", "spherulite-wall"]
+Order = Literal[
+    "wall-floor-wall", "wall-floor", "floor-wall", "dendrite-wall", "spherulite-wall", "garden-wall"
+]
 WallMechanism = Literal["front-feedback", "liesegang"]
 STAGE_SPAN = 0.999  # of a stage's time slot, so stages never share a deposition time
 
@@ -165,6 +171,11 @@ class Staged(BaseModel):
         description="The H4 floor stage (orders with a floor).",
         json_schema_extra=used_when({"order": ["floor"]}),
     )
+    garden: GardenStage = Field(
+        default_factory=GardenStage,
+        description="The chemical-garden stage: tubes rising from the floor (garden-wall order).",
+        json_schema_extra=used_when({"order": ["garden"]}),
+    )
     dendrite: DendriteStage = Field(
         default_factory=DendriteStage,
         description="The dendrite stage: branched inclusions (the dendrite-wall order).",
@@ -218,6 +229,28 @@ def _dendrite_fields(
     )
 
 
+def _garden_fields(
+    params: Staged, domain: Domain, open_space: NDArray[np.bool_], rng: np.random.Generator
+) -> Fields:
+    """Chemical-garden tubes grown into the open space; their deposition time is
+    the order in which they grew."""
+    tubes = grow_tubes(params.garden, domain, params.gravity(), rng)
+    order = np.where(open_space, rasterise_tubes(tubes, domain.grid), np.inf)
+    grown = open_space & np.isfinite(order)
+    shape = domain.grid.shape
+    phase = np.full(shape, Phase.VOID, dtype=np.uint8)
+    phase[grown] = Phase.INCLUSION
+    return Fields(
+        phase=phase,
+        band=np.full(shape, -1, dtype=np.int32),
+        impurity=np.where(grown, params.garden.tint, 0.0).astype(np.float32),
+        translucency=np.zeros(shape, dtype=np.float32),
+        t_dep=np.where(grown, order, np.nan).astype(np.float32),
+        grain=np.full(shape, -1, dtype=np.int32),
+        micro_spacing_um=np.full(shape, np.nan, dtype=np.float32),
+    )
+
+
 def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fields:
     stages = params.order.split("-")
     rngs = rng.spawn(len(stages))
@@ -254,6 +287,9 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
                 update={"growth_form": "spherulitic", "supply_ends_at": params.rim_share}
             )
             fields = run_front_feedback(eyes, sub, stage_rng, first=sub is domain)
+            grown = open_space & (fields.phase != Phase.VOID)
+        elif stage == "garden":
+            fields = _garden_fields(params, domain, open_space, stage_rng)
             grown = open_space & (fields.phase != Phase.VOID)
         elif stage == "dendrite":
             fields = _dendrite_fields(params, domain, open_space, i == 0, stage_rng)

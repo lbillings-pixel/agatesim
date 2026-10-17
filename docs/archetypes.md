@@ -19,7 +19,7 @@ provisional until the archetype is implemented.
 | 7 | [Eye agate](#eye) | verified | verified | formation | volcanic, sedimentary | botryoidal |
 | 8 | [Tube agate](#tube) | verified | verified | formation | volcanic, sedimentary | eye |
 | 9 | [Moss / dendritic agate](#moss) | verified | verified | formation | volcanic, sedimentary, seam | — |
-| 10 | [Plume agate](#plume) | verified | pending | formation | volcanic, sedimentary | moss |
+| 10 | [Plume agate](#plume) | verified | verified | formation | volcanic, sedimentary | moss |
 | 11 | [Shadow agate](#shadow) | verified | pending | optics | volcanic, sedimentary | fortification |
 | 12 | [Iris agate](#iris) | verified | pending | optics | volcanic, sedimentary | fortification, shadow |
 

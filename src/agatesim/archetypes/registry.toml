@@ -296,7 +296,7 @@ with Fe-silicate cores wrapped in chalcedony.
 id = "plume"
 name = "Plume agate"
 rung = 10
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["moss"]

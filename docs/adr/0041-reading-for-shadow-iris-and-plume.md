@@ -74,3 +74,23 @@ From the full text of [@jones1952] (pp. 578–584):
   0042); (2) iris by a micrometre-scale H1 rhythm in clear bands;
   (3) a chemical-garden growth model for plume, after reading on such models;
   (4) a source linking growth rate to water content, for shadow.
+
+## Amendment (2026-10-17): growth rate and milkiness
+
+A second, time-boxed search for a source linking a band's growth rate to its
+milkiness (next step 4) found none that does so directly. Two partial links:
+
+- Banding reflects differences in crystallite size, porosity, silica phase and
+  pigments, and the high concentrations of lattice defects (silanol groups
+  among them) point to rapid crystallisation ([@goetze2020], abstract).
+- Milky bands hold less water than translucent ones and are denser
+  ([@graetsch1985], abstract).
+
+Chained, they would suggest that fast-grown, defect-rich bands are the wetter,
+more translucent ones: the opposite of H1's current rendering assumption, which
+makes its fast, impurity-rich bands milky (ADR 0013). The chain rests on two
+abstracts and an inference, so nothing is changed. Shadow stays pending. Reversing H1's milky/clear assumption would
+change how every H1 result looks, so it is left to the owner.
+
+The plume model of next step 3 is in [ADR 0044](0044-plume-agate-as-a-silica-garden.md),
+and the iris rhythm of next step 2 in [ADR 0043](0043-a-fast-rhythm-for-iris-agate.md).

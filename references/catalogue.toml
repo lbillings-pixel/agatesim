@@ -240,6 +240,21 @@ topics = ["moss", "filaments", "stalactites", "tubes", "biosignatures", "celadon
 notes = """Filamentous fabrics in basalt cavities, from pseudo-stalactites to irregular mats, grow on a thread-like centre (fungal chitin found in the innermost core) and are wrapped in concentric layers: Fe-rich phases (Fe oxides, celadonite, smectite), then Ca zeolites, then silica (opal-CT, chalcedony, macrocrystalline quartz). Lengths up to 100 cm with constant diameters. In one cavity, filaments on the ceiling and walls partly show gravity-controlled elongation downward, while the floor holds randomly intergrown filaments embedded in chalcedony 'similar to the so-called moss agate', each with a green inner zone and a chalcedony crust up to 1 cm."""
 
 [[references]]
+id = "barge2015"
+kind = "review"
+authors = ["Barge, L. M.", "et al. (full list not checked)"]
+year = 2015
+title = "From chemical gardens to chemobrionics"
+venue = "Chemical Reviews 115(16), 8652–8703"
+doi = "10.1021/acs.chemrev.5b00014"
+access = "open"
+licence = "ACS AuthorChoice (non-commercial reuse); cite only"
+checked = "sections"
+sections_read = ["abstract", "introduction", "classical seed growth mechanism", "bubble-guided and injected tube growth", "tube pressure and Hagen–Poiseuille flow", "8 Chemical gardens in nature (opening)"]
+topics = ["chemical-gardens", "plume", "buoyancy", "osmosis"]
+notes = """Read 2026-10-17 from text extracted locally from the open PDF (searched, not read cover to cover). A dissolving seed is wrapped in a semipermeable precipitation membrane; the osmotic pressure is released by rupture, the membrane heals across the front between the fluids, buoyancy makes the inner solution rise, and the membrane keeps rupturing and re-precipitating at the interface, so the structure extends upward with some sideways deviations. Osmosis and buoyancy drive the flow. With injection, the tube's volume grows at the injection rate, so the vertical growth velocity follows from it; tube radius rises with injection rate; flow up the tube follows Hagen–Poiseuille drag. Natural chemical-garden structures include hydrothermal vents; tubular structures in rocks are read as a slow geological version. No mention of agate found."""
+
+[[references]]
 id = "haudin2014"
 kind = "article"
 authors = ["Haudin, F.", "Cartwright, J. H. E.", "Brau, F.", "De Wit, A."]
