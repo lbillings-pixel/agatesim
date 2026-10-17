@@ -77,6 +77,47 @@ def test_closed_cavity_runs_out_of_silica_into_quartz() -> None:
     assert d[quartz].min() >= d[chal].max() - result.grid.dx  # quartz is last
 
 
+def test_a_cavity_that_closes_late_bands_while_open() -> None:
+    """ADR 0046: until the cavity closes its bulk is resupplied, so it bands as
+    an open cavity does; closed from the start, it holds only a few bands. The
+    quartz still comes last, from the trapped fluid running out of silica."""
+    closed = _config(silica_inventory=0.8, quartz_below=0.8)
+    late = _config(silica_inventory=0.8, quartz_below=0.8, closes_at=0.6)
+    open_ = simulate(_config())
+    result = simulate(late)
+    assert isinstance(late.model, FrontFeedback)
+    assert isinstance(closed.model, FrontFeedback)
+    n_late = len(band_edges(front_history(late.model, result.domain)))
+    n_closed = len(band_edges(front_history(closed.model, result.domain)))
+    assert n_closed <= 4
+    assert n_late >= 3 * n_closed
+    # Before closing, the front is the open cavity's.
+    d = result.domain.wall_distance
+    mask = result.domain.mask
+    h_late = front_history(late.model, result.domain)
+    assert isinstance(open_.config.model, FrontFeedback)
+    h_open = front_history(open_.config.model, open_.domain)
+    depths = np.linspace(0, np.quantile(d[mask], 0.3), 400)  # filled before the closing
+    v_late = np.interp(depths, h_late.depth_mm, h_late.velocity)
+    v_open = np.interp(depths, h_open.depth_mm, h_open.velocity)
+    assert np.percentile(np.abs(v_late - v_open), 95) < 0.02 * v_open.max()
+    quartz = result.fields.phase == Phase.QUARTZ
+    chal = result.fields.phase == Phase.CHALCEDONY
+    assert quartz.any()
+    assert d[quartz].min() >= d[chal].max() - result.grid.dx
+
+
+def test_a_geode_closed_from_the_start_still_passes() -> None:
+    """ADR 0046 keeps ADR 0037's finding: the change to quartz needs no
+    schedule, only the banding does."""
+    config = load_preset("quartz-geode-mechanistic").with_resolution(RESOLUTION)
+    config = config.model_copy(
+        update={"model": config.model.model_copy(update={"closes_at": 0.0, "quartz_below": 0.6})}
+    )
+    ev = evaluate("quartz-geode", simulate(config))
+    assert ev.passed, ev.to_json()
+
+
 def test_quartz_crystals_fill_only_the_quartz_and_coarsen_inward() -> None:
     """ADR 0037: crystals nucleate on the chalcedony and fill H1's quartz zone,
     and fewer, wider crystals survive inward (geometric selection)."""

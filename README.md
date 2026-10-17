@@ -52,7 +52,11 @@ and which proposed formation mechanisms, can produce them.
   falls and the rejected impurity concentrates, and H1's front stops
   oscillating after a few bands. No parameter set tried keeps visible bands;
   in this model, a well-banded rim needs a cavity still open to fresh fluid
-  ([ADR 0037](docs/adr/0037-mechanistic-quartz-geode.md)).
+  ([ADR 0037](docs/adr/0037-mechanistic-quartz-geode.md)). A geode resupplied
+  until it is 60% full, then closed, has a banded rim (12 bands, against 2
+  closed from the start), a clear zone grown after closing, and a quartz
+  centre that still coarsens inward
+  ([ADR 0046](docs/adr/0046-a-geode-that-bands-while-open.md)).
 - **Plumes rise by buoyancy.** Chemical-garden tubes, turned upward by their
   lighter inner solution and branching where their membranes rupture, make
   plume agate once chalcedony encloses them; without buoyancy they don't rise

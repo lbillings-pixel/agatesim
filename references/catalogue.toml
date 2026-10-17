@@ -23,9 +23,9 @@ doi = "10.3390/min10111037"
 access = "open"
 licence = "CC-BY-4.0"
 checked = "sections"
-sections_read = ["1", "3", "4.1", "4.2.1", "5.4", "5.5", "6"]
+sections_read = ["1", "3", "4.1", "4.2.1", "5.3", "5.4", "5.5", "6"]
 topics = ["mineralogy", "geochemistry", "genesis", "formation-temperature", "host-rocks", "quartz-transition", "spherulites", "moss", "plume", "tubes"]
-notes = """Primary overview, read 2026-10-15. Key points: crystallisation often starts with spherulitic chalcedony at the wall that continues into fibrous chalcedony (§4.1.2, §5.4, Fig. 29); wall-lining agates have three zones, spherulitic/granular rim, fibrous chalcedony, macrocrystalline quartz centre (§4.1.2); "Macrocrystalline quartz crystallizes when the SiO2 concentration in the mineralizing fluid is low" (§6), with a drop in impurities and defects at the chalcedony–quartz interface (§5.4); Uruguay bands from gravitational sedimentation of sols with flocculated silica particles, needing high silica concentration (§4.1.2); iron pigments are rejected by crystallising quartz and accumulate along the banding (§5.4); visible bands can contain up to 1000 micro-bands per mm (§4.1.2); colour banding governed by self-organisation of the silica matrix rather than Liesegang diffusion (§5.4); "infiltration channels"/"escape tubes" mostly deformation of plastic silica (§5.5); stalactitic SFF and moss agate filaments have Fe-silicate/zeolite cores with concentric chalcedony and possible biosignatures (§5.5); plume agate interpreted as silica-garden self-assembly from osmosis, reaction and buoyancy (§5.5)."""
+notes = """Primary overview, read 2026-10-15. Key points: crystallisation often starts with spherulitic chalcedony at the wall that continues into fibrous chalcedony (§4.1.2, §5.4, Fig. 29); wall-lining agates have three zones, spherulitic/granular rim, fibrous chalcedony, macrocrystalline quartz centre (§4.1.2); "Macrocrystalline quartz crystallizes when the SiO2 concentration in the mineralizing fluid is low" (§6), with a drop in impurities and defects at the chalcedony–quartz interface (§5.4); Uruguay bands from gravitational sedimentation of sols with flocculated silica particles, needing high silica concentration (§4.1.2); iron pigments are rejected by crystallising quartz and accumulate along the banding (§5.4); visible bands can contain up to 1000 micro-bands per mm (§4.1.2); colour banding governed by self-organisation of the silica matrix rather than Liesegang diffusion (§5.4); "infiltration channels"/"escape tubes" mostly deformation of plastic silica (§5.5); stalactitic SFF and moss agate filaments have Fe-silicate/zeolite cores with concentric chalcedony and possible biosignatures (§5.5); plume agate interpreted as silica-garden self-assembly from osmosis, reaction and buoyancy (§5.5). §5.3 (read 2026-10-17): silica in volcanic agates comes from alteration of the host rock; pathways for free flow are lacking in most rocks, so supply by diffusion of monomeric silicic acid through intergranular pore space is favoured; "The continuous supply of silicic acid results in the accumulation of silica and the filling of the cavities"; low solubility means much water must pass (Landmesser: up to 0.5 m3 for a 100 g agate at 250 mg/L)."""
 
 [[references]]
 id = "moxon2020"
@@ -40,7 +40,7 @@ licence = "CC-BY-4.0"
 checked = "sections"
 sections_read = ["2.1", "2.2", "2.4 (gel experiments, Heaney model)", "5"]
 topics = ["genesis", "history-of-theories", "basic-igneous-hosts", "quartz-transition", "liesegang"]
-notes = """History of genesis theories for agate in basic igneous hosts, read in part 2026-10-15. Summary (§5): formation mostly below 100 °C in basic igneous hosts; agate starts as amorphous silica and matures over geological time (moganite slowly converts to quartz, crystallites coarsen); "little support" now for agate formation by metal-ion diffusion into a silica gel. Describes Heaney's mechanism: a weakly polymerised silica solution forms chalcedony and leaves dilute monomeric silicic acid, undersaturated for amorphous silica but saturated for quartz, from which prismatic quartz grows last. Reports gel experiments (Godovikov et al.) in which branched dendrites appear at maximum supersaturation and faceted crystals at minimal supersaturation."""
+notes = """History of genesis theories for agate in basic igneous hosts, read in part 2026-10-15. Summary (§5): formation mostly below 100 °C in basic igneous hosts; agate starts as amorphous silica and matures over geological time (moganite slowly converts to quartz, crystallites coarsen); "little support" now for agate formation by metal-ion diffusion into a silica gel. Describes Heaney's mechanism: a weakly polymerised silica solution forms chalcedony and leaves dilute monomeric silicic acid, undersaturated for amorphous silica but saturated for quartz, from which prismatic quartz grows last. A final quartz deposit gives an impression of a separate entry, which the authors judge not possible (read 2026-10-17). Reports gel experiments (Godovikov et al.) in which branched dendrites appear at maximum supersaturation and faceted crystals at minimal supersaturation."""
 
 [[references]]
 id = "cartwright2026"
@@ -591,3 +591,18 @@ licence = "publisher copyright; cite only"
 checked = "abstract"
 topics = ["waterline", "uruguay-banding", "combined-form", "dating", "stage-order"]
 notes = "Paraná basalt agates with a lower horizontally banded section and an upper chamber of wall-parallel bands. Horizontal bands formed first (about 43–63 Ma), wall-lining bands 7–27 Myr later; the host is 135 Ma. Horizontal bands have more Al and larger crystallites, less moganite and defect water. Proposes a three-stage process: the two band types form separately, then later silica seals the gap to the wall. Read via the Cambridge abstract page (M9)."
+
+[[references]]
+id = "dumanska2013"
+kind = "article"
+authors = ["Dumańska-Słowik, M.", "Natkaniec-Nowak, L.", "Wesełucha-Birczyńska, A.", "Gaweł, A.", "Lankosz, M.", "Wróbel, P."]
+year = 2013
+title = "Agates from Morocco: Gemological Characteristics and Proposed Origin"
+venue = "Gems & Gemology 49(3)"
+url = "https://www.gia.edu/gems-gemology/fa13-dumanska-agate-sidi-rahal"
+access = "open"
+licence = "publisher copyright; cite only"
+checked = "sections"
+sections_read = ["introduction", "results (in part)", "discussion (in part)"]
+topics = ["genesis", "silica-supply", "quartz-transition"]
+notes = "Read 2026-10-17. Introduction: the prevailing hypothesis is that voids in volcanic rock fill in cycles from rim to centre, with silica-rich fluids entering through microfissures or infiltration canals; zone shape and width depend on the fluids' silica concentration, temperature, pressure and the timing of influxes; idiomorphic quartz forms at the final stage, mainly in the centre. Results: infiltration canals seen within zones; almost invisible internal boundaries taken to indicate a continuous, even supply. Discussion: crystallisation lasted millions of years, in stages. Nothing on when or how the cavity was sealed."

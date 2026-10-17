@@ -30,7 +30,10 @@ so it advances inward along the wall distance at speed v δ. In a closed cavity
 the bulk is a finite reservoir: as a fraction F of the cavity fills, silica
 falls, s_b = s₀ (1 − F/F*) / (1 − F) (F* is the share of the cavity the
 dissolved silica can fill), and rejected impurity builds up,
-a_b = (1 − I) / (1 − F) (I is the impurity already incorporated). Below a
+a_b = (1 − I) / (1 − F) (I is the impurity already incorporated). The cavity
+may be resupplied until a share F_c of it has filled and close then
+(`closes_at`, ADR 0046): the fluid trapped at closing starts at the bulk
+concentrations, and F* and I refer to the space still open then. Below a
 silica threshold, macrocrystalline quartz grows instead of chalcedony
 ([@goetze2020] §6). In 2D its crystals nucleate on the chalcedony's inner
 surface and compete by geometric selection ([@vanderdrift1967]): the front
@@ -150,8 +153,21 @@ class FrontFeedback(BaseModel):
         units="× cavity",
         nature=Nature.EFFECTIVE,
         description=(
-            "F*: share of the cavity the dissolved silica can fill, in a closed cavity "
-            "(0 = open: the bulk is resupplied and stays constant)."
+            "F*: share of the cavity the dissolved silica can fill once the cavity is "
+            "closed (of the space still open when it closes; 0 = never closed: the bulk "
+            "is resupplied and stays constant)."
+        ),
+    )
+    closes_at: float = param(
+        0.0,
+        ge=0,
+        lt=1,
+        units="× cavity",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Share of the cavity filled when it closes to fresh fluid, with a silica "
+            "inventory (0 = closed from the start; before then the bulk is resupplied; "
+            "the timing of a change in conditions, not a property of any band)."
         ),
     )
 
@@ -362,14 +378,22 @@ def history_from_distances(
         an = max(a, 0.0) ** n
         return max(s, 0.0) * (1.0 + beta * an / (ac**n + an))
 
+    fc = params.closes_at
+
     def bulk(t: float, depth: float, incorporated: float) -> tuple[float, float]:
+        """Bulk silica and impurity. `incorporated` counts impurity taken up
+        since the cavity closed, in units of the whole cavity at the start."""
         supply = 1.0 if forcing is None else float(forcing.at(t))
         if not params.closed:
             return supply, 1.0
         f = float(np.interp(depth, depths, share))
+        if f < fc:  # still open: resupplied
+            return supply, 1.0
+        # The fluid trapped at closing holds the space still open at the start
+        # concentrations; its silica can fill a share F* of that space.
         fluid = max(1.0 - f, 1e-6)
-        s_b = max(1.0 - f / params.silica_inventory, 0.0) / fluid
-        a_b = max(1.0 - incorporated, 0.0) / fluid
+        s_b = max((1.0 - fc) - (f - fc) / params.silica_inventory, 0.0) / fluid
+        a_b = max((1.0 - fc) - incorporated, 0.0) / fluid
         return supply * s_b, a_b
 
     def rhs(t: float, y: NDArray[np.float64]) -> list[float]:
@@ -378,11 +402,12 @@ def history_from_distances(
         v = velocity(s, a)
         k = (k0 + v / vt) / (1.0 + v / vt)
         d_share = float(np.interp(depth, depths, slope))
+        trapped = float(np.interp(depth, depths, share)) >= fc
         return [
             eps * ((s_b - s) - gamma * v),
             (a_b - a) + lam * v * (1.0 - k) * a,
             v * delta,
-            k * a * d_share * v * delta,
+            k * a * d_share * v * delta if trapped else 0.0,
         ]
 
     def filled(_t: float, y: NDArray[np.float64]) -> float:

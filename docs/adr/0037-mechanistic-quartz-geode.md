@@ -1,6 +1,6 @@
 # 37. The quartz-centre geode at the mechanistic tier
 
-- Status: accepted (amended 2026-10-17: why a closed cavity stops the banding)
+- Status: accepted (amended 2026-10-17: why a closed cavity stops the banding; the preset now closes late, [ADR 0046](0046-a-geode-that-bands-while-open.md))
 - Date: 2026-10-17
 - Builds on: [ADR 0008](0008-drawn-cavities-nucleation-and-crystal-growth.md), [ADR 0013](0013-mechanistic-front-feedback.md), [ADR 0035](0035-what-the-mechanistic-tier-requires.md)
 
@@ -96,4 +96,5 @@ couldn't be measured.
   resupplied while it bands: an open cavity, as fortification's corners also
   suggest (ADR 0034). A geode history in which the cavity is open while the
   chalcedony bands and closes before the quartz grows would fit; it would be a
-  scheduled change in conditions, which ADR 0035 allows. Backlog.
+  scheduled change in conditions, which ADR 0035 allows. Done in
+  [ADR 0046](0046-a-geode-that-bands-while-open.md).
