@@ -338,9 +338,9 @@ class ProceduralGrowth(BaseModel):
         ge=0,
         le=1,
         units="",
-        nature=Nature.IMPOSED,
+        nature=Nature.PHYSICAL,
         description=(
-            "Colour of the inclusion mineral: 0 = green Fe-silicate (celadonite-like), "
+            "The inclusion mineral, for its colour: 0 = green Fe-silicate (celadonite-like), "
             "0.5 = red-brown Fe oxide, 1 = black Mn oxide."
         ),
     )

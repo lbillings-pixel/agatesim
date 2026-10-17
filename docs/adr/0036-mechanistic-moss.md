@@ -25,6 +25,8 @@ bands are imposed.
    out: they are the plume stand-in ADR 0035 rules out. The inclusion mineral
    (`tint`, which only sets its colour) is `physical` here: it names a
    measurable composition rather than a property of the pattern.
+   The procedural model's `dendrite_tint` was relabelled `physical` to match
+   (it had been `imposed`).
 3. **What is and isn't explained.**
    - Process: dendrites as aggregation of diffusing particles that attach to
      the growing branches, supported for Mn-oxide dendrites in 3D

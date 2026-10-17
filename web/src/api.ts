@@ -129,7 +129,8 @@ export interface Meta {
   gpu: boolean;
   cavities: CavityInfo[];
   models: ModelInfo[];
-  presets: { name: string; config: RunConfig }[];
+  /** description: the preset file's header comment, in prose. */
+  presets: { name: string; config: RunConfig; description: string }[];
   archetypes: ArchetypeInfo[];
 }
 

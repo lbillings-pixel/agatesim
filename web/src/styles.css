@@ -459,3 +459,27 @@ td.num { white-space: nowrap; }
 .glossary ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; }
 .glossary p { margin: 0.4rem 0; }
 .glossary-ref { text-decoration: underline dotted; }
+
+/* Two ways: each form by the procedural model and by a mechanism, side by side. */
+.twoways { display: grid; grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr); gap: 1.25rem; padding: 1rem; align-items: start; }
+.twoways-forms [role="radiogroup"] { display: grid; gap: 0.25rem; }
+.twoways-forms button { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; text-align: left; padding: 0.4rem 0.55rem; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); cursor: pointer; }
+.twoways-forms button[aria-checked="true"] { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.twoways-main { display: grid; gap: 0.75rem; min-width: 0; }
+.twoways-main h2 { margin: 0; font-size: 1.2rem; }
+.twoways-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
+.twoways-card { display: grid; gap: 0.6rem; align-content: start; background: var(--pane); border: 1px solid var(--line); border-radius: 6px; padding: 0.85rem; min-width: 0; }
+.twoways-card h3 { margin: 0; font-size: 1rem; }
+.twoways-card header p { margin: 0.2rem 0 0; }
+.twoways-slab { margin: 0; display: grid; gap: 0.3rem; }
+.twoways-slab img { width: 100%; height: auto; display: block; border-radius: 3px; background: var(--slab-bg); }
+.twoways-slab .mechanisms-placeholder { aspect-ratio: 1; display: grid; place-items: center; background: var(--slab-bg); border-radius: 3px; }
+.twoways-tests { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.twoways-tests caption { text-align: left; margin-bottom: 0.3rem; }
+.twoways-tests th, .twoways-tests td { text-align: left; padding: 0.2rem 0.4rem 0.2rem 0; border-top: 1px solid var(--line); }
+.twoways-tests td.pass { color: var(--pass); font-family: var(--font-data); }
+.twoways-tests td.fail { color: var(--fail); font-family: var(--font-data); }
+.twoways-imposed { margin: 0.2rem 0 0; padding-left: 1.1rem; }
+.twoways-pending { margin: 0; }
+.twoways-card > button { justify-self: start; }
+@media (max-width: 760px) { .twoways { grid-template-columns: minmax(0, 1fr); } }

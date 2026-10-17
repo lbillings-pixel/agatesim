@@ -14,7 +14,7 @@ export interface Control {
   defaultValue: number;
 }
 
-const UNIT_SUFFIXES = ["_mm", "_deg"];
+const UNIT_SUFFIXES = ["_mm", "_um", "_deg"];
 
 export function labelFor(key: string): string {
   let base = key;
@@ -172,4 +172,25 @@ export function withSetting(
   const inner = values[key];
   const nested = typeof inner === "object" && inner !== null ? (inner as Record<string, unknown>) : {};
   return { ...values, [key]: withSetting(nested, rest, value) };
+}
+
+/** The settings a model uses that are `imposed` (they set a property of the result
+ * directly), with the values in `values` (defaults where unset), nested groups
+ * included and labelled "Group › Setting". Settings that don't apply are left out. */
+export function imposedSettings(
+  fields: Field[],
+  values: Record<string, unknown>,
+): { label: string; value: number; units: string }[] {
+  return fields
+    .filter((f) => isUsed(f, values, fields))
+    .flatMap((f) => {
+      if (f.type === "group") {
+        const inner = values[f.key];
+        const nested = typeof inner === "object" && inner !== null ? (inner as Record<string, unknown>) : {};
+        return imposedSettings(f.fields, nested).map((s) => ({ ...s, label: `${f.label} › ${s.label}` }));
+      }
+      if (f.type !== "number" || f.nature !== "imposed") return [];
+      const v = values[f.key];
+      return [{ label: f.label, value: typeof v === "number" ? v : f.defaultValue, units: f.units }];
+    });
 }

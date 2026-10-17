@@ -14,6 +14,7 @@ import { CavityDrawer, type Drawn } from "./components/CavityDrawer";
 import { CavityMenu } from "./components/CavityMenu";
 import { CriteriaPanel } from "./components/CriteriaPanel";
 import { ParamPanel, Slider } from "./components/ParamPanel";
+import { TwoWays } from "./components/TwoWays";
 import { RunBrowser } from "./components/RunBrowser";
 import { ScheduleEditor } from "./components/ScheduleEditor";
 import { SlabView } from "./components/SlabView";
@@ -83,7 +84,7 @@ export function App() {
   const [lastDrawn, setLastDrawn] = useState<Drawn | null>(null);
   const [placingTubes, setPlacingTubes] = useState(false);
   const [tubeRadius, setTubeRadius] = useState(0.3);
-  const [screen, setScreen] = useState<"simulator" | "volume" | "specimens">("simulator");
+  const [screen, setScreen] = useState<"simulator" | "twoways" | "volume" | "specimens">("simulator");
   const [light, setLight] = useState<"reflected" | "shadow" | "iris">("reflected");
   const [lightAngle, setLightAngle] = useState(30);
   const [opticsImage, setOpticsImage] = useState<string | null>(null);
@@ -266,6 +267,7 @@ export function App() {
           {(
             [
               ["simulator", "Simulator"],
+              ["twoways", "Two ways"],
               ["volume", "3D"],
               ["specimens", "Specimens"],
             ] as const
@@ -325,7 +327,17 @@ export function App() {
         )}
       </header>
 
-      {screen === "volume" ? (
+      {screen === "twoways" ? (
+        <TwoWays
+          meta={meta}
+          resolution={Math.min(512, meta.limits.preview)}
+          onOpen={(c) => {
+            setConfig(c);
+            setSelected(null);
+            setScreen("simulator");
+          }}
+        />
+      ) : screen === "volume" ? (
         <VolumeWorkbench models={meta.models} archetypes={meta.archetypes} />
       ) : screen === "specimens" ? (
         <SpecimenWorkbench

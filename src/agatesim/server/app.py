@@ -27,7 +27,7 @@ from starlette.types import Scope
 
 from agatesim import __version__, _rd, optics
 from agatesim.archetypes import load_registry
-from agatesim.config import RunConfig, load_config, load_preset, preset_names
+from agatesim.config import RunConfig, load_config, load_preset, preset_description, preset_names
 from agatesim.criteria import evaluate, implemented
 from agatesim.geometry import CAVITY_PRESETS, make_cavity
 from agatesim.models import (
@@ -161,7 +161,12 @@ def _meta() -> dict[str, object]:
             for kind, cls in MODELS.items()
         ],
         "presets": [
-            {"name": n, "config": load_preset(n).model_dump(mode="json")} for n in preset_names()
+            {
+                "name": n,
+                "config": load_preset(n).model_dump(mode="json"),
+                "description": preset_description(n),
+            }
+            for n in preset_names()
         ],
         "archetypes": [
             {

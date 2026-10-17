@@ -200,6 +200,19 @@ def preset_names() -> list[str]:
     return sorted(f.name.removesuffix(".toml") for f in files if f.name.endswith(".toml"))
 
 
+def preset_description(name: str) -> str:
+    """The comment at the top of a preset's file: what it shows and how, in prose."""
+    if name not in preset_names():
+        raise KeyError(f"unknown preset {name!r}; choose from {preset_names()}")
+    text = resources.files("agatesim.presets").joinpath(f"{name}.toml").read_text(encoding="utf-8")
+    lines: list[str] = []
+    for line in text.splitlines():
+        if not line.startswith("#"):
+            break
+        lines.append(line.removeprefix("#").strip())
+    return " ".join(lines)
+
+
 def load_preset(name: str) -> RunConfig:
     if name not in preset_names():
         raise KeyError(f"unknown preset {name!r}; choose from {preset_names()}")
