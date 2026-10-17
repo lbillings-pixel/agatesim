@@ -1,0 +1,24 @@
+# Verification preset for eye agate (mechanistic tier): a brief stage of
+# front-feedback (H1) growth radiating from a few widely spaced nucleation
+# sites on the wall grows banded hemispherical eyes; then H1 lining growth
+# overgrows them, carrying their curvature inward. The bands are self-organised;
+# the order of the stages and when the first ends are imposed (ADR 0039).
+name = "eye-mechanistic"
+seed = 8
+archetype = "eye"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "vesicle-round"
+size_mm = 50
+
+[model]
+kind = "mechanistic-staged"
+order = "spherulite-wall"
+rim_share = 0.1
+
+[model.wall]
+spherulite_spacing_mm = 20
+spherulite_rate_variability = 0.1

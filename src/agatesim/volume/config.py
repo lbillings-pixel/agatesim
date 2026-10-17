@@ -205,6 +205,9 @@ class VolumeConfig(BaseModel):
             )
         if isinstance(model, Staged) and model.wall_mechanism != "front-feedback":
             raise ValueError("in 3D, staged wall bands use front feedback (H1) only")
+        walls = model.wall if isinstance(model, Staged) else model
+        if isinstance(walls, FrontFeedback) and walls.growth_form != "lining":
+            raise ValueError("spherulitic front feedback isn't available in 3D yet")
         if isinstance(model, Staged) and "dendrite" in model.order:
             raise ValueError("dendrite stages aren't available in the 3D staged model yet")
         if isinstance(model, ProceduralFortification) and model.corner_rounding_mm > 0:

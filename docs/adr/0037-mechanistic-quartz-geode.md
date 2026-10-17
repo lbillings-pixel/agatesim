@@ -65,6 +65,11 @@ couldn't be measured.
 ## Consequences
 
 - Mechanistic tier: 6 of 12 forms.
-- The chalcedony's bands are faint in this closed cavity: one strong band at
-  the wall, then weak ones. Why H1's contrast is low here wasn't investigated.
-  It doesn't affect the geode's criteria.
+- **The closed cavity ends H1's banding early.** As the dissolved silica
+  falls, the front leaves its oscillating range: the preset's chalcedony holds
+  only 3 bands (the same cavity, open: 25), and the incorporated impurity then
+  drifts smoothly, so the rest of the chalcedony looks faintly graded rather
+  than banded (found while building ADR 0038). The geode's criteria don't judge
+  the chalcedony's bands, but the form is described as banded chalcedony giving
+  way to quartz, so this is a limit of the H1 parameter set: one whose
+  oscillation survives falling silica is still to find (backlog).

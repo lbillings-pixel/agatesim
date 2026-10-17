@@ -181,7 +181,7 @@ toward the centre (and sometimes an open void) as silica supply falls.
 id = "botryoidal"
 name = "Botryoidal habit"
 rung = 6
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary", "seam"]
 depends_on = ["fortification"]
@@ -212,7 +212,7 @@ spherulitic growth from many nucleation sites. Bands follow the lobes.
 id = "eye"
 name = "Eye agate"
 rung = 7
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["botryoidal"]
@@ -244,7 +244,7 @@ later banding; on a surface ground parallel to the wall they appear as circles.
 id = "tube"
 name = "Tube agate"
 rung = 8
-status = { procedural = "verified", mechanistic = "pending" }
+status = { procedural = "verified", mechanistic = "verified" }
 subsystem = "formation"
 hosts = ["volcanic", "sedimentary"]
 depends_on = ["eye"]

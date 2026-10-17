@@ -19,6 +19,10 @@ This model chains the two verified mechanisms in the order given:
   deposits included (an assumption).
 - **floor**: hindered settling (H4, `agatesim.models.settling`) packs pulses of
   particles up from the lowest point of the open space left so far.
+- **spherulite**: H1 growth radiating from nucleation sites on the wall
+  (`growth_form = "spherulitic"`, ADR 0038), stopping when it has filled
+  `rim_share` of the cavity. Eye agate is a spherulite stage overgrown by an
+  H1 wall stage (ADR 0039).
 - **dendrite**: branched inclusions grow from the surface of the open space by
   multi-particle diffusion-limited aggregation (`agatesim.models.dendrites`,
   ADR 0009), the picture of Mn-oxide dendrites growing by attachment of
@@ -47,7 +51,7 @@ from agatesim.models.liesegang import Liesegang, run_liesegang
 from agatesim.models.settling import Settling, run_settling
 from agatesim.params import Nature, param
 
-Order = Literal["wall-floor-wall", "wall-floor", "floor-wall", "dendrite-wall"]
+Order = Literal["wall-floor-wall", "wall-floor", "floor-wall", "dendrite-wall", "spherulite-wall"]
 WallMechanism = Literal["front-feedback", "liesegang"]
 STAGE_SPAN = 0.999  # of a stage's time slot, so stages never share a deposition time
 
@@ -135,7 +139,7 @@ class Staged(BaseModel):
         units="× cavity",
         nature=Nature.EFFECTIVE,
         description=(
-            "Share of the cavity the first wall-lining stage fills before conditions "
+            "Share of the cavity the first wall-lining or spherulite stage fills before conditions "
             "change (the timing of that change, not a property of any band)."
         ),
     )
@@ -222,13 +226,20 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
                 region = None if np.array_equal(open_space, domain.mask) else open_space
                 fields = run_liesegang(params.liesegang, domain, stage_rng, region=region)
             else:
-                fields = run_front_feedback(params.wall, sub, stage_rng)
+                fields = run_front_feedback(params.wall, sub, stage_rng, first=sub is domain)
             grown = open_space & (fields.phase != Phase.VOID)
             if i == 0 and i < len(stages) - 1:
                 # The first wall stage stops when it has filled the rim's share.
                 depths = np.sort(sub.wall_distance[open_space])
                 limit = depths[min(int(params.rim_share * cavity_pixels), len(depths) - 1)]
                 grown &= sub.wall_distance <= limit
+        elif stage == "spherulite":
+            sub = _sub_domain(domain, open_space)
+            eyes = params.wall.model_copy(
+                update={"growth_form": "spherulitic", "supply_ends_at": params.rim_share}
+            )
+            fields = run_front_feedback(eyes, sub, stage_rng, first=sub is domain)
+            grown = open_space & (fields.phase != Phase.VOID)
         elif stage == "dendrite":
             fields = _dendrite_fields(params, domain, open_space, i == 0, stage_rng)
             grown = open_space & (fields.phase != Phase.VOID)

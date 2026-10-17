@@ -1,0 +1,22 @@
+# Verification preset for tube agate (mechanistic tier): four filaments cross the
+# slab, and front-feedback (H1) growth lines them as it lines the wall, so each
+# shows as a system of self-organised rings where the slab cuts it (ADR 0039).
+name = "tube-mechanistic"
+seed = 9
+archetype = "tube"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 40
+tubes = [
+  { x_mm = -6, y_mm = 5, radius_mm = 0.4 },
+  { x_mm = 7, y_mm = 8, radius_mm = 0.3 },
+  { x_mm = 2, y_mm = -6, radius_mm = 0.5 },
+  { x_mm = -9, y_mm = -7, radius_mm = 0.3 },
+]
+
+[model]
+kind = "mechanistic-front-feedback"

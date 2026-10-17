@@ -769,6 +769,35 @@ def grow_crystals(
     return grain
 
 
+def spherulite_distance(
+    domain: Domain,
+    first: bool,
+    rng: np.random.Generator,
+    *,
+    spacing_mm: float,
+    rate_sigma: float,
+) -> FloatArray:
+    """Growth distance (mm at full rate) at which spherulites, nucleated on the
+    surface of the domain's open space and radiating from their sites, first
+    reach each open pixel (a multiplicatively weighted Voronoi construction);
+    inf elsewhere. `first` says the open space is the whole, empty cavity, whose
+    exact wall the sites are placed on."""
+    grid = domain.grid
+    front = (
+        _initial_front(domain, SITE_SEPARATION * spacing_mm / 10)
+        if first
+        else _pixel_front(grid, domain.open_start)
+    )
+    sites = _place_sites(front, spacing_mm, domain.cavity.bounds(), rng)
+    rows, cols = np.nonzero(domain.open_start)
+    xx, yy = grid.coords()
+    pts = np.stack([xx[rows, cols], yy[rows, cols]], axis=1)
+    d, _ = _assign(_Spherulites(sites, rate_sigma), pts, len(sites.points), grid.dx)
+    out = np.full(grid.shape, np.inf)
+    out[rows, cols] = d
+    return out
+
+
 def lattice_index(lattice: Grid, points: FloatArray) -> NDArray[np.int64]:
     """Flat (row-major) index of the lattice cell nearest each world point."""
     idx = np.rint(lattice.to_index(points)).astype(np.int64)

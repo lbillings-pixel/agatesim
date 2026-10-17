@@ -98,3 +98,58 @@ def test_without_quartz_there_are_no_crystals() -> None:
     result = simulate(_config())
     assert not (result.fields.phase == Phase.QUARTZ).any()
     assert (result.fields.grain == -1).all()
+
+
+def test_growth_stops_where_the_supply_ends() -> None:
+    """supply_ends_at stops growth at that share of the cavity, leaving the
+    rest open, without changing the bands grown before (ADR 0038)."""
+    full = simulate(_config())
+    half = simulate(_config(supply_ends_at=0.5))
+    mask = half.domain.mask
+    open_ = half.fields.phase == Phase.VOID
+    assert abs(1 - open_[mask].mean() - 0.5) < 0.02
+    grown = mask & ~open_
+    assert (half.fields.band[grown] == full.fields.band[grown]).mean() > 0.99
+
+
+def test_spherulitic_bands_curve_about_their_sites() -> None:
+    """With spherulitic growth, every band boundary curves about a lobe; with
+    lining growth on the same cavity, the bands follow the wall instead."""
+    config = load_preset("botryoidal-mechanistic").with_resolution(RESOLUTION)
+    lobes = evaluate("botryoidal", simulate(config))
+    assert lobes.passed, lobes.to_json()
+    lining = config.model_copy(
+        update={"model": config.model.model_copy(update={"growth_form": "lining"})}
+    )
+    flat = evaluate("botryoidal", simulate(lining))
+    assert {"lobe-count", "bands-follow-lobes"} <= {r.id for r in flat.results if not r.passed}
+
+
+def test_3d_has_no_spherulitic_front_feedback_yet() -> None:
+    from agatesim.volume.config import SolidConfig, VolumeConfig
+
+    with pytest.raises(ValueError, match="spherulitic"):
+        VolumeConfig(
+            name="x",
+            seed=0,
+            archetype=None,
+            solid=SolidConfig(preset="vesicle-round", size_mm=20),
+            model=load_preset("botryoidal-mechanistic").model,
+        )
+
+
+def test_h1_lines_tube_filaments_like_the_wall() -> None:
+    """ADR 0039: lining grows from every solid surface, so the bands around a
+    filament are the first ones, grown from it; without the filaments the same
+    place holds late bands grown in from the wall."""
+    config = load_preset("tube-mechanistic").with_resolution(RESOLUTION)
+    result = simulate(config)
+    assert evaluate("tube", result).passed
+    f = result.fields
+    assert (f.phase[result.domain.inclusions] == Phase.INCLUSION).all()
+    x, y, r = (float(v) for v in result.domain.tubes[2])
+    xx, yy = result.grid.coords()
+    ring = (np.hypot(xx - x, yy - y) > r) & (np.hypot(xx - x, yy - y) < r + 2.0)
+    bare = config.model_copy(update={"cavity": config.cavity.model_copy(update={"tubes": []})})
+    plain = simulate(bare).fields
+    assert np.median(f.band[ring]) < 5 < 15 < np.median(plain.band[ring])

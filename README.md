@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier, six also at the mechanistic tier, and ten run in 3D, judged on cuts. Current work takes the remaining forms to the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier, nine also at the mechanistic tier, and ten run in 3D, judged on cuts. Current work takes the remaining forms to the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
 ![Verification presets of all twelve forms](docs/images/archetypes.png)
 
@@ -42,6 +42,16 @@ and which proposed formation mechanisms, can produce them.
   the dissolved silica down until quartz grows instead; its crystals coarsen
   inward by geometric selection, and an open centre is left when the silica
   runs out ([ADR 0037](docs/adr/0037-mechanistic-quartz-geode.md)).
+- **Lobes, eyes and tubes from one rhythm.** H1's self-organised bands,
+  grown radiating from nucleation sites on the wall, give botryoidal lobes;
+  a brief such stage overgrown by lining gives eyes; lining grown from
+  filaments gives tubes
+  ([ADR 0038](docs/adr/0038-mechanistic-botryoidal.md),
+  [ADR 0039](docs/adr/0039-mechanistic-eye-and-tube.md)).
+- **A closed cavity stops the rhythm.** As the dissolved silica falls, H1's
+  front stops oscillating after a few bands, so a geode's chalcedony holds
+  few bands in this model
+  ([ADR 0037](docs/adr/0037-mechanistic-quartz-geode.md)).
 - **A cut changes what you see.** On random cuts through 3D results, bands look
   1.07–1.18 times thicker than they are, and some forms show on only a minority
   of cuts ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)).
@@ -64,9 +74,9 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Waterline | ✅ verified | ✅ verified (H4) |
 | Combined fortification and waterline | ✅ verified | ✅ verified (H1 + H4 stages) |
 | Banded agate with quartz-crystal centre | ✅ verified | ✅ verified (H1 in a closed cavity, geometric selection) |
-| Botryoidal | ✅ verified | pending |
-| Eye | ✅ verified | pending |
-| Tube | ✅ verified | pending |
+| Botryoidal | ✅ verified | ✅ verified (H1 radiating from nucleation sites) |
+| Eye | ✅ verified | ✅ verified (H1 spherulite and lining stages) |
+| Tube | ✅ verified | ✅ verified (H1 lining from filaments) |
 | Moss / dendritic | ✅ verified | ✅ verified (aggregation, then H1 stages) |
 | Plume | ✅ verified | pending |
 | Shadow | ✅ verified | pending |

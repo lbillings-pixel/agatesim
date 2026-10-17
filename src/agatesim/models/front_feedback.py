@@ -36,6 +36,13 @@ silica threshold, macrocrystalline quartz grows instead of chalcedony
 surface and compete by geometric selection ([@vanderdrift1967]): the front
 history says when quartz reaches each point, the crystals say which crystal
 fills it (ADR 0037).
+
+With `growth_form = "spherulitic"` the front radiates from nucleation sites on
+the wall instead of advancing along the wall distance: growth often starts as
+spherulites at the wall ([@goetze2020] §4.1.2, [@cartwright2026] §5.1.1). The
+same front history then applies along each point's distance of growth from its
+spherulite, so bands are surfaces of equal growth time about the lobes
+(ADR 0038).
 """
 
 from __future__ import annotations
@@ -45,13 +52,13 @@ from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim import _scipy
 from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models.base import Domain
-from agatesim.models.growth import grow_crystals
+from agatesim.models.growth import grow_crystals, spherulite_distance
 from agatesim.params import Nature, param
 
 GEOMETRY_SAMPLES = 400  # depths at which the cavity's filled share is tabulated
@@ -180,6 +187,40 @@ class FrontFeedback(BaseModel):
             "(0 = all perpendicular to the surface)."
         ),
     )
+    supply_ends_at: float = param(
+        1.0,
+        gt=0,
+        le=1,
+        units="× cavity",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Share of the cavity filled when the supply of fluid ends and growth stops, "
+            "leaving the rest open (1 = never; the timing of a change in conditions, not "
+            "a property of any band)."
+        ),
+    )
+    growth_form: Literal["lining", "spherulitic"] = Field(
+        default="lining",
+        description=(
+            "How the front advances: as layers parallel to the wall, or radiating from "
+            "nucleation sites on it (spherulites)."
+        ),
+    )
+    spherulite_spacing_mm: float = param(
+        10.0,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Mean spacing of spherulite nucleation sites on the wall (spherulitic growth).",
+    )
+    spherulite_rate_variability: float = param(
+        0.3,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="Spread of growth rates between spherulites (log-normal sigma).",
+    )
     supply_noise: float = param(
         0.0,
         ge=0,
@@ -278,6 +319,12 @@ def history_from_distances(
     depths, share = _filled_share(distances)
     slope = np.gradient(share, depths)  # d(filled share) / d(depth)
     deepest = float(depths[-1])
+    # Growth stops where the supply ends, or where the cavity is full.
+    last = (
+        deepest
+        if params.supply_ends_at >= 1
+        else float(np.interp(params.supply_ends_at, share, depths))
+    )
     beta, ac, n = params.catalysis, params.catalysis_threshold, params.cooperativity
     eps, gamma, lam = params.silica_resupply, params.silica_demand, params.rejection
     k0, vt, delta = params.partition, params.trapping_velocity, params.boundary_layer_mm
@@ -310,7 +357,7 @@ def history_from_distances(
         ]
 
     def filled(_t: float, y: NDArray[np.float64]) -> float:
-        return deepest - float(y[2])
+        return last - float(y[2])
 
     def exhausted(_t: float, y: NDArray[np.float64]) -> float:
         return velocity(float(y[0]), float(y[1])) - 1e-4
@@ -327,7 +374,7 @@ def history_from_distances(
     )
     times = np.linspace(0.0, t_end, TRACE_SAMPLES)
     s, a, depth, inc = sample(times)
-    depth = np.maximum.accumulate(np.clip(depth, 0.0, deepest))
+    depth = np.maximum.accumulate(np.clip(depth, 0.0, last))
     v = np.array([velocity(float(si), float(ai)) for si, ai in zip(s, a, strict=True)])
     k = (k0 + v / vt) / (1.0 + v / vt)
     if params.closed and params.quartz_below > 0:
@@ -382,10 +429,27 @@ def band_edges(history: FrontHistory) -> FloatArray:
     return np.unique(history.depth_mm[cross + 1])
 
 
-def run_front_feedback(params: FrontFeedback, domain: Domain, rng: np.random.Generator) -> Fields:
+def run_front_feedback(
+    params: FrontFeedback, domain: Domain, rng: np.random.Generator, *, first: bool = True
+) -> Fields:
+    """`first` says the domain's open space is the whole, empty cavity (not the
+    space an earlier stage left)."""
+    open_ = domain.open_start  # the cavity minus any tube filaments
+    if params.growth_form == "spherulitic":
+        depth = spherulite_distance(
+            domain,
+            first,
+            rng.spawn(1)[0],
+            spacing_mm=params.spherulite_spacing_mm,
+            rate_sigma=params.spherulite_rate_variability,
+        )
+    else:
+        # Lining grows from every solid surface: the wall and tube filaments
+        # (ADR 0039).
+        depth = domain.solid_distance()
     # Without forcing nothing is random: the rhythm is self-organised, not drawn.
-    history = forced_history(params, domain, rng)
-    fields = history_fields(history, domain.wall_distance, domain.mask)
+    history = forced_history_from(params, depth[open_], rng)
+    fields = history_fields(history, depth, open_)
     quartz = fields.phase == Phase.QUARTZ
     if not quartz.any():
         return fields

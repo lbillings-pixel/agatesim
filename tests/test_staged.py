@@ -9,7 +9,7 @@ from agatesim.config import load_preset
 from agatesim.criteria import evaluate
 from agatesim.criteria.combined import BandClass, classify_bands
 from agatesim.fields import Phase
-from agatesim.models.staged import Order
+from agatesim.models.staged import Order, Staged
 from agatesim.simulate import SimulationResult, simulate
 
 RESOLUTION = 384
@@ -156,3 +156,22 @@ def test_3d_staging_has_no_dendrite_stage_yet() -> None:
             solid=SolidConfig(preset="vesicle-round", size_mm=20),
             model=load_preset("moss-mechanistic").model,
         )
+
+
+def test_eyes_from_a_spherulite_stage_overgrown_by_h1() -> None:
+    """Eye agate at the mechanistic tier (ADR 0039): widely spaced spherulites,
+    then lining, pass; densely nucleated spherulites make a crust instead, and
+    the eyes are no longer separate."""
+    config = load_preset("eye-mechanistic").with_resolution(RESOLUTION)
+    eyes = evaluate("eye", simulate(config))
+    assert eyes.passed, eyes.to_json()
+    model = config.model
+    assert isinstance(model, Staged)
+    dense = model.model_copy(
+        update={
+            "rim_share": 0.3,
+            "wall": model.wall.model_copy(update={"spherulite_spacing_mm": 5}),
+        }
+    )
+    crust = evaluate("eye", simulate(config.model_copy(update={"model": dense})))
+    assert "isolated-eyes" in {r.id for r in crust.results if not r.passed}

@@ -15,9 +15,9 @@ provisional until the archetype is implemented.
 | 3 | [Waterline (Uruguay-type) horizontal banding](#waterline) | verified | verified | formation | volcanic, sedimentary | — |
 | 4 | [Combined fortification and waterline banding](#fortification-waterline) | verified | verified | formation | volcanic, sedimentary | fortification, waterline |
 | 5 | [Banded agate with quartz-crystal centre](#quartz-geode) | verified | verified | formation | volcanic, sedimentary | fortification |
-| 6 | [Botryoidal habit](#botryoidal) | verified | pending | formation | volcanic, sedimentary, seam | fortification |
-| 7 | [Eye agate](#eye) | verified | pending | formation | volcanic, sedimentary | botryoidal |
-| 8 | [Tube agate](#tube) | verified | pending | formation | volcanic, sedimentary | eye |
+| 6 | [Botryoidal habit](#botryoidal) | verified | verified | formation | volcanic, sedimentary, seam | fortification |
+| 7 | [Eye agate](#eye) | verified | verified | formation | volcanic, sedimentary | botryoidal |
+| 8 | [Tube agate](#tube) | verified | verified | formation | volcanic, sedimentary | eye |
 | 9 | [Moss / dendritic agate](#moss) | verified | verified | formation | volcanic, sedimentary, seam | — |
 | 10 | [Plume agate](#plume) | verified | pending | formation | volcanic, sedimentary | moss |
 | 11 | [Shadow agate](#shadow) | verified | pending | optics | volcanic, sedimentary | fortification |

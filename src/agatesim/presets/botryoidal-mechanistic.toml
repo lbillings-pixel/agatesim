@@ -1,0 +1,21 @@
+# Verification preset for botryoidal agate (mechanistic tier): front-feedback
+# (H1) growth radiates from scattered nucleation sites on the wall, so its
+# self-organised bands curve about each lobe. The fluid supply ends when half
+# the cavity has filled, leaving the lobed surface open (ADR 0038).
+name = "botryoidal-mechanistic"
+seed = 7
+archetype = "botryoidal"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 50
+
+[model]
+kind = "mechanistic-front-feedback"
+growth_form = "spherulitic"
+spherulite_spacing_mm = 10
+spherulite_rate_variability = 0.3
+supply_ends_at = 0.5
