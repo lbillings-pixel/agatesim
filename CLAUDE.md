@@ -55,3 +55,5 @@
   photos (`agatesim.specimen.synthetic`).
 - Commits use the no-reply email already set in git config. Never commit secrets
   or personal email addresses. The repo will go public later.
+- Commit messages carry no `Claude-Session:` link (owner decision, 2026-10-18;
+  history rewritten to remove them). Keep the `Co-Authored-By:` line.
