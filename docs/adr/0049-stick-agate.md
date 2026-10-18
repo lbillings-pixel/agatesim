@@ -87,13 +87,35 @@ agate, from Ankara (Turkey) and Morocco.
   form itself; the ADR names it as such. Reading the Hatipoğlu and Dora
   paper would test the picture (and might settle the original mineral).
 
-## Amendment (2026-10-17): the presets moved to a volcanic vesicle
+## Amendment (2026-10-17): the paper read; the presets in a vein
 
-The Ankara agates sit in andesite, and the registry lists stick agate's host
-as volcanic, so both presets now use the 40 mm round vesicle rather than a
-sedimentary nodule. Results at 768, 384 and 256 px:
+With a PDF library and OCR (owner approved), [@hatipoglu2000] was read in
+full (OCR of the Turkish scan, imperfect in places). It confirms the form and
+changes two details:
 
-- `stick-mechanistic`: all 18 patches straight (1.0), fill 1.0, wrap 1.0.
-- `stick`: all 19 straight (1.0), fill 1.0; with the procedural bands'
-  wobble lowered from 0.1 to 0.03 mm, wrap 1.0, 0.92 and 0.87 (with 0.1 mm,
-  0.70, 0.64 and 0.68: the wobble is large next to the bands nearest a stick).
+- **The form, confirmed.** Agates in the Ankara andesites contain
+  "completely silicified" stick-like structures of rectangular-prism shape,
+  with fine striations along the prism, that keep the original crystal shape
+  (pseudomorphs). Seen first and only there, they were named stick agate
+  ("Çubuklu Agat"). Trace-element analyses of the sticks find Fe, Pb and Zn.
+- **The original mineral: probably a zeolite.** In a contact-zone fracture
+  the sequence from wall to centre is tremolite, chlorite, silicified
+  radiating pseudomorphs ("probably zeolite"), then agate banding. Not
+  anhydrite or aragonite, as dealers and a database note had it. The model's
+  crystals stay generic; zeolites grow as prisms and radiating sprays, which
+  the blade habit already gives.
+- **The setting: veins.** The stick-bearing agates fill crevice and fissure
+  veins in andesite (1 mm to 10 cm wide), with concentric bands and no
+  horizontal ones; the nodular, vesicle-filling agates are in the rhyolite.
+
+So both presets now use a crevice vein (`seam-straight`, 120 mm long, about
+12 mm wide), with sticks scaled to it (spacing 4.5 mm, length 5 mm,
+elongation 12, about 0.8 mm wide); the registry lists the form's hosts as
+volcanic and seam. Earlier the same day the presets had moved from a
+sedimentary nodule to a volcanic vesicle; the vein is closer to the paper.
+
+Results at 768 px: `stick` 45 straight sticks of 48 (0.94), fill 1.0, wrap
+0.83; `stick-mechanistic` 44 of 47 (0.94), fill 1.0, wrap 1.0. Both pass at
+384 px too. At 256 px a pixel is 0.47 mm across the 120 mm seam, too coarse
+to resolve bands beside sticks under a millimetre wide, so the wrap test
+fails there; CI verifies at 768 px.

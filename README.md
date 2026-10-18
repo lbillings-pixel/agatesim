@@ -74,8 +74,8 @@ and which proposed formation mechanisms, can produce them.
 - **Stick agate from crystals that came first.** Blade-shaped crystals grown
   from the wall by the quartz crystals' growth law, lined by H1's bands and
   replaced by quartz (or dissolved), give straight pseudomorphs wrapped by
-  the bands. The form's own sources are thin; the original mineral
-  (anhydrite or aragonite) is open
+  the bands, in a crevice vein as at Ankara. The one study of the form
+  points to a zeolite as the original mineral
   ([ADR 0049](docs/adr/0049-stick-agate.md)).
 - **Colour from pigments.** Bands can be coloured by hematite, goethite,
   celadonite, Mn oxide, a violet colour centre, blue scattering or white, as
@@ -114,7 +114,7 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Plume | ✅ verified | ✅ verified (chemical-garden tubes, then H1) |
 | Shadow | ✅ verified | ✅ verified (stated assumption, ADR 0048) |
 | Iris | ✅ verified | ✅ verified (H1 with a fast second rhythm) |
-| Stick | ✅ verified | ✅ verified (blade crystals, H1 lining, replacement; thin sourcing, ADR 0049) |
+| Stick | ✅ verified | ✅ verified (blade crystals, H1 lining, replacement; ADR 0049) |
 
 ## Approach
 

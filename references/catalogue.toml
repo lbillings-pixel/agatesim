@@ -617,9 +617,9 @@ venue = "Yerbilimleri (Bulletin for Earth Sciences, Hacettepe University) 22, 1�
 url = "https://yerbilimleri.hacettepe.edu.tr/toc22.shtml"
 access = "open"
 licence = "publisher copyright; cite only"
-checked = "citation"
-topics = ["stick", "barred-agate", "pseudomorph", "genesis"]
-notes = "Turkish full text; its abstract page is an image and the PDF could not be read as text (2026-10-17). What is known of the Ankara (Çubuk) work comes only from search-engine summaries of related listings by the same author, not read: andesite-hosted agates with bar-shaped inclusions of chalcedony and quartz pseudomorphs, first named 'barred agates'; the bars formed before the agate; some dissolved, leaving hollow tubes. Treat as unverified."
+checked = "full-text"
+topics = ["stick", "barred-agate", "pseudomorph", "genesis", "seam"]
+notes = "Read 2026-10-17 by OCR of the scanned Turkish full text (EasyOCR; text imperfect in places). Ankara (Çubuk) agates occur in Miocene andesites and rhyolites. In andesite they fill crevice and fissure veins (stratiform; veins 1 mm to 10 cm wide), with concentric bands and no horizontal (Uruguay) bands; in rhyolite they fill vesicles (nodular) with both. The andesite agates contain 'completely silicified stick-like structures' of rectangular-prism shape with fine striations parallel to the prism length, which keep the original crystal shape (pseudomorph crystals); seen first and only there, they were named 'Çubuklu Agat'. In a contact-zone fracture, from wall to centre: tremolite (actinolite), chlorite, silicified radiating pseudomorphs (probably zeolite), then agate zoning (citing Hatipoğlu and Dora 1998). Trace-element analyses of stick agates, the silicified pseudomorph sticks and residues on them: Fe, Pb and Zn abundant. Silica from hydrothermal alteration of the host rocks, circulating along the fracture zone; low temperature and pressure, colloidal silica, pH about 7."
 
 [[references]]
 id = "chowns1974"

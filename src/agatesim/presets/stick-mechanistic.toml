@@ -3,6 +3,8 @@
 # selection; front-feedback (H1) chalcedony then lines them as it lines the
 # wall; at the end they are replaced by quartz (ADR 0049). The stage order and
 # the replacement are scheduled changes of conditions.
+# In a crevice vein, as the Ankara stick agates are in andesite (Hatipoglu and
+# Dora 2000; ADR 0049 amendment).
 name = "stick-mechanistic"
 seed = 13
 archetype = "stick"
@@ -11,9 +13,14 @@ archetype = "stick"
 resolution = 768
 
 [cavity]
-preset = "vesicle-round"
-size_mm = 40
+preset = "seam-straight"
+size_mm = 120
 
 [model]
 kind = "mechanistic-staged"
 order = "stick-wall"
+
+[model.stick]
+spacing_mm = 4.5
+length_mm = 5
+elongation = 12

@@ -225,9 +225,10 @@ def test_hollow_stick_moulds_pass_as_stick_agate() -> None:
 
 def test_stick_crystals_ignore_the_grid() -> None:
     """Sites sit on the exact wall and grow in world coordinates, so a coarse
-    run's sticks lie where a fine run's do."""
-    coarse = simulate(_stick_config().with_resolution(256))
-    fine = simulate(_stick_config().with_resolution(512))
+    run's sticks lie where a fine run's do (384 against 768 px: the sticks are
+    under a millimetre wide in a 120 mm seam)."""
+    coarse = simulate(_stick_config().with_resolution(384))
+    fine = simulate(_stick_config().with_resolution(768))
     rows, cols = np.nonzero(coarse.fields.phase == Phase.QUARTZ)
     g = coarse.grid
     pts = np.stack([g.x0 + (cols + 0.5) * g.dx, g.y1 - (rows + 0.5) * g.dx], axis=1)

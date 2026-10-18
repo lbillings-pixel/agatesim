@@ -2,6 +2,8 @@
 # grow from the wall first; banded chalcedony then lines them as it lines the
 # wall; at the end the crystals are replaced by quartz, leaving straight
 # pseudomorphs wrapped by the bands (ADR 0049).
+# In a crevice vein, as the Ankara stick agates are in andesite (Hatipoglu and
+# Dora 2000; ADR 0049 amendment).
 name = "stick"
 seed = 13
 archetype = "stick"
@@ -10,17 +12,17 @@ archetype = "stick"
 resolution = 768
 
 [cavity]
-preset = "vesicle-round"
-size_mm = 40
+preset = "seam-straight"
+size_mm = 120
 
 [model]
 kind = "procedural-growth"
-growth_mm = 20
+growth_mm = 30
 band_period = 0.02
 wobble_mm = 0.03
-stick_spacing_mm = 6
-stick_length_mm = 7
-stick_elongation = 20
+stick_spacing_mm = 4.5
+stick_length_mm = 5
+stick_elongation = 12
 stick_axis_scatter_deg = 25
 
 [model.schedules.sticks]

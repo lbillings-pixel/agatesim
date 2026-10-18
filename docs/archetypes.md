@@ -22,7 +22,7 @@ provisional until the archetype is implemented.
 | 10 | [Plume agate](#plume) | verified | verified | formation | volcanic, sedimentary | moss |
 | 11 | [Shadow agate](#shadow) | verified | verified | optics | volcanic, sedimentary | fortification |
 | 12 | [Iris agate](#iris) | verified | verified | optics | volcanic, sedimentary | fortification |
-| 13 | [Stick agate](#stick) | verified | verified | formation | volcanic | tube |
+| 13 | [Stick agate](#stick) | verified | verified | formation | volcanic, seam | tube |
 
 ## Fortification (concentric) banding
 
@@ -187,10 +187,11 @@ diffraction grating. Needs wave-optics rendering.
 
 <a id="stick"></a>
 
-Straight, crystal-shaped rods inside the agate: blades of an earlier mineral
-(anhydrite or aragonite; not settled) that grew in the cavity before the agate,
-were lined by its bands, and were later replaced by quartz or dissolved, leaving
-pseudomorphs or hollow moulds ("barred agates" of Ankara-Çubuk).
+Straight, crystal-shaped rods inside the agate: prisms of an earlier mineral
+(probably a zeolite at Ankara-Çubuk) that grew in the cavity before the agate,
+were lined by its bands, and were later replaced by silica, keeping their
+shape (pseudomorphs), or dissolved, leaving moulds. At Ankara they fill
+crevice veins in andesite.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
