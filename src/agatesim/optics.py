@@ -292,8 +292,7 @@ def iris_light(result: SimulationResult, view_deg: float, azimuth_deg: float = 0
     along = math.sin(math.radians(view_deg)) * np.abs(nx * math.cos(az) + ny * math.sin(az))
     t = f.translucency.astype(np.float64)
     transmit = np.exp(
-        -(SCATTER_MILKY * (1 - t) + SCATTER_CLEAR * t + IRIS_PIGMENT * f.impurity)
-        * optics.thickness_mm
+        -(SCATTER_MILKY * (1 - t) + SCATTER_CLEAR * t + IRIS_PIGMENT * f.impurity) * optics.slice_mm
     )
     transmit = np.where(agate, transmit, 0.0)
     colour = np.zeros((*result.grid.shape, 3))

@@ -481,11 +481,12 @@ export const api = {
     resolution: number,
     view: "shadow" | "iris",
     angleDeg: number,
+    azimuthDeg: number,
     signal?: AbortSignal,
   ) =>
-    request<{ image: string; elapsed_ms: number }>("/api/optics", {
+    request<{ image: string; elapsed_ms: number; note: string }>("/api/optics", {
       method: "POST",
-      body: JSON.stringify({ config, resolution, view, angle_deg: angleDeg }),
+      body: JSON.stringify({ config, resolution, view, angle_deg: angleDeg, azimuth_deg: azimuthDeg }),
       signal,
     }),
   randomize: (config: RunConfig, strength: number, keepForm: boolean) =>

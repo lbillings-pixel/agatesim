@@ -144,6 +144,15 @@ class OpticsConfig(BaseModel):
     thickness_mm: float = Field(
         default=3.0, gt=0, le=30, description="Slab thickness, for light passing into it."
     )
+    slice_mm: float = Field(
+        default=0.3,
+        gt=0,
+        le=3,
+        description=(
+            "Thickness of the thin slice the backlit (iris) view looks through: iris "
+            "colours show only in thin slices."
+        ),
+    )
     band_tilt_deg: float = Field(
         default=30.0,
         ge=0,

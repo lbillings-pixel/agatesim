@@ -58,7 +58,13 @@ from agatesim.fields import Fields, Phase
 from agatesim.geometry import circle, densify
 from agatesim.grid import FloatArray, Grid
 from agatesim.models import dendrites
-from agatesim.models.base import Domain, make_bands, smooth_noise, tube_distance
+from agatesim.models.base import (
+    Domain,
+    make_bands,
+    micro_band_spacing,
+    smooth_noise,
+    tube_distance,
+)
 from agatesim.models.palette import Palette
 from agatesim.params import KEY, Nature, param
 from agatesim.schedules import Schedule
@@ -1135,12 +1141,13 @@ def growth_fields(
     translucency = np.where(quartz, 0.9, translucency)
 
     # Micro-banding: a share of the bands carry regular micro-bands (a grating).
-    regular = rng_micro.random(bands.count) < params.iris_fraction
-    sigma = params.micro_band_variability
-    spacing = params.micro_band_um * np.exp(
-        sigma * rng_micro.standard_normal(bands.count) - sigma**2 / 2
+    band_spacing = micro_band_spacing(
+        bands.count,
+        params.iris_fraction,
+        params.micro_band_um,
+        params.micro_band_variability,
+        rng_micro,
     )
-    band_spacing = np.where(regular, spacing, np.nan)
     micro = np.where(chalcedony, band_spacing[safe], np.nan)
     band_pigment = None if rng_palette is None else params.palette.draw(bands.count, rng_palette)
     pigment = (

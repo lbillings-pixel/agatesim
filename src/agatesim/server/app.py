@@ -30,6 +30,7 @@ from agatesim.archetypes import load_registry
 from agatesim.config import RunConfig, load_config, load_preset, preset_description, preset_names
 from agatesim.criteria import evaluate, implemented
 from agatesim.explore import randomize
+from agatesim.fields import Phase
 from agatesim.geometry import CAVITY_PRESETS, make_cavity
 from agatesim.models import (
     FrontFeedback,
@@ -245,13 +246,24 @@ def create_app(
         config = request.config.with_resolution(request.resolution)
         t0 = time.perf_counter()
         result = simulations.get(config)
+        note = ""
         if request.view == "shadow":
             rgb = optics.render_shadow(result, request.angle_deg, request.azimuth_deg)
         else:
             rgb = optics.render_iris(result, request.angle_deg, request.azimuth_deg)
+            f = result.fields
+            agate = f.phase == Phase.CHALCEDONY
+            if not np.isfinite(f.micro_spacing_um[agate]).any():
+                note = (
+                    "No regular micro-banding in this result, so nothing diffracts: iris "
+                    "colours need it. The procedural models carry it in a share of their "
+                    "bands (iris fraction); front feedback (H1) makes it with its fast rhythm "
+                    "(micro rhythm)."
+                )
         return {
             "image": _data_uri(_png(Image.fromarray(rgb))),
             "elapsed_ms": round((time.perf_counter() - t0) * 1000),
+            "note": note,
         }
 
     @app.post("/api/preview")

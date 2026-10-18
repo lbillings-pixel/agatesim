@@ -101,7 +101,11 @@ export function App() {
   const [screen, setScreen] = useState<"simulator" | "twoways" | "volume" | "specimens">("simulator");
   const [light, setLight] = useState<"reflected" | "shadow" | "iris">("reflected");
   const [lightAngle, setLightAngle] = useState(30);
+  // Direction of the tilt in the slab plane: diffraction from a band runs across it,
+  // so horizontal bands colour only when the view tilts up or down. 45° catches both.
+  const [lightDirection, setLightDirection] = useState(45);
   const [opticsImage, setOpticsImage] = useState<string | null>(null);
+  const [opticsNote, setOpticsNote] = useState("");
   // Undo and redo: earlier and later settings, recorded whenever the settings change.
   const [past, setPast] = useState<RunConfig[]>([]);
   const [future, setFuture] = useState<RunConfig[]>([]);
@@ -174,8 +178,11 @@ export function App() {
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       api
-        .optics(config, previewRes, light, lightAngle, controller.signal)
-        .then((o) => setOpticsImage(o.image))
+        .optics(config, previewRes, light, lightAngle, light === "iris" ? lightDirection : 0, controller.signal)
+        .then((o) => {
+          setOpticsImage(o.image);
+          setOpticsNote(o.note);
+        })
         .catch((e: unknown) => {
           if (!controller.signal.aborted) setPreviewError(e instanceof Error ? e.message : String(e));
         });
@@ -184,7 +191,7 @@ export function App() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [config, previewRes, light, lightAngle]);
+  }, [config, previewRes, light, lightAngle, lightDirection]);
 
   // Poll active jobs; refresh the run list when one finishes.
   useEffect(() => {
@@ -391,14 +398,6 @@ export function App() {
         <Glossary />
         {screen === "simulator" && (
         <>
-        <div className="history" role="group" aria-label="Settings history">
-          <button type="button" onClick={undo} disabled={past.length === 0} title="Undo the last settings change">
-            Undo
-          </button>
-          <button type="button" onClick={redo} disabled={future.length === 0} title="Redo">
-            Redo
-          </button>
-        </div>
         <div className="run-controls">
           <label className="inline">
             <span className="micro-label">Resolution</span>
@@ -441,6 +440,46 @@ export function App() {
       ) : (
       <div className="workspace">
         <aside className="controls" aria-label="Simulation settings">
+          <div className="randomize">
+            {preview && (
+              <img className="mobile-thumb" src={preview.image} alt="Current preview" aria-hidden="true" />
+            )}
+            <div className="history" role="group" aria-label="Settings history">
+              <button type="button" onClick={undo} disabled={past.length === 0} title="Undo the last settings change">
+                Undo
+              </button>
+              <button type="button" onClick={redo} disabled={future.length === 0} title="Redo">
+                Redo
+              </button>
+            </div>
+            {randomizable && (
+              <>
+              <button type="button" onClick={randomize} disabled={randomizing} title="Move the key settings toward random values within their bounded ranges">
+                {randomizing ? "Randomizing…" : "Randomize"}
+              </button>
+              <label className="inline small">
+                <span className="micro-label">How far</span>
+                <select id="random-strength" value={strength} onChange={(e) => setStrength(Number(e.target.value))}>
+                  {STRENGTHS.map(([v, label]) => (
+                    <option key={v} value={v}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="inline small" title={config.archetype ? "Keep only draws that still pass the form's tests (slower)" : "Choose a form first"}>
+                <input
+                  type="checkbox"
+                  checked={keepForm && !!config.archetype}
+                  disabled={!config.archetype}
+                  onChange={(e) => setKeepForm(e.target.checked)}
+                />
+                Stay within the form
+              </label>
+              </>
+            )}
+            {randomNote && <span className="muted small" aria-live="polite">{randomNote}</span>}
+          </div>
           <section>
             <h2>Form</h2>
             <p className="param-help">Start from a form's verified settings; the result is judged as that form.</p>
@@ -557,33 +596,6 @@ export function App() {
 
           <section>
             <h2>Parameters</h2>
-            {randomizable && (
-              <div className="randomize">
-                <button type="button" onClick={randomize} disabled={randomizing} title="Move the key settings toward random values within their bounded ranges">
-                  {randomizing ? "Randomizing…" : "Randomize"}
-                </button>
-                <label className="inline small">
-                  <span className="micro-label">How far</span>
-                  <select id="random-strength" value={strength} onChange={(e) => setStrength(Number(e.target.value))}>
-                    {STRENGTHS.map(([v, label]) => (
-                      <option key={v} value={v}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="inline small" title={config.archetype ? "Keep only draws that still pass the form's tests (slower)" : "Choose a form first"}>
-                  <input
-                    type="checkbox"
-                    checked={keepForm && !!config.archetype}
-                    disabled={!config.archetype}
-                    onChange={(e) => setKeepForm(e.target.checked)}
-                  />
-                  Stay within the form
-                </label>
-                {randomNote && <span className="muted small" aria-live="polite">{randomNote}</span>}
-              </div>
-            )}
             <ParamPanel
               fields={fields}
               values={config.model}
@@ -694,6 +706,21 @@ export function App() {
                     <output htmlFor="light-angle">{lightAngle}°</output>
                   </label>
                 )}
+                {light === "iris" && (
+                  <label className="inline small" title="Which way the view tilts off the light, in the slab plane">
+                    <span className="micro-label">Direction</span>
+                    <input
+                      id="light-direction"
+                      type="range"
+                      min={0}
+                      max={180}
+                      step={5}
+                      value={lightDirection}
+                      onChange={(e) => setLightDirection(Number(e.target.value))}
+                    />
+                    <output htmlFor="light-direction">{lightDirection}°</output>
+                  </label>
+                )}
               </div>
             )}
             {selected === null && (
@@ -710,6 +737,11 @@ export function App() {
             )}
           </div>
 
+          {selected === null && light === "iris" && opticsNote && (
+            <p className="muted small" role="status">
+              {opticsNote}
+            </p>
+          )}
           {selected === null && previewError && (
             <p className="error" role="alert">
               This configuration can’t run: {previewError}

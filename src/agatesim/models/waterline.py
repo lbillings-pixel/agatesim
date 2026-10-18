@@ -14,7 +14,13 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim.fields import Fields
-from agatesim.models.base import Domain, fields_from_bands, make_bands, smooth_noise
+from agatesim.models.base import (
+    Domain,
+    fields_from_bands,
+    make_bands,
+    micro_band_spacing,
+    smooth_noise,
+)
 from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
 
@@ -112,6 +118,35 @@ class ProceduralWaterline(BaseModel):
         nature=Nature.EFFECTIVE,
         description="Length scale of layer irregularity.",
     )
+    iris_fraction: float = param(
+        0.3,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.IMPOSED,
+        description=(
+            "Share of bands containing regular micro-banding, which diffracts light "
+            "(iris). Reported to occur in nearly every agate, often hidden by pigment."
+        ),
+    )
+    micro_band_um: float = param(
+        2.0,
+        gt=0,
+        le=100,
+        units="µm",
+        nature=Nature.IMPOSED,
+        description=(
+            "Mean spacing of the regular micro-bands (measured iris gratings: about 1.7–64 µm)."
+        ),
+    )
+    micro_band_variability: float = param(
+        0.25,
+        ge=0,
+        le=1.5,
+        units="",
+        nature=Nature.IMPOSED,
+        description="Band-to-band spread of micro-band spacing (log-normal sigma).",
+    )
     palette: Palette = Field(
         default_factory=Palette,
         description="Which pigments colour the bands, as relative shares (ADR 0050).",
@@ -123,7 +158,7 @@ class ProceduralWaterline(BaseModel):
 
 
 def run_waterline(params: ProceduralWaterline, domain: Domain, rng: np.random.Generator) -> Fields:
-    rng_bands, rng_noise, rng_palette = rng.spawn(3)
+    rng_bands, rng_noise, rng_palette, rng_micro = rng.spawn(4)
     g = params.gravity()
     xx, yy = domain.grid.coords()
     # Height above the cavity's lowest point, taken from the exact geometry so it
@@ -141,7 +176,17 @@ def run_waterline(params: ProceduralWaterline, domain: Domain, rng: np.random.Ge
         iron_variability=params.iron_variability,
         rng=rng_bands,
     )
-    bands = replace(bands, pigment=params.palette.draw(bands.count, rng_palette))
+    bands = replace(
+        bands,
+        pigment=params.palette.draw(bands.count, rng_palette),
+        micro_um=micro_band_spacing(
+            bands.count,
+            params.iris_fraction,
+            params.micro_band_um,
+            params.micro_band_variability,
+            rng_micro,
+        ),
+    )
     coord = height + params.wobble_mm * smooth_noise(domain, params.wobble_scale_mm, rng_noise)
     filled = domain.mask & (coord < level)
     t_dep = np.clip(coord / level, 0, 1)

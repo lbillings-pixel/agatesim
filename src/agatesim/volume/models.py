@@ -34,7 +34,7 @@ from agatesim.models import (
     Settling,
     Staged,
 )
-from agatesim.models.base import banded_fields, make_bands
+from agatesim.models.base import banded_fields, make_bands, micro_band_spacing
 from agatesim.models.settling import HEIGHT_CELLS, SettledColumn, settle_column
 from agatesim.volume.solids import BoolArray, Solid
 
@@ -181,7 +181,7 @@ def prepare(model: VolumeModel, setting: Setting, rng: np.random.Generator) -> E
 def _fortification(
     params: ProceduralFortification, setting: Setting, rng: np.random.Generator
 ) -> Evaluator:
-    rng_bands, rng_noise, rng_palette = rng.spawn(3)
+    rng_bands, rng_noise, rng_palette, rng_micro = rng.spawn(4)
     depth = params.fill_fraction * float(setting.reference.distance.max())
     bands = make_bands(
         total_mm=depth,
@@ -193,7 +193,17 @@ def _fortification(
         iron_variability=params.iron_variability,
         rng=rng_bands,
     )
-    bands = replace(bands, pigment=params.palette.draw(bands.count, rng_palette))
+    bands = replace(
+        bands,
+        pigment=params.palette.draw(bands.count, rng_palette),
+        micro_um=micro_band_spacing(
+            bands.count,
+            params.iris_fraction,
+            params.micro_band_um,
+            params.micro_band_variability,
+            rng_micro,
+        ),
+    )
     noise = SmoothNoise3(setting.solid, params.wobble_scale_mm, rng_noise)
 
     def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
@@ -209,7 +219,7 @@ def _fortification(
 def _waterline(
     params: ProceduralWaterline, setting: Setting, rng: np.random.Generator
 ) -> Evaluator:
-    rng_bands, rng_noise, rng_palette = rng.spawn(3)
+    rng_bands, rng_noise, rng_palette, rng_micro = rng.spawn(4)
     level = params.fill_height_fraction * setting.cavity_height
     bands = make_bands(
         total_mm=level,
@@ -221,7 +231,17 @@ def _waterline(
         iron_variability=params.iron_variability,
         rng=rng_bands,
     )
-    bands = replace(bands, pigment=params.palette.draw(bands.count, rng_palette))
+    bands = replace(
+        bands,
+        pigment=params.palette.draw(bands.count, rng_palette),
+        micro_um=micro_band_spacing(
+            bands.count,
+            params.iris_fraction,
+            params.micro_band_um,
+            params.micro_band_variability,
+            rng_micro,
+        ),
+    )
     noise = SmoothNoise3(setting.solid, params.wobble_scale_mm, rng_noise)
 
     def evaluate(points: FloatArray, inside: BoolArray) -> Fields:

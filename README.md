@@ -178,7 +178,8 @@ The app runs only on your machine (bound to localhost). It offers:
   or survey random cuts to see how often a cut shows the form.
 - **Optical views**: see the preview as a slab lit from one side (shadow agate:
   move the light and the shadows sweep) or as a backlit thin slice (iris agate:
-  change the view angle and the colours shift).
+  change the view angle and direction and the colours shift; any band with
+  regular micro-banding diffracts).
 - **Parameters** with units and a badge for what kind of quantity each one is:
   physical, effective or imposed. Key settings come first, the rest under
   "More settings"; the colour palette has ready-made choices.

@@ -71,6 +71,7 @@ class BandSequence:
     impurity: FloatArray  # (n,)
     translucency: FloatArray  # (n,)
     pigment: NDArray[np.uint8] | None = None  # (n,) Pigment values; None = iron (ADR 0050)
+    micro_um: FloatArray | None = None  # (n,) regular micro-band spacing (µm); NaN = none
 
     @property
     def count(self) -> int:
@@ -116,6 +117,18 @@ def make_bands(
     translucency = np.clip(0.5 + 0.5 * opacity_contrast * swing, 0.0, 1.0)
     impurity = np.clip(iron + iron_variability * rng_iron.uniform(-1, 1, n), 0.0, 1.0)
     return BandSequence(edges=edges, impurity=impurity, translucency=translucency)
+
+
+def micro_band_spacing(
+    count: int, fraction: float, mean_um: float, sigma: float, rng: np.random.Generator
+) -> FloatArray:
+    """Regular micro-band spacing (µm) for each of `count` bands: a share
+    `fraction` of them carry regular micro-bands, a diffraction grating (iris),
+    log-normally spread about `mean_um`; NaN for the rest. Band k's spacing
+    doesn't depend on how many bands there are."""
+    regular = rng.random(count) < fraction
+    spacing = mean_um * np.exp(sigma * rng.standard_normal(count) - sigma**2 / 2)
+    return np.where(regular, spacing, np.nan)
 
 
 def smooth_noise(domain: Domain, scale_mm: float, rng: np.random.Generator) -> FloatArray:
@@ -164,6 +177,11 @@ def banded_fields(
     pigment = (
         None if bands.pigment is None else np.where(filled, bands.pigment[safe], 0).astype(np.uint8)
     )
+    micro = (
+        np.full(mask.shape, np.nan)
+        if bands.micro_um is None
+        else np.where(filled, bands.micro_um[safe], np.nan)
+    )
     return Fields(
         phase=phase,
         band=band,
@@ -171,6 +189,6 @@ def banded_fields(
         translucency=np.where(filled, bands.translucency[safe], 0.0).astype(np.float32),
         t_dep=np.where(filled, t_dep, np.nan).astype(np.float32),
         grain=np.full(mask.shape, -1, dtype=np.int32),
-        micro_spacing_um=np.full(mask.shape, np.nan, dtype=np.float32),
+        micro_spacing_um=micro.astype(np.float32),
         pigment=pigment,
     )

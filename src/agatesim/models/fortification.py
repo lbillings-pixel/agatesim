@@ -15,7 +15,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim import _scipy
 from agatesim.fields import Fields
-from agatesim.models.base import Domain, fields_from_bands, make_bands, smooth_noise
+from agatesim.models.base import (
+    Domain,
+    fields_from_bands,
+    make_bands,
+    micro_band_spacing,
+    smooth_noise,
+)
 from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
 
@@ -109,6 +115,35 @@ class ProceduralFortification(BaseModel):
         nature=Nature.EFFECTIVE,
         description="Smooths band corners (0 = bands keep the wall's sharp corners).",
     )
+    iris_fraction: float = param(
+        0.3,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.IMPOSED,
+        description=(
+            "Share of bands containing regular micro-banding, which diffracts light "
+            "(iris). Reported to occur in nearly every agate, often hidden by pigment."
+        ),
+    )
+    micro_band_um: float = param(
+        2.0,
+        gt=0,
+        le=100,
+        units="µm",
+        nature=Nature.IMPOSED,
+        description=(
+            "Mean spacing of the regular micro-bands (measured iris gratings: about 1.7–64 µm)."
+        ),
+    )
+    micro_band_variability: float = param(
+        0.25,
+        ge=0,
+        le=1.5,
+        units="",
+        nature=Nature.IMPOSED,
+        description="Band-to-band spread of micro-band spacing (log-normal sigma).",
+    )
     palette: Palette = Field(
         default_factory=Palette,
         description="Which pigments colour the bands, as relative shares (ADR 0050).",
@@ -118,7 +153,7 @@ class ProceduralFortification(BaseModel):
 def run_fortification(
     params: ProceduralFortification, domain: Domain, rng: np.random.Generator
 ) -> Fields:
-    rng_bands, rng_noise, rng_palette = rng.spawn(3)
+    rng_bands, rng_noise, rng_palette, rng_micro = rng.spawn(4)
     d = domain.wall_distance
     depth = params.fill_fraction * float(d.max())
     bands = make_bands(
@@ -131,7 +166,17 @@ def run_fortification(
         iron_variability=params.iron_variability,
         rng=rng_bands,
     )
-    bands = replace(bands, pigment=params.palette.draw(bands.count, rng_palette))
+    bands = replace(
+        bands,
+        pigment=params.palette.draw(bands.count, rng_palette),
+        micro_um=micro_band_spacing(
+            bands.count,
+            params.iris_fraction,
+            params.micro_band_um,
+            params.micro_band_variability,
+            rng_micro,
+        ),
+    )
     coord = d
     if params.corner_rounding_mm > 0:
         coord = _scipy.gaussian(coord, sigma=params.corner_rounding_mm / domain.grid.dx)
