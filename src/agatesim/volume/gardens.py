@@ -26,7 +26,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from agatesim import _scipy
+from agatesim import _scipy, progress
 from agatesim.grid import FloatArray
 from agatesim.models.gardens import (
     BRANCH_TURN_DEG,
@@ -134,7 +134,7 @@ def grow_garden(
     occupied: dict[tuple[int, int, int], int] = {}
     seed_rngs = rng_grow.spawn(len(seeds))
     for own, (seed, normal, srng) in enumerate(zip(seeds, normals, seed_rngs, strict=True)):
-        budget = params.volume_mm2 / (2 * params.radius_mm * STEP_MM)  # steps, as in 2D
+        full = budget = params.volume_mm2 / (2 * params.radius_mm * STEP_MM)  # steps, as in 2D
         start = seed + normal * radius
         # A tip: position, direction, growth so far, and a lower bound on its
         # clearance (distances change by at most a step per step).
@@ -144,6 +144,7 @@ def grow_garden(
         for _ in range(MAX_STEPS):
             if not tips or budget <= 0:
                 break
+            progress.report((own + 1 - budget / full) / len(seeds))  # by the tube built
             still: list[tuple[FloatArray, FloatArray, float, float]] = []
             for p, direction, grown, clear in tips:
                 if budget <= 0:

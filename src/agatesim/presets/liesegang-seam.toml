@@ -1,6 +1,6 @@
 # Exploration preset for H2 (Liesegang precipitation) in a seam: mirror-image
 # bands meeting at the midline, passing the seam criteria (ADR 0015). GPU
-# recommended (AGATESIM_GPU=1; a few seconds).
+# recommended (used when found; a few seconds).
 name = "liesegang-seam"
 seed = 2
 archetype = "seam"

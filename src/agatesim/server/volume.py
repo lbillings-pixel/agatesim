@@ -16,10 +16,12 @@ from fastapi.responses import FileResponse, Response
 from PIL import Image
 from pydantic import BaseModel, Field
 
+from agatesim import progress
 from agatesim.criteria import evaluate, implemented
 from agatesim.render import render_slab
 from agatesim.runs import is_run_id
 from agatesim.server.jobs import Job, JobManager
+from agatesim.server.tasks import TaskHeader
 from agatesim.stages import stages_json
 from agatesim.stats import band_statistics
 from agatesim.volume.config import (
@@ -74,23 +76,42 @@ class VolumeRunRequest(BaseModel):
 
 class _Prepared:
     """Recently prepared 3D runs, keyed by what their formation depends on, so
-    moving the cut or changing resolution doesn't re-run the model."""
+    moving the cut or changing resolution doesn't re-run the model.
+
+    One preparation at a time. The cut and the 3D view of a new setup arrive
+    together and share one preparation, which reports to a shared tracker that
+    both requests follow; it stops if every request waiting for it is cancelled
+    (the app moved on), so an abandoned slow run doesn't hold up the next."""
 
     def __init__(self) -> None:
         self._items: dict[str, VolumeSimulation] = {}
-        self._lock = threading.Lock()
+        self._pending: dict[str, progress.Tracker] = {}
+        self._state = threading.Lock()
+        self._build = threading.Lock()
 
     def get(self, config: VolumeConfig) -> VolumeSimulation:
         key = config.model_digest()
-        # One lock for preparing, too: the cut and the 3D view of a new setup
-        # arrive together, and should share one preparation.
-        with self._lock:
+        with self._state:
             sim = self._items.get(key)
-            if sim is None:
-                sim = prepare_volume(config)
-                if len(self._items) >= CACHE:
-                    self._items.pop(next(iter(self._items)))
-                self._items[key] = sim
+            if sim is not None:
+                return replace(sim, config=config)
+            shared = self._pending.setdefault(key, progress.Tracker())
+        try:
+            with progress.follow(shared), self._build:
+                with self._state:
+                    sim = self._items.get(key)
+                if sim is None:
+                    with progress.using(shared):
+                        progress.report(0.0, "Preparing the formation")
+                        sim = prepare_volume(config)
+                    with self._state:
+                        if len(self._items) >= CACHE:
+                            self._items.pop(next(iter(self._items)))
+                        self._items[key] = sim
+        finally:
+            with self._state:
+                if not shared.followed():  # nobody else is waiting for it
+                    self._pending.pop(key, None)
         return replace(sim, config=config)
 
 
@@ -106,7 +127,7 @@ def _tdep_image(t_dep: np.ndarray) -> Image.Image:
     return Image.fromarray(coded)
 
 
-def volume_router(jobs: JobManager, runs_dir: Path) -> APIRouter:
+def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) -> APIRouter:
     router = APIRouter(prefix="/api/volume")
     prepared = _Prepared()
 
@@ -137,14 +158,18 @@ def volume_router(jobs: JobManager, runs_dir: Path) -> APIRouter:
         }
 
     @router.post("/cut")
-    def cut(request: CutRequest) -> dict[str, object]:
+    def cut(request: CutRequest, task: TaskHeader = None) -> dict[str, object]:
         t0 = time.perf_counter()
         config = request.config
         config = config.with_slice(
             config.slice.model_copy(update={"resolution": request.resolution})
         )
         try:
-            c = prepared.get(config).cut()
+            with tasks.track(task):
+                with progress.span(0.0, 0.9):
+                    sim = prepared.get(config)
+                progress.report(None, "Cutting")
+                c = sim.cut()
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
         result = c.result
@@ -174,13 +199,17 @@ def volume_router(jobs: JobManager, runs_dir: Path) -> APIRouter:
         }
 
     @router.post("/voxels")
-    def voxels(request: VoxelRequest) -> Response:
+    def voxels(request: VoxelRequest, task: TaskHeader = None) -> Response:
         """The volume's colours as raw RGBA bytes (x fastest, then y, then z),
         followed by one byte per voxel of deposition time (0..254 = time 0..1,
         255 = never), for the growth animation. The grid is described in the
         X-Volume header."""
         t0 = time.perf_counter()
-        volume = prepared.get(request.config).volume(request.resolution)
+        with tasks.track(task):
+            with progress.span(0.0, 0.9):
+                sim = prepared.get(request.config)
+            progress.report(None, "Colouring the voxels")
+            volume = sim.volume(request.resolution)
         grid = volume.grid
         header = {
             "nx": grid.nx,
@@ -200,9 +229,13 @@ def volume_router(jobs: JobManager, runs_dir: Path) -> APIRouter:
         )
 
     @router.post("/survey")
-    def run_survey(request: SurveyRequest) -> dict[str, object]:
+    def run_survey(request: SurveyRequest, task: TaskHeader = None) -> dict[str, object]:
         t0 = time.perf_counter()
-        found = survey(prepared.get(request.config), request.cuts, request.resolution, request.seed)
+        with tasks.track(task):
+            with progress.span(0.0, 0.3):
+                sim = prepared.get(request.config)
+            with progress.span(0.3, 1.0):
+                found = survey(sim, request.cuts, request.resolution, request.seed)
         return {**found.to_json(), "elapsed_ms": round((time.perf_counter() - t0) * 1000)}
 
     @router.post("/runs", status_code=202)

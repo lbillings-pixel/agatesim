@@ -12,9 +12,11 @@ import {
   type VolumeMeta,
   type VolumeRunSummary,
   type VoxelVolume,
+  progress as progressApi,
   volume as volumeApi,
 } from "../api";
 import { captioned, type FrameSource } from "../lib/animation";
+import { newTaskId } from "../lib/progress";
 import { type Control, defaultsFor, fieldsFor, withSetting } from "../lib/schema";
 import { ExportAnimation } from "./ExportAnimation";
 import { CriteriaPanel } from "./CriteriaPanel";
@@ -22,6 +24,7 @@ import { GrowthControls } from "./GrowthControls";
 import { ParamPanel, Slider } from "./ParamPanel";
 import { SlabView, slabSource, useSlabPixels } from "./SlabView";
 import { StatsPanel } from "./StatsPanel";
+import { TaskProgress } from "./TaskProgress";
 import { Volume3D, type Volume3DHandle } from "./Volume3D";
 import { VolumeRuns } from "./VolumeRuns";
 
@@ -85,6 +88,13 @@ function sideBySide(view: Volume3DHandle | null, cut: FrameSource): FrameSource 
   };
 }
 
+/** A request the server stopped because it was cancelled, in words. */
+const STOPPED = "Stopped. Change a setting, or press Rebuild, to build it again.";
+const message = (e: unknown) => {
+  const text = e instanceof Error ? e.message : String(e);
+  return text === "cancelled" ? STOPPED : text;
+};
+
 const pct = (r: number | null | undefined) => (r === null || r === undefined ? "n/a" : `${Math.round(r * 100)}%`);
 
 interface Props {
@@ -104,9 +114,14 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [voxels, setVoxels] = useState<VoxelVolume | null>(null);
   const [voxelsBusy, setVoxelsBusy] = useState(false);
+  // Progress ids of the requests in flight, and a counter that rebuilds on demand.
+  const [cutTask, setCutTask] = useState<string | null>(null);
+  const [voxelsTask, setVoxelsTask] = useState<string | null>(null);
+  const [rebuild, setRebuild] = useState(0);
   const [surveyCount, setSurveyCount] = useState(40);
   const [surveyed, setSurveyed] = useState<{ key: string; result: SurveyResult } | null>(null);
-  const [surveyBusy, setSurveyBusy] = useState(false);
+  const [surveyTask, setSurveyTask] = useState<string | null>(null);
+  const surveyAbort = useRef<AbortController | null>(null);
   const [runRes, setRunRes] = useState(192);
   const [job, setJob] = useState<Job | null>(null);
   const [growth, setGrowth] = useState(1);
@@ -131,25 +146,30 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
     if (!config) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
+      const task = newTaskId();
       setCutBusy(true);
+      setCutTask(task);
       volumeApi
-        .cut(config, cutRes, controller.signal)
+        .cut(config, cutRes, controller.signal, task)
         .then((c) => {
           setCut(c);
           setError(null);
         })
         .catch((e: unknown) => {
-          if (!controller.signal.aborted) setError(e instanceof Error ? e.message : String(e));
+          if (!controller.signal.aborted) setError(message(e));
         })
         .finally(() => {
-          if (!controller.signal.aborted) setCutBusy(false);
+          if (!controller.signal.aborted) {
+            setCutBusy(false);
+            setCutTask(null);
+          }
         });
     }, DEBOUNCE_MS);
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [config, cutRes]);
+  }, [config, cutRes, rebuild]);
 
   // The 3D view depends on the formation only, not on the cut.
   const formationKey = config
@@ -159,15 +179,20 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
     if (!config) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
+      const task = newTaskId();
       setVoxelsBusy(true);
+      setVoxelsTask(task);
       volumeApi
-        .voxels(config, viewRes, controller.signal)
+        .voxels(config, viewRes, controller.signal, task)
         .then(setVoxels)
         .catch((e: unknown) => {
-          if (!controller.signal.aborted) setError(e instanceof Error ? e.message : String(e));
+          if (!controller.signal.aborted) setError(message(e));
         })
         .finally(() => {
-          if (!controller.signal.aborted) setVoxelsBusy(false);
+          if (!controller.signal.aborted) {
+            setVoxelsBusy(false);
+            setVoxelsTask(null);
+          }
         });
     }, DEBOUNCE_MS);
     return () => {
@@ -175,7 +200,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- formationKey stands for config's formation
-  }, [formationKey, viewRes]);
+  }, [formationKey, viewRes, rebuild]);
 
   // A survey belongs to one formation and archetype: hide it once either changes.
   const surveyKey = `${formationKey}|${config?.archetype ?? ""}`;
@@ -220,15 +245,30 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   );
 
   const runSurvey = () => {
-    setSurveyBusy(true);
+    const task = newTaskId();
+    const controller = new AbortController();
+    surveyAbort.current = controller;
+    setSurveyTask(task);
     volumeApi
-      .survey(config, surveyCount, 384)
+      .survey(config, surveyCount, 384, controller.signal, task)
       .then(
         (result) => setSurveyed({ key: surveyKey, result }),
-        (e: unknown) => setError(e instanceof Error ? e.message : String(e)),
+        (e: unknown) => {
+          if (!controller.signal.aborted) setError(message(e));
+        },
       )
-      .finally(() => setSurveyBusy(false));
+      .finally(() => setSurveyTask((t) => (t === task ? null : t)));
   };
+  const cancelSurvey = () => {
+    surveyAbort.current?.abort();
+    setSurveyTask(null);
+  };
+  // Stop building the 3D view and its cut (the server stops too).
+  const cancelBuild = () => {
+    for (const task of [voxelsTask, cutTask]) if (task) void progressApi.cancel(task);
+  };
+  const surveyBusy = surveyTask !== null;
+  const jobRunning = job !== null && (job.status === "queued" || job.status === "running");
   const openRun = (id: string) => {
     setOpening(id);
     volumeApi
@@ -361,6 +401,17 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
           <span className="tab-status muted small" aria-live="polite">
             {cutBusy ? "Updating the cut…" : cut ? `cut ${cut.width}×${cut.height} px · ${cut.elapsed_ms} ms` : ""}
           </span>
+          {error === STOPPED && (
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setRebuild((n) => n + 1);
+              }}
+            >
+              Rebuild
+            </button>
+          )}
           <label className="inline small">
             <span className="micro-label">3D view</span>
             <select id="view-resolution" value={viewRes} onChange={(e) => setViewRes(Number(e.target.value))}>
@@ -390,7 +441,22 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
         )}
 
         <div className="volume-panes">
-          <Volume3D volume={voxels} plane={cut?.plane ?? null} busy={voxelsBusy} growth={growth} exportRef={view3d} />
+          <Volume3D
+            volume={voxels}
+            plane={cut?.plane ?? null}
+            busy={voxelsBusy}
+            progress={
+              <TaskProgress
+                task={voxelsTask}
+                title="Building the 3D view"
+                onCancel={cancelBuild}
+                onDark
+                fallback="Building the 3D view…"
+              />
+            }
+            growth={growth}
+            exportRef={view3d}
+          />
           {cut && (
             <SlabView
               identity="volume-cut"
@@ -448,6 +514,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
             </button>
             {!config.archetype && <span className="muted small">Choose an archetype to judge the cuts.</span>}
           </div>
+          <TaskProgress task={surveyTask} title="Surveying random cuts" onCancel={cancelSurvey} />
           {survey && <SurveyTable result={survey} />}
         </section>
 
@@ -461,7 +528,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
               </option>
             ))}
           </select>
-          <button type="button" className="primary" onClick={startRun}>
+          <button type="button" className="primary" onClick={startRun} disabled={jobRunning}>
             Save a full 3D run
           </button>
           {job && (
@@ -469,10 +536,17 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
               {job.status === "done"
                 ? `Saved to runs/${job.run_id ?? ""}`
                 : job.status === "failed"
-                  ? `Failed: ${job.error ?? ""}`
+                  ? job.error === "cancelled"
+                    ? "Cancelled"
+                    : `Failed: ${job.error ?? ""}`
                   : `${job.status}…`}
             </span>
           )}
+          <TaskProgress
+            task={jobRunning ? job.id : null}
+            title="Saving the full 3D run"
+            onCancel={() => job && void progressApi.cancel(job.id)}
+          />
         </section>
 
         <VolumeRuns runs={savedRuns} opening={opening} onOpen={openRun} />

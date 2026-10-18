@@ -20,6 +20,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 
+from agatesim import progress
 from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models import FrontFeedback, Staged
@@ -168,6 +169,25 @@ class _Stage:
     band_count: int = 0
 
 
+# For the app's progress bar: a rough share of the time each stage takes, and its name.
+STAGE_WEIGHT = {
+    "wall": 1.0,
+    "spherulite": 6.0,
+    "floor": 0.5,
+    "stick": 0.5,
+    "garden": 6.0,
+    "dendrite": 10.0,
+}
+STAGE_LABEL = {
+    "wall": "Banded wall (H1)",
+    "spherulite": "Spherulites",
+    "floor": "Settled floor (H4)",
+    "stick": "Sticks",
+    "garden": "Chemical-garden tubes",
+    "dendrite": "Branched inclusions",
+}
+
+
 def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -> Evaluator:
     """The staged model (agatesim.models.staged) in 3D."""
     order = params.order.split("-")
@@ -178,7 +198,10 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
     total = len(ref.points)
     solid = GrowthSolid(tubes=setting.tubes if len(setting.tubes) else None)
     stages: list[_Stage] = []
+    parts = progress.shares([STAGE_WEIGHT[stage] for stage in order])
     for i, (stage, stage_rng) in enumerate(zip(order, rngs, strict=True)):
+        lo, hi = parts[i]
+        progress.report(lo, STAGE_LABEL[stage])
         dist = solid.distance(ref.points, ref.distance, ref_h)
         open_ref = dist > 0
         if not open_ref.any():
@@ -226,7 +249,8 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
             stages.append(_Stage("stick", solid, None, aggregate=sticks))
             solid = replace(solid, aggregates=(*solid.aggregates, (sticks, 0.0)))
         elif stage == "garden":
-            garden = grow_garden(params.garden, setting, solid, stage_rng)
+            with progress.span(lo, hi):
+                garden = grow_garden(params.garden, setting, solid, stage_rng)
             stages.append(_Stage("garden", solid, None, aggregate=garden, tint=params.garden.tint))
             solid = replace(solid, aggregates=(*solid.aggregates, (garden, 0.0)))
         else:
@@ -239,7 +263,8 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
                 width_mm=d.width_mm,
                 gravity_deg=params.gravity_deg,
             )
-            aggregate = grow_aggregate(how, setting, solid, stage_rng)
+            with progress.span(lo, hi):
+                aggregate = grow_aggregate(how, setting, solid, stage_rng)
             stages.append(_Stage("dendrite", solid, None, aggregate=aggregate, tint=d.tint))
             solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0)))
 

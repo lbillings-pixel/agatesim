@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   api,
+  progress as progressApi,
   type Job,
   type Meta,
   type PreviewResult,
@@ -24,6 +25,8 @@ import { StatsPanel } from "./components/StatsPanel";
 import { TubePanel } from "./components/TubePanel";
 import { VolumeWorkbench } from "./components/VolumeWorkbench";
 import { type Control, defaultsFor, fieldsFor, withSetting } from "./lib/schema";
+import { newTaskId } from "./lib/progress";
+import { TaskProgress } from "./components/TaskProgress";
 import { formPresets, otherPresets, tierOf } from "./lib/forms";
 import { GrowthControls } from "./components/GrowthControls";
 import { RunDiff } from "./components/RunDiff";
@@ -86,6 +89,8 @@ export function App() {
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [previewBusy, setPreviewBusy] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewTask, setPreviewTask] = useState<string | null>(null);
+  const [previewAgain, setPreviewAgain] = useState(0);
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [runResolution, setRunResolution] = useState(768);
@@ -116,7 +121,9 @@ export function App() {
   const [strength, setStrength] = useState(0.4);
   const [keepForm, setKeepForm] = useState(false);
   const [extras, setExtras] = useState<RandomizeExtra[]>([]);
-  const [randomizing, setRandomizing] = useState(false);
+  const [randomTask, setRandomTask] = useState<string | null>(null);
+  const randomAbort = useRef<AbortController | null>(null);
+  const randomizing = randomTask !== null;
   const [randomNote, setRandomNote] = useState("");
 
   useEffect(() => {
@@ -154,9 +161,11 @@ export function App() {
     if (!config) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
+      const task = newTaskId();
       setPreviewBusy(true);
+      setPreviewTask(task);
       api
-        .preview(config, previewRes, controller.signal)
+        .preview(config, previewRes, controller.signal, task)
         .then((p) => {
           setPreview(p);
           setPreviewError(null);
@@ -165,14 +174,17 @@ export function App() {
           if (!controller.signal.aborted) setPreviewError(e instanceof Error ? e.message : String(e));
         })
         .finally(() => {
-          if (!controller.signal.aborted) setPreviewBusy(false);
+          if (!controller.signal.aborted) {
+            setPreviewBusy(false);
+            setPreviewTask(null);
+          }
         });
     }, DEBOUNCE_MS);
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [config, previewRes]);
+  }, [config, previewRes, previewAgain]);
 
   // Optical views of the live preview: directional light, at the chosen angle.
   useEffect(() => {
@@ -354,18 +366,28 @@ export function App() {
       : []),
   ];
   const randomize = () => {
-    setRandomizing(true);
+    const task = newTaskId();
+    const controller = new AbortController();
+    randomAbort.current = controller;
+    setRandomTask(task);
     setRandomNote("");
     const allowed = extras.filter((x) => extraOptions.some(([key]) => key === x));
-    api.randomize(config, strength, keepForm && !!config.archetype, allowed).then(
+    api.randomize(config, strength, keepForm && !!config.archetype, allowed, controller.signal, task).then(
       (r) => {
         if (r.accepted) setConfig(r.config);
         setRandomNote(
           r.note || (r.checked ? `checked: ${r.attempts} ${r.attempts === 1 ? "draw" : "draws"}` : ""),
         );
       },
-      (e: unknown) => setRandomNote(e instanceof Error ? e.message : String(e)),
-    ).finally(() => setRandomizing(false));
+      (e: unknown) => {
+        if (!controller.signal.aborted) setRandomNote(e instanceof Error ? e.message : String(e));
+      },
+    ).finally(() => setRandomTask((t) => (t === task ? null : t)));
+  };
+  const cancelRandomize = () => {
+    randomAbort.current?.abort();
+    setRandomTask(null);
+    setRandomNote("Randomize cancelled; settings unchanged");
   };
 
   // Choosing a form loads its preset for the current tier (or the other tier's, if
@@ -506,6 +528,7 @@ export function App() {
               </span>
               </>
             )}
+            <TaskProgress task={randomTask} title="Randomizing" onCancel={cancelRandomize} />
             {randomNote && <span className="muted small" aria-live="polite">{randomNote}</span>}
           </div>
           <section>
@@ -770,7 +793,23 @@ export function App() {
               {opticsNote}
             </p>
           )}
-          {selected === null && previewError && (
+          {selected === null && previewBusy && (
+            <TaskProgress
+              task={previewTask}
+              title="Simulating the preview"
+              onCancel={() => previewTask && void progressApi.cancel(previewTask)}
+            />
+          )}
+          {selected === null && previewError === "cancelled" && (
+            <p className="muted small" role="status">
+              Preview stopped. Change a setting, or{" "}
+              <button type="button" className="link-button" onClick={() => setPreviewAgain((n) => n + 1)}>
+                run it again
+              </button>
+              .
+            </p>
+          )}
+          {selected === null && previewError && previewError !== "cancelled" && (
             <p className="error" role="alert">
               This configuration can’t run: {previewError}
             </p>

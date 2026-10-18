@@ -22,7 +22,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
-from agatesim import _scipy
+from agatesim import _scipy, progress
 from agatesim.grid import FloatArray
 
 MAX_CELLS = 4_000_000
@@ -173,8 +173,11 @@ def grow(
     side_sticking = sticking * (1 - upward)
 
     sweeps = 0
+    attached = 0
     while len(pos) and sweeps < MAX_SWEEPS:
         sweeps += 1
+        if sweeps % 64 == 0:
+            progress.report(max(attached / max(budget, 1), sweeps / MAX_SWEEPS))
         target = pos + offsets[rng_walk.integers(0, 6, len(pos))]
         pos = np.where(flat[target], target, pos)
         touching = near[pos]
@@ -187,6 +190,7 @@ def grow(
             cells = cells[~agg[cells]]
             attach(cells)
             order.append(cells)
+            attached += len(cells)
             pos = pos[~stick]
             pos = pos[flat[pos]]
             top_up = min(n - len(pos), budget - released)

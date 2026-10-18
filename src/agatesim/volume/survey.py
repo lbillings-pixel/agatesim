@@ -14,6 +14,7 @@ from dataclasses import asdict, dataclass
 
 import numpy as np
 
+from agatesim import progress
 from agatesim.criteria import evaluate
 from agatesim.criteria.common import Ray, sample_ray, transition_distances
 from agatesim.grid import FloatArray
@@ -157,7 +158,8 @@ def survey(sim: VolumeSimulation, count: int, resolution: int, seed: int = 0) ->
     archetype = sim.config.archetype
     thickness = true_thickness(sim, rng_rays)
     cuts: list[SurveyCut] = []
-    for spec in random_cuts(sim.setting.solid, count, rng_cuts, resolution):
+    for k, spec in enumerate(random_cuts(sim.setting.solid, count, rng_cuts, resolution)):
+        progress.report(k / count, f"Random cut {k + 1} of {count}")
         tilt, azimuth = round(spec.tilt_deg, 3), round(spec.azimuth_deg, 3)
         offset = round(spec.offset_mm, 4)
         try:

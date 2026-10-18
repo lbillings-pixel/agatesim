@@ -33,7 +33,7 @@ from typing import Protocol
 import numpy as np
 from numpy.typing import NDArray
 
-from agatesim import _scipy
+from agatesim import _scipy, progress
 from agatesim.fields import Fields
 from agatesim.grid import FloatArray
 from agatesim.models.growth import (
@@ -370,26 +370,53 @@ def grow_aggregate(
     inside = setting.solid.contains(centres)
     free = np.zeros(lattice.size, dtype=bool)
     c = centres[inside]
-    d_wall = setting.solid.wall_distance(c)
+    d_wall = np.empty(len(c))
+    for k in range(0, len(c), PROGRESS_CHUNK):  # in parts, to report progress (same values)
+        d_wall[k : k + PROGRESS_CHUNK] = setting.solid.wall_distance(c[k : k + PROGRESS_CHUNK])
+        progress.report(0.45 * (k + PROGRESS_CHUNK) / len(c))
     free[np.flatnonzero(inside)] = solid.distance(c, d_wall, setting.height(c)) > 0
+    progress.report(0.55)  # the wall distance takes about half the time
     sites = place_sites(setting, solid, how.spacing_mm, rng_sites)
+    progress.report(0.75)
     points, normals = sites.points, sites.normals
     if how.start_height < 1 and len(points):
         height = setting.height(points)
         low = height <= float(height.min()) + how.start_height * float(np.ptp(height))
         points, normals = points[low], normals[low]
     seeds = lattice.index(points + normals * lattice.h)
-    return grow(
-        lattice,
-        free,
-        seeds,
-        density=how.density,
-        amount=how.amount,
-        sticking=how.sticking,
-        upward=how.upward,
-        gravity=setting.gravity,
-        rng=rng_grow,
-    )
+    with progress.span(0.75, 1.0):
+        return grow(
+            lattice,
+            free,
+            seeds,
+            density=how.density,
+            amount=how.amount,
+            sticking=how.sticking,
+            upward=how.upward,
+            gravity=setting.gravity,
+            rng=rng_grow,
+        )
+
+
+# For the app's progress bar: a rough share of the time each kind of stage takes,
+# and what it is called; and points per progress report in long distance passes.
+PROGRESS_CHUNK = 1 << 17
+STAGE_WEIGHT = {
+    Mode.LINING: 0.2,
+    Mode.SPHERULITIC: 4.0,
+    Mode.DENDRITE: 10.0,
+    Mode.STICK: 0.5,
+    Mode.CRYSTAL: 3.0,
+    Mode.SETTLING: 0.3,
+}
+STAGE_LABEL = {
+    Mode.LINING: "Wall lining",
+    Mode.SPHERULITIC: "Spherulites",
+    Mode.DENDRITE: "Branched inclusions",
+    Mode.STICK: "Sticks",
+    Mode.CRYSTAL: "Quartz crystals",
+    Mode.SETTLING: "Settled layers",
+}
 
 
 @dataclass(frozen=True, eq=False)
@@ -429,8 +456,11 @@ def prepare_growth(
     solid = GrowthSolid(tubes=tubes)
     stages: list[_Stage] = []
     crystals = 0
-    for a, b in mode_stages(mode):
+    spans = list(mode_stages(mode))
+    parts = progress.shares([STAGE_WEIGHT[Mode(int(mode[a]))] for a, _ in spans])
+    for (a, b), (lo, hi) in zip(spans, parts, strict=True):
         m = Mode(int(mode[a]))
+        progress.report(lo, STAGE_LABEL[m])
         cumulative = np.cumsum(step_mm[a:b])
         if cumulative[-1] <= 0:
             continue
@@ -441,13 +471,15 @@ def prepare_growth(
         elif m is Mode.SPHERULITIC:
             sites = place_sites(setting, solid, params.spherulite_spacing_mm, rng_sites.spawn(1)[0])
             metric = Spherulites(sites, params.spherulite_rate_variability)
-            settle_owners(metric, setting, solid)
+            with progress.span(0.5 * (lo + hi), hi):
+                settle_owners(metric, setting, solid)
             stages.append(_Stage(m, a, b, cumulative, solid, metric=metric))
             solid = solid.with_balls(sites.points, metric.rate * total)
         elif m is Mode.DENDRITE:
-            aggregate = grow_aggregate(
-                inclusion_growth(params), setting, solid, rng_dendrites.spawn(1)[0]
-            )
+            with progress.span(lo, hi):
+                aggregate = grow_aggregate(
+                    inclusion_growth(params), setting, solid, rng_dendrites.spawn(1)[0]
+                )
             stages.append(_Stage(m, a, b, cumulative, solid, aggregate=aggregate))
             solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0)))
         elif m is Mode.STICK:
@@ -468,7 +500,8 @@ def prepare_growth(
         elif m is Mode.CRYSTAL:
             sites = place_sites(setting, solid, params.quartz_grain_mm, rng_crystals.spawn(1)[0])
             metric = Crystals(sites, params.quartz_elongation, params.quartz_axis_scatter_deg)
-            settle_owners(metric, setting, solid)
+            with progress.span(0.5 * (lo + hi), hi):
+                settle_owners(metric, setting, solid)
             stages.append(
                 _Stage(m, a, b, cumulative, solid, metric=metric, crystal_offset=crystals)
             )

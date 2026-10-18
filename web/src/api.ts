@@ -1,6 +1,7 @@
 // Types and calls for the agatesim backend (src/agatesim/server/app.py).
 
 import type { Stage } from "./lib/animation";
+import type { Progress } from "./lib/progress";
 import type { Transect } from "./lib/transect";
 
 export type Nature = "physical" | "effective" | "imposed";
@@ -216,16 +217,38 @@ export interface RunDetail {
   stages?: Stage[];
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, task?: string): Promise<T> {
   const response = await fetch(path, {
     ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: { "Content-Type": "application/json", ...taskHeaders(task, init?.signal), ...init?.headers },
   });
   if (!response.ok) {
     throw new Error(await errorMessage(response));
   }
   return (await response.json()) as T;
 }
+
+/** The header that names a long request's task (its progress is read under that
+ * id), and a cancel sent to the server if the request is abandoned, so the work
+ * stops there too (src/agatesim/server/tasks.py). */
+function taskHeaders(task: string | undefined, signal: AbortSignal | null | undefined): Record<string, string> {
+  if (!task) return {};
+  signal?.addEventListener("abort", () => void progress.cancel(task), { once: true });
+  return { "X-Progress": task };
+}
+
+export const progress = {
+  /** How far a task has got; null if the server hasn't started it yet. */
+  get: async (task: string): Promise<Progress | null> => {
+    const response = await fetch(`/api/progress/${encodeURIComponent(task)}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(await errorMessage(response));
+    return (await response.json()) as Progress;
+  },
+  cancel: async (task: string): Promise<void> => {
+    await fetch(`/api/progress/${encodeURIComponent(task)}`, { method: "DELETE" }).catch(() => undefined);
+  },
+};
 
 /** Turn a FastAPI error (often a list of validation errors) into one readable line. */
 async function errorMessage(response: Response): Promise<string> {
@@ -429,16 +452,25 @@ export interface VolumeRunDetail {
 
 export const volume = {
   meta: () => request<VolumeMeta>("/api/volume/meta"),
-  cut: (config: VolumeConfig, resolution: number, signal?: AbortSignal) =>
-    request<CutResult>("/api/volume/cut", {
-      method: "POST",
-      body: JSON.stringify({ config, resolution }),
-      signal,
-    }),
-  voxels: async (config: VolumeConfig, resolution: number, signal?: AbortSignal): Promise<VoxelVolume> => {
+  cut: (config: VolumeConfig, resolution: number, signal?: AbortSignal, task?: string) =>
+    request<CutResult>(
+      "/api/volume/cut",
+      {
+        method: "POST",
+        body: JSON.stringify({ config, resolution }),
+        signal,
+      },
+      task,
+    ),
+  voxels: async (
+    config: VolumeConfig,
+    resolution: number,
+    signal?: AbortSignal,
+    task?: string,
+  ): Promise<VoxelVolume> => {
     const response = await fetch("/api/volume/voxels", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...taskHeaders(task, signal) },
       body: JSON.stringify({ config, resolution }),
       signal,
     });
@@ -454,12 +486,16 @@ export const volume = {
       tdep: header.tdep ? bytes.subarray(4 * n, 5 * n) : null,
     };
   },
-  survey: (config: VolumeConfig, cuts: number, resolution: number, signal?: AbortSignal) =>
-    request<SurveyResult>("/api/volume/survey", {
-      method: "POST",
-      body: JSON.stringify({ config, cuts, resolution }),
-      signal,
-    }),
+  survey: (config: VolumeConfig, cuts: number, resolution: number, signal?: AbortSignal, task?: string) =>
+    request<SurveyResult>(
+      "/api/volume/survey",
+      {
+        method: "POST",
+        body: JSON.stringify({ config, cuts, resolution }),
+        signal,
+      },
+      task,
+    ),
   startRun: (config: VolumeConfig, surveyCuts: number) =>
     request<Job>("/api/volume/runs", {
       method: "POST",
@@ -473,12 +509,16 @@ export const volume = {
 export const api = {
   meta: () => request<Meta>("/api/meta"),
   glossary: () => request<{ markdown: string }>("/api/glossary"),
-  preview: (config: RunConfig, resolution: number, signal?: AbortSignal) =>
-    request<PreviewResult>("/api/preview", {
-      method: "POST",
-      body: JSON.stringify({ config, resolution }),
-      signal,
-    }),
+  preview: (config: RunConfig, resolution: number, signal?: AbortSignal, task?: string) =>
+    request<PreviewResult>(
+      "/api/preview",
+      {
+        method: "POST",
+        body: JSON.stringify({ config, resolution }),
+        signal,
+      },
+      task,
+    ),
   optics: (
     config: RunConfig,
     resolution: number,
@@ -486,17 +526,34 @@ export const api = {
     angleDeg: number,
     azimuthDeg: number,
     signal?: AbortSignal,
+    task?: string,
   ) =>
-    request<{ image: string; elapsed_ms: number; note: string }>("/api/optics", {
-      method: "POST",
-      body: JSON.stringify({ config, resolution, view, angle_deg: angleDeg, azimuth_deg: azimuthDeg }),
-      signal,
-    }),
-  randomize: (config: RunConfig, strength: number, keepForm: boolean, extras: RandomizeExtra[]) =>
-    request<RandomizeResult>("/api/randomize", {
-      method: "POST",
-      body: JSON.stringify({ config, strength, keep_form: keepForm, extras }),
-    }),
+    request<{ image: string; elapsed_ms: number; note: string }>(
+      "/api/optics",
+      {
+        method: "POST",
+        body: JSON.stringify({ config, resolution, view, angle_deg: angleDeg, azimuth_deg: azimuthDeg }),
+        signal,
+      },
+      task,
+    ),
+  randomize: (
+    config: RunConfig,
+    strength: number,
+    keepForm: boolean,
+    extras: RandomizeExtra[],
+    signal?: AbortSignal,
+    task?: string,
+  ) =>
+    request<RandomizeResult>(
+      "/api/randomize",
+      {
+        method: "POST",
+        body: JSON.stringify({ config, strength, keep_form: keepForm, extras }),
+        signal,
+      },
+      task,
+    ),
   startRun: (config: RunConfig) =>
     request<Job>("/api/runs", { method: "POST", body: JSON.stringify(config) }),
   job: (id: string) => request<Job>(`/api/jobs/${id}`),

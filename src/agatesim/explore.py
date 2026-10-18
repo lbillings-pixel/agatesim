@@ -21,6 +21,7 @@ from typing import Any, Literal, cast, get_args
 import numpy as np
 from pydantic import BaseModel
 
+from agatesim import progress
 from agatesim.config import RunConfig
 from agatesim.criteria import evaluate
 from agatesim.fields import Phase
@@ -213,6 +214,7 @@ def randomize(
     last = config
     reason = ""
     for attempt in range(1, MAX_ATTEMPTS + 1):
+        progress.report(None, f"Checking draw {attempt} (of up to {MAX_ATTEMPTS})")
         last = vary(config, strength, rng, extras)
         problem = _vet(last, keep_form)
         if problem is None:

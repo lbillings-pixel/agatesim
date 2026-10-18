@@ -1,5 +1,6 @@
 import type { Job, RunSummary } from "../api";
-import { api } from "../api";
+import { api, progress } from "../api";
+import { TaskProgress } from "./TaskProgress";
 
 function when(iso: string): string {
   const d = new Date(iso);
@@ -22,13 +23,20 @@ export function RunBrowser({ runs, jobs, selected, pinned, onSelect }: Props) {
       <h2 id="runs-title">Runs</h2>
       {active.map((j) => (
         <div key={j.id} className="job">
-          <span className="spinner" aria-hidden="true" />
-          {j.name} · {j.status === "queued" ? "waiting" : "running"}
+          <span>
+            <span className="spinner" aria-hidden="true" />
+            {j.name} · {j.status === "queued" ? "waiting" : "running"}
+          </span>
+          <TaskProgress
+            task={j.status === "running" ? j.id : null}
+            title="Full run"
+            onCancel={() => void progress.cancel(j.id)}
+          />
         </div>
       ))}
       {failed.map((j) => (
-        <div key={j.id} className="job failed" role="alert">
-          {j.name} failed: {j.error}
+        <div key={j.id} className={`job${j.error === "cancelled" ? "" : " failed"}`} role="alert">
+          {j.error === "cancelled" ? `${j.name} cancelled` : `${j.name} failed: ${j.error ?? ""}`}
         </div>
       ))}
       {runs.length === 0 && active.length === 0 && (

@@ -1,6 +1,6 @@
 # H2 (Liesegang precipitation) in 3D, in a flat-faced nodule: the 3D test of
 # the corner question, against H1's sharp corners (ADR 0027). Needs the GPU
-# backend (AGATESIM_GPU=1).
+# backend (used when found; about 100 s on an RTX 4070).
 name = "liesegang-nodule-3d"
 seed = 1
 archetype = "fortification"

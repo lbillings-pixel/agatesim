@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
+from agatesim import progress
 from agatesim.config import RunConfig
 from agatesim.runs import write_run
 from agatesim.simulate import simulate
@@ -36,8 +37,11 @@ class Job:
 
 
 class JobManager:
-    def __init__(self, runs_dir: Path) -> None:
+    """Runs one job at a time; each reports progress under its job id."""
+
+    def __init__(self, runs_dir: Path, tasks: progress.Registry | None = None) -> None:
         self._runs_dir = runs_dir
+        self._tasks = tasks or progress.Registry()
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="agatesim-run")
         self._jobs: dict[str, Job] = {}
         self._lock = threading.Lock()
@@ -80,20 +84,25 @@ class JobManager:
         try:
             started = datetime.now().astimezone()
             t0 = time.perf_counter()
-            sim = prepare_volume(config)
-            found = (
-                survey(sim, survey_cuts, SURVEY_RESOLUTION, seed=config.seed)
-                if survey_cuts
-                else None
-            )
-            path, _ = write_volume_run(
-                sim,
-                self._runs_dir,
-                started=started,
-                elapsed_s=time.perf_counter() - t0,
-                survey=found,
-            )
+            with self._tasks.track(job.id):
+                with progress.span(0.0, 0.5 if survey_cuts else 0.8, "Preparing the formation"):
+                    sim = prepare_volume(config)
+                found = None
+                if survey_cuts:
+                    with progress.span(0.5, 0.85):
+                        found = survey(sim, survey_cuts, SURVEY_RESOLUTION, seed=config.seed)
+                progress.report(None, "Writing the run")
+                path, _ = write_volume_run(
+                    sim,
+                    self._runs_dir,
+                    started=started,
+                    elapsed_s=time.perf_counter() - t0,
+                    survey=found,
+                )
+            self._tasks.finish(job.id)
             self._set(replace(job, status="done", run_id=path.name))
+        except progress.CancelledError:
+            self._set(replace(job, status="failed", error="cancelled"))
         except Exception as exc:  # report any failure to the UI rather than losing it
             self._set(replace(job, status="failed", error=f"{type(exc).__name__}: {exc}"))
 
@@ -102,11 +111,17 @@ class JobManager:
         try:
             started = datetime.now().astimezone()
             t0 = time.perf_counter()
-            result = simulate(config)
-            record = write_run(
-                result, self._runs_dir, started=started, elapsed_s=time.perf_counter() - t0
-            )
+            with self._tasks.track(job.id):
+                with progress.span(0.0, 0.8, "Simulating"):
+                    result = simulate(config)
+                progress.report(None, "Judging and writing the run")
+                record = write_run(
+                    result, self._runs_dir, started=started, elapsed_s=time.perf_counter() - t0
+                )
+            self._tasks.finish(job.id)
             self._set(replace(job, status="done", run_id=record.path.name))
+        except progress.CancelledError:
+            self._set(replace(job, status="failed", error="cancelled"))
         except Exception as exc:  # report any failure to the UI rather than losing it
             self._set(replace(job, status="failed", error=f"{type(exc).__name__}: {exc}"))
 

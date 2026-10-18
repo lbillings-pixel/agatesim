@@ -21,8 +21,9 @@ Liesegang laws: band positions in a geometric series, widths growing with
 position.
 
 The lattice has a fixed spacing in millimetres (`lattice_mm`), independent of
-the output grid, so previews match full runs. On a GPU (CuPy, with
-AGATESIM_GPU=1) the same code runs much faster; results agree to rounding.
+the output grid, so previews match full runs. On a GPU (CuPy,
+used whenever one is found; AGATESIM_GPU=0 declines it) the same code runs much
+faster; results agree to rounding.
 """
 
 from __future__ import annotations
@@ -211,6 +212,7 @@ def run_liesegang(
         growth=params.growth_rate,
         deepest=(int(deepest[0]), int(deepest[1])),
         max_steps=params.max_steps,
+        depth=depth,
     )
     # Cells the front never reached: last, in their own band.
     reached = np.isfinite(arrival)

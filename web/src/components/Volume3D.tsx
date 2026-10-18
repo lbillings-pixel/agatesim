@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import type { CutPlane, VoxelVolume } from "../api";
 import { camera, clampPitch, dot, facing, type Orbit, type Vec3 } from "../lib/orbit";
@@ -149,6 +149,8 @@ export interface Volume3DProps {
   volume: VoxelVolume | null;
   plane: CutPlane | null;
   busy: boolean;
+  /** Shown over the view while it builds (a progress bar), in place of a plain note. */
+  progress?: ReactNode;
   /** Share of formation time shown (1 = all), for the growth animation. */
   growth: number;
   /** Filled with a handle that renders frames for exporting the animation. */
@@ -161,7 +163,7 @@ export interface Volume3DHandle {
 }
 
 /** A rotatable view of the volume: drag to turn, scroll to zoom. */
-export function Volume3D({ volume, plane, busy, growth, exportRef }: Volume3DProps) {
+export function Volume3D({ volume, plane, busy, progress, growth, exportRef }: Volume3DProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const glRef = useRef<Gl | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -320,7 +322,11 @@ export function Volume3D({ volume, plane, busy, growth, exportRef }: Volume3DPro
           onPointerMove={onPointerMove}
           onPointerUp={() => (drag.current = null)}
         />
-        {(busy || !volume) && !error && <div className="volume-note muted small">Building the 3D view…</div>}
+        {(busy || !volume) && !error && (
+          <div className={`volume-note small${progress ? " with-progress" : " muted"}`}>
+            {progress ?? "Building the 3D view…"}
+          </div>
+        )}
         {error && <div className="volume-note error small">{error}</div>}
       </div>
       <figcaption className="volume-caption small">

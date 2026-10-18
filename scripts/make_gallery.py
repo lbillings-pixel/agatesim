@@ -148,7 +148,7 @@ def main() -> None:
         cavities.append(_tile(config, f"{name} ({preset.host.value})"))
     _sheet(cavities, columns=3).save(OUT / "cavities.png", optimize=True)
 
-    # Competing mechanisms on the same cavities (H2 needs AGATESIM_GPU=1 to be quick).
+    # Competing mechanisms on the same cavities (H2 needs a GPU to be quick).
     mechanisms = [
         _tile(load_preset("fortification-mechanistic"), "H1 front feedback: nodule"),
         _tile(load_preset("liesegang-nodule"), "H2 Liesegang: nodule"),

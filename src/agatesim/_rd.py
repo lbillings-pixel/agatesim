@@ -9,16 +9,21 @@ information.
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 
 import numpy as np
 
+from agatesim import progress
+
+PROGRESS_EVERY_S = 0.25  # how often a solver measures its front for the app
+
 
 def array_module(prefer_gpu: bool | None = None) -> Any:
-    """CuPy if requested (argument, or AGATESIM_GPU=1) and a GPU is usable; else
-    NumPy. Results agree to floating-point rounding."""
+    """CuPy if a GPU is usable, unless declined (argument, or AGATESIM_GPU=0);
+    else NumPy. Results agree to floating-point rounding."""
     if prefer_gpu is None:
-        prefer_gpu = os.environ.get("AGATESIM_GPU", "") == "1"
+        prefer_gpu = os.environ.get("AGATESIM_GPU", "") != "0"
     if prefer_gpu:
         try:
             import cupy  # type: ignore[import-not-found]
@@ -31,7 +36,7 @@ def array_module(prefer_gpu: bool | None = None) -> Any:
 
 
 def gpu_in_use() -> bool:
-    """Whether reaction–diffusion runs on the GPU here (AGATESIM_GPU=1 and a usable GPU)."""
+    """Whether reaction–diffusion runs on the GPU here (a usable GPU, not declined)."""
     return array_module() is not np
 
 
@@ -81,6 +86,38 @@ class Lattice:
         return out & (self.inside > 0)
 
 
+class FrontProgress:
+    """Reports how far a run has got, for the app: the depth the incoming metal
+    has reached (a > 5% of a0, the stopping test) over the deepest cell's depth,
+    squared, since a diffusing front's depth grows as the square root of time.
+    Also checks for cancellation. Measures only when someone is following, at
+    most every PROGRESS_EVERY_S."""
+
+    def __init__(self, xp: Any, depth: np.ndarray | None, max_steps: int) -> None:
+        """`depth`: each cell's distance from the wall, on the padded lattice in
+        the solver's layout (negative outside); None turns reporting off."""
+        self.on = depth is not None and progress.active()
+        self.max_steps = max_steps
+        self.last = 0.0
+        if self.on:
+            assert depth is not None
+            self.xp = xp
+            self.depth = xp.asarray(np.where(np.isfinite(depth), depth, -1.0))
+            self.deepest = max(float(np.max(depth)), 1e-9)
+
+    def __call__(self, a: Any, threshold: float, step: int) -> None:
+        if not self.on:
+            return
+        now = time.monotonic()
+        if now - self.last < PROGRESS_EVERY_S:
+            return
+        self.last = now
+        xp = self.xp
+        front = float(xp.max(xp.where(a.reshape(self.depth.shape) > threshold, self.depth, 0.0)))
+        fraction = max((front / self.deepest) ** 2, step / self.max_steps)
+        progress.report(fraction, "Liesegang precipitation (H2)")
+
+
 def liesegang(
     xp: Any,
     inside: np.ndarray,
@@ -96,6 +133,7 @@ def liesegang(
     deepest: tuple[int, int],
     max_steps: int,
     record_every: int = 50,
+    depth: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, int]:
     """Pre-nucleation Liesegang precipitation in a cavity (lattice units, D_a = 1).
 
@@ -107,15 +145,19 @@ def liesegang(
     A reaches the deepest cell (5% of a0) or after max_steps.
 
     Returns the precipitate, the time the reaction front (a > 0.5) reached each
-    cell (NaN if never), and the number of steps.
+    cell (NaN if never), and the number of steps. With `depth` (each cell's
+    distance from the wall), reports progress (FrontProgress).
     """
     if xp is not np and hasattr(xp, "RawKernel"):
         return _liesegang_fused(
             xp, inside, a0=a0, d_b=d_b, d_c=d_c, rate=rate, nucleation=nucleation,
             spreading=spreading, solubility=solubility, growth=growth, deepest=deepest,
-            max_steps=max_steps, record_every=record_every,
+            max_steps=max_steps, record_every=record_every, depth=depth,
         )  # fmt: skip
     lat = Lattice(xp, inside)
+    track = FrontProgress(
+        xp, None if depth is None else np.pad(depth, 1, constant_values=-1.0), max_steps
+    )
     dt = 0.2 / max(1.0, d_b, d_c)
     a = lat.zeros()
     b = lat.inside.copy()
@@ -137,6 +179,7 @@ def liesegang(
             first = xp.where(xp.isnan(first) & (a > 0.5), step * dt, first)
             if float(a[r0, c0]) > 0.05 * a0:
                 break
+            track(a, 0.05 * a0, step)
     first = xp.where(xp.isnan(first) & (a > 0.5), step * dt, first)
     return to_numpy(p)[1:-1, 1:-1], to_numpy(first)[1:-1, 1:-1], step
 
@@ -173,6 +216,7 @@ def liesegang3(
     max_steps: int,
     record_every: int = 50,
     isotropic: bool = True,
+    depth: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, int]:
     """The kinetics of `liesegang` on a 3D lattice. One fused CUDA kernel per
     step on a GPU; vectorised NumPy otherwise (slow; tests use small lattices).
@@ -182,7 +226,8 @@ def liesegang3(
     weighted 1/3, edge neighbours 1/6), whose error is the same in every
     direction to fourth order, and lets precipitate spread to face and edge
     neighbours. With False, the six face neighbours of ADR 0027, whose
-    error and spreading favour the lattice axes, so the spots line up with them."""
+    error and spreading favour the lattice axes, so the spots line up with them.
+    With `depth` (each cell's distance from the wall), reports progress."""
     m = np.pad(inside, 1)
     shape = m.shape
     n = m.size
@@ -192,6 +237,8 @@ def liesegang3(
     dt = 0.15 / max(1.0, d_b, d_c)  # stable for both stencils (19-point: dt < 0.375)
     vectors, weights = stencil3(isotropic)
     offsets = tuple(dz * plane + dy * width + dx for dz, dy, dx in vectors)
+    padded = None if depth is None else np.pad(depth, 1, constant_values=-1.0).ravel()
+    track = FrontProgress(xp, padded, max_steps)
     if xp is not np and hasattr(xp, "RawKernel"):
         kernel = xp.RawKernel(_STEP3_SOURCE, "liesegang_step3")
         off_d = xp.asarray(np.array(offsets, dtype=np.int64))
@@ -216,6 +263,7 @@ def liesegang3(
                 first = xp.where(xp.isnan(first) & (fields[0] > 0.5), step * dt, first)
                 if float(fields[0][deep]) > 0.05 * a0:
                     break
+                track(fields[0], 0.05 * a0, step)
         first = xp.where(xp.isnan(first) & (fields[0] > 0.5), step * dt, first)
         p = to_numpy(fields[3]).reshape(shape)
         t = to_numpy(first).reshape(shape)
@@ -254,6 +302,7 @@ def liesegang3(
             first = np.where(np.isnan(first) & (a > 0.5), step * dt, first)
             if a[deep] > 0.05 * a0:
                 break
+            track(a, 0.05 * a0, step)
     first = np.where(np.isnan(first) & (a > 0.5), step * dt, first)
     return p.reshape(shape)[1:-1, 1:-1, 1:-1], first.reshape(shape)[1:-1, 1:-1, 1:-1], step
 
@@ -352,6 +401,7 @@ def _liesegang_fused(
     deepest: tuple[int, int],
     max_steps: int,
     record_every: int,
+    depth: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, int]:
     """The same kinetics as `liesegang`, as one CUDA kernel per step (CuPy only):
     the many small array operations of the generic path are launch-bound on a GPU."""
@@ -368,6 +418,8 @@ def _liesegang_fused(
     threads = 256
     blocks = (n + threads - 1) // threads
     deep = (deepest[0] + 1) * shape[1] + deepest[1] + 1
+    padded = None if depth is None else np.pad(depth, 1, constant_values=-1.0).ravel()
+    track = FrontProgress(xp, padded, max_steps)
     args = (
         np.int32(n), np.int32(shape[1]), np.float64(dt), np.float64(a0), np.float64(d_b),
         np.float64(d_c), np.float64(rate), np.float64(nucleation), np.float64(spreading),
@@ -381,6 +433,7 @@ def _liesegang_fused(
             first = xp.where(xp.isnan(first) & (fields[0] > 0.5), step * dt, first)
             if float(fields[0][deep]) > 0.05 * a0:
                 break
+            track(fields[0], 0.05 * a0, step)
     first = xp.where(xp.isnan(first) & (fields[0] > 0.5), step * dt, first)
     p = to_numpy(fields[3]).reshape(shape)
     t = to_numpy(first).reshape(shape)

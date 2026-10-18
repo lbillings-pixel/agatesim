@@ -388,7 +388,7 @@ td.num { white-space: nowrap; }
 .run-item img { width: 56px; height: 56px; object-fit: cover; border-radius: 4px; background: var(--slab-bg); }
 .run-text { display: grid; min-width: 0; }
 .run-text > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.job { font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+.job { font-size: 0.85rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .job.failed { color: var(--fail); }
 .spinner {
   width: 0.8rem;
@@ -515,3 +515,28 @@ td.num { white-space: nowrap; }
 .run-diff table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
 .run-diff th, .run-diff td { text-align: left; padding: 0.25rem 0.6rem 0.25rem 0; border-top: 1px solid var(--line); vertical-align: top; }
 .run-diff td.num { font-family: var(--font-data); word-break: break-all; }
+
+/* Progress of a long action (TaskProgress): what it is doing, a bar, the time left. */
+.task-progress { display: grid; gap: 0.3rem; width: 100%; max-width: 32rem; }
+.task-progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; }
+.task-progress-track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; position: relative; }
+.task-progress-fill { height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width 0.4s ease-out; }
+.task-progress-track.indeterminate .task-progress-fill { width: 30%; position: absolute; animation: task-progress-slide 1.4s ease-in-out infinite; }
+@keyframes task-progress-slide { from { left: -30%; } to { left: 100%; } }
+.task-progress-detail { color: var(--muted); font-variant-numeric: tabular-nums; }
+.task-progress.on-dark { color: #e6e6e6; }
+.task-progress.on-dark .task-progress-detail { color: #b8c0c6; }
+.task-progress.on-dark .task-progress-track { background: rgba(255, 255, 255, 0.18); }
+.task-progress.on-dark .task-progress-fill { background: #8ab4d8; }
+.link-button { border: none; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
+.task-progress.on-dark .link-button { color: #b9d5ee; }
+.volume-note.with-progress { right: 12px; }
+@media (prefers-reduced-motion: reduce) {
+  .task-progress-fill { transition: none; }
+  .task-progress-track.indeterminate .task-progress-fill { animation: none; left: 0; width: 100%; opacity: 0.5; }
+}
+/* The 3D screen on a phone: one column, like the simulator. */
+@media (max-width: 760px) {
+  .workspace.volume { grid-template-columns: minmax(0, 1fr); }
+  .volume-panes { grid-template-columns: minmax(0, 1fr); }
+}

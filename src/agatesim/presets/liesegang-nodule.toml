@@ -1,7 +1,7 @@
 # Exploration preset for H2 (Liesegang precipitation) in an angular nodule:
 # closed, wall-parallel rings that round off the corners and break into spots
 # inward, so H2 fails the fortification corner test (ADR 0015). Needs the GPU
-# backend to run quickly (AGATESIM_GPU=1; about 15 s); on the CPU it takes hours.
+# backend to run quickly (used when found; about 15 s); on the CPU it takes hours.
 name = "liesegang-nodule"
 seed = 1
 archetype = "fortification"

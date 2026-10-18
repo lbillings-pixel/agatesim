@@ -25,7 +25,7 @@ from PIL import Image
 from pydantic import BaseModel, Field
 from starlette.types import Scope
 
-from agatesim import __version__, _rd, optics
+from agatesim import __version__, _rd, optics, progress
 from agatesim.archetypes import load_registry
 from agatesim.config import RunConfig, load_config, load_preset, preset_description, preset_names
 from agatesim.criteria import evaluate, implemented
@@ -46,6 +46,7 @@ from agatesim.render import render_slab
 from agatesim.runs import is_run_id, list_runs
 from agatesim.server.jobs import Job, JobManager
 from agatesim.server.specimens import specimen_router
+from agatesim.server.tasks import TaskHeader, handle_cancelled, task_router
 from agatesim.server.volume import volume_router
 from agatesim.simulate import SimulationResult, simulate
 from agatesim.stages import stages_json
@@ -69,7 +70,7 @@ MODEL_TITLES = {
     "procedural-fortification": "Fortification (wall-parallel banding)",
     "procedural-waterline": "Waterline (horizontal layers)",
     "mechanistic-front-feedback": "Front feedback (mechanistic, H1: self-organised bands)",
-    "mechanistic-liesegang": "Liesegang precipitation (mechanistic, H2; slow without a GPU)",
+    "mechanistic-liesegang": "Liesegang precipitation (mechanistic, H2)",
     "mechanistic-settling": "Hindered settling (mechanistic, H4: horizontal layers)",
     "mechanistic-staged": "Stages (mechanistic: H1 or H2 walls, H4 floors, spherulites, dendrites)",
 }
@@ -147,12 +148,20 @@ def _evaluation(config: RunConfig, result: Any) -> dict[str, object] | None:
     return evaluate(config.archetype, result).to_json()
 
 
+def _model_title(kind: str, gpu: bool) -> str:
+    title = MODEL_TITLES[kind]
+    if kind == "mechanistic-liesegang":  # only practical on the GPU
+        return title[:-1] + ("; on the GPU)" if gpu else "; no GPU found, so slow)")
+    return title
+
+
 def _meta() -> dict[str, object]:
     registry = load_registry()
+    gpu = _rd.gpu_in_use()
     return {
         "version": __version__,
         "limits": {"preview": MAX_PREVIEW_RESOLUTION, "run": MAX_RUN_RESOLUTION},
-        "gpu": _rd.gpu_in_use(),  # H2 (Liesegang) is only practical on the GPU
+        "gpu": gpu,  # H2 (Liesegang) is only practical on the GPU
         "cavities": [
             {
                 "name": p.name,
@@ -166,7 +175,7 @@ def _meta() -> dict[str, object]:
         "models": [
             {
                 "kind": kind,
-                "title": MODEL_TITLES[kind],
+                "title": _model_title(kind, gpu),
                 "schema": cls.model_json_schema(),
                 "schedules": MODEL_SCHEDULES.get(kind, []),
             }
@@ -213,7 +222,8 @@ def create_app(
     static_dir: Path | None = STATIC_DIR,
     specimens_dir: Path | None = None,
 ) -> FastAPI:
-    jobs = JobManager(runs_dir)
+    tasks = progress.Registry()
+    jobs = JobManager(runs_dir, tasks)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
@@ -221,6 +231,7 @@ def create_app(
         jobs.shutdown()
 
     app = FastAPI(title="agatesim", version=__version__, lifespan=lifespan)
+    handle_cancelled(app)
 
     def run_dir(run_id: str) -> Path:
         path = runs_dir / run_id
@@ -242,13 +253,14 @@ def create_app(
     simulations = _Simulations()
 
     @app.post("/api/optics")
-    def optical_view(request: OpticsRequest) -> dict[str, object]:
+    def optical_view(request: OpticsRequest, task: TaskHeader = None) -> dict[str, object]:
         """The live preview under directional light: reflected light from a light
         `angle_deg` from the slab normal (shadow), or a backlit slice seen
         `angle_deg` off the light (iris)."""
         config = request.config.with_resolution(request.resolution)
         t0 = time.perf_counter()
-        result = simulations.get(config)
+        with tasks.track(task):
+            result = simulations.get(config)
         note = ""
         if request.view == "shadow":
             rgb = optics.render_shadow(result, request.angle_deg, request.azimuth_deg)
@@ -270,10 +282,11 @@ def create_app(
         }
 
     @app.post("/api/preview")
-    def preview(request: PreviewRequest) -> dict[str, object]:
+    def preview(request: PreviewRequest, task: TaskHeader = None) -> dict[str, object]:
         config = request.config.with_resolution(request.resolution)
         t0 = time.perf_counter()
-        result = simulations.get(config)
+        with tasks.track(task):
+            result = simulations.get(config)
         rgb = render_slab(result)
         elapsed = time.perf_counter() - t0
         return {
@@ -293,15 +306,16 @@ def create_app(
         }
 
     @app.post("/api/randomize")
-    def randomize_settings(request: RandomizeRequest) -> dict[str, object]:
+    def randomize_settings(request: RandomizeRequest, task: TaskHeader = None) -> dict[str, object]:
         """New settings drawn within each key setting's bounded range (ADR 0051)."""
-        draw = randomize(
-            request.config,
-            request.strength,
-            keep_form=request.keep_form,
-            seed=request.seed,
-            extras=frozenset(request.extras),
-        )
+        with tasks.track(task):
+            draw = randomize(
+                request.config,
+                request.strength,
+                keep_form=request.keep_form,
+                seed=request.seed,
+                extras=frozenset(request.extras),
+            )
         return {
             "config": draw.config.model_dump(mode="json"),
             "attempts": draw.attempts,
@@ -360,7 +374,8 @@ def create_app(
         return Response(_png(encode_tdep(t_dep)), media_type="image/png")
 
     app.include_router(specimen_router(specimens_dir or runs_dir.parent / "specimens"))
-    app.include_router(volume_router(jobs, runs_dir))
+    app.include_router(volume_router(jobs, runs_dir, tasks))
+    app.include_router(task_router(tasks))
 
     if static_dir is not None and (static_dir / "index.html").exists():
         app.mount("/", _FreshPage(directory=static_dir, html=True), name="ui")
