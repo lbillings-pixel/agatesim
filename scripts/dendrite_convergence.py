@@ -12,6 +12,9 @@ same sticking. Each forest is measured as ADR 0025 did:
   N(>L) ~ L^-alpha, fitted over the longer half of the trees.
 
     uv run --no-sync python scripts/dendrite_convergence.py [--box 12] [--spacings 0.24 0.12 0.06]
+
+ADR 0056's figures came from the engine before ADR 0057; the hashed draws since
+give statistically the same forests, not the same ones.
 """
 
 # pyright: basic
@@ -26,7 +29,7 @@ from typing import Any
 import numpy as np
 from scipy import ndimage
 
-from agatesim.volume import dendrites
+from agatesim import _dla
 from agatesim.volume.dendrites import Lattice3, grow
 
 BOX_SIZES_MM = (0.25, 0.5, 1.0, 2.0)  # box-counting sizes, the same at every spacing
@@ -118,7 +121,7 @@ def main() -> None:
     parser.add_argument("--max-sweeps", type=int, default=400_000)
     parser.add_argument("--seed", type=int, default=1)
     args = parser.parse_args()
-    dendrites.MAX_SWEEPS = args.max_sweeps  # the box is small; let every particle finish
+    _dla.MIN_SWEEPS = args.max_sweeps  # the box is small; let every particle finish
     xy = seeds_mm(args.box, args.seed_spacing, np.random.default_rng(args.seed))
     print(
         f"box {args.box} x {args.box} x {args.height} mm, {len(xy)} seeds "

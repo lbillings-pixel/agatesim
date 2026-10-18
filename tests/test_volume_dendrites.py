@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from agatesim import _dla, _rd
 from agatesim.criteria import evaluate
 from agatesim.volume.config import SliceConfig, load_volume_preset
 from agatesim.volume.dendrites import Lattice3, grow
@@ -71,3 +72,42 @@ def test_cuts_and_volume_agree_on_inclusions() -> None:
     xx, yy = cut.result.grid.coords()
     direct = sim.evaluate(cut.plane.points(xx, yy), cut.result.domain.mask.ravel())
     assert np.array_equal(direct.phase, cut.result.fields.phase.ravel())
+
+
+def test_gpu_and_cpu_grow_the_same_aggregate(monkeypatch: pytest.MonkeyPatch) -> None:
+    """ADR 0057: every random number is a hash of the particle and the sweep,
+    so the GPU path gives exactly the CPU path's aggregate."""
+    if _rd.array_module(prefer_gpu=True) is np:
+        pytest.skip("no usable GPU")
+    monkeypatch.setattr(_dla, "GPU_MIN_PARTICLES", 0)  # take the GPU path at this size
+    monkeypatch.setenv("AGATESIM_GPU", "0")
+    _, cpu = _box(0.5, seed=4)
+    monkeypatch.setenv("AGATESIM_GPU", "1")
+    _, gpu = _box(0.5, seed=4)
+    assert np.array_equal(cpu, gpu)
+
+
+def test_the_hashed_draws_are_even() -> None:
+    """The six directions and the uniform draws are evenly spread."""
+    g = _dla.spread(np, np.arange(60_000, dtype=np.uint64))
+    k = _dla.direction(np, _dla.draw(np, g, _dla.salt(7, 3, _dla.STEP)))
+    counts = np.bincount(k, minlength=6)
+    assert counts.min() > 9_500
+    assert counts.max() < 10_500
+    u = _dla.uniform(np, _dla.draw(np, g, _dla.salt(7, 3, _dla.STICK)))
+    assert u.min() >= 0.0
+    assert u.max() < 1.0
+    assert abs(float(u.mean()) - 0.5) < 0.01
+
+
+def test_the_default_budget_keeps_its_sweeps_and_bigger_lattices_get_more() -> None:
+    assert _dla.max_sweeps(4_000_000) == _dla.max_sweeps(1_000) == 40_000
+    assert _dla.max_sweeps(32_000_000) == 160_000  # twice the cells across, four times the sweeps
+
+
+def test_the_cell_budget_sets_the_branch_width() -> None:
+    """A budget big enough for the cavity keeps the intended width; the default
+    coarsens it (ADR 0056)."""
+    lo, hi = np.zeros(3), np.full(3, 40.0)
+    assert Lattice3.around(lo, hi, 0.12, 40_000_000).h == pytest.approx(0.12)
+    assert Lattice3.around(lo, hi, 0.12).h > 0.2

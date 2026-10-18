@@ -372,6 +372,18 @@ class ProceduralGrowth(BaseModel):
         nature=Nature.EFFECTIVE,
         description="Width of the finest branches (the lattice cell the particles walk on).",
     )
+    dendrite_cells_3d: float = param(
+        4.0,
+        ge=0.5,
+        le=128,
+        units="million cells",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, the most cells the inclusions' lattice may have, in millions; beyond "
+            "it the lattice coarsens and the finest branches widen. About 40 keeps "
+            "0.12 mm branches in a 40 mm cavity: practical with a GPU (ADR 0057)."
+        ),
+    )
     dendrite_tint: float = param(
         1.0,
         ge=0,
@@ -738,6 +750,7 @@ class InclusionGrowth:
     gravity_deg: float
     upward: float = 0.0
     start_height: float = 1.0
+    max_cells: int = 4_000_000  # in 3D: the lattice's cell budget
 
     def gravity(self) -> FloatArray:
         th = math.radians(self.gravity_deg)
@@ -754,6 +767,7 @@ def inclusion_growth(params: ProceduralGrowth) -> InclusionGrowth:
         gravity_deg=params.gravity_deg,
         upward=params.dendrite_upward,
         start_height=params.dendrite_start_height,
+        max_cells=round(params.dendrite_cells_3d * 1e6),
     )
 
 

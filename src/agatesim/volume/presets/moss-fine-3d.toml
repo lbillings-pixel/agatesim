@@ -1,0 +1,35 @@
+# Moss agate in 3D at the intended branch width (0.12 mm, ADR 0056, ADR 0057):
+# the moss-3d preset with a lattice of up to 40 million cells instead of 4, so
+# the finest branches keep their width rather than coarsening to about 0.23 mm.
+# About 40 s with a GPU, 2 minutes on the CPU.
+#
+# As moss-3d: a dendrite stage grows
+# branched inclusions from scattered points on the wall by 3D aggregation of
+# diffusing particles (Hou et al. 2023), then faintly banded chalcedony encloses
+# them (ADR 0025).
+name = "moss-fine-3d"
+seed = 10
+archetype = "moss"
+
+[solid]
+preset = "nodule-round"
+size_mm = 40
+
+[model]
+kind = "procedural-growth"
+growth_mm = 30
+band_period = 0.03
+opacity_contrast = 0.25
+dendrite_spacing_mm = 4
+dendrite_density = 0.04
+dendrite_amount = 0.08
+dendrite_sticking = 0.5
+dendrite_tint = 0.0
+dendrite_cells_3d = 40
+
+[model.schedules.dendrite]
+base = 1.0
+events = [{ type = "step", at = 0.25, value = 0.0 }]
+
+[model.schedules.iron]
+base = 0.05

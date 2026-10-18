@@ -262,6 +262,7 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
                 sticking=d.sticking,
                 width_mm=d.width_mm,
                 gravity_deg=params.gravity_deg,
+                max_cells=round(d.cells_3d * 1e6),
             )
             with progress.span(lo, hi):
                 aggregate = grow_aggregate(how, setting, solid, stage_rng)

@@ -365,7 +365,7 @@ def grow_aggregate(
     is the setting's."""
     rng_sites, rng_grow = rng.spawn(2)
     lo, hi = setting.solid.bounds()
-    lattice = Lattice3.around(lo, hi, how.width_mm)
+    lattice = Lattice3.around(lo, hi, how.width_mm, how.max_cells)
     centres = lattice.centres()
     inside = setting.solid.contains(centres)
     free = np.zeros(lattice.size, dtype=bool)

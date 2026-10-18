@@ -16,17 +16,15 @@ previews, full runs and cuts at any resolution.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
 
-from agatesim import _scipy, progress
+from agatesim import _dla, _rd, _scipy
 from agatesim.grid import FloatArray
 
 MAX_CELLS = 4_000_000
-MAX_SWEEPS = 40_000
 BALL_RADIUS = 0.8  # × cell size: neighbouring balls overlap despite the jitter
 JITTER = 0.2  # × cell size: each ball is moved by up to this, so cuts don't show the lattice
 
@@ -130,7 +128,8 @@ def grow(
     rng: np.random.Generator,
 ) -> Aggregate3:
     """Grow an aggregate from `seeds` (flat cell indices) through the `free` cells
-    (boolean, one per cell in flat order)."""
+    (boolean, one per cell in flat order), on the GPU when there is one; the
+    aggregate is the same either way (agatesim._dla)."""
     nx, ny, nz = lattice.shape
     flat = free.reshape(nz, ny, nx).copy()
     for axis in range(3):  # the lattice border is never free, so walks stay inside
@@ -139,66 +138,25 @@ def grow(
         flat = np.moveaxis(flat, 0, axis)
     flat = flat.ravel()
     seeds = np.unique(seeds[flat[seeds]])
-    agg = np.zeros_like(flat)
-    near = np.zeros_like(flat)
     offsets = np.array([1, -1, nx, -nx, nx * ny, -nx * ny], dtype=np.int64)
-
-    def attach(cells: NDArray[np.int64]) -> None:
-        agg[cells] = True
-        flat[cells] = False
-        for o in offsets:
-            near[cells + o] = True
-
-    attach(seeds)
-    order: list[NDArray[np.int64]] = [seeds]
-    open_cells = np.flatnonzero(flat)
-    n = math.floor(density * len(open_cells))
-    budget = math.floor(amount * len(open_cells))
-    rng_place, rng_walk = rng.spawn(2)
-
-    def release(count: int) -> NDArray[np.int64]:
-        cells = open_cells[rng_place.integers(0, len(open_cells), count)]
-        return cells[flat[cells]]
-
-    if not (len(seeds) and len(open_cells) and n):
-        return Aggregate3(lattice=lattice, cells=seeds, order=np.zeros(len(seeds)))
-    pos = release(min(n, budget))
-    released = len(pos)
-
     # Upward bias: a particle directly on top of a branch (the lattice step
     # closest to gravity leads into the aggregate) sticks with the full
     # probability; from the sides or below, with probability reduced by `upward`.
     axis = int(np.argmax(np.abs(gravity)))
     down = int(offsets[2 * axis] if gravity[axis] > 0 else offsets[2 * axis + 1])
-    side_sticking = sticking * (1 - upward)
-
-    sweeps = 0
-    attached = 0
-    while len(pos) and sweeps < MAX_SWEEPS:
-        sweeps += 1
-        if sweeps % 64 == 0:
-            progress.report(max(attached / max(budget, 1), sweeps / MAX_SWEEPS))
-        target = pos + offsets[rng_walk.integers(0, 6, len(pos))]
-        pos = np.where(flat[target], target, pos)
-        touching = near[pos]
-        if not touching.any():
-            continue
-        p = np.where(agg[pos + down], sticking, side_sticking) if upward > 0 else sticking
-        stick = touching & (rng_walk.random(len(pos)) < p)
-        if stick.any():
-            cells = np.unique(pos[stick])
-            cells = cells[~agg[cells]]
-            attach(cells)
-            order.append(cells)
-            attached += len(cells)
-            pos = pos[~stick]
-            pos = pos[flat[pos]]
-            top_up = min(n - len(pos), budget - released)
-            if top_up > 0:
-                fresh = release(top_up)
-                released += top_up
-                pos = np.concatenate([pos, fresh])
-
+    order = _dla.aggregate(
+        _rd.array_module(),
+        flat,
+        seeds,
+        offsets,
+        density=density,
+        amount=amount,
+        sticking=sticking,
+        side=sticking * (1 - upward),
+        down=down,
+        key=int(rng.integers(0, 1 << 63)),
+        sweeps_allowed=_dla.max_sweeps(lattice.size),
+    )
     cells = np.concatenate(order)
     rank = np.concatenate([np.full(len(c), k, dtype=np.float64) for k, c in enumerate(order)])
     return Aggregate3(lattice=lattice, cells=cells, order=rank / max(len(order) - 1, 1))
