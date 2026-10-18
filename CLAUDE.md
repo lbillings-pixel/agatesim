@@ -54,6 +54,7 @@
   from them is written without metadata (they carry GPS). Tests use synthetic
   photos (`agatesim.specimen.synthetic`).
 - Commits use the no-reply email already set in git config. Never commit secrets
-  or personal email addresses. The repo will go public later.
+  or personal email addresses. The repo is public (github.com/lbillings-pixel/agatesim);
+  `tests/test_privacy.py` guards images and `specimens/`.
 - Commit messages carry no `Claude-Session:` link (owner decision, 2026-10-18;
   history rewritten to remove them). Keep the `Co-Authored-By:` line.
