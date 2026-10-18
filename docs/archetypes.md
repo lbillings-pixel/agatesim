@@ -22,6 +22,7 @@ provisional until the archetype is implemented.
 | 10 | [Plume agate](#plume) | verified | verified | formation | volcanic, sedimentary | moss |
 | 11 | [Shadow agate](#shadow) | verified | verified | optics | volcanic, sedimentary | fortification |
 | 12 | [Iris agate](#iris) | verified | verified | optics | volcanic, sedimentary | fortification |
+| 13 | [Stick agate](#stick) | verified | verified | formation | volcanic | tube |
 
 ## Fortification (concentric) banding
 
@@ -181,3 +182,19 @@ diffraction grating. Needs wave-optics rendering.
 |---|---|---|---|
 | `grating-spacing` | Band spacing is fine enough to diffract visible light. | Median micro-band spacing (µm) where regular micro-banding is visible (pigment < 0.3, translucency > 0.4); measured iris gratings run from about 1.7 to 64 µm (Jones 1952; ADR 0042). | 1 ≤ value ≤ 65 |
 | `spectral-dispersion` | Transmitted light separates into colours at angles the grating equation predicts. | Median difference (nm) between the wavelength of the rendered colour (from its hue) and the first order predicted by d·sin θ = λ, over pixels where that prediction is 450–630 nm, at views of 12°, 16° and 20°. | value ≤ 15 |
+
+## Stick agate
+
+<a id="stick"></a>
+
+Straight, crystal-shaped rods inside the agate: blades of an earlier mineral
+(anhydrite or aragonite; not settled) that grew in the cavity before the agate,
+were lined by its bands, and were later replaced by quartz or dissolved, leaving
+pseudomorphs or hollow moulds ("barred agates" of Ankara-Çubuk).
+
+| Criterion | Description | Metric | Pass if |
+|---|---|---|---|
+| `straight-sticks` | The sticks are straight and crystal-shaped. | Share of sticks (patches of quartz, open space or inclusion other than the cavity's centre, at least 0.3 mm²) at least 4 times longer than wide (ratio of principal standard deviations) and filling at least 60% of their oriented bounding box. | value ≥ 0.75 |
+| `stick-count` | There are several sticks. | Number of straight, crystal-shaped sticks. | value ≥ 5 |
+| `pseudomorph-fill` | The sticks are pseudomorphs or hollow moulds, not an opaque mineral. | Share of the straight sticks' area that is quartz or open space. | value ≥ 0.9 |
+| `bands-wrap-sticks` | The bands wrap the sticks. | Worst straight stick's share of nearby band boundary (at most half as far from the stick as from any other solid) lying within 15% of that band's median distance from the stick. | value ≥ 0.7 |

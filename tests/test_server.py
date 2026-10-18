@@ -40,6 +40,7 @@ def test_meta_describes_cavities_models_and_parameters(client: TestClient) -> No
         "settling",
         "spherulitic",
         "dendrite",
+        "sticks",
         "iron",
     ]
     fort = next(m for m in meta["models"] if m["kind"] == "procedural-fortification")

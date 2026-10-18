@@ -352,6 +352,55 @@ def test_tube_criteria_reject_rings_away_from_their_seeds() -> None:
     assert "seed-placement" in _failed(evaluate("tube", shifted))
 
 
+# --- Stick ------------------------------------------------------------------------
+
+
+def _stick() -> SimulationResult:
+    return simulate(load_preset("stick").with_resolution(NEGATIVE_RESOLUTION))
+
+
+def test_stick_criteria_reject_banding_without_sticks() -> None:
+    assert "stick-count" in _failed(_evaluate("stick", _fortification()))
+
+
+def test_stick_criteria_reject_branched_inclusions() -> None:
+    moss = load_preset("moss").with_resolution(NEGATIVE_RESOLUTION)
+    assert "straight-sticks" in _failed(_evaluate("stick", moss))
+
+
+def test_stick_criteria_reject_tube_filaments() -> None:
+    """Round filaments seen end-on are not sticks."""
+    tube = load_preset("tube").with_resolution(NEGATIVE_RESOLUTION)
+    assert {"straight-sticks", "stick-count"} <= _failed(_evaluate("stick", tube))
+
+
+def test_stick_criteria_reject_opaque_sticks() -> None:
+    """The same sticks filled with an opaque mineral (sagenite-like needles)."""
+    result = _stick()
+    f = result.fields
+    stick = (f.phase == Phase.QUARTZ) & (f.grain >= 0)
+    opaque = replace(f, phase=np.where(stick, Phase.INCLUSION, f.phase).astype(np.uint8))
+    assert _failed(evaluate("stick", replace(result, fields=opaque))) == {"pseudomorph-fill"}
+
+
+def test_stick_criteria_reject_bands_that_ignore_the_sticks() -> None:
+    """The sticks pasted onto wall-parallel bands that never saw them."""
+    result = _stick()
+    stick = (result.fields.phase == Phase.QUARTZ) & (result.fields.grain >= 0)
+    plain = _fortification().model_copy(
+        update={"cavity": load_preset("stick").cavity, "archetype": "stick"}
+    )
+    bands = simulate(plain.with_resolution(NEGATIVE_RESOLUTION))
+    assert bands.grid.shape == result.grid.shape
+    f = bands.fields
+    pasted = replace(
+        f,
+        phase=np.where(stick, Phase.QUARTZ, f.phase).astype(np.uint8),
+        band=np.where(stick, -1, f.band).astype(np.int32),
+    )
+    assert _failed(evaluate("stick", replace(bands, fields=pasted))) == {"bands-wrap-sticks"}
+
+
 # --- Moss and plume ---------------------------------------------------------------
 
 

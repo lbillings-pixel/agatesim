@@ -29,6 +29,7 @@ GROWTH_LABELS = {
     Mode.CRYSTAL: "quartz crystals",
     Mode.SETTLING: "settled layers",
     Mode.DENDRITE: "branched inclusions",
+    Mode.STICK: "stick crystals",
 }
 
 
@@ -50,7 +51,7 @@ def _growth(model: ProceduralGrowth) -> list[Stage]:
     for a, b in mode_stages(mode):
         m = Mode(int(mode[a]))
         label = GROWTH_LABELS[m]
-        if m is not Mode.DENDRITE and not (supply[a:b] > 0).any():
+        if m not in (Mode.DENDRITE, Mode.STICK) and not (supply[a:b] > 0).any():
             label = "no deposition"
         if out and out[-1].label == label:
             out[-1] = Stage(out[-1].start, b / TIME_STEPS, label)
@@ -76,6 +77,7 @@ def formation_stages(model: BaseModel) -> list[Stage]:
                 "spherulite": "spherulites (H1)",
                 "dendrite": "branched inclusions",
                 "garden": "chemical-garden tubes",
+                "stick": "stick crystals",
             }
             n = len(parts)
             return [Stage(i / n, (i + 1) / n, names[p]) for i, p in enumerate(parts)]

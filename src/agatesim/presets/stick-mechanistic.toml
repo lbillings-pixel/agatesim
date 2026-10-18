@@ -1,0 +1,19 @@
+# Verification preset for stick agate (mechanistic tier): blade-shaped crystals
+# nucleate on the wall and grow with a needle habit, competing by geometric
+# selection; front-feedback (H1) chalcedony then lines them as it lines the
+# wall; at the end they are replaced by quartz (ADR 0049). The stage order and
+# the replacement are scheduled changes of conditions.
+name = "stick-mechanistic"
+seed = 13
+archetype = "stick"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 40
+
+[model]
+kind = "mechanistic-staged"
+order = "stick-wall"

@@ -31,6 +31,11 @@ This model chains the two verified mechanisms in the order given:
   ADR 0009), the picture of Mn-oxide dendrites growing by attachment of
   diffusing particles [@hou2023]. Later stages grow over every branch. Moss
   agate is a dendrite stage enclosed by an H1 wall stage (ADR 0036).
+- **stick**: blade-shaped crystals of an earlier mineral grow from the wall
+  with a needle habit, competing by geometric selection like the quartz
+  crystals (ADR 0037); later stages line them, and at the end they are
+  replaced by quartz or dissolve. Stick agate is a stick stage enclosed by an
+  H1 wall stage (ADR 0049).
 
 Each stage reads only the open space the earlier ones left. The order of the
 stages is imposed (nature records several), as is the rim's extent. What makes
@@ -50,13 +55,19 @@ from agatesim.fields import Fields, Phase
 from agatesim.models.base import Domain
 from agatesim.models.front_feedback import FrontFeedback, run_front_feedback
 from agatesim.models.gardens import GardenStage, grow_tubes, rasterise_tubes
-from agatesim.models.growth import InclusionGrowth, grow_inclusions
+from agatesim.models.growth import InclusionGrowth, StickFill, grow_inclusions, grow_sticks
 from agatesim.models.liesegang import Liesegang, run_liesegang
 from agatesim.models.settling import Settling, run_settling
 from agatesim.params import Nature, param, used_when
 
 Order = Literal[
-    "wall-floor-wall", "wall-floor", "floor-wall", "dendrite-wall", "spherulite-wall", "garden-wall"
+    "wall-floor-wall",
+    "wall-floor",
+    "floor-wall",
+    "dendrite-wall",
+    "spherulite-wall",
+    "garden-wall",
+    "stick-wall",
 ]
 WallMechanism = Literal["front-feedback", "liesegang"]
 STAGE_SPAN = 0.999  # of a stage's time slot, so stages never share a deposition time
@@ -125,6 +136,56 @@ class DendriteStage(BaseModel):
     )
 
 
+class StickStage(BaseModel):
+    """Blade-shaped crystals grown from the wall before the agate (ADR 0049)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    spacing_mm: float = param(
+        6.0,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Mean spacing of the points on the wall where stick crystals nucleate.",
+    )
+    length_mm: float = param(
+        7.0,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "How far the crystals' tips grow before the silica arrives (the timing of a "
+            "change in conditions)."
+        ),
+    )
+    elongation: float = param(
+        20.0,
+        ge=2,
+        le=60,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "How much faster the crystals grow along their long axis than across it (their "
+            "habit): a stick is about half this many times longer than wide."
+        ),
+    )
+    axis_scatter_deg: float = param(
+        25.0,
+        ge=0,
+        le=90,
+        units="deg",
+        nature=Nature.EFFECTIVE,
+        description="Spread of crystal axes about the wall normal where they nucleate.",
+    )
+    fill: StickFill = Field(
+        default="quartz",
+        description=(
+            "What replaces the crystals at the end: quartz (a pseudomorph) or nothing (they "
+            "dissolve and leave hollow moulds)."
+        ),
+    )
+
+
 class Staged(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -180,6 +241,11 @@ class Staged(BaseModel):
         default_factory=DendriteStage,
         description="The dendrite stage: branched inclusions (the dendrite-wall order).",
         json_schema_extra=used_when({"order": ["dendrite"]}),
+    )
+    stick: StickStage = Field(
+        default_factory=StickStage,
+        description="The stick stage: blade crystals lined by later bands (stick-wall order).",
+        json_schema_extra=used_when({"order": ["stick"]}),
     )
 
     def gravity(self) -> NDArray[np.float64]:
@@ -251,6 +317,41 @@ def _garden_fields(
     )
 
 
+def _stick_fields(
+    params: Staged,
+    domain: Domain,
+    open_space: NDArray[np.bool_],
+    first: bool,
+    rng: np.random.Generator,
+) -> Fields:
+    """Stick crystals grown into the open space; their deposition time is how
+    far the tips had grown. They stand as quartz until run_staged replaces them."""
+    s = params.stick
+    order, owner = grow_sticks(
+        domain,
+        open_space,
+        first,
+        rng,
+        spacing_mm=s.spacing_mm,
+        length_mm=s.length_mm,
+        elongation=s.elongation,
+        scatter_deg=s.axis_scatter_deg,
+    )
+    grown = open_space & np.isfinite(order)
+    shape = domain.grid.shape
+    phase = np.full(shape, Phase.VOID, dtype=np.uint8)
+    phase[grown] = Phase.QUARTZ
+    return Fields(
+        phase=phase,
+        band=np.full(shape, -1, dtype=np.int32),
+        impurity=np.zeros(shape, dtype=np.float32),
+        translucency=np.where(grown, 0.9, 0.0).astype(np.float32),
+        t_dep=np.where(grown, order, np.nan).astype(np.float32),
+        grain=np.where(grown, owner, -1).astype(np.int32),
+        micro_spacing_um=np.full(shape, np.nan, dtype=np.float32),
+    )
+
+
 def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fields:
     stages = params.order.split("-")
     rngs = rng.spawn(len(stages))
@@ -262,8 +363,11 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
     impurity = np.zeros(shape, dtype=np.float32)
     translucency = np.zeros(shape, dtype=np.float32)
     t_dep = np.full(shape, np.nan, dtype=np.float32)
+    grain = np.full(shape, -1, dtype=np.int32)
+    stick = np.zeros(shape, dtype=bool)
     cavity_pixels = int(domain.mask.sum())
     next_band = 0
+    next_grain = 0
     for i, (stage, stage_rng) in enumerate(zip(stages, rngs, strict=True)):
         open_space = domain.mask & (phase == Phase.VOID)
         if not open_space.any():
@@ -294,6 +398,10 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
         elif stage == "dendrite":
             fields = _dendrite_fields(params, domain, open_space, i == 0, stage_rng)
             grown = open_space & (fields.phase != Phase.VOID)
+        elif stage == "stick":
+            fields = _stick_fields(params, domain, open_space, i == 0, stage_rng)
+            grown = open_space & (fields.phase != Phase.VOID)
+            stick |= grown
         else:
             fields = run_settling(floor, domain, stage_rng, region=open_space)
             grown = open_space & (fields.phase != Phase.VOID)
@@ -310,17 +418,27 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
         phase[grown] = fields.phase[grown]
         impurity[grown] = fields.impurity[grown]
         translucency[grown] = fields.translucency[grown]
+        crystal = grown & (fields.grain >= 0)
+        if crystal.any():
+            grain[crystal] = fields.grain[crystal] + next_grain
+            next_grain = int(grain.max()) + 1
         # Deposition order: stage i takes the times [i, i + 1) / stages.
         t = np.nan_to_num(fields.t_dep[grown], nan=1.0)
         if stage == "wall" and i == 0 and i < len(stages) - 1:
             t = t / max(float(t.max()), 1e-9)
         t_dep[grown] = (i + STAGE_SPAN * np.clip(t, 0, 1)) / len(stages)
+    if params.stick.fill == "hollow" and stick.any():
+        # The crystals dissolve after the agate, leaving moulds (ADR 0049).
+        phase[stick] = Phase.VOID
+        translucency[stick] = 0.0
+        t_dep[stick] = np.nan
+        grain[stick] = -1
     return Fields(
         phase=phase,
         band=band,
         impurity=impurity,
         translucency=translucency,
         t_dep=t_dep,
-        grain=np.full(shape, -1, dtype=np.int32),
+        grain=grain,
         micro_spacing_um=np.full(shape, np.nan, dtype=np.float32),
     )

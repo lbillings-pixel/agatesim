@@ -1,11 +1,12 @@
-"""The combined form from chained mechanistic stages (H1 or H2 wall, H4 floor)."""
+"""Chained mechanistic stages: the combined form (H1 or H2 wall, H4 floor), and
+the stick stage (ADR 0049)."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from agatesim.config import load_preset
+from agatesim.config import RunConfig, load_preset
 from agatesim.criteria import evaluate
 from agatesim.criteria.combined import BandClass, classify_bands
 from agatesim.fields import Phase
@@ -203,3 +204,45 @@ def test_garden_tubes_rise_from_the_floor_and_ignore_the_grid() -> None:
     assert len(starts) >= 3
     assert (starts[:, 1] < 0).all()
     assert tubes[0].b[:, 1].max() > starts[:, 1].max() + 3.0
+
+
+def _stick_config(**stick: object) -> RunConfig:
+    config = load_preset("stick-mechanistic").with_resolution(RESOLUTION)
+    model = config.model
+    assert isinstance(model, Staged)
+    changed = model.model_copy(update={"stick": model.stick.model_copy(update=stick)})
+    return config.model_copy(update={"model": changed})
+
+
+def test_hollow_stick_moulds_pass_as_stick_agate() -> None:
+    """ADR 0049: crystals that dissolve after the agate leave open moulds,
+    which count as sticks as the quartz pseudomorphs do."""
+    result = simulate(_stick_config(fill="hollow"))
+    ev = evaluate("stick", result)
+    assert ev.passed, ev.to_json()
+    assert not (result.fields.phase == Phase.QUARTZ).any()
+
+
+def test_stick_crystals_ignore_the_grid() -> None:
+    """Sites sit on the exact wall and grow in world coordinates, so a coarse
+    run's sticks lie where a fine run's do."""
+    coarse = simulate(_stick_config().with_resolution(256))
+    fine = simulate(_stick_config().with_resolution(512))
+    rows, cols = np.nonzero(coarse.fields.phase == Phase.QUARTZ)
+    g = coarse.grid
+    pts = np.stack([g.x0 + (cols + 0.5) * g.dx, g.y1 - (rows + 0.5) * g.dx], axis=1)
+    phase, _ = fine.grid.sample(fine.fields.phase.astype(np.float64), pts)
+    assert np.mean(phase == Phase.QUARTZ) > 0.85
+
+
+def test_stick_stages_are_rejected_in_3d() -> None:
+    from agatesim.volume.config import VolumeConfig
+
+    with pytest.raises(ValueError, match="stick"):
+        VolumeConfig.model_validate(
+            {
+                "name": "stick-3d",
+                "solid": {"preset": "vesicle-round"},
+                "model": {"kind": "mechanistic-staged", "order": "stick-wall"},
+            }
+        )

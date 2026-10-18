@@ -1,0 +1,30 @@
+# Verification preset for stick agate (procedural tier): blade-shaped crystals
+# grow from the wall first; banded chalcedony then lines them as it lines the
+# wall; at the end the crystals are replaced by quartz, leaving straight
+# pseudomorphs wrapped by the bands (ADR 0049).
+name = "stick"
+seed = 13
+archetype = "stick"
+
+[grid]
+resolution = 768
+
+[cavity]
+preset = "nodule-round"
+size_mm = 40
+
+[model]
+kind = "procedural-growth"
+growth_mm = 20
+band_period = 0.02
+stick_spacing_mm = 6
+stick_length_mm = 7
+stick_elongation = 20
+stick_axis_scatter_deg = 25
+
+[model.schedules.sticks]
+base = 1.0
+events = [{ type = "step", at = 0.08, value = 0.0 }]
+
+[model.schedules.iron]
+base = 0.3

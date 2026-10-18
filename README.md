@@ -8,9 +8,9 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M19 under way.** All twelve target forms are reproduced at the procedural tier and at the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)), shadow agate on a stated, unsourced assumption ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)), and ten run in 3D, judged on cuts (all ten mechanistically too). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+> **Status: M20 under way.** All thirteen target forms are reproduced at the procedural tier and at the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)), shadow agate on a stated, unsourced assumption ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)), and ten run in 3D, judged on cuts (all ten mechanistically too). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
-![Verification presets of all twelve forms](docs/images/archetypes.png)
+![Verification presets of all thirteen forms](docs/images/archetypes.png)
 
 ## What we've found
 
@@ -68,9 +68,15 @@ and which proposed formation mechanisms, can produce them.
 - **Shadow agate, if milkiness switches with the band.** No source links a
   band's growth to its milkiness. Assuming each cycle's fast, impurity-rich
   half is milky and its slow half clear, H1's bands make shadow agate; the
-  graded link used before falls short. This is the weakest of the twelve
+  graded link used before falls short. This is the weakest of the thirteen
   mechanistic verifications
   ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)).
+- **Stick agate from crystals that came first.** Blade-shaped crystals grown
+  from the wall by the quartz crystals' growth law, lined by H1's bands and
+  replaced by quartz (or dissolved), give straight pseudomorphs wrapped by
+  the bands. The form's own sources are thin; the original mineral
+  (anhydrite or aragonite) is open
+  ([ADR 0049](docs/adr/0049-stick-agate.md)).
 - **A cut changes what you see.** On random cuts through 3D results, bands look
   1.07–1.18 times thicker than they are, and some forms show on only a minority
   of cuts ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)). In 3D the
@@ -103,6 +109,7 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Plume | ✅ verified | ✅ verified (chemical-garden tubes, then H1) |
 | Shadow | ✅ verified | ✅ verified (stated assumption, ADR 0048) |
 | Iris | ✅ verified | ✅ verified (H1 with a fast second rhythm) |
+| Stick | ✅ verified | ✅ verified (blade crystals, H1 lining, replacement; thin sourcing, ADR 0049) |
 
 ## Approach
 

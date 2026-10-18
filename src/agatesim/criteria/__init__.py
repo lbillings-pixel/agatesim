@@ -17,6 +17,7 @@ from agatesim.criteria import (
     optical,
     quartz_geode,
     seam,
+    sticks,
     tube,
     waterline,
 )
@@ -32,6 +33,7 @@ EVALUATORS: dict[str, Callable[[SimulationResult], dict[str, Measurement]]] = {
     "botryoidal": botryoidal.evaluate_botryoidal,
     "eye": botryoidal.evaluate_eye,
     "tube": tube.evaluate,
+    "stick": sticks.evaluate,
     "moss": inclusions.evaluate_moss,
     "plume": inclusions.evaluate_plume,
     "shadow": optical.evaluate_shadow,

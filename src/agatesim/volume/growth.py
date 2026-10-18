@@ -65,6 +65,8 @@ def unsupported_in_3d(params: ProceduralGrowth) -> str | None:
     stages = [Mode(int(mode[a])) for a, _ in mode_stages(mode)]
     if Mode.CRYSTAL in stages[:-1]:
         return "in 3D, quartz crystals must be the last stage"
+    if Mode.STICK in stages:
+        return "stick crystals aren't available in 3D yet"
     return None
 
 

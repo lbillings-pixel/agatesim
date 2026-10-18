@@ -345,6 +345,45 @@ renderer, not just the formation model.
   min = 0.3
 
 [[archetypes]]
+id = "stick"
+name = "Stick agate"
+rung = 13
+status = { procedural = "verified", mechanistic = "verified" }
+subsystem = "formation"
+hosts = ["volcanic"]
+depends_on = ["tube"]
+summary = """
+Straight, crystal-shaped rods inside the agate: blades of an earlier mineral
+(anhydrite or aragonite; not settled) that grew in the cavity before the agate,
+were lined by its bands, and were later replaced by quartz or dissolved, leaving
+pseudomorphs or hollow moulds ("barred agates" of Ankara-Çubuk).
+"""
+
+  [[archetypes.criteria]]
+  id = "straight-sticks"
+  description = "The sticks are straight and crystal-shaped."
+  metric = "Share of sticks (patches of quartz, open space or inclusion other than the cavity's centre, at least 0.3 mm²) at least 4 times longer than wide (ratio of principal standard deviations) and filling at least 60% of their oriented bounding box."
+  min = 0.75
+
+  [[archetypes.criteria]]
+  id = "stick-count"
+  description = "There are several sticks."
+  metric = "Number of straight, crystal-shaped sticks."
+  min = 5
+
+  [[archetypes.criteria]]
+  id = "pseudomorph-fill"
+  description = "The sticks are pseudomorphs or hollow moulds, not an opaque mineral."
+  metric = "Share of the straight sticks' area that is quartz or open space."
+  min = 0.9
+
+  [[archetypes.criteria]]
+  id = "bands-wrap-sticks"
+  description = "The bands wrap the sticks."
+  metric = "Worst straight stick's share of nearby band boundary (at most half as far from the stick as from any other solid) lying within 15% of that band's median distance from the stick."
+  min = 0.7
+
+[[archetypes]]
 id = "iris"
 name = "Iris agate"
 rung = 12

@@ -73,12 +73,16 @@ MAX_CANDIDATES = 2_000_000
 ASSIGN_BUDGET = 30_000_000  # point-site evaluations per brute-force pass
 
 
+StickFill = Literal["quartz", "hollow"]
+
+
 class Mode(IntEnum):
     LINING = 0
     SPHERULITIC = 1
     CRYSTAL = 2
     SETTLING = 3
     DENDRITE = 4
+    STICK = 5
 
 
 class ScheduledVariable(BaseModel):
@@ -139,6 +143,18 @@ SCHEDULED = [
         nature=Nature.EFFECTIVE,
     ),
     ScheduledVariable(
+        key="sticks",
+        label="Stick crystals",
+        description=(
+            "At 0.5 or above, blade-shaped crystals (anhydrite or aragonite, say) grow "
+            "from the growth surface before the silica. Later silica lines them, and at "
+            "the end they are replaced by quartz or dissolve, leaving moulds (stick agate)."
+        ),
+        min=0.0,
+        max=1.0,
+        nature=Nature.EFFECTIVE,
+    ),
+    ScheduledVariable(
         key="iron",
         label="Iron supply",
         description="Iron available to stain the bands deposited at each moment.",
@@ -156,6 +172,7 @@ class Schedules(BaseModel):
     settling: Schedule = Schedule(base=0.0)
     spherulitic: Schedule = Schedule(base=0.0)
     dendrite: Schedule = Schedule(base=0.0)
+    sticks: Schedule = Schedule(base=0.0)
     iron: Schedule = Schedule(base=0.25)
 
 
@@ -342,6 +359,46 @@ class ProceduralGrowth(BaseModel):
         description=(
             "The inclusion mineral, for its colour: 0 = green Fe-silicate (celadonite-like), "
             "0.5 = red-brown Fe oxide, 1 = black Mn oxide."
+        ),
+    )
+    stick_spacing_mm: float = param(
+        5.0,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Mean spacing of the points on the growth surface where stick crystals start.",
+    )
+    stick_length_mm: float = param(
+        6.0,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="How far the stick crystals grow along their long axis before silica arrives.",
+    )
+    stick_elongation: float = param(
+        20.0,
+        ge=2,
+        le=60,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "How much faster stick crystals grow along their long axis than across it "
+            "(their habit): a stick is about half this many times longer than wide."
+        ),
+    )
+    stick_axis_scatter_deg: float = param(
+        40.0,
+        ge=0,
+        le=90,
+        units="deg",
+        nature=Nature.EFFECTIVE,
+        description="Spread of stick axes about the surface normal where they start.",
+    )
+    stick_fill: StickFill = Field(
+        default="quartz",
+        description=(
+            "What replaces the stick crystals at the end: quartz (a pseudomorph) or "
+            "nothing (they dissolve and leave hollow moulds)."
         ),
     )
     iris_fraction: float = param(
@@ -771,6 +828,49 @@ def grow_crystals(
     return grain
 
 
+def grow_sticks(
+    domain: Domain,
+    open_: NDArray[np.bool_],
+    first: bool,
+    rng: np.random.Generator,
+    *,
+    spacing_mm: float,
+    length_mm: float,
+    elongation: float,
+    scatter_deg: float,
+) -> tuple[FloatArray, NDArray[np.int32]]:
+    """Stick crystals (ADR 0049): crystals nucleated on the surface of the open
+    space grow with a blade habit for `length_mm` of tip growth, competing as
+    the quartz crystals do. Each is a prism `length_mm` long and about
+    2 × length / elongation wide, with a pointed tip, unless a neighbour got
+    there first. Returns each pixel's growth order in [0, 1] (inf where no
+    stick reaches) and its crystal (-1 elsewhere). `first` says the open space
+    is the whole, empty cavity, whose exact wall the sites are placed on."""
+    grid, dx = domain.grid, domain.grid.dx
+    front = (
+        _initial_front(domain, SITE_SEPARATION * spacing_mm / 10)
+        if first
+        else _pixel_front(grid, open_)
+    )
+    sites = _place_sites(front, spacing_mm, domain.cavity.bounds(), rng)
+    depth = (
+        domain.solid_distance() if first else np.maximum(_scipy.distance_to_false(open_, dx), 0.0)
+    )
+    near = open_ & (depth <= length_mm + dx)  # no stick reaches further from the surface
+    rows, cols = np.nonzero(near)
+    xx, yy = grid.coords()
+    pts = np.stack([xx[rows, cols], yy[rows, cols]], axis=1)
+    order = np.full(grid.shape, np.inf)
+    owner = np.full(grid.shape, -1, dtype=np.int32)
+    if not len(sites.points) or not len(pts):
+        return order, owner
+    d, who = _assign(_Crystals(sites, elongation, scatter_deg), pts, len(sites.points), dx)
+    hit = d <= length_mm
+    order[rows[hit], cols[hit]] = d[hit] / length_mm
+    owner[rows[hit], cols[hit]] = who[hit].astype(np.int32)
+    return order, owner
+
+
 def wall_sites(domain: Domain, spacing_mm: float, rng: np.random.Generator) -> Sites:
     """Blue-noise sites about `spacing_mm` apart on the exact cavity wall (and
     tube surfaces), with their inward normals."""
@@ -854,6 +954,24 @@ def _fill(
             filled_at[new] = steps[new]
             inclusion |= new
             continue
+        if m is Mode.STICK:
+            # Blade-shaped crystals grow before the silica; growth order maps onto the stage.
+            order, stick = grow_sticks(
+                domain,
+                open_,
+                not (filled_at >= 0).any(),
+                rng_crystals.spawn(1)[0],
+                spacing_mm=params.stick_spacing_mm,
+                length_mm=params.stick_length_mm,
+                elongation=params.stick_elongation,
+                scatter_deg=params.stick_axis_scatter_deg,
+            )
+            new = np.isfinite(order)
+            steps = a + np.minimum(np.floor(order * (b - a)), b - a - 1).astype(np.int64)
+            filled_at[new] = steps[new]
+            grain[new] = crystals + stick[new]
+            crystals += int(stick.max()) + 1 if new.any() else 0
+            continue
         cumulative = np.cumsum(step_mm[a:b])
         if cumulative[-1] <= 0:
             continue
@@ -914,10 +1032,12 @@ def growth_modes(params: ProceduralGrowth, tau: FloatArray) -> NDArray[np.int64]
     quartz = (supply > 0) & (supply < params.quartz_threshold)
     spherulitic = s.spherulitic.sample(tau) >= SWITCH_ON
     dendrite = s.dendrite.sample(tau) >= SWITCH_ON
+    sticks = s.sticks.sample(tau) >= SWITCH_ON
     mode = np.where(spherulitic, Mode.SPHERULITIC, Mode.LINING)
     mode = np.where(quartz, Mode.CRYSTAL, mode)
     mode = np.where(settle, Mode.SETTLING, mode)
-    return np.where(dendrite, Mode.DENDRITE, mode).astype(np.int64)
+    mode = np.where(dendrite, Mode.DENDRITE, mode)
+    return np.where(sticks, Mode.STICK, mode).astype(np.int64)
 
 
 def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generator) -> Fields:
@@ -949,8 +1069,12 @@ def growth_fields(
     step = np.maximum(fill.filled_at, 0)
     t_dep = np.where(filled, tau[step], np.nan)
     inclusion = fill.inclusion
-    quartz = filled & ~inclusion & (mode[step] == Mode.CRYSTAL)
-    chalcedony = filled & ~inclusion & ~quartz
+    # Stick crystals end replaced by quartz (a pseudomorph) or dissolved (ADR 0049).
+    stick = filled & ~inclusion & (mode[step] == Mode.STICK)
+    hollow = stick if params.stick_fill == "hollow" else np.zeros_like(stick)
+    quartz = filled & ~inclusion & ((mode[step] == Mode.CRYSTAL) | (stick & ~hollow))
+    chalcedony = filled & ~inclusion & ~quartz & ~stick
+    t_dep = np.where(hollow, np.nan, t_dep)
 
     # Bands are periods of formation time.
     bands = make_bands(

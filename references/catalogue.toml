@@ -606,3 +606,31 @@ checked = "sections"
 sections_read = ["introduction", "results (in part)", "discussion (in part)"]
 topics = ["genesis", "silica-supply", "quartz-transition"]
 notes = "Read 2026-10-17. Introduction: the prevailing hypothesis is that voids in volcanic rock fill in cycles from rim to centre, with silica-rich fluids entering through microfissures or infiltration canals; zone shape and width depend on the fluids' silica concentration, temperature, pressure and the timing of influxes; idiomorphic quartz forms at the final stage, mainly in the centre. Results: infiltration canals seen within zones; almost invisible internal boundaries taken to indicate a continuous, even supply. Discussion: crystallisation lasted millions of years, in stages. Nothing on when or how the cavity was sealed."
+
+[[references]]
+id = "hatipoglu2000"
+kind = "article"
+authors = ["Hatipoğlu, M.", "Dora, O. Ö."]
+year = 2000
+title = "Mineralogy of the Ankara agate and origin of its banded structure"
+venue = "Yerbilimleri (Bulletin for Earth Sciences, Hacettepe University) 22, 1–12"
+url = "https://yerbilimleri.hacettepe.edu.tr/toc22.shtml"
+access = "open"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["stick", "barred-agate", "pseudomorph", "genesis"]
+notes = "Turkish full text; its abstract page is an image and the PDF could not be read as text (2026-10-17). What is known of the Ankara (Çubuk) work comes only from search-engine summaries of related listings by the same author, not read: andesite-hosted agates with bar-shaped inclusions of chalcedony and quartz pseudomorphs, first named 'barred agates'; the bars formed before the agate; some dissolved, leaving hollow tubes. Treat as unverified."
+
+[[references]]
+id = "chowns1974"
+kind = "article"
+authors = ["Chowns, T. M.", "Elkins, J. E."]
+year = 1974
+title = "The origin of quartz geodes and cauliflower cherts through the silicification of anhydrite nodules"
+venue = "Journal of Sedimentary Petrology 44(3), 885–903"
+url = "https://archives.datapages.com/data/sepm/journals/v42-46/data/044/044003/0885.htm"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "abstract"
+topics = ["pseudomorph", "replacement", "anhydrite", "quartz"]
+notes = "Abstract (2026-10-17): quartz geodes in Tennessee dolostones are pseudomorphs after early diagenetic anhydrite nodules, silicified before compaction; silica probably from sponge spicules. Later authors question the sabkha setting."

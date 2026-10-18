@@ -19,6 +19,7 @@ EXPECTED_LADDER = [
     "plume",
     "shadow",
     "iris",
+    "stick",
 ]
 
 
