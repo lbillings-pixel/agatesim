@@ -86,3 +86,14 @@ agate, from Ankara (Turkey) and Morocco.
 - Stick agate's mechanistic verification rests on thin sourcing for the
   form itself; the ADR names it as such. Reading the Hatipoğlu and Dora
   paper would test the picture (and might settle the original mineral).
+
+## Amendment (2026-10-17): the presets moved to a volcanic vesicle
+
+The Ankara agates sit in andesite, and the registry lists stick agate's host
+as volcanic, so both presets now use the 40 mm round vesicle rather than a
+sedimentary nodule. Results at 768, 384 and 256 px:
+
+- `stick-mechanistic`: all 18 patches straight (1.0), fill 1.0, wrap 1.0.
+- `stick`: all 19 straight (1.0), fill 1.0; with the procedural bands'
+  wobble lowered from 0.1 to 0.03 mm, wrap 1.0, 0.92 and 0.87 (with 0.1 mm,
+  0.70, 0.64 and 0.68: the wobble is large next to the bands nearest a stick).

@@ -11,7 +11,7 @@ archetype = "stick"
 resolution = 768
 
 [cavity]
-preset = "nodule-round"
+preset = "vesicle-round"
 size_mm = 40
 
 [model]

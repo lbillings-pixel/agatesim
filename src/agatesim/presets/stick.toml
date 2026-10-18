@@ -10,13 +10,14 @@ archetype = "stick"
 resolution = 768
 
 [cavity]
-preset = "nodule-round"
+preset = "vesicle-round"
 size_mm = 40
 
 [model]
 kind = "procedural-growth"
 growth_mm = 20
 band_period = 0.02
+wobble_mm = 0.03
 stick_spacing_mm = 6
 stick_length_mm = 7
 stick_elongation = 20

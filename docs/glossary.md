@@ -19,6 +19,23 @@ Plain-language meanings of terms used in the docs, the web app and the ADRs.
   corner's bisector. In many agates it shows as a visible seam.
 - **Marker band.** A band distinctive enough, by colour for example, to follow
   around a whole agate. It records a single moment in growth.
+- **Quartz-centre geode.** Banded chalcedony lining a cavity, with coarse
+  quartz crystals growing inward from it and often an open centre.
+- **Plume agate.** Feathery, upward-growing inclusions enclosed in chalcedony,
+  read as a silica garden.
+- **Silica garden (chemical garden).** Tubes that grow when a dissolving seed's
+  membrane bursts and its lighter inner solution rises, precipitating where it
+  meets the outer fluid ([ADR 0044](adr/0044-plume-agate-as-a-silica-garden.md)).
+- **Stick agate.** Straight, crystal-shaped rods inside the agate: blades of an
+  earlier mineral that grew in the cavity first, were lined by the bands and
+  were later replaced or dissolved ([ADR 0049](adr/0049-stick-agate.md)).
+- **Pseudomorph.** A mineral that has taken the place, and kept the shape, of
+  another: quartz in the shape of the crystal it replaced. A hollow mould is
+  the shape left empty.
+- **Pigment.** What colours a band: mineral inclusions such as hematite (red),
+  goethite (yellow), celadonite (green) or Mn oxide (black), or how the
+  chalcedony scatters light (blue, white). An amethyst-like iron colour centre
+  gives violet ([ADR 0050](adr/0050-pigments-and-a-palette.md)).
 
 ## Measuring
 
@@ -60,6 +77,18 @@ Plain-language meanings of terms used in the docs, the web app and the ADRs.
   chemicals meet, like the bands in some rocks and gels.
 - **H4, hindered settling.** Particles settling in pulses and packing up from
   the floor: the waterline mechanism.
+- **Open and closed cavity.** An open cavity keeps getting fresh fluid, so its
+  bands keep their rhythm; a closed one uses up what it holds, so its silica
+  falls until quartz grows. A geode can be open while it bands and close
+  later ([ADR 0046](adr/0046-a-geode-that-bands-while-open.md)).
+- **Milky and clear bands.** In H1 each cycle's fast, impurity-rich half is
+  milky and its slow half clear, an assumption no source yet confirms
+  ([ADR 0048](adr/0048-shadow-agate-by-a-stated-milkiness-link.md)).
+- **Palette.** Relative shares of the pigments that colour the bands, for the
+  procedural models and settled pulses.
+- **Trace pigments.** Iron and manganese carried by H1's front feedback like
+  its impurity: rejected by slow growth, trapped by fast growth, so they stain
+  the fast bands.
 - **Parameter natures.** Every model setting is labelled *physical* (a real
   quantity with units), *effective* (a stand-in for physics not modelled in
   detail) or *imposed* (a condition set from outside, such as a supply
