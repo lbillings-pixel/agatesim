@@ -413,7 +413,9 @@ def prepare_growth(
     problem = unsupported_in_3d(params)
     if problem is not None:
         raise ValueError(problem)
-    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = rng.spawn(7)
+    streams = rng.spawn(8)
+    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = streams[:7]
+    rng_palette = streams[7]
     tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
     supply = np.clip(params.schedules.silica.sample(tau), 0.0, 1.0)
     mode = growth_modes(params, tau)
@@ -518,7 +520,14 @@ def prepare_growth(
                 grain[open_idx[new]] = (st.crystal_offset + owner[new]).astype(np.int32)
         fill = Fill(filled_at=filled_at, grain=grain, inclusion=tube | dendrite)
         fields = growth_fields(
-            params, fill, mode, inside, _same(rng_bands), _same(rng_iron), _same(rng_micro)
+            params,
+            fill,
+            mode,
+            inside,
+            _same(rng_bands),
+            _same(rng_iron),
+            _same(rng_micro),
+            _same(rng_palette),
         )
         if tube.any():
             # Tint 0: filament cores are reported as Fe-silicates such as celadonite.

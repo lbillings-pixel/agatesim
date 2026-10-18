@@ -30,11 +30,12 @@ from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models.base import Domain
+from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
 
 HEIGHT_CELLS = 400  # vertical resolution of the settling column
@@ -116,6 +117,13 @@ class Settling(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="Pulse-to-pulse variation of the particles' iron.",
+    )
+    palette: Palette = Field(
+        default_factory=Palette,
+        description=(
+            "Which pigments the pulses' particles carry, as relative shares (ADR 0050): a "
+            "condition of the supply, drawn per pulse."
+        ),
     )
 
     def gravity(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
@@ -235,7 +243,7 @@ def run_settling(
     """Settle the pulses in the cavity or, if region is given, in that part of it
     (the open space left by an earlier stage). The cavity's widths are exact; a
     region's are counted from its pixels."""
-    rng_dose, rng_iron, rng_clarity = rng.spawn(3)
+    rng_dose, rng_iron, rng_clarity, rng_palette = rng.spawn(4)
     g = params.gravity()
     xx, yy = domain.grid.coords()
     up = -(xx * g[0] + yy * g[1])  # height along −gravity
@@ -254,7 +262,7 @@ def run_settling(
         dz = (z1 - z0) / HEIGHT_CELLS
         cells = np.clip(((up[region] - z0) / dz).astype(int), 0, HEIGHT_CELLS - 1)
         width = np.bincount(cells, minlength=HEIGHT_CELLS) * domain.grid.dx**2 / dz
-    column = settle_column(params, width, z0, z1, rng_dose, rng_iron, rng_clarity)
+    column = settle_column(params, width, z0, z1, rng_dose, rng_iron, rng_clarity, rng_palette)
     return column.fields(up, mask)
 
 
@@ -270,6 +278,7 @@ class SettledColumn:
     pulse_of: NDArray[np.int64]
     iron: FloatArray  # per pulse
     clarity: FloatArray  # per pulse
+    pigment: NDArray[np.uint8] | None = None  # per pulse; None = iron (ADR 0050)
 
     @property
     def top(self) -> float:
@@ -298,6 +307,11 @@ class SettledColumn:
             t_dep=t_dep.astype(np.float32),
             grain=np.full(up.shape, -1, dtype=np.int32),
             micro_spacing_um=np.full(up.shape, np.nan, dtype=np.float32),
+            pigment=(
+                None
+                if self.pigment is None
+                else np.where(bed, self.pigment[source], 0).astype(np.uint8)
+            ),
         )
 
 
@@ -309,6 +323,7 @@ def settle_column(
     rng_dose: np.random.Generator,
     rng_iron: np.random.Generator,
     rng_clarity: np.random.Generator,
+    rng_palette: np.random.Generator | None = None,
 ) -> SettledColumn:
     """Settle the pulses in a column from z0 to z1 with the given widths per height
     cell (in 3D, cross-section areas)."""
@@ -326,4 +341,5 @@ def settle_column(
         pulse_of=pulse_of,
         iron=iron,
         clarity=clarity,
+        pigment=None if rng_palette is None else params.palette.draw(params.pulses, rng_palette),
     )

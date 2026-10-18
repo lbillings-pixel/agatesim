@@ -59,6 +59,7 @@ from agatesim.geometry import circle, densify
 from agatesim.grid import FloatArray, Grid
 from agatesim.models import dendrites
 from agatesim.models.base import Domain, make_bands, smooth_noise, tube_distance
+from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
 from agatesim.schedules import Schedule
 
@@ -443,6 +444,10 @@ class ProceduralGrowth(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Length scale of band irregularity.",
+    )
+    palette: Palette = Field(
+        default_factory=Palette,
+        description="Which pigments colour the bands, as relative shares (ADR 0050).",
     )
     schedules: Schedules = Field(default_factory=Schedules)
 
@@ -1041,7 +1046,8 @@ def growth_modes(params: ProceduralGrowth, tau: FloatArray) -> NDArray[np.int64]
 
 
 def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generator) -> Fields:
-    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = rng.spawn(7)
+    streams = rng.spawn(8)
+    rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = streams[:7]
     tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
     s = params.schedules
     supply = np.clip(s.silica.sample(tau), 0.0, 1.0)
@@ -1049,7 +1055,9 @@ def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generato
 
     noise = smooth_noise(domain, params.wobble_scale_mm, rng_noise)
     fill = _fill(params, domain, supply, mode, noise, rng_sites, rng_crystals, rng_dendrites)
-    return growth_fields(params, fill, mode, domain.mask, rng_bands, rng_iron, rng_micro)
+    return growth_fields(
+        params, fill, mode, domain.mask, rng_bands, rng_iron, rng_micro, streams[7]
+    )
 
 
 def growth_fields(
@@ -1060,6 +1068,7 @@ def growth_fields(
     rng_bands: np.random.Generator,
     rng_iron: np.random.Generator,
     rng_micro: np.random.Generator,
+    rng_palette: np.random.Generator | None = None,
 ) -> Fields:
     """Fields from when each point filled, for arrays of any shape (a slab, a
     volume or a list of points); mask is True inside the cavity."""
@@ -1113,6 +1122,12 @@ def growth_fields(
     )
     band_spacing = np.where(regular, spacing, np.nan)
     micro = np.where(chalcedony, band_spacing[safe], np.nan)
+    band_pigment = None if rng_palette is None else params.palette.draw(bands.count, rng_palette)
+    pigment = (
+        None
+        if band_pigment is None
+        else np.where(chalcedony, band_pigment[safe], 0).astype(np.uint8)
+    )
     return Fields(
         phase=phase,
         band=band,
@@ -1121,4 +1136,5 @@ def growth_fields(
         t_dep=t_dep.astype(np.float32),
         grain=np.where(quartz, fill.grain, -1).astype(np.int32),
         micro_spacing_um=micro.astype(np.float32),
+        pigment=pigment,
     )

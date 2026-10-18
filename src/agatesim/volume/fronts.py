@@ -240,6 +240,8 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
         impurity = np.zeros(n, dtype=np.float32)
         translucency = np.zeros(n, dtype=np.float32)
         t_dep = np.full(n, np.nan, dtype=np.float32)
+        pigment = np.zeros(n, dtype=np.uint8)
+        pigmented = False  # whether any stage named its pigments (ADR 0050)
         next_band = 0
         for i, st in enumerate(stages):
             open_now = inside & ~tube & (phase == Phase.VOID)
@@ -274,6 +276,9 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
             phase[grown] = fields.phase[grown]
             impurity[grown] = fields.impurity[grown]
             translucency[grown] = fields.translucency[grown]
+            if fields.pigment is not None:
+                pigment[grown] = fields.pigment[grown]
+                pigmented = True
             t = np.nan_to_num(fields.t_dep[grown], nan=1.0) / st.t_scale
             t_dep[grown] = (i + STAGE_SPAN * np.clip(t, 0, 1)) / len(order)
         fields = Fields(
@@ -284,6 +289,7 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
             t_dep=t_dep,
             grain=np.full(n, -1, dtype=np.int32),
             micro_spacing_um=np.full(n, np.nan, dtype=np.float32),
+            pigment=pigment if pigmented else None,
         )
         return _with_tubes(fields, tube)
 

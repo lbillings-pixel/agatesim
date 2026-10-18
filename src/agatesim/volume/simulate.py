@@ -49,6 +49,8 @@ class VolumeSimulation:
         t_dep = np.full(shape, np.nan, dtype=np.float32)
         grain = np.full(shape, -1, dtype=np.int32)
         micro = np.full(shape, np.nan, dtype=np.float32)
+        pigment = np.zeros(shape, dtype=np.uint8)
+        pigmented = False
         inside = np.zeros(shape, dtype=bool)
         for layers, points in grid.chunks():
             ins = self.setting.solid.contains(points)
@@ -61,6 +63,9 @@ class VolumeSimulation:
             t_dep[layers] = f.t_dep.reshape(part)
             grain[layers] = f.grain.reshape(part)
             micro[layers] = f.micro_spacing_um.reshape(part)
+            if f.pigment is not None:
+                pigment[layers] = f.pigment.reshape(part)
+                pigmented = True
             inside[layers] = ins.reshape(part)
         fields = Fields(
             phase=phase,
@@ -70,6 +75,7 @@ class VolumeSimulation:
             t_dep=t_dep,
             grain=grain,
             micro_spacing_um=micro,
+            pigment=pigment if pigmented else None,
         )
         return VolumeResult(grid=grid, fields=fields, inside=inside)
 

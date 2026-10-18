@@ -77,6 +77,11 @@ and which proposed formation mechanisms, can produce them.
   the bands. The form's own sources are thin; the original mineral
   (anhydrite or aragonite) is open
   ([ADR 0049](docs/adr/0049-stick-agate.md)).
+- **Colour from pigments.** Bands can be coloured by hematite, goethite,
+  celadonite, Mn oxide, a violet colour centre, blue scattering or white, as
+  the sources describe; procedural models draw from a palette, and H1 carries
+  trace iron and manganese through the same front feedback at no measurable
+  cost ([ADR 0050](docs/adr/0050-pigments-and-a-palette.md)).
 - **A cut changes what you see.** On random cuts through 3D results, bands look
   1.07–1.18 times thicker than they are, and some forms show on only a minority
   of cuts ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)). In 3D the

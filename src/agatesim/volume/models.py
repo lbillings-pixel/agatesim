@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import cached_property
 
 import numpy as np
@@ -181,7 +181,7 @@ def prepare(model: VolumeModel, setting: Setting, rng: np.random.Generator) -> E
 def _fortification(
     params: ProceduralFortification, setting: Setting, rng: np.random.Generator
 ) -> Evaluator:
-    rng_bands, rng_noise = rng.spawn(2)
+    rng_bands, rng_noise, rng_palette = rng.spawn(3)
     depth = params.fill_fraction * float(setting.reference.distance.max())
     bands = make_bands(
         total_mm=depth,
@@ -193,6 +193,7 @@ def _fortification(
         iron_variability=params.iron_variability,
         rng=rng_bands,
     )
+    bands = replace(bands, pigment=params.palette.draw(bands.count, rng_palette))
     noise = SmoothNoise3(setting.solid, params.wobble_scale_mm, rng_noise)
 
     def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
@@ -208,7 +209,7 @@ def _fortification(
 def _waterline(
     params: ProceduralWaterline, setting: Setting, rng: np.random.Generator
 ) -> Evaluator:
-    rng_bands, rng_noise = rng.spawn(2)
+    rng_bands, rng_noise, rng_palette = rng.spawn(3)
     level = params.fill_height_fraction * setting.cavity_height
     bands = make_bands(
         total_mm=level,
@@ -220,6 +221,7 @@ def _waterline(
         iron_variability=params.iron_variability,
         rng=rng_bands,
     )
+    bands = replace(bands, pigment=params.palette.draw(bands.count, rng_palette))
     noise = SmoothNoise3(setting.solid, params.wobble_scale_mm, rng_noise)
 
     def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
@@ -234,11 +236,11 @@ def column_of(
     params: Settling, setting: Setting, heights: FloatArray, rng: np.random.Generator
 ) -> SettledColumn:
     """Settle the pulses in the region sampled by reference points at `heights`."""
-    rng_dose, rng_iron, rng_clarity = rng.spawn(3)
+    rng_dose, rng_iron, rng_clarity, rng_palette = rng.spawn(4)
     s = setting.reference.spacing
     z0, z1 = float(heights.min()) - s / 2, float(heights.max()) + s / 2
     width = area_profile(heights, s, z0, z1)
-    return settle_column(params, width, z0, z1, rng_dose, rng_iron, rng_clarity)
+    return settle_column(params, width, z0, z1, rng_dose, rng_iron, rng_clarity, rng_palette)
 
 
 def _settling(params: Settling, setting: Setting, rng: np.random.Generator) -> Evaluator:

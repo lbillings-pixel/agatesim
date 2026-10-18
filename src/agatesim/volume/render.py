@@ -20,7 +20,7 @@ def voxel_rgba(volume: VolumeResult) -> NDArray[np.uint8]:
     f = volume.fields
     trans = f.translucency.astype(np.float64)
     iron = f.impurity.astype(np.float64)
-    rgb = chalcedony_colour(trans, iron)
+    rgb = chalcedony_colour(trans, iron, f.pigment)
     quartz = f.phase == Phase.QUARTZ
     if quartz.any():
         rgb[quartz] = 0.6 * QUARTZ_CLEAR + 0.4 * QUARTZ_MILKY

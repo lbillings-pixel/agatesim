@@ -364,6 +364,8 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
     translucency = np.zeros(shape, dtype=np.float32)
     t_dep = np.full(shape, np.nan, dtype=np.float32)
     grain = np.full(shape, -1, dtype=np.int32)
+    pigment = np.zeros(shape, dtype=np.uint8)
+    pigmented = False  # whether any stage named its pigments (ADR 0050)
     stick = np.zeros(shape, dtype=bool)
     cavity_pixels = int(domain.mask.sum())
     next_band = 0
@@ -418,6 +420,9 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
         phase[grown] = fields.phase[grown]
         impurity[grown] = fields.impurity[grown]
         translucency[grown] = fields.translucency[grown]
+        if fields.pigment is not None:
+            pigment[grown] = fields.pigment[grown]
+            pigmented = True
         crystal = grown & (fields.grain >= 0)
         if crystal.any():
             grain[crystal] = fields.grain[crystal] + next_grain
@@ -441,4 +446,5 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
         t_dep=t_dep,
         grain=grain,
         micro_spacing_um=np.full(shape, np.nan, dtype=np.float32),
+        pigment=pigment if pigmented else None,
     )

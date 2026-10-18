@@ -68,7 +68,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim import _scipy
-from agatesim.fields import Fields, Phase
+from agatesim.fields import Fields, Phase, Pigment
 from agatesim.grid import FloatArray
 from agatesim.models.base import Domain
 from agatesim.models.growth import grow_crystals, spherulite_distance
@@ -77,6 +77,66 @@ from agatesim.params import Nature, param, used_when
 GEOMETRY_SAMPLES = 400  # depths at which the cavity's filled share is tabulated
 TRACE_SAMPLES = 20000  # depths at which the front's history is tabulated
 MILKY, CLEAR = 0.15, 0.9  # translucency of milky and clear chalcedony (and of quartz: clear)
+
+
+class TracePigments(BaseModel):
+    """Iron and manganese carried as trace pigments by the same front feedback
+    (ADR 0050): rejected by slow growth, trapped by fast growth, as iron
+    pigments are rejected by crystallising silica and gather along the bands
+    ([@goetze2020] §5.4). They colour the bands; they leave the growth alone."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    iron: float = param(
+        0.0,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Iron in the fluid, as a trace pigment (0 = none: the bands are stained by the "
+            "catalysing impurity, as before ADR 0050)."
+        ),
+    )
+    iron_partition: float = param(
+        0.1,
+        ge=0,
+        lt=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="k₀ for iron: share of it incorporated at slow growth (fast growth traps it).",
+    )
+    manganese: float = param(
+        0.0,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="Manganese in the fluid, as a trace pigment (black Mn oxide; 0 = none).",
+    )
+    manganese_partition: float = param(
+        0.3,
+        ge=0,
+        lt=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="k₀ for manganese: share of it incorporated at slow growth.",
+    )
+    hematite_from: float = param(
+        0.0,
+        ge=0,
+        le=1,
+        units="× run",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Share of the formation time after which iron precipitates as hematite (red); "
+            "before it, as goethite (yellow). A scheduled change of conditions."
+        ),
+    )
+
+    @property
+    def enabled(self) -> bool:
+        return self.iron > 0 or self.manganese > 0
 
 
 class FrontFeedback(BaseModel):
@@ -226,6 +286,10 @@ class FrontFeedback(BaseModel):
             "a property of any band)."
         ),
     )
+    trace: TracePigments = Field(
+        default_factory=TracePigments,
+        description="Iron and manganese as trace pigments, colouring the bands (ADR 0050).",
+    )
     micro_rhythm: bool = Field(
         default=False,
         description=(
@@ -310,6 +374,9 @@ class FrontHistory:
     stopped_mm: float  # depth where growth stopped (silica exhausted), or the deepest point
     supply: FloatArray  # the bulk-silica forcing factor at each time (1 = none)
     micro_spacing_um: FloatArray | None = None  # micro-band spacing (µm); NaN where none
+    # Trace pigments (ADR 0050): stain strength 0..1 and Pigment value per sample.
+    pigment_strength: FloatArray | None = None
+    pigment: NDArray[np.uint8] | None = None
 
 
 @dataclass(frozen=True)
@@ -398,19 +465,42 @@ def history_from_distances(
         a_b = max((1.0 - fc) - incorporated, 0.0) / fluid
         return supply * s_b, a_b
 
+    trace = params.trace
+    # Trace species (ADR 0050), each a boundary-layer concentration and the amount
+    # incorporated since closing, like the catalysing impurity's. None by default,
+    # so the solver sees exactly the four states it always did.
+    species = [
+        (name, level, k)
+        for name, level, k in (
+            ("iron", trace.iron, trace.iron_partition),
+            ("manganese", trace.manganese, trace.manganese_partition),
+        )
+        if level > 0
+    ]
+
     def rhs(t: float, y: NDArray[np.float64]) -> list[float]:
-        s, a, depth, inc = (float(v) for v in y)
+        s, a, depth, inc = (float(v) for v in y[:4])
         s_b, a_b = bulk(t, depth, inc)
         v = velocity(s, a)
         k = (k0 + v / vt) / (1.0 + v / vt)
         d_share = float(np.interp(depth, depths, slope))
         trapped = float(np.interp(depth, depths, share)) >= fc
-        return [
+        out = [
             eps * ((s_b - s) - gamma * v),
             (a_b - a) + lam * v * (1.0 - k) * a,
             v * delta,
             k * a * d_share * v * delta if trapped else 0.0,
         ]
+        for j, (_, _, k0j) in enumerate(species):
+            aj, ij = float(y[4 + 2 * j]), float(y[5 + 2 * j])
+            # The same bulk as the catalysing impurity, with its own amount used up.
+            a_bj = bulk(t, depth, ij)[1]
+            kj = (k0j + v / vt) / (1.0 + v / vt)
+            out += [
+                (a_bj - aj) + lam * v * (1.0 - kj) * aj,
+                kj * aj * d_share * v * delta if trapped else 0.0,
+            ]
+        return out
 
     def filled(_t: float, y: NDArray[np.float64]) -> float:
         return last - float(y[2])
@@ -425,11 +515,11 @@ def history_from_distances(
     if forcing is not None:
         horizon = min(horizon, float(forcing.time[-1]))
     max_step = 1.0 if forcing is None else min(1.0, float(forcing.time[1]))
-    t_end, sample = _scipy.solve_ode(
-        rhs, [s0, 1.0, 0.0, 0.0], horizon, [filled, exhausted], max_step=max_step
-    )
+    y0 = [s0, 1.0, 0.0, 0.0] + [1.0, 0.0] * len(species)
+    t_end, sample = _scipy.solve_ode(rhs, y0, horizon, [filled, exhausted], max_step=max_step)
     times = np.linspace(0.0, t_end, TRACE_SAMPLES)
-    s, a, depth, inc = sample(times)
+    states = sample(times)
+    s, a, depth, inc = states[:4]
     depth = np.maximum.accumulate(np.clip(depth, 0.0, last))
     v = np.array([velocity(float(si), float(ai)) for si, ai in zip(s, a, strict=True)])
     k = (k0 + v / vt) / (1.0 + v / vt)
@@ -444,6 +534,9 @@ def history_from_distances(
         quartz = np.maximum.accumulate(quartz)  # once quartz, always quartz
     else:
         quartz = np.zeros(len(times), dtype=bool)
+    strength, pigment = (
+        _trace_colour(trace, species, states[4:], v, vt, times, quartz) if species else (None, None)
+    )
     return FrontHistory(
         depth_mm=depth,
         time=times,
@@ -452,7 +545,38 @@ def history_from_distances(
         quartz=quartz,
         stopped_mm=float(depth[-1]),
         supply=np.ones_like(times) if forcing is None else forcing.at(times),
+        pigment_strength=strength,
+        pigment=pigment,
     )
+
+
+def _trace_colour(
+    trace: TracePigments,
+    species: list[tuple[str, float, float]],
+    states: NDArray[np.float64],
+    v: FloatArray,
+    vt: float,
+    times: FloatArray,
+    quartz: NDArray[np.bool_],
+) -> tuple[FloatArray, NDArray[np.uint8]]:
+    """Stain strength and pigment at each sample from the incorporated trace
+    species: each species' log concentration over the chalcedony's range, times
+    its level in the fluid; the stronger species colours the band (a rendering
+    assumption, ADR 0050). Iron is goethite before `hematite_from`, hematite after."""
+    chal = ~quartz
+    strengths: list[FloatArray] = []
+    for j, (_, level, k0j) in enumerate(species):
+        kj = (k0j + v / vt) / (1.0 + v / vt)
+        c = np.log(np.maximum(kj * states[2 * j], 1e-12))
+        lo, hi = (float(c[chal].min()), float(c[chal].max())) if chal.any() else (0.0, 1.0)
+        strengths.append(level * np.clip((c - lo) / max(hi - lo, 1e-9), 0.0, 1.0))
+    stack = np.stack(strengths)
+    top = np.argmax(stack, axis=0)
+    manganese = np.array([name == "manganese" for name, _, _ in species])[top]
+    late = times / max(float(times[-1]), 1e-12) >= trace.hematite_from
+    iron_mineral = np.where(late, Pigment.HEMATITE, Pigment.GOETHITE)
+    pigment = np.where(manganese, Pigment.MANGANESE, iron_mineral).astype(np.uint8)
+    return stack.max(axis=0), pigment
 
 
 def forced_history(params: FrontFeedback, domain: Domain, rng: np.random.Generator) -> FrontHistory:
@@ -602,6 +726,9 @@ def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]
     # as if the fibre type changed with the band. H1 pairs trace-element-rich
     # bands with twisted fibres.
     milky = log_c > milky_level(history)
+    if history.pigment_strength is not None:
+        # Trace pigments stain the bands instead of the catalysing impurity (ADR 0050).
+        stain = history.pigment_strength[idx]
     phase = np.full(d.shape, Phase.HOST, dtype=np.uint8)
     phase[mask] = Phase.VOID
     phase[chal] = Phase.CHALCEDONY
@@ -620,4 +747,9 @@ def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]
             if history.micro_spacing_um is not None
             else np.full(d.shape, np.nan)
         ).astype(np.float32),
+        pigment=(
+            np.where(chal, history.pigment[idx], 0).astype(np.uint8)
+            if history.pigment is not None
+            else None
+        ),
     )

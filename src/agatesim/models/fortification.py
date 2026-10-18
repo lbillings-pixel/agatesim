@@ -7,14 +7,16 @@ the form rather than explaining it (ADR 0003).
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Literal
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim import _scipy
 from agatesim.fields import Fields
 from agatesim.models.base import Domain, fields_from_bands, make_bands, smooth_noise
+from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
 
 
@@ -89,12 +91,16 @@ class ProceduralFortification(BaseModel):
         nature=Nature.EFFECTIVE,
         description="Smooths band corners (0 = bands keep the wall's sharp corners).",
     )
+    palette: Palette = Field(
+        default_factory=Palette,
+        description="Which pigments colour the bands, as relative shares (ADR 0050).",
+    )
 
 
 def run_fortification(
     params: ProceduralFortification, domain: Domain, rng: np.random.Generator
 ) -> Fields:
-    rng_bands, rng_noise = rng.spawn(2)
+    rng_bands, rng_noise, rng_palette = rng.spawn(3)
     d = domain.wall_distance
     depth = params.fill_fraction * float(d.max())
     bands = make_bands(
@@ -107,6 +113,7 @@ def run_fortification(
         iron_variability=params.iron_variability,
         rng=rng_bands,
     )
+    bands = replace(bands, pigment=params.palette.draw(bands.count, rng_palette))
     coord = d
     if params.corner_rounding_mm > 0:
         coord = _scipy.gaussian(coord, sigma=params.corner_rounding_mm / domain.grid.dx)

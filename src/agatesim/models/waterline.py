@@ -7,13 +7,15 @@ an analogue of gravity settling (hypothesis H4 in docs/science/mechanisms.md).
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 from typing import Literal
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim.fields import Fields
 from agatesim.models.base import Domain, fields_from_bands, make_bands, smooth_noise
+from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
 
 
@@ -92,6 +94,10 @@ class ProceduralWaterline(BaseModel):
         nature=Nature.EFFECTIVE,
         description="Length scale of layer irregularity.",
     )
+    palette: Palette = Field(
+        default_factory=Palette,
+        description="Which pigments colour the bands, as relative shares (ADR 0050).",
+    )
 
     def gravity(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         th = math.radians(self.gravity_deg)
@@ -99,7 +105,7 @@ class ProceduralWaterline(BaseModel):
 
 
 def run_waterline(params: ProceduralWaterline, domain: Domain, rng: np.random.Generator) -> Fields:
-    rng_bands, rng_noise = rng.spawn(2)
+    rng_bands, rng_noise, rng_palette = rng.spawn(3)
     g = params.gravity()
     xx, yy = domain.grid.coords()
     # Height above the cavity's lowest point, taken from the exact geometry so it
@@ -117,6 +123,7 @@ def run_waterline(params: ProceduralWaterline, domain: Domain, rng: np.random.Ge
         iron_variability=params.iron_variability,
         rng=rng_bands,
     )
+    bands = replace(bands, pigment=params.palette.draw(bands.count, rng_palette))
     coord = height + params.wobble_mm * smooth_noise(domain, params.wobble_scale_mm, rng_noise)
     filled = domain.mask & (coord < level)
     t_dep = np.clip(coord / level, 0, 1)

@@ -634,3 +634,32 @@ licence = "publisher copyright; cite only"
 checked = "abstract"
 topics = ["pseudomorph", "replacement", "anhydrite", "quartz"]
 notes = "Abstract (2026-10-17): quartz geodes in Tennessee dolostones are pseudomorphs after early diagenetic anhydrite nodules, silicified before compaction; silica probably from sponge spicules. Later authors question the sabkha setting."
+
+[[references]]
+id = "powolny2025"
+kind = "article"
+authors = ["Powolny, T.", "Dumańska-Słowik, M.", "Asadi, A.", "Hosseinzadeh, M. R.", "Krzątała, A."]
+year = 2025
+title = "Resolving colouration mechanisms in gem-quality chalcedony: mineralogical and spectroscopic constraints"
+venue = "Mineralogy and Petrology 120, 1–22 (2026; published online 2025)"
+doi = "10.1007/s00710-025-00953-x"
+access = "open"
+licence = "open access; licence not checked; cite only"
+checked = "sections"
+sections_read = ["abstract", "1 (introduction)", "results (in part)", "discussion: nature of colour"]
+topics = ["colour", "pigment", "chalcedony"]
+notes = "Read 2026-10-17. Colouration of chalcedony is predominantly linked to mineral inclusions rather than elemental impurities: Ni-bearing clays (chrysoprase) and Cr-bearing phyllosilicates green; chrysocolla blue-green; hematite-goethite red-orange; Mn oxides and/or carbonaceous material black. Blue in their type-II chalcedony from light scattering (Rayleigh/Tyndall), possibly enhanced by moganite or crystallite size, not inclusions; white from Mg-clay (sepiolite) inclusions and possibly Mie scattering; violet from amethyst-like Fe-related colour centres. Celadonite inclusions reported in their banded type IV."
+
+[[references]]
+id = "zhang2023"
+kind = "article"
+authors = ["Zhang, S.", "Cui, L.", "Guo, Q.", "Li, N.", "Liu, Y.", "Rao, Y.", "Liao, L."]
+year = 2023
+title = "A comparative study on gemological characteristics and color formation mechanism of Moqi agate, Inner Mongolia Province, China"
+venue = "Crystals 13(6), 977"
+doi = "10.3390/cryst13060977"
+access = "open"
+licence = "open access (MDPI); licence not checked; cite only"
+checked = "abstract"
+topics = ["colour", "pigment", "hematite", "goethite", "celadonite"]
+notes = "Abstract read 2026-10-17: colour relates to contained minerals and trace elements, via electron transitions or charge transfer of Fe ions; green agate has the most Fe and is coloured by celadonite inclusions; red and yellow are mainly hematite and goethite, red agate holding more Fe than yellow."

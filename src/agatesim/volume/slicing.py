@@ -234,7 +234,14 @@ class Cut:
 
 
 def reshape_fields(f: Fields, shape: tuple[int, ...]) -> Fields:
-    return replace(f, **{k.name: getattr(f, k.name).reshape(shape) for k in fields(f)})
+    return replace(
+        f,
+        **{
+            k.name: getattr(f, k.name).reshape(shape)
+            for k in fields(f)
+            if getattr(f, k.name) is not None
+        },
+    )
 
 
 def _in_plane_gravity_deg(g2: FloatArray) -> float:

@@ -70,6 +70,7 @@ class BandSequence:
     edges: FloatArray  # (n + 1,) cumulative depth in mm; edges[0] == 0
     impurity: FloatArray  # (n,)
     translucency: FloatArray  # (n,)
+    pigment: NDArray[np.uint8] | None = None  # (n,) Pigment values; None = iron (ADR 0050)
 
     @property
     def count(self) -> int:
@@ -160,6 +161,9 @@ def banded_fields(
     phase = np.full(mask.shape, Phase.HOST, dtype=np.uint8)
     phase[mask] = Phase.VOID
     phase[filled] = Phase.CHALCEDONY
+    pigment = (
+        None if bands.pigment is None else np.where(filled, bands.pigment[safe], 0).astype(np.uint8)
+    )
     return Fields(
         phase=phase,
         band=band,
@@ -168,4 +172,5 @@ def banded_fields(
         t_dep=np.where(filled, t_dep, np.nan).astype(np.float32),
         grain=np.full(mask.shape, -1, dtype=np.int32),
         micro_spacing_um=np.full(mask.shape, np.nan, dtype=np.float32),
+        pigment=pigment,
     )

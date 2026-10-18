@@ -8,6 +8,9 @@ light on a polished slab:
 - clear bands let light in and look dark blue-grey, with a soft glow from
   material beneath (approximated by blending in a blurred copy);
 - iron staining tints from ochre through orange to deep red as it increases;
+  with a named pigment (ADR 0050) each mineral has its own ramp: hematite red,
+  goethite yellow-brown, celadonite green, Mn oxide black, a violet colour
+  centre, blue scattering and chalky white;
 - each band carries faint finer banding, as natural chalcedony does.
 """
 
@@ -19,7 +22,7 @@ from PIL import Image
 
 from agatesim import _scipy
 from agatesim.archetypes import Host
-from agatesim.fields import Phase
+from agatesim.fields import Phase, Pigment
 from agatesim.grid import FloatArray
 from agatesim.simulate import SimulationResult
 
@@ -40,6 +43,45 @@ STAIN = [
     (0.65, np.array([182.0, 74.0, 36.0])),
     (1.0, np.array([118.0, 30.0, 22.0])),
 ]
+Colour = list[tuple[float, NDArray[np.float64]]]
+# Pigment ramps (ADR 0050): (strength, colour), interpolated piecewise-linearly.
+PIGMENT_RAMP: dict[Pigment, Colour] = {
+    Pigment.IRON: STAIN,
+    Pigment.HEMATITE: [
+        (0.0, np.array([222.0, 192.0, 178.0])),
+        (0.5, np.array([192.0, 78.0, 56.0])),
+        (1.0, np.array([124.0, 26.0, 22.0])),
+    ],
+    Pigment.GOETHITE: [
+        (0.0, np.array([230.0, 214.0, 164.0])),
+        (0.5, np.array([212.0, 166.0, 66.0])),
+        (1.0, np.array([150.0, 100.0, 34.0])),
+    ],
+    Pigment.CELADONITE: [
+        (0.0, np.array([198.0, 212.0, 184.0])),
+        (0.5, np.array([110.0, 148.0, 104.0])),
+        (1.0, np.array([50.0, 88.0, 58.0])),
+    ],
+    Pigment.MANGANESE: [
+        (0.0, np.array([172.0, 162.0, 152.0])),
+        (0.5, np.array([78.0, 68.0, 62.0])),
+        (1.0, np.array([26.0, 22.0, 20.0])),
+    ],
+    Pigment.VIOLET: [
+        (0.0, np.array([216.0, 202.0, 224.0])),
+        (0.5, np.array([158.0, 118.0, 180.0])),
+        (1.0, np.array([100.0, 62.0, 130.0])),
+    ],
+    Pigment.BLUE: [
+        (0.0, np.array([192.0, 206.0, 224.0])),
+        (0.5, np.array([138.0, 164.0, 204.0])),
+        (1.0, np.array([88.0, 120.0, 176.0])),
+    ],
+    Pigment.WHITE: [
+        (0.0, np.array([236.0, 234.0, 230.0])),
+        (1.0, np.array([252.0, 251.0, 248.0])),
+    ],
+}
 HOST = {
     Host.VOLCANIC: np.array([66.0, 66.0, 70.0]),
     Host.SEDIMENTARY: np.array([196.0, 186.0, 164.0]),
@@ -51,9 +93,19 @@ GLOW_SIGMA_MM = 0.12
 RIND_MM = 0.25
 
 
-def _stain_colour(iron: FloatArray) -> FloatArray:
-    xs = np.array([p for p, _ in STAIN])
-    return np.stack([np.interp(iron, xs, [c[i] for _, c in STAIN]) for i in range(3)], axis=-1)
+def _ramp(strength: FloatArray, ramp: Colour) -> FloatArray:
+    xs = np.array([p for p, _ in ramp])
+    return np.stack([np.interp(strength, xs, [c[i] for _, c in ramp]) for i in range(3)], axis=-1)
+
+
+def _stain_colour(iron: FloatArray, pigment: NDArray[np.uint8] | None = None) -> FloatArray:
+    if pigment is None:
+        return _ramp(iron, STAIN)
+    out = np.zeros((*iron.shape, 3))
+    for code in np.unique(pigment).tolist():
+        here = pigment == code
+        out[here] = _ramp(iron[here], PIGMENT_RAMP[Pigment(code)])
+    return out
 
 
 def _smoothstep(lo: float, hi: float, x: FloatArray) -> FloatArray:
@@ -140,11 +192,13 @@ def _quartz(result: SimulationResult) -> FloatArray:
     return rgb
 
 
-def chalcedony_colour(trans: FloatArray, iron: FloatArray) -> FloatArray:
-    """Colour of chalcedony from its translucency and iron staining, before the
-    glow of light returning from beneath."""
+def chalcedony_colour(
+    trans: FloatArray, iron: FloatArray, pigment: NDArray[np.uint8] | None = None
+) -> FloatArray:
+    """Colour of chalcedony from its translucency and staining (iron, or the
+    pigment given), before the glow of light returning from beneath."""
     body = CLEAR * trans[..., None] + MILKY * (1 - trans[..., None])
-    stain = _stain_colour(iron) * (0.55 + 0.45 * (1 - trans))[..., None]
+    stain = _stain_colour(iron, pigment) * (0.55 + 0.45 * (1 - trans))[..., None]
     strength = _smoothstep(0.05, 0.55, iron)[..., None]
     return body * (1 - strength) + stain * strength
 
@@ -157,7 +211,7 @@ def render_slab(result: SimulationResult) -> NDArray[np.uint8]:
 
     trans = np.clip(f.translucency + SUB_BAND_STRENGTH * 0.5 * _sub_banding(result), 0.0, 1.0)
     iron = f.impurity.astype(np.float64)
-    colour = chalcedony_colour(trans, iron)
+    colour = chalcedony_colour(trans, iron, f.pigment)
 
     # Light entering clear bands returns softened by the material beneath.
     glow = _masked_blur(colour, chal, GLOW_SIGMA_MM / dx)
