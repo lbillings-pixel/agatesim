@@ -89,6 +89,48 @@ def test_ellipsoid_nearest_point_is_on_the_surface_and_normal() -> None:
         assert dist >= nearest - 0.25  # the samples are ~0.2 mm apart
 
 
+def test_ellipsoid_distance_holds_at_awkward_points() -> None:
+    """The Newton solve (ADR 0054 amendment) at points where the nearest-point equation is
+    hardest: the centre, the shortest axis's plane, near the wall, and on equal
+    axes. Each distance is checked against an exact value or the same point's
+    distance found by bisection, the earlier method."""
+    a = np.array([25.0, 20.0, 15.0])
+    e = Ellipsoid(host=Host.VOLCANIC, axes=a)
+    centre = np.array([[0.0, 0.0, 0.0], [1e-7, -1e-7, 1e-7]])
+    assert np.allclose(e.wall_distance(centre), 15.0, atol=1e-6)  # the shortest semi-axis
+    on_plane = np.array([[5.0, -4.0, 0.0], [0.0, 19.0, 0.0], [24.9, 0.0, 0.0]])
+    near_wall = np.array([[24.999, 0.0, 0.0], [0.0, 0.0, 14.9999]])
+    rng = np.random.default_rng(3)
+    x = rng.uniform(-1, 1, (4000, 3))
+    random = x[np.sum(x**2, axis=1) < 0.999] * a
+    pts = np.vstack([on_plane, near_wall, random])
+
+    def bisection(axes: FloatArray, p: FloatArray) -> FloatArray:
+        k = int(np.argmin(axes))
+        p = p.copy()
+        p[:, k] = np.where(np.abs(p[:, k]) < 1e-9 * axes.max(), 1e-9 * axes.max(), p[:, k])
+        lo = np.full(len(p), -(float(axes.min()) ** 2))
+        hi = np.full(len(p), 0.0)
+        for _ in range(200):
+            t = 0.5 * (lo + hi)
+            above = np.sum((axes * p / (t[:, None] + axes * axes)) ** 2, axis=1) > 1
+            lo, hi = np.where(above, t, lo), np.where(above, hi, t)
+        q = axes * axes * p / (0.5 * (lo + hi)[:, None] + axes * axes)
+        return np.linalg.norm(p - q, axis=1)
+
+    assert np.allclose(e.wall_distance(pts), bisection(a, pts), atol=1e-9)
+    assert np.allclose(e.wall_distance(near_wall), [0.001, 0.0001], atol=1e-9)
+    # Equal axes: a sphere (exact), and an oblate spheroid, whose equatorial points
+    # are nearest to the wall toward a pole, not straight out.
+    sphere = Ellipsoid(host=Host.VOLCANIC, axes=np.array([10.0, 10.0, 10.0]))
+    p = np.array([[3.0, 4.0, 0.0], [0.0, 0.0, 5.0]])
+    assert np.allclose(sphere.wall_distance(p), [5.0, 5.0], atol=1e-9)
+    oblate = np.array([20.0, 20.0, 10.0])
+    d = Ellipsoid(host=Host.VOLCANIC, axes=oblate).wall_distance(p)
+    assert np.allclose(d, bisection(oblate, p), atol=1e-9)
+    assert d[0] < 10.0
+
+
 def test_box_distances_and_exact_section() -> None:
     corners = np.array([[x, y, z] for x in (-5, 5) for y in (-3, 3) for z in (-2, 2)], float)
     box = Polyhedron.hull(Host.SEDIMENTARY, corners)

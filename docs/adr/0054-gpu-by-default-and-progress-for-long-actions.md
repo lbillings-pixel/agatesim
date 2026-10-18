@@ -91,3 +91,34 @@ minutes, and Randomize with "stay within the form" up to tens of seconds.
   catching up.
 - New long loops should call `progress.report`; a step that reports nothing
   shows as a pause in the bar, not as an error.
+
+## Amendment (2026-10-18): a faster distance to an ellipsoid's wall
+
+The moss, plume and botryoidal 3D builds spent most of their time on the exact
+distance from points inside an ellipsoid to its surface: 52 bisection steps
+per point, about 3.4 µs each, over 2–3 million points per build. The owner
+asked for the faster method proposed at the check-in.
+
+- **Newton's method on a better-shaped equation.** The nearest surface point
+  is fixed by the one root t of S(t) = Σ (a_i p_i / (t + a_i²))² = 1 above
+  −min(a)². Newton's method on S itself converges slowly near the centre (S
+  has a pole there). On h(t) = S^(−1/2) − 1 it doesn't: S^(−1/2) is a power
+  mean of the straight lines (t + a_i²) / (a_i p_i), so h is concave,
+  increasing and nearly straight. Started below the root, where the shortest
+  axis's term alone equals 1, the steps climb to the root without
+  overshooting: about 5 steps, at most 12 in a million random points.
+- **Accuracy:** at the points where the two methods differed most, Newton
+  matched a brute-force search over the surface to 1e-10 mm, and the old
+  bisection was off by up to 4e-9 mm. A test checks the centre, the shortest
+  axis's plane, points just inside the wall, a sphere and an oblate spheroid.
+- **Speed** (CPU, preparing the formation): moss 13.7 → 4.5 s, moss
+  (mechanistic) 14.0 → 5.0 s, plume 19.2 → 10.5 s (the rest is the
+  aggregation itself), plume (mechanistic) 12.5 → 8.7 s, botryoidal 7.0 →
+  3.8 s, eye 6.4 → 3.6 s, tube (mechanistic) 4.3 → 1.7 s.
+- **Results:** 17 of the 20 3D presets (H2 left out) are bit-identical in every
+  field of a 96³ volume and the configured cut. In the other three, staged
+  presets with an H1 wall (eye, fortification-then-waterline and plume, all
+  mechanistic), band, phase and crystal fields are identical; the impurity
+  stain moves by up to 0.006 and the deposition time by up to 0.0001, since
+  H1's history follows the wall-distance distribution, which moved in its
+  last digits. No judged field changed.

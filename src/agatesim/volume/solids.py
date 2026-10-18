@@ -27,6 +27,7 @@ from agatesim.grid import FloatArray
 
 BoolArray = NDArray[np.bool_]
 CHUNK = 1 << 20  # points per batch in the heavier distance calculations
+NEWTON_STEPS = 60  # at most, for the ellipsoid distance (about 5 are needed)
 
 
 def _rows(points: FloatArray) -> FloatArray:
@@ -104,26 +105,35 @@ class Ellipsoid(Solid):
 
 
 def _ellipsoid_distance(p: FloatArray, a: FloatArray) -> FloatArray:
-    """Exact distance from points to the surface of the ellipsoid with semi-axes a.
+    """Exact distance from points inside the ellipsoid with semi-axes a to its surface.
 
     The nearest surface point is q_i = a_i² p_i / (t + a_i²), where t is the one
-    root above −min(a)² of Σ (a_i p_i / (t + a_i²))² = 1; found by bisection. A
-    point exactly on the shortest axis's plane is nudged off it, which moves the
-    distance by a negligible amount but keeps the root inside the bracket."""
+    root above −min(a)² of S(t) = Σ (a_i p_i / (t + a_i²))² = 1. It is found by
+    Newton's method on h(t) = S^(−1/2) − 1, which is nearly straight near the root
+    (S^(−1/2) is a power mean of the lines (t + a_i²) / (a_i p_i)), concave and
+    increasing; started below the root, where the shortest axis's term alone is 1,
+    the iterates climb to it without overshooting, in about 5 steps (the earlier
+    bisection took 52). A point exactly on the shortest axis's plane is nudged off
+    it, which moves the distance by a negligible amount but keeps the start finite."""
     a2 = a * a
     p = p.copy()
     k = int(np.argmin(a))
     tiny = 1e-9 * float(a.max())
     p[:, k] = np.where(np.abs(p[:, k]) < tiny, tiny, p[:, k])
-    lo = np.full(len(p), -float(a2[k]))
-    hi = np.full(len(p), float(a.max()) * np.linalg.norm(p, axis=1) + 1e-12)
-    for _ in range(52):  # the bracket shrinks to ~1e-13 of its width
-        t = 0.5 * (lo + hi)
-        f = np.sum((a * p / (t[:, None] + a2)) ** 2, axis=1) - 1
-        above = f > 0
-        lo = np.where(above, t, lo)
-        hi = np.where(above, hi, t)
-    t = 0.5 * (lo + hi)
+    ap2 = (a * p) ** 2
+    t: FloatArray = np.abs(a[k] * p[:, k]) - a2[k]
+    active = np.arange(len(p))
+    tol = 1e-13 * float(a2.max())
+    for _ in range(NEWTON_STEPS):
+        ta = t[active]
+        d = ta[:, None] + a2
+        r = ap2[active] / (d * d)
+        s = r.sum(axis=1)
+        step = (1 / np.sqrt(s) - 1) / (s**-1.5 * (r / d).sum(axis=1))
+        t[active] = ta - step
+        active = active[np.abs(step) > tol]
+        if not len(active):
+            break
     q = a2 * p / (t[:, None] + a2)
     return np.linalg.norm(p - q, axis=1)
 
