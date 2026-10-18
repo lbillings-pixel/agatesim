@@ -25,7 +25,13 @@ class ProceduralFortification(BaseModel):
 
     kind: Literal["procedural-fortification"] = "procedural-fortification"
     mean_band_thickness_mm: float = param(
-        0.5, gt=0, units="mm", nature=Nature.IMPOSED, description="Mean band thickness."
+        0.5,
+        gt=0,
+        units="mm",
+        nature=Nature.IMPOSED,
+        description="Mean band thickness.",
+        explore=(0.2, 1.2),
+        log=True,
     )
     thickness_variability: float = param(
         0.35,
@@ -34,6 +40,7 @@ class ProceduralFortification(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Spread of band thicknesses (log-normal sigma).",
+        explore=(0.1, 0.8),
     )
     fill_fraction: float = param(
         1.0,
@@ -42,6 +49,7 @@ class ProceduralFortification(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="How far banding reaches toward the centre (1 = completely filled).",
+        explore=(0.75, 1.0),
     )
     alternation: float = param(
         0.7,
@@ -50,6 +58,7 @@ class ProceduralFortification(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="How strictly milky and clear bands alternate (0 = random, 1 = strict).",
+        explore=(0.2, 1.0),
     )
     opacity_contrast: float = param(
         0.8,
@@ -58,9 +67,16 @@ class ProceduralFortification(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Difference in translucency between milky and clear bands.",
+        explore=(0.3, 1.0),
     )
     iron: float = param(
-        0.25, ge=0, le=1, units="", nature=Nature.IMPOSED, description="Mean iron staining."
+        0.25,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.IMPOSED,
+        description="Mean iron staining.",
+        explore=(0.0, 0.8),
     )
     iron_variability: float = param(
         0.25,
@@ -69,6 +85,7 @@ class ProceduralFortification(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Band-to-band variation in iron staining.",
+        explore=(0.0, 0.5),
     )
     wobble_mm: float = param(
         0.15,
@@ -76,6 +93,7 @@ class ProceduralFortification(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Amplitude of irregularity in band position.",
+        explore=(0.0, 0.3),
     )
     wobble_scale_mm: float = param(
         2.0,

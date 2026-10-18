@@ -12,7 +12,8 @@ export const TOUR_STEPS = [
   {
     title: "Simulator",
     body: [
-      "Load a preset from the menu at the top, or pick a model and a cavity shape on the left. The slab in the middle updates as you change settings, and the tests below it say whether it shows the form you chose under “Judge as”.",
+      "Pick a form on the left, procedural or mechanistic, to start from its verified settings, or choose a model and a cavity yourself. The slab in the middle updates as you change settings, and the tests below it say whether it still shows the form.",
+      "Key settings come first; the rest wait under “More settings”. “Randomize” moves the key settings to random values within safe ranges, to explore what a model can make; “Undo” takes you back.",
       "“Run full resolution” saves a run to the list on the right. Pin a run to compare it with another side by side: their tests, what differs, and one growth slider for both.",
     ],
   },

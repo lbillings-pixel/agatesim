@@ -10,9 +10,12 @@ proportion. With only iron weighted, results are as before ADR 0050.
 
 from __future__ import annotations
 
+from typing import cast
+
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict
+from pydantic.config import JsonDict
 
 from agatesim.fields import Pigment
 from agatesim.params import Nature, param
@@ -26,13 +29,28 @@ def _weight(default: float, what: str) -> float:
         units="",
         nature=Nature.EFFECTIVE,
         description=f"Relative share of bands coloured by {what}.",
+        explore=(0.0, 1.0),
     )
+
+
+# Ready-made palettes the app offers (weights not listed are 0).
+PALETTE_PRESETS: dict[str, dict[str, float]] = {
+    "Iron (as before)": {"iron": 1.0},
+    "Red and yellow": {"hematite": 0.6, "goethite": 0.3, "white": 0.1},
+    "Blue and white": {"blue": 0.6, "white": 0.4},
+    "Green": {"celadonite": 0.6, "white": 0.3, "manganese": 0.1},
+    "Black and white": {"manganese": 0.5, "white": 0.5},
+    "Violet": {"violet": 0.5, "white": 0.3, "blue": 0.2},
+    "Mixed": {"hematite": 0.3, "goethite": 0.2, "white": 0.3, "manganese": 0.1, "violet": 0.1},
+}
 
 
 class Palette(BaseModel):
     """Relative shares of the pigments that colour the bands."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(
+        extra="forbid", frozen=True, json_schema_extra=cast(JsonDict, {"presets": PALETTE_PRESETS})
+    )
 
     iron: float = _weight(1.0, "iron stain without a named mineral (ochre to deep red)")
     hematite: float = _weight(0.0, "hematite (red)")

@@ -58,7 +58,7 @@ from agatesim.models.gardens import GardenStage, grow_tubes, rasterise_tubes
 from agatesim.models.growth import InclusionGrowth, StickFill, grow_inclusions, grow_sticks
 from agatesim.models.liesegang import Liesegang, run_liesegang
 from agatesim.models.settling import Settling, run_settling
-from agatesim.params import Nature, param, used_when
+from agatesim.params import KEY, Nature, param, used_when
 
 Order = Literal[
     "wall-floor-wall",
@@ -96,6 +96,7 @@ class DendriteStage(BaseModel):
             "Concentration of the particles that build inclusions, as a share of the open "
             "space. Higher values give bulkier, less finely branched inclusions."
         ),
+        explore=(0.02, 0.08),
     )
     amount: float = param(
         0.08,
@@ -104,6 +105,7 @@ class DendriteStage(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="Total inclusion material, as a share of the open space it grows into.",
+        explore=(0.04, 0.15),
     )
     sticking: float = param(
         0.5,
@@ -115,6 +117,7 @@ class DendriteStage(BaseModel):
             "Chance that a particle sticks when it touches an inclusion. Lower values "
             "give denser, more compact branches."
         ),
+        explore=(0.3, 0.8),
     )
     width_mm: float = param(
         0.12,
@@ -147,6 +150,7 @@ class StickStage(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Mean spacing of the points on the wall where stick crystals nucleate.",
+        explore=(3.5, 6.5),
     )
     length_mm: float = param(
         7.0,
@@ -157,6 +161,7 @@ class StickStage(BaseModel):
             "How far the crystals' tips grow before the silica arrives (the timing of a "
             "change in conditions)."
         ),
+        explore=(3.5, 7.0),
     )
     elongation: float = param(
         20.0,
@@ -168,6 +173,7 @@ class StickStage(BaseModel):
             "How much faster the crystals grow along their long axis than across it (their "
             "habit): a stick is about half this many times longer than wide."
         ),
+        explore=(10.0, 20.0),
     )
     axis_scatter_deg: float = param(
         25.0,
@@ -176,9 +182,11 @@ class StickStage(BaseModel):
         units="deg",
         nature=Nature.EFFECTIVE,
         description="Spread of crystal axes about the wall normal where they nucleate.",
+        explore=(10.0, 40.0),
     )
     fill: StickFill = Field(
         default="quartz",
+        json_schema_extra=KEY,
         description=(
             "What replaces the crystals at the end: quartz (a pseudomorph) or nothing (they "
             "dissolve and leave hollow moulds)."
@@ -190,7 +198,11 @@ class Staged(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     kind: Literal["mechanistic-staged"] = "mechanistic-staged"
-    order: Order = Field(default="wall-floor-wall", description="The stages, in deposition order.")
+    order: Order = Field(
+        default="wall-floor-wall",
+        description="The stages, in deposition order.",
+        json_schema_extra=KEY,
+    )
     gravity_deg: float = param(
         270.0,
         ge=0,
@@ -209,11 +221,12 @@ class Staged(BaseModel):
             "Share of the cavity the first wall-lining or spherulite stage fills before conditions "
             "change (the timing of that change, not a property of any band)."
         ),
+        explore=(0.15, 0.45),
     )
     wall_mechanism: WallMechanism = Field(
         default="front-feedback",
         description="What makes the wall-lining bands: front feedback (H1) or Liesegang (H2).",
-        json_schema_extra=used_when({"order": ["wall"]}),
+        json_schema_extra={**used_when({"order": ["wall"]}), **KEY},
     )
     wall: FrontFeedback = Field(
         default_factory=FrontFeedback,

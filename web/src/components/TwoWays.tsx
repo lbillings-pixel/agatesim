@@ -1,34 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { api, type ArchetypeInfo, type Meta, type PreviewResult, type RunConfig } from "../api";
+import { api, type Meta, type PreviewResult, type RunConfig } from "../api";
 import { overallVerdict } from "./CriteriaPanel";
 import { fieldsFor, imposedSettings } from "../lib/schema";
+import { formPairs, type Preset } from "../lib/forms";
 
-type Preset = Meta["presets"][number];
+export { formPairs, type FormPair } from "../lib/forms";
 
-export interface FormPair {
-  archetype: ArchetypeInfo;
-  procedural: Preset | null;
-  mechanistic: Preset | null;
-}
-
-/** Each form with its verification presets: `<id>` for the procedural tier and
- * `<id>-mechanistic` for the mechanistic tier (the naming the tests enforce). */
-export function formPairs(meta: Pick<Meta, "presets" | "archetypes">): FormPair[] {
-  const byName = new Map(meta.presets.map((p) => [p.name, p]));
-  return meta.archetypes
-    .filter((a) => a.implemented)
-    .map((a) => ({
-      archetype: a,
-      procedural: byName.get(a.id) ?? null,
-      mechanistic: byName.get(`${a.id}-mechanistic`) ?? null,
-    }));
-}
-
-/** Why a form has no mechanistic version yet (ADR 0035). */
-const PENDING: Record<string, string> = {
-  shadow:
-    "The banding mechanism's clear and milky bands don't contrast enough, and no source yet links how fast a band grows to how milky it is (ADR 0041).",
-};
+/** Why a form has no mechanistic version yet (every form has one now, ADR 0049). */
+const PENDING: Record<string, string> = {};
 
 const TIERS = [
   {

@@ -60,7 +60,7 @@ from agatesim.grid import FloatArray, Grid
 from agatesim.models import dendrites
 from agatesim.models.base import Domain, make_bands, smooth_noise, tube_distance
 from agatesim.models.palette import Palette
-from agatesim.params import Nature, param
+from agatesim.params import KEY, Nature, param
 from agatesim.schedules import Schedule
 
 TIME_STEPS = 400
@@ -195,6 +195,7 @@ class ProceduralGrowth(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Wall-lining thickness deposited over the whole run at full silica supply.",
+        key=True,
     )
     band_period: float = param(
         0.012,
@@ -203,6 +204,8 @@ class ProceduralGrowth(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Mean duration of one band, as a fraction of the run.",
+        explore=(0.006, 0.05),
+        log=True,
     )
     period_variability: float = param(
         0.35,
@@ -211,6 +214,7 @@ class ProceduralGrowth(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Spread of band durations (log-normal sigma).",
+        explore=(0.1, 0.8),
     )
     alternation: float = param(
         0.7,
@@ -219,6 +223,7 @@ class ProceduralGrowth(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="How strictly milky and clear bands alternate (0 = random, 1 = strict).",
+        explore=(0.2, 1.0),
     )
     opacity_contrast: float = param(
         0.8,
@@ -227,6 +232,7 @@ class ProceduralGrowth(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Difference in translucency between milky and clear bands.",
+        explore=(0.3, 1.0),
     )
     iron_variability: float = param(
         0.2,
@@ -235,6 +241,7 @@ class ProceduralGrowth(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Band-to-band variation in iron staining around the scheduled supply.",
+        explore=(0.0, 0.5),
     )
     spherulite_spacing_mm: float = param(
         4.0,
@@ -242,6 +249,8 @@ class ProceduralGrowth(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Mean spacing of nucleation sites on the growth surface in spherulitic growth.",
+        explore=(2.0, 10.0),
+        log=True,
     )
     spherulite_rate_variability: float = param(
         0.15,
@@ -250,6 +259,7 @@ class ProceduralGrowth(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="Spread of growth rates between spherulites (log-normal sigma).",
+        explore=(0.0, 0.4),
     )
     quartz_threshold: float = param(
         0.35,
@@ -265,6 +275,8 @@ class ProceduralGrowth(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Mean spacing of quartz nucleation sites where quartz starts growing.",
+        explore=(0.3, 1.2),
+        log=True,
     )
     quartz_elongation: float = param(
         4.0,
@@ -273,6 +285,7 @@ class ProceduralGrowth(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="How much faster crystals grow along their long axis than across it.",
+        explore=(2.0, 8.0),
     )
     quartz_axis_scatter_deg: float = param(
         70.0,
@@ -302,6 +315,7 @@ class ProceduralGrowth(BaseModel):
             "Concentration of the particles that build inclusions, as a share of the open "
             "space. Higher values give bulkier, less finely branched inclusions."
         ),
+        explore=(0.02, 0.08),
     )
     dendrite_amount: float = param(
         0.08,
@@ -310,6 +324,7 @@ class ProceduralGrowth(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="Total inclusion material, as a share of the open space it grows into.",
+        explore=(0.04, 0.15),
     )
     dendrite_sticking: float = param(
         0.5,
@@ -368,6 +383,7 @@ class ProceduralGrowth(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Mean spacing of the points on the growth surface where stick crystals start.",
+        explore=(3.5, 7.0),
     )
     stick_length_mm: float = param(
         6.0,
@@ -386,6 +402,7 @@ class ProceduralGrowth(BaseModel):
             "How much faster stick crystals grow along their long axis than across it "
             "(their habit): a stick is about half this many times longer than wide."
         ),
+        explore=(10.0, 24.0),
     )
     stick_axis_scatter_deg: float = param(
         40.0,
@@ -394,9 +411,11 @@ class ProceduralGrowth(BaseModel):
         units="deg",
         nature=Nature.EFFECTIVE,
         description="Spread of stick axes about the surface normal where they start.",
+        explore=(10.0, 40.0),
     )
     stick_fill: StickFill = Field(
         default="quartz",
+        json_schema_extra=KEY,
         description=(
             "What replaces the stick crystals at the end: quartz (a pseudomorph) or "
             "nothing (they dissolve and leave hollow moulds)."
@@ -437,6 +456,7 @@ class ProceduralGrowth(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Amplitude of irregularity in band position.",
+        explore=(0.0, 0.3),
     )
     wobble_scale_mm: float = param(
         2.0,

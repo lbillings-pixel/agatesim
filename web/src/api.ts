@@ -20,12 +20,31 @@ export interface JsonSchemaProperty {
   nature?: Nature;
   /** The setting matters only when one of these holds (see `isUsed` in lib/schema). */
   used_when?: Record<string, string[]>[];
+  /** The bounded range Randomize draws from (ADR 0051). */
+  explore?: { min: number; max: number; log: boolean };
+  /** One of the model's key settings, shown first. */
+  key?: boolean;
+}
+
+/** A nested model's schema; `presets` are ready-made values for its settings. */
+export interface NestedSchema {
+  properties: Record<string, JsonSchemaProperty>;
+  presets?: Record<string, Record<string, number>>;
 }
 
 /** A pydantic JSON schema: fields, and the nested models they refer to. */
 export interface ModelSchema {
   properties: Record<string, JsonSchemaProperty>;
-  $defs?: Record<string, { properties: Record<string, JsonSchemaProperty> }>;
+  $defs?: Record<string, NestedSchema>;
+}
+
+/** New settings drawn by Randomize. */
+export interface RandomizeResult {
+  config: RunConfig;
+  attempts: number;
+  checked: boolean;
+  accepted: boolean;
+  note: string;
 }
 
 export type ScheduleEvent =
@@ -468,6 +487,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ config, resolution, view, angle_deg: angleDeg }),
       signal,
+    }),
+  randomize: (config: RunConfig, strength: number, keepForm: boolean) =>
+    request<RandomizeResult>("/api/randomize", {
+      method: "POST",
+      body: JSON.stringify({ config, strength, keep_form: keepForm }),
     }),
   startRun: (config: RunConfig) =>
     request<Job>("/api/runs", { method: "POST", body: JSON.stringify(config) }),

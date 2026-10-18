@@ -54,8 +54,17 @@ class Settling(BaseModel):
         units="deg",
         nature=Nature.PHYSICAL,
         description="Direction of gravity in the slab (270 = down).",
+        key=True,
     )
-    pulses: int = 12
+    pulses: int = param(
+        12,
+        ge=1,
+        le=60,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="Number of pulses of particles that settle.",
+        explore=(6.0, 16.0),
+    )
     pulse_dose: float = param(
         0.02,
         gt=0,
@@ -63,6 +72,8 @@ class Settling(BaseModel):
         units="× cavity",
         nature=Nature.EFFECTIVE,
         description="Particle volume per pulse, as a share of the cavity's area.",
+        explore=(0.01, 0.04),
+        log=True,
     )
     dose_variability: float = param(
         0.3,
@@ -71,6 +82,7 @@ class Settling(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="Pulse-to-pulse variation of the dose (log-normal sigma).",
+        explore=(0.1, 0.6),
     )
     pulse_interval: float = param(
         2.5,
@@ -78,6 +90,7 @@ class Settling(BaseModel):
         units="× settling time",
         nature=Nature.EFFECTIVE,
         description="Time between pulses, in units of the time to settle the cavity's height.",
+        explore=(1.5, 4.0),
     )
     packing: float = param(
         0.6,
@@ -109,6 +122,7 @@ class Settling(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="Mean iron of the particles.",
+        explore=(0.0, 0.6),
     )
     iron_variability: float = param(
         0.15,
@@ -117,6 +131,7 @@ class Settling(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="Pulse-to-pulse variation of the particles' iron.",
+        explore=(0.0, 0.4),
     )
     palette: Palette = Field(
         default_factory=Palette,

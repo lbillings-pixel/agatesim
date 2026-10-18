@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   api,
@@ -23,7 +23,7 @@ import { StatsPanel } from "./components/StatsPanel";
 import { TubePanel } from "./components/TubePanel";
 import { VolumeWorkbench } from "./components/VolumeWorkbench";
 import { type Control, defaultsFor, fieldsFor, withSetting } from "./lib/schema";
-import { CompareMechanisms } from "./components/CompareMechanisms";
+import { formPresets, otherPresets, tierOf } from "./lib/forms";
 import { GrowthControls } from "./components/GrowthControls";
 import { RunDiff } from "./components/RunDiff";
 import { Glossary } from "./components/Glossary";
@@ -67,9 +67,15 @@ function drawnOf(config: RunConfig): Drawn | null {
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
 
-function slug(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+/, "").slice(0, 40) || "run";
-}
+/** How far Randomize moves the key settings toward random values in their ranges. */
+const STRENGTHS = [
+  [0.2, "Subtle"],
+  [0.4, "Medium"],
+  [0.7, "Bold"],
+  [1, "Wild"],
+] as const;
+const HISTORY_LIMIT = 50;
+const COALESCE_MS = 700; // changes closer together than this (a slider drag) undo as one
 
 export function App() {
   const [meta, setMeta] = useState<Meta | null>(null);
@@ -96,6 +102,30 @@ export function App() {
   const [light, setLight] = useState<"reflected" | "shadow" | "iris">("reflected");
   const [lightAngle, setLightAngle] = useState(30);
   const [opticsImage, setOpticsImage] = useState<string | null>(null);
+  // Undo and redo: earlier and later settings, recorded whenever the settings change.
+  const [past, setPast] = useState<RunConfig[]>([]);
+  const [future, setFuture] = useState<RunConfig[]>([]);
+  const previous = useRef<RunConfig | null>(null);
+  const travelling = useRef(false);
+  const lastRecorded = useRef(0);
+  const [strength, setStrength] = useState(0.4);
+  const [keepForm, setKeepForm] = useState(false);
+  const [randomizing, setRandomizing] = useState(false);
+  const [randomNote, setRandomNote] = useState("");
+
+  useEffect(() => {
+    const before = previous.current;
+    previous.current = config;
+    if (!before || !config || before === config) return;
+    if (travelling.current) {
+      travelling.current = false;
+      return;
+    }
+    const now = Date.now();
+    if (now - lastRecorded.current > COALESCE_MS) setPast((p) => [...p.slice(-(HISTORY_LIMIT - 1)), before]);
+    lastRecorded.current = now;
+    setFuture([]);
+  }, [config]);
 
   const refreshRuns = useCallback(() => {
     api.runs().then(setRuns).catch(() => undefined);
@@ -286,9 +316,56 @@ export function App() {
     );
   };
 
+  const undo = () => {
+    const last = past[past.length - 1];
+    if (!last) return;
+    travelling.current = true;
+    setPast(past.slice(0, -1));
+    setFuture([config, ...future]);
+    setConfig(last);
+  };
+  const redo = () => {
+    const [next, ...later] = future;
+    if (!next) return;
+    travelling.current = true;
+    setFuture(later);
+    setPast([...past, config]);
+    setConfig(next);
+  };
+
+  const randomizable = fields.length > 0 && JSON.stringify(model?.schema ?? {}).includes('"explore"');
+  const randomize = () => {
+    setRandomizing(true);
+    setRandomNote("");
+    api.randomize(config, strength, keepForm && !!config.archetype).then(
+      (r) => {
+        if (r.accepted) setConfig(r.config);
+        setRandomNote(
+          r.note || (r.checked ? `checked: ${r.attempts} ${r.attempts === 1 ? "draw" : "draws"}` : ""),
+        );
+      },
+      (e: unknown) => setRandomNote(e instanceof Error ? e.message : String(e)),
+    ).finally(() => setRandomizing(false));
+  };
+
+  // Choosing a form loads its preset for the current tier (or the other tier's, if
+  // this one has none) and judges the result as that form.
+  const forms = formPresets(meta);
+  const others = otherPresets(meta);
+  const tier = tierOf(config.model.kind);
+  const chooseForm = (id: string, wanted = tier) => {
+    if (!id) {
+      update((c) => ({ ...c, archetype: null }));
+      return;
+    }
+    const pair = forms.find((f) => f.id === id);
+    const preset = pair?.[wanted] ?? pair?.[wanted === "procedural" ? "mechanistic" : "procedural"];
+    if (preset) setConfig(preset.config);
+    else update((c) => ({ ...c, archetype: id }));
+  };
+
   const selectedDetail = selected ? details[selected] : undefined;
   const pinnedDetail = pinned && pinned !== selected ? details[pinned] : undefined;
-  const judgeable = meta.archetypes.filter((a) => a.implemented);
 
   return (
     <div className="app">
@@ -314,35 +391,15 @@ export function App() {
         <Glossary />
         {screen === "simulator" && (
         <>
-        <label className="inline">
-          <span className="micro-label">Preset</span>
-          <select
-            id="preset"
-            value=""
-            onChange={(e) => {
-              const p = meta.presets.find((x) => x.name === e.target.value);
-              if (p) setConfig(p.config);
-            }}
-          >
-            <option value="" disabled>
-              Load a preset…
-            </option>
-            {meta.presets.map((p) => (
-              <option key={p.name} value={p.name}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="history" role="group" aria-label="Settings history">
+          <button type="button" onClick={undo} disabled={past.length === 0} title="Undo the last settings change">
+            Undo
+          </button>
+          <button type="button" onClick={redo} disabled={future.length === 0} title="Redo">
+            Redo
+          </button>
+        </div>
         <div className="run-controls">
-          <label className="inline">
-            <span className="micro-label">Name</span>
-            <input
-              id="run-name"
-              value={config.name}
-              onChange={(e) => update((c) => ({ ...c, name: slug(e.target.value) }))}
-            />
-          </label>
           <label className="inline">
             <span className="micro-label">Resolution</span>
             <select id="run-resolution" value={runResolution} onChange={(e) => setRunResolution(Number(e.target.value))}>
@@ -353,7 +410,7 @@ export function App() {
               ))}
             </select>
           </label>
-          <button type="button" className="primary" onClick={startRun}>
+          <button type="button" className="primary" onClick={startRun} title={`Saved as “${config.name}”`}>
             Run full resolution
           </button>
         </div>
@@ -385,20 +442,82 @@ export function App() {
       <div className="workspace">
         <aside className="controls" aria-label="Simulation settings">
           <section>
-            <h2>Model</h2>
-            <div className="segmented" role="radiogroup" aria-label="Model">
-              {meta.models.map((m) => (
-                <button
-                  key={m.kind}
-                  type="button"
-                  role="radio"
-                  aria-checked={m.kind === config.model.kind}
-                  onClick={() => setModelKind(m.kind)}
-                >
-                  {m.title}
-                </button>
+            <h2>Form</h2>
+            <p className="param-help">Start from a form's verified settings; the result is judged as that form.</p>
+            <select id="form" value={config.archetype ?? ""} onChange={(e) => chooseForm(e.target.value)}>
+              <option value="">No form (don't judge)</option>
+              {forms.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
               ))}
-            </div>
+            </select>
+            {config.archetype && forms.some((f) => f.id === config.archetype) && (
+              <div className="segmented tier" role="radiogroup" aria-label="Tier">
+                {(["procedural", "mechanistic"] as const).map((t) => {
+                  const pair = forms.find((f) => f.id === config.archetype);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      role="radio"
+                      aria-checked={tier === t}
+                      disabled={!pair?.[t]}
+                      title={pair?.[t] ? `Load the ${t} preset` : `No ${t} preset for this form`}
+                      onClick={() => config.archetype && chooseForm(config.archetype, t)}
+                    >
+                      {t === "procedural" ? "Procedural" : "Mechanistic"}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {others.length > 0 && (
+              <label className="inline small other-presets">
+                <span className="micro-label">Other presets</span>
+                <select
+                  id="other-preset"
+                  value=""
+                  onChange={(e) => {
+                    const p = others.find((x) => x.name === e.target.value);
+                    if (p) setConfig(p.config);
+                  }}
+                >
+                  <option value="" disabled>
+                    Load…
+                  </option>
+                  {others.map((p) => (
+                    <option key={p.name} value={p.name}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </section>
+
+          <section>
+            <h2>Model</h2>
+            {(["procedural", "mechanistic"] as const).map((group) => (
+              <div key={group} className="model-group">
+                <span className="micro-label">{group === "procedural" ? "Procedural (by design)" : "Mechanistic (from physics)"}</span>
+                <div className="segmented" role="radiogroup" aria-label={`${group} models`}>
+                  {meta.models
+                    .filter((m) => tierOf(m.kind) === group)
+                    .map((m) => (
+                      <button
+                        key={m.kind}
+                        type="button"
+                        role="radio"
+                        aria-checked={m.kind === config.model.kind}
+                        onClick={() => setModelKind(m.kind)}
+                      >
+                        {m.title}
+                      </button>
+                    ))}
+                </div>
+              </div>
+            ))}
           </section>
 
           <section>
@@ -438,6 +557,33 @@ export function App() {
 
           <section>
             <h2>Parameters</h2>
+            {randomizable && (
+              <div className="randomize">
+                <button type="button" onClick={randomize} disabled={randomizing} title="Move the key settings toward random values within their bounded ranges">
+                  {randomizing ? "Randomizing…" : "Randomize"}
+                </button>
+                <label className="inline small">
+                  <span className="micro-label">How far</span>
+                  <select id="random-strength" value={strength} onChange={(e) => setStrength(Number(e.target.value))}>
+                    {STRENGTHS.map(([v, label]) => (
+                      <option key={v} value={v}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="inline small" title={config.archetype ? "Keep only draws that still pass the form's tests (slower)" : "Choose a form first"}>
+                  <input
+                    type="checkbox"
+                    checked={keepForm && !!config.archetype}
+                    disabled={!config.archetype}
+                    onChange={(e) => setKeepForm(e.target.checked)}
+                  />
+                  Stay within the form
+                </label>
+                {randomNote && <span className="muted small" aria-live="polite">{randomNote}</span>}
+              </div>
+            )}
             <ParamPanel
               fields={fields}
               values={config.model}
@@ -465,19 +611,7 @@ export function App() {
           )}
 
           <section>
-            <h2>Judge as</h2>
-            <select
-              id="archetype"
-              value={config.archetype ?? ""}
-              onChange={(e) => update((c) => ({ ...c, archetype: e.target.value || null }))}
-            >
-              <option value="">No archetype</option>
-              {judgeable.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
+            <h2>Seed</h2>
             <div className="seed">
               <label htmlFor="seed">Seed</label>
               <input
@@ -646,36 +780,31 @@ export function App() {
             )}
           </div>
 
-          {selected && selectedDetail && (
+          {(selected ? selectedDetail : preview) && (
             <div className="run-actions">
-              <button
-                type="button"
-                onClick={() => {
-                  setConfig(selectedDetail.config);
-                  setSelected(null);
-                }}
-              >
-                Use these settings
-              </button>
-              <button type="button" onClick={() => setPinned(pinned === selected ? null : selected)}>
-                {pinned === selected ? "Unpin" : "Pin for comparison"}
-              </button>
+              {selected && selectedDetail && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfig(selectedDetail.config);
+                      setSelected(null);
+                    }}
+                  >
+                    Use these settings
+                  </button>
+                  <button type="button" onClick={() => setPinned(pinned === selected ? null : selected)}>
+                    {pinned === selected ? "Unpin" : "Pin for comparison"}
+                  </button>
+                </>
+              )}
+              {selected === null && pinned && (
+                <button type="button" onClick={() => setPinned(null)}>
+                  Unpin {details[pinned]?.config.name ?? "run"}
+                </button>
+              )}
               <button type="button" onClick={() => void exportReport()}>
                 Export report
-              </button>
-            </div>
-          )}
-          {selected === null && preview && (
-            <div className="run-actions">
-              <button type="button" onClick={() => void exportReport()}>
-                Export report
-              </button>
-            </div>
-          )}
-          {selected === null && pinned && (
-            <div className="run-actions">
-              <button type="button" onClick={() => setPinned(null)}>
-                Unpin {details[pinned]?.config.name ?? "run"}
               </button>
             </div>
           )}
@@ -715,7 +844,6 @@ export function App() {
             ]}
           />
 
-          <CompareMechanisms config={config} models={meta.models} resolution={Math.min(512, meta.limits.preview)} gpu={meta.gpu} />
         </main>
 
         <RunBrowser runs={runs} jobs={jobs} selected={selected} pinned={pinned} onSelect={setSelected} />

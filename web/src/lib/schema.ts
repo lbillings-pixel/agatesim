@@ -97,20 +97,24 @@ export interface Toggle {
   defaultValue: boolean;
 }
 
-/** A nested model's settings (for example one stage of a staged model). */
+/** A nested model's settings (for example one stage of a staged model), with any
+ * ready-made values for them (`presets`, a palette's say). */
 export interface Group {
   key: string;
   label: string;
   description: string;
   fields: Field[];
+  presets?: Record<string, Record<string, number>>;
 }
 
+/** `primary` marks one of the model's key settings, shown first (a group is
+ * primary when any of its settings is). */
 export type Field = (
   | ({ type: "number" } & Control)
   | ({ type: "choice" } & Choice)
   | ({ type: "toggle" } & Toggle)
   | ({ type: "group" } & Group)
-) & { usedWhen?: Record<string, string[]>[] };
+) & { usedWhen?: Record<string, string[]>[]; primary?: boolean };
 
 function choiceFor(key: string, p: JsonSchemaProperty): Choice | null {
   const options = (p.enum ?? []).filter((o): o is string => typeof o === "string");
@@ -136,7 +140,15 @@ export function fieldsFor(schema: ModelSchema, properties = schema.properties): 
         Object.entries(nested.properties).filter(([k]) => !(k in properties)),
       );
       const fields = fieldsFor(schema, inner);
-      const group: Field = { type: "group", key, label: labelFor(key), description: p.description ?? "", fields };
+      const group: Field = {
+        type: "group",
+        key,
+        label: labelFor(key),
+        description: p.description ?? "",
+        fields,
+        ...(nested.presets ? { presets: nested.presets } : {}),
+        ...(fields.some(isPrimary) ? { primary: true } : {}),
+      };
       return fields.length ? [withUse(group, p)] : [];
     }
     const choice = choiceFor(key, p);
@@ -157,7 +169,13 @@ export function fieldsFor(schema: ModelSchema, properties = schema.properties): 
 }
 
 function withUse(field: Field, p: JsonSchemaProperty): Field {
-  return p.used_when ? { ...field, usedWhen: p.used_when } : field;
+  const used = p.used_when ? { ...field, usedWhen: p.used_when } : field;
+  return p.key ? { ...used, primary: true } : used;
+}
+
+/** Whether a field is one of the key settings shown first. */
+export function isPrimary(field: Field): boolean {
+  return field.primary === true;
 }
 
 /** Whether a field matters given its siblings' values (their defaults where unset):

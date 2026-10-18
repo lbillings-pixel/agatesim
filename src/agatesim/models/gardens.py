@@ -57,6 +57,7 @@ class GardenStage(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Mean spacing of the seeds on the cavity floor.",
+        explore=(3.5, 7.0),
     )
     volume_mm2: float = param(
         6.0,
@@ -81,6 +82,7 @@ class GardenStage(BaseModel):
         units="1/mm",
         nature=Nature.EFFECTIVE,
         description="How quickly buoyancy turns a tube back toward vertical, per mm of growth.",
+        explore=(0.8, 2.5),
     )
     wander_deg: float = param(
         20.0,
@@ -89,6 +91,7 @@ class GardenStage(BaseModel):
         units="deg",
         nature=Nature.EFFECTIVE,
         description="Sideways wandering of a tube's direction (spread per √mm of growth).",
+        explore=(10.0, 30.0),
     )
     rupture_per_mm: float = param(
         0.4,
@@ -96,6 +99,7 @@ class GardenStage(BaseModel):
         units="1/mm",
         nature=Nature.EFFECTIVE,
         description="Membrane ruptures per mm of tube; each starts a side tube.",
+        explore=(0.2, 0.7),
     )
     tint: float = param(
         0.5,

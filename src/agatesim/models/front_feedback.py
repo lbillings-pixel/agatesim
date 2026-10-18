@@ -72,7 +72,7 @@ from agatesim.fields import Fields, Phase, Pigment
 from agatesim.grid import FloatArray
 from agatesim.models.base import Domain
 from agatesim.models.growth import grow_crystals, spherulite_distance
-from agatesim.params import Nature, param, used_when
+from agatesim.params import KEY, Nature, param, used_when
 
 GEOMETRY_SAMPLES = 400  # depths at which the cavity's filled share is tabulated
 TRACE_SAMPLES = 20000  # depths at which the front's history is tabulated
@@ -97,6 +97,7 @@ class TracePigments(BaseModel):
             "Iron in the fluid, as a trace pigment (0 = none: the bands are stained by the "
             "catalysing impurity, as before ADR 0050)."
         ),
+        explore=(0.0, 1.0),
     )
     iron_partition: float = param(
         0.1,
@@ -113,6 +114,7 @@ class TracePigments(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="Manganese in the fluid, as a trace pigment (black Mn oxide; 0 = none).",
+        explore=(0.0, 0.6),
     )
     manganese_partition: float = param(
         0.3,
@@ -132,6 +134,7 @@ class TracePigments(BaseModel):
             "Share of the formation time after which iron precipitates as hematite (red); "
             "before it, as goethite (yellow). A scheduled change of conditions."
         ),
+        explore=(0.0, 1.0),
     )
 
     @property
@@ -149,6 +152,7 @@ class FrontFeedback(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="β: how much the gathered impurity can speed up crystallisation.",
+        explore=(14.0, 30.0),
     )
     catalysis_threshold: float = param(
         4.14,
@@ -156,6 +160,7 @@ class FrontFeedback(BaseModel):
         units="× bulk",
         nature=Nature.EFFECTIVE,
         description="a_c: impurity level at the front where catalysis is half on.",
+        explore=(3.6, 4.8),
     )
     cooperativity: float = param(
         4.0,
@@ -164,6 +169,7 @@ class FrontFeedback(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="n: how switch-like the catalysis is (oscillation needs about 4 or more).",
+        explore=(4.0, 7.0),
     )
     silica_resupply: float = param(
         0.0017,
@@ -171,6 +177,8 @@ class FrontFeedback(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="ε: silica's diffusive resupply rate relative to the impurity's.",
+        explore=(0.0014, 0.0025),
+        log=True,
     )
     silica_demand: float = param(
         0.49,
@@ -178,6 +186,7 @@ class FrontFeedback(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="γ: silica used by the front per unit growth, against its resupply.",
+        explore=(0.45, 0.6),
     )
     rejection: float = param(
         1.25,
@@ -185,6 +194,7 @@ class FrontFeedback(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="λ: how strongly the front pushes rejected impurity into the layer.",
+        explore=(1.15, 1.5),
     )
     partition: float = param(
         0.03,
@@ -193,6 +203,8 @@ class FrontFeedback(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="k₀: share of the impurity incorporated at slow growth.",
+        explore=(0.015, 0.06),
+        log=True,
     )
     trapping_velocity: float = param(
         0.78,
@@ -200,6 +212,7 @@ class FrontFeedback(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="v_t: growth speed above which the front traps impurity, not rejects it.",
+        explore=(0.6, 1.0),
     )
     boundary_layer_mm: float = param(
         0.0016,
@@ -207,6 +220,8 @@ class FrontFeedback(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="δ: thickness of the solution layer at the front; sets the length scale.",
+        explore=(0.0011, 0.0024),
+        log=True,
     )
     silica_inventory: float = param(
         0.0,
@@ -219,6 +234,7 @@ class FrontFeedback(BaseModel):
             "closed (of the space still open when it closes; 0 = never closed: the bulk "
             "is resupplied and stays constant)."
         ),
+        key=True,
     )
     closes_at: float = param(
         0.0,
@@ -231,6 +247,7 @@ class FrontFeedback(BaseModel):
             "inventory (0 = closed from the start; before then the bulk is resupplied; "
             "the timing of a change in conditions, not a property of any band)."
         ),
+        key=True,
     )
 
     @property
@@ -247,6 +264,7 @@ class FrontFeedback(BaseModel):
             "Bulk silica below which quartz grows instead of chalcedony, in a closed "
             "cavity (0 = never)."
         ),
+        key=True,
     )
     quartz_grain_mm: float = param(
         0.6,
@@ -285,6 +303,7 @@ class FrontFeedback(BaseModel):
             "leaving the rest open (1 = never; the timing of a change in conditions, not "
             "a property of any band)."
         ),
+        key=True,
     )
     trace: TracePigments = Field(
         default_factory=TracePigments,
@@ -292,6 +311,7 @@ class FrontFeedback(BaseModel):
     )
     micro_rhythm: bool = Field(
         default=False,
+        json_schema_extra=KEY,
         description=(
             "A second, fast rhythm of the same feedback at a much thinner boundary "
             "layer, making regular micro-bands (an iris grating) in the clear bands."
@@ -311,6 +331,7 @@ class FrontFeedback(BaseModel):
     )
     growth_form: Literal["lining", "spherulitic"] = Field(
         default="lining",
+        json_schema_extra=KEY,
         description=(
             "How the front advances: as layers parallel to the wall, or radiating from "
             "nucleation sites on it (spherulites)."
@@ -322,6 +343,8 @@ class FrontFeedback(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Mean spacing of spherulite nucleation sites on the wall (spherulitic growth).",
+        explore=(6.0, 14.0),
+        log=True,
     )
     spherulite_rate_variability: float = param(
         0.3,
@@ -341,6 +364,7 @@ class FrontFeedback(BaseModel):
             "Fluctuation of the bulk silica supply (standard deviation; 0 = constant). "
             "An external forcing the bands may record."
         ),
+        explore=(0.0, 0.3),
     )
     noise_time: float = param(
         200.0,

@@ -29,6 +29,7 @@ from agatesim import __version__, _rd, optics
 from agatesim.archetypes import load_registry
 from agatesim.config import RunConfig, load_config, load_preset, preset_description, preset_names
 from agatesim.criteria import evaluate, implemented
+from agatesim.explore import randomize
 from agatesim.geometry import CAVITY_PRESETS, make_cavity
 from agatesim.models import (
     FrontFeedback,
@@ -85,6 +86,13 @@ MODEL_SCHEDULES: dict[str, list[dict[str, object]]] = {
 class PreviewRequest(BaseModel):
     config: RunConfig
     resolution: int = Field(default=256, ge=64, le=MAX_PREVIEW_RESOLUTION)
+
+
+class RandomizeRequest(BaseModel):
+    config: RunConfig
+    strength: float = Field(default=0.4, ge=0, le=1)
+    keep_form: bool = False
+    seed: int | None = Field(default=None, ge=0)
 
 
 class OpticsRequest(PreviewRequest):
@@ -267,6 +275,20 @@ def create_app(
             "evaluation": _evaluation(config, result),
             "stats": band_statistics(result).to_json(),
             "stages": stages_json(config.model),
+        }
+
+    @app.post("/api/randomize")
+    def randomize_settings(request: RandomizeRequest) -> dict[str, object]:
+        """New settings drawn within each key setting's bounded range (ADR 0051)."""
+        draw = randomize(
+            request.config, request.strength, keep_form=request.keep_form, seed=request.seed
+        )
+        return {
+            "config": draw.config.model_dump(mode="json"),
+            "attempts": draw.attempts,
+            "checked": draw.checked,
+            "accepted": draw.accepted,
+            "note": draw.note,
         }
 
     @app.post("/api/runs", status_code=202)

@@ -33,6 +33,7 @@ class ProceduralWaterline(BaseModel):
             "Direction gravity pointed during formation, in the slab plane, "
             "anticlockwise from +x (270 = straight down the page)."
         ),
+        key=True,
     )
     fill_height_fraction: float = param(
         0.45,
@@ -41,9 +42,16 @@ class ProceduralWaterline(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Height of the layered fill as a fraction of the cavity height.",
+        explore=(0.25, 0.7),
     )
     mean_layer_thickness_mm: float = param(
-        0.35, gt=0, units="mm", nature=Nature.IMPOSED, description="Mean layer thickness."
+        0.35,
+        gt=0,
+        units="mm",
+        nature=Nature.IMPOSED,
+        description="Mean layer thickness.",
+        explore=(0.15, 0.8),
+        log=True,
     )
     thickness_variability: float = param(
         0.3,
@@ -52,6 +60,7 @@ class ProceduralWaterline(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Spread of layer thicknesses (log-normal sigma).",
+        explore=(0.1, 0.8),
     )
     alternation: float = param(
         0.6,
@@ -60,6 +69,7 @@ class ProceduralWaterline(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="How strictly milky and clear layers alternate.",
+        explore=(0.2, 1.0),
     )
     opacity_contrast: float = param(
         0.7,
@@ -68,9 +78,16 @@ class ProceduralWaterline(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Difference in translucency between milky and clear layers.",
+        explore=(0.3, 1.0),
     )
     iron: float = param(
-        0.15, ge=0, le=1, units="", nature=Nature.IMPOSED, description="Mean iron staining."
+        0.15,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.IMPOSED,
+        description="Mean iron staining.",
+        explore=(0.0, 0.8),
     )
     iron_variability: float = param(
         0.15,
@@ -79,6 +96,7 @@ class ProceduralWaterline(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Layer-to-layer variation in iron staining.",
+        explore=(0.0, 0.5),
     )
     wobble_mm: float = param(
         0.02,

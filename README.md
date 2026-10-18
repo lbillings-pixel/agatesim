@@ -156,8 +156,13 @@ uv run agatesim serve                               # http://127.0.0.1:8000/
 
 The app runs only on your machine (bound to localhost). It offers:
 
-- **Live preview** that updates as you move sliders, judged against the chosen
-  archetype as you go.
+- **Start from a form**: pick a form and a tier (procedural or mechanistic) to
+  load its verified settings; the live preview is judged as that form as you go.
+- **Live preview** that updates as you move sliders.
+- **Randomize**: move a model's key settings toward random values within
+  bounded ranges (subtle to wild), to explore what it can make; mechanistic
+  draws are checked to still band, and can be kept within the chosen form.
+  **Undo and redo** step back through any settings change.
 - **Cavity menu** of preset shapes for volcanic, sedimentary and seam settings,
   plus a **drawing tool** for your own (click corners or sketch freehand; keep
   corners angular or smooth them).
@@ -175,7 +180,8 @@ The app runs only on your machine (bound to localhost). It offers:
   move the light and the shadows sweep) or as a backlit thin slice (iris agate:
   change the view angle and the colours shift).
 - **Parameters** with units and a badge for what kind of quantity each one is:
-  physical, effective or imposed.
+  physical, effective or imposed. Key settings come first, the rest under
+  "More settings"; the colour palette has ready-made choices.
 - **Conditions over time**: a timeline editor for silica supply, settling,
   spherulitic growth, dendrite growth and iron, with steps, ramps and pulses (growth-history model).
 - **Band statistics** for each result, side by side with a pinned run.

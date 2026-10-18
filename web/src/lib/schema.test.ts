@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ModelSchema } from "../api";
 
 import {
-  controlFor, controlsFor, defaultsFor, fieldsFor, formatValue, isUsed, labelFor, niceStep, withSetting,
+  controlFor, controlsFor, defaultsFor, fieldsFor, formatValue, isPrimary, isUsed, labelFor, niceStep, withSetting,
 } from "./schema";
 
 describe("labelFor", () => {
@@ -196,5 +196,27 @@ describe("isUsed with an on/off setting", () => {
   it("hides a setting until the switch it depends on is on", () => {
     expect(isUsed(layer, {}, fields)).toBe(false);
     expect(isUsed(layer, { micro_rhythm: true }, fields)).toBe(true);
+  });
+});
+
+describe("key settings", () => {
+  it("marks key settings, and groups holding one, as primary", () => {
+    const schema = {
+      properties: {
+        a: { type: "number", default: 1, key: true, explore: { min: 0, max: 2, log: false } },
+        b: { type: "number", default: 1 },
+        palette: { $ref: "#/$defs/Palette" },
+      },
+      $defs: {
+        Palette: {
+          properties: { red: { type: "number", default: 0, key: true }, grey: { type: "number", default: 1 } },
+          presets: { Red: { red: 1 } },
+        },
+      },
+    };
+    const fields = fieldsFor(schema as unknown as ModelSchema);
+    expect(fields.filter(isPrimary).map((f) => f.key)).toEqual(["a", "palette"]);
+    const palette = fields.find((f) => f.key === "palette");
+    expect(palette?.type === "group" ? palette.presets : undefined).toEqual({ Red: { red: 1 } });
   });
 });
