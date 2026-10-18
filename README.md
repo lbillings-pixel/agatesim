@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M20 under way.** All thirteen target forms are reproduced at the procedural tier and at the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)), shadow agate on a stated, unsourced assumption ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)), and eleven run in 3D, judged on cuts (all eleven mechanistically too; stick agate passes no random cut, since a flat cut shows whole sticks only along them). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+> **Status.** All thirteen target forms are reproduced at the procedural tier and at the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)), shadow agate on a stated, unsourced assumption ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)), and eleven run in 3D, judged on cuts (all eleven mechanistically too; stick agate passes no random cut, since a flat cut shows whole sticks only along them). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
 ![Verification presets of all thirteen forms](docs/images/archetypes.png)
 
@@ -106,7 +106,7 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 | Vein / seam | ✅ verified | ✅ verified (H1, boundary-layer approximation) |
 | Waterline | ✅ verified | ✅ verified (H4) |
 | Combined fortification and waterline | ✅ verified | ✅ verified (H1 + H4 stages) |
-| Banded agate with quartz-crystal centre | ✅ verified | ✅ verified (H1 in a closed cavity, geometric selection) |
+| Banded agate with quartz-crystal centre | ✅ verified | ✅ verified (H1 open, then closed; geometric selection) |
 | Botryoidal | ✅ verified | ✅ verified (H1 radiating from nucleation sites) |
 | Eye | ✅ verified | ✅ verified (H1 spherulite and lining stages) |
 | Tube | ✅ verified | ✅ verified (H1 lining from filaments) |
@@ -184,7 +184,8 @@ The app runs only on your machine (bound to localhost). It offers:
   physical, effective or imposed. Key settings come first, the rest under
   "More settings"; the colour palette has ready-made choices.
 - **Conditions over time**: a timeline editor for silica supply, settling,
-  spherulitic growth, dendrite growth and iron, with steps, ramps and pulses (growth-history model).
+  spherulitic growth, dendrite growth, stick crystals and iron, with steps,
+  ramps and pulses (growth-history model).
 - **Band statistics** for each result, side by side with a pinned run.
 - **Full-resolution runs** in the background, saved to `runs/`.
 - **Run browser and slab viewer** with zoom, pan, a scale bar, a growth slider
@@ -233,13 +234,16 @@ npm --prefix web run lint                 # ESLint
 src/agatesim/
   archetypes/        archetype ladder (registry.toml): criteria and thresholds
   presets/           shipped run configs; one per verified archetype
-  models/            formation models (procedural fortification, waterline, growth history)
+  models/            formation models: procedural (fortification, waterline, growth history)
+                     and mechanistic (front feedback H1, Liesegang H2, settling H4,
+                     stages, chemical gardens), pigments and palettes
   criteria/          measurements that judge results against the ladder
   geometry.py        cavity shapes, exact masks and wall distances
   config.py          run configuration (TOML)
   simulate.py        run a configuration
   render.py          slab rendering in diffuse reflected light
   optics.py          optical views: shadow (reflected light) and iris (backlit slice)
+  explore.py         Randomize: key settings drawn within bounded ranges
   runs.py            run records
   specimen/          photo analysis: scale, outline, observed fields, identification, replica
   volume/            3D runs: solids, models evaluated at points, cuts, random-cut surveys
