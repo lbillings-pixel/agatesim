@@ -217,7 +217,9 @@ def _stick_config(**stick: object) -> RunConfig:
 def test_hollow_stick_moulds_pass_as_stick_agate() -> None:
     """ADR 0049: crystals that dissolve after the agate leave open moulds,
     which count as sticks as the quartz pseudomorphs do."""
-    result = simulate(_stick_config(fill="hollow"))
+    result = simulate(
+        _stick_config(fill="hollow").with_resolution(768)
+    )  # bands beside sub-mm sticks
     ev = evaluate("stick", result)
     assert ev.passed, ev.to_json()
     assert not (result.fields.phase == Phase.QUARTZ).any()

@@ -355,8 +355,13 @@ def test_tube_criteria_reject_rings_away_from_their_seeds() -> None:
 # --- Stick ------------------------------------------------------------------------
 
 
+# The wrap test needs bands resolved beside sticks under a millimetre wide, in a
+# 120 mm vein: the resolution the presets verify at (ADR 0055).
+STICK_RESOLUTION = 768
+
+
 def _stick() -> SimulationResult:
-    return simulate(load_preset("stick").with_resolution(NEGATIVE_RESOLUTION))
+    return simulate(load_preset("stick").with_resolution(STICK_RESOLUTION))
 
 
 def test_stick_criteria_reject_banding_without_sticks() -> None:
@@ -365,13 +370,14 @@ def test_stick_criteria_reject_banding_without_sticks() -> None:
 
 def test_stick_criteria_reject_branched_inclusions() -> None:
     moss = load_preset("moss").with_resolution(NEGATIVE_RESOLUTION)
-    assert "straight-sticks" in _failed(_evaluate("stick", moss))
+    assert "stick-sections" in _failed(_evaluate("stick", moss))
 
 
 def test_stick_criteria_reject_tube_filaments() -> None:
-    """Round filaments seen end-on are not sticks."""
+    """Opaque filaments, too few to count, are not sticks: a filament seen end-on
+    looks like a stick cut across, so what tells them apart is the filling."""
     tube = load_preset("tube").with_resolution(NEGATIVE_RESOLUTION)
-    assert {"straight-sticks", "stick-count"} <= _failed(_evaluate("stick", tube))
+    assert {"stick-count", "pseudomorph-fill"} <= _failed(_evaluate("stick", tube))
 
 
 def test_stick_criteria_reject_opaque_sticks() -> None:
@@ -390,7 +396,7 @@ def test_stick_criteria_reject_bands_that_ignore_the_sticks() -> None:
     plain = _fortification().model_copy(
         update={"cavity": load_preset("stick").cavity, "archetype": "stick"}
     )
-    bands = simulate(plain.with_resolution(NEGATIVE_RESOLUTION))
+    bands = simulate(plain.with_resolution(STICK_RESOLUTION))
     assert bands.grid.shape == result.grid.shape
     f = bands.fields
     pasted = replace(

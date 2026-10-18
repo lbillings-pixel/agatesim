@@ -27,6 +27,9 @@ from agatesim.volume.slicing import random_cuts
 THICKNESS_RAYS = 48
 NEAR_WALL_BANDS = 5  # bands counted from the wall, before rays reach the medial region
 GRAVITY_BINS = (0.0, 0.5, 0.9, 1.0001)  # |gravity in the cut's plane|, for the summary
+# Forms whose features need finer cuts than a survey would otherwise use: stick
+# agate's sticks are under a millimetre wide in a 120 mm vein (ADR 0055).
+MIN_CUT_RESOLUTION = {"stick": 768}
 
 
 @dataclass(frozen=True)
@@ -48,12 +51,14 @@ class Survey:
     archetype: str | None
     true_thickness_mm: float | None
     cuts: tuple[SurveyCut, ...]
+    resolution: int = 0  # pixels per cut
 
     def summary(self) -> dict[str, object]:
         judged = [c for c in self.cuts if c.passed is not None]
         out: dict[str, object] = {
             "archetype": self.archetype,
             "cuts": len(self.cuts),
+            "resolution": self.resolution,
             "judged": len(judged),
             "pass_rate": _rate([c.passed for c in judged]),
         }
@@ -153,9 +158,15 @@ def apparent_thickness(result: SimulationResult) -> float | None:
     return float(np.median(thicknesses)) if thicknesses else None
 
 
+def cut_resolution(archetype: str | None, resolution: int) -> int:
+    """Pixels per cut to judge a form at: at least its minimum, if it has one."""
+    return max(resolution, MIN_CUT_RESOLUTION.get(archetype or "", 0))
+
+
 def survey(sim: VolumeSimulation, count: int, resolution: int, seed: int = 0) -> Survey:
     rng_cuts, rng_rays = np.random.default_rng(seed).spawn(2)
     archetype = sim.config.archetype
+    resolution = cut_resolution(archetype, resolution)
     thickness = true_thickness(sim, rng_rays)
     cuts: list[SurveyCut] = []
     for k, spec in enumerate(random_cuts(sim.setting.solid, count, rng_cuts, resolution)):
@@ -201,4 +212,6 @@ def survey(sim: VolumeSimulation, count: int, resolution: int, seed: int = 0) ->
                 apparent_thickness_mm=apparent_thickness(c.result) if thickness else None,
             )
         )
-    return Survey(archetype=archetype, true_thickness_mm=thickness, cuts=tuple(cuts))
+    return Survey(
+        archetype=archetype, true_thickness_mm=thickness, cuts=tuple(cuts), resolution=resolution
+    )

@@ -34,7 +34,7 @@ from agatesim.volume.render import voxel_rgba
 from agatesim.volume.runs import list_volume_runs, volume_run_summary
 from agatesim.volume.simulate import VolumeSimulation, prepare_volume
 from agatesim.volume.solids import SOLID_PRESETS
-from agatesim.volume.survey import survey
+from agatesim.volume.survey import cut_resolution, survey
 
 MAX_CUT_RESOLUTION = 1024
 MAX_VIEW_RESOLUTION = 160
@@ -161,9 +161,9 @@ def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) ->
     def cut(request: CutRequest, task: TaskHeader = None) -> dict[str, object]:
         t0 = time.perf_counter()
         config = request.config
-        config = config.with_slice(
-            config.slice.model_copy(update={"resolution": request.resolution})
-        )
+        # Fine enough to judge the form: stick agate needs 768 px (ADR 0055).
+        resolution = min(cut_resolution(config.archetype, request.resolution), MAX_CUT_RESOLUTION)
+        config = config.with_slice(config.slice.model_copy(update={"resolution": resolution}))
         try:
             with tasks.track(task):
                 with progress.span(0.0, 0.9):

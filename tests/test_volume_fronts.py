@@ -10,8 +10,9 @@ import pytest
 from agatesim.criteria import evaluate
 from agatesim.fields import Phase
 from agatesim.models import Staged
-from agatesim.volume.config import load_volume_preset
+from agatesim.volume.config import SliceConfig, load_volume_preset
 from agatesim.volume.simulate import prepare_volume
+from agatesim.volume.survey import MIN_CUT_RESOLUTION, cut_resolution
 
 PRESETS = [
     "botryoidal-mechanistic-3d",
@@ -176,3 +177,17 @@ def test_stick_distances_match_brute_force() -> None:
     t = np.clip((rel * ab[None]).sum(axis=2) / (ab * ab).sum(axis=1)[None], 0, 1)
     brute = np.linalg.norm(rel - t[..., None] * ab[None], axis=2).min(axis=1)
     assert np.allclose(sticks.distance(p) + sticks.radius, brute, atol=1e-12)
+
+
+def test_an_oblique_cut_through_3d_sticks_passes_as_stick_agate() -> None:
+    """ADR 0055: a cut at 60 degrees to the vein crosses most rods at an angle,
+    showing stubs as well as bars, and still passes all four stick tests."""
+    sim = prepare_volume(load_volume_preset("stick-mechanistic-3d"))
+    cut = sim.cut(SliceConfig(tilt_deg=60, azimuth_deg=30, offset_mm=0, resolution=768))
+    ev = evaluate("stick", cut.result)
+    assert ev.passed, ev.to_json()
+
+
+def test_stick_surveys_cut_finely_enough_to_judge() -> None:
+    assert cut_resolution("stick", 384) == MIN_CUT_RESOLUTION["stick"] == 768
+    assert cut_resolution("moss", 384) == 384

@@ -195,7 +195,7 @@ crevice veins in andesite.
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `straight-sticks` | The sticks are straight and crystal-shaped. | Share of sticks (patches of quartz, open space or inclusion other than the cavity's centre, at least 0.3 mm²) at least 4 times longer than wide (ratio of principal standard deviations) and filling at least 60% of their oriented bounding box. | value ≥ 0.75 |
-| `stick-count` | There are several sticks. | Number of straight, crystal-shaped sticks. | value ≥ 5 |
-| `pseudomorph-fill` | The sticks are pseudomorphs or hollow moulds, not an opaque mineral. | Share of the straight sticks' area that is quartz or open space. | value ≥ 0.9 |
-| `bands-wrap-sticks` | The bands wrap the sticks. | Worst straight stick's share of nearby band boundary (at most half as far from the stick as from any other solid) lying within 15% of that band's median distance from the stick. | value ≥ 0.7 |
+| `stick-sections` | The sticks are sections of crystal-shaped rods of one width (a bar along a rod, an oval stub across it). | Share of sticks (patches of quartz, open space or inclusion other than the cavity's centre, at least 0.3 mm²) that fill at least 60% of their oriented bounding box and whose width (√12 × the standard deviation across) is within 25% of the median width. | value ≥ 0.75 |
+| `stick-count` | There are several sticks. | Number of stick sections. | value ≥ 5 |
+| `pseudomorph-fill` | The sticks are pseudomorphs or hollow moulds, not an opaque mineral. | Share of the stick sections' area that is quartz or open space. | value ≥ 0.9 |
+| `bands-wrap-sticks` | The bands wrap the sticks. | Share of band boundary beside the stick sections' flanks (within 30% of a section's half-length of its middle, at most half as far from it as from any other solid) lying within 15% of that band's median distance from the stick, pooled over the sections. | value ≥ 0.7 |
