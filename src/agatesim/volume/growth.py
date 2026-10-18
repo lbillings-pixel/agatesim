@@ -65,8 +65,6 @@ def unsupported_in_3d(params: ProceduralGrowth) -> str | None:
     stages = [Mode(int(mode[a])) for a, _ in mode_stages(mode)]
     if Mode.CRYSTAL in stages[:-1]:
         return "in 3D, quartz crystals must be the last stage"
-    if Mode.STICK in stages:
-        return "stick crystals aren't available in 3D yet"
     return None
 
 
@@ -404,7 +402,7 @@ class _Stage:
     metric: _Metric | None = None
     crystal_offset: int = 0
     settled_heights: FloatArray | None = None  # sorted heights of the open reference points
-    aggregate: Aggregate3 | None = None  # dendrite stages
+    aggregate: Inclusion | None = None  # dendrite and stick stages
 
 
 def prepare_growth(
@@ -413,6 +411,8 @@ def prepare_growth(
     problem = unsupported_in_3d(params)
     if problem is not None:
         raise ValueError(problem)
+    from agatesim.volume.sticks import Sticks3, grow_sticks3  # imports this module
+
     streams = rng.spawn(8)
     rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = streams[:7]
     rng_palette = streams[7]
@@ -450,6 +450,21 @@ def prepare_growth(
             )
             stages.append(_Stage(m, a, b, cumulative, solid, aggregate=aggregate))
             solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0)))
+        elif m is Mode.STICK:
+            sticks = grow_sticks3(
+                setting,
+                solid,
+                rng_crystals.spawn(1)[0],
+                spacing_mm=params.stick_spacing_mm,
+                length_mm=params.stick_length_mm,
+                elongation=params.stick_elongation,
+                scatter_deg=params.stick_axis_scatter_deg,
+            )
+            stages.append(
+                _Stage(m, a, b, cumulative, solid, aggregate=sticks, crystal_offset=crystals)
+            )
+            solid = replace(solid, aggregates=(*solid.aggregates, (sticks, 0.0)))
+            crystals += len(sticks.a)
         elif m is Mode.CRYSTAL:
             sites = place_sites(setting, solid, params.quartz_grain_mm, rng_crystals.spawn(1)[0])
             metric = Crystals(sites, params.quartz_elongation, params.quartz_axis_scatter_deg)
@@ -488,6 +503,16 @@ def prepare_growth(
                 break
             p = points[open_idx]
             owner = None
+            if st.mode is Mode.STICK:
+                assert isinstance(st.aggregate, Sticks3)
+                owner = st.aggregate.owner_at(p)
+                hit = owner >= 0
+                order = st.aggregate.order_at(p[hit])
+                span = st.end - st.start
+                steps = st.start + np.minimum(np.floor(order * span), span - 1)
+                filled_at[open_idx[hit]] = steps.astype(np.int64)
+                grain[open_idx[hit]] = (st.crystal_offset + owner[hit]).astype(np.int32)
+                continue
             if st.mode is Mode.DENDRITE:
                 assert st.aggregate is not None
                 order = st.aggregate.order_at(p)

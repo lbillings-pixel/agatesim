@@ -1,0 +1,30 @@
+# Stick agate in 3D (procedural tier): blade-shaped crystals grow from both
+# walls of a crevice vein first, banded chalcedony lines them, and they end
+# replaced by quartz (ADR 0049, ADR 0053).
+name = "stick-3d"
+seed = 13
+archetype = "stick"
+
+[solid]
+preset = "seam-slab"
+size_mm = 120
+
+[slice]  # across the sheet
+tilt_deg = 0
+
+[model]
+kind = "procedural-growth"
+growth_mm = 30
+band_period = 0.02
+wobble_mm = 0.03
+stick_spacing_mm = 4.5
+stick_length_mm = 5
+stick_elongation = 12
+stick_axis_scatter_deg = 25
+
+[model.schedules.sticks]
+base = 1.0
+events = [{ type = "step", at = 0.08, value = 0.0 }]
+
+[model.schedules.iron]
+base = 0.3

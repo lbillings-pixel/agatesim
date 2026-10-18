@@ -9,6 +9,7 @@ import pytest
 
 from agatesim.criteria import evaluate
 from agatesim.fields import Phase
+from agatesim.models import Staged
 from agatesim.volume.config import load_volume_preset
 from agatesim.volume.simulate import prepare_volume
 
@@ -121,3 +122,57 @@ def test_3d_geode_crystals_fill_only_the_quartz_and_coarsen_inward() -> None:
 
     rho = float(np.corrcoef(ranks(depth[big]), ranks(counts[big].astype(float)))[0, 1])
     assert rho > 0.5
+
+
+def test_3d_sticks_are_lined_by_h1_and_replaced_by_quartz() -> None:
+    """Stick agate in 3D (ADR 0053): rods from the walls, ending as quartz with
+    a crystal id each, grown before H1 lines them."""
+    vol = prepare_volume(load_volume_preset("stick-mechanistic-3d")).volume(64)
+    f, inside = vol.fields, vol.inside
+    quartz = f.phase == Phase.QUARTZ
+    chalcedony = f.phase == Phase.CHALCEDONY
+    assert 0.005 < quartz[inside].mean() < 0.3
+    assert (f.grain[quartz] >= 0).all()
+    assert len(np.unique(f.grain[quartz])) > 10
+    assert float(np.nanmax(f.t_dep[quartz])) < 0.5 <= float(np.nanmin(f.t_dep[chalcedony]))
+
+
+def test_3d_sticks_can_dissolve_into_moulds() -> None:
+    config = load_volume_preset("stick-mechanistic-3d")
+    model = config.model
+    assert isinstance(model, Staged)
+    hollow = config.model_copy(
+        update={
+            "model": model.model_copy(
+                update={"stick": model.stick.model_copy(update={"fill": "hollow"})}
+            )
+        }
+    )
+    f = prepare_volume(hollow).volume(64).fields
+    assert not (f.phase == Phase.QUARTZ).any()
+    assert (f.phase == Phase.VOID).any()
+
+
+def test_procedural_3d_sticks_become_quartz() -> None:
+    vol = prepare_volume(load_volume_preset("stick-3d")).volume(64)
+    f = vol.fields
+    quartz = f.phase == Phase.QUARTZ
+    assert quartz[vol.inside].mean() > 0.005
+    assert (f.grain[quartz] >= 0).all()
+
+
+def test_stick_distances_match_brute_force() -> None:
+    """The spatial index finds the nearest stick exactly (ADR 0053)."""
+    from agatesim.volume.sticks import Sticks3
+
+    rng = np.random.default_rng(0)
+    a = rng.uniform(0, 50, (300, 3))
+    d = rng.normal(size=(300, 3))
+    d /= np.linalg.norm(d, axis=1)[:, None]
+    sticks = Sticks3(a=a, b=a + 5 * d, radius=0.4)
+    p = rng.uniform(0, 50, (20_000, 3))
+    ab = sticks.b - sticks.a
+    rel = p[:, None, :] - sticks.a[None]
+    t = np.clip((rel * ab[None]).sum(axis=2) / (ab * ab).sum(axis=1)[None], 0, 1)
+    brute = np.linalg.norm(rel - t[..., None] * ab[None], axis=2).min(axis=1)
+    assert np.allclose(sticks.distance(p) + sticks.radius, brute, atol=1e-12)

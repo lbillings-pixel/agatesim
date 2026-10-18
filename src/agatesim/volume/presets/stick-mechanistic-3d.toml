@@ -1,0 +1,22 @@
+# Stick agate in 3D (mechanistic tier): blade-shaped crystals grow from both
+# walls of a crevice vein, front-feedback (H1) chalcedony lines them, and they
+# end replaced by quartz (ADR 0049, ADR 0053).
+name = "stick-mechanistic-3d"
+seed = 13
+archetype = "stick"
+
+[solid]
+preset = "seam-slab"
+size_mm = 120
+
+[slice]  # across the sheet
+tilt_deg = 0
+
+[model]
+kind = "mechanistic-staged"
+order = "stick-wall"
+
+[model.stick]
+spacing_mm = 4.5
+length_mm = 5
+elongation = 12

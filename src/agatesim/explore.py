@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, Literal, cast, get_args
 
 import numpy as np
 from pydantic import BaseModel
@@ -24,6 +24,8 @@ from pydantic import BaseModel
 from agatesim.config import RunConfig
 from agatesim.criteria import evaluate
 from agatesim.fields import Phase
+from agatesim.geometry import CAVITY_PRESETS
+from agatesim.models.staged import Order, Staged
 from agatesim.simulate import simulate
 
 CHECK_RESOLUTION = 192  # pixels across the quick run that checks a mechanistic draw
@@ -31,6 +33,11 @@ FORM_RESOLUTION = 768  # most pixels across the run that checks the form, when a
 MIN_BANDS = 4  # a mechanistic draw must still lay at least this many bands
 MAX_ATTEMPTS = 12
 UNCHECKED = {"mechanistic-liesegang"}  # needs the GPU; it has no ranges either
+SIZE_SPAN = math.log(1.3)  # cavity size varies by up to this factor either way
+TIME_SHIFT = 0.1  # schedule events move by up to this share of the run
+CONTINUOUS = {"silica", "iron"}  # schedules whose levels vary (the rest are on/off switches)
+
+Extra = Literal["cavity", "schedules", "order"]
 
 
 @dataclass(frozen=True)
@@ -96,14 +103,76 @@ def _vary(
     return out
 
 
-def vary(config: RunConfig, strength: float, rng: np.random.Generator) -> RunConfig:
-    """One draw: the key settings moved toward random values in their ranges,
-    and a new seed."""
+def _vary_cavity(config: RunConfig, strength: float, rng: np.random.Generator) -> RunConfig:
+    """Another preset shape of the same host (with probability `strength`), a
+    size within a factor of 1.3 either way, any rotation. Left alone when tubes
+    are placed: they might not fit a new shape."""
+    cavity = config.cavity
+    if cavity.tubes:
+        return config
+    preset = cavity.preset
+    if preset is not None and rng.random() < strength:
+        host = CAVITY_PRESETS[preset].host
+        same = sorted(name for name, p in CAVITY_PRESETS.items() if p.host is host)
+        preset = same[int(rng.integers(0, len(same)))]
+    size = cavity.size_mm * math.exp(strength * rng.uniform(-SIZE_SPAN, SIZE_SPAN))
+    rotation = (cavity.rotation_deg + strength * rng.uniform(-180.0, 180.0)) % 360.0
+    new = cavity.model_copy(
+        update={"preset": preset, "size_mm": min(max(size, 10.0), 150.0), "rotation_deg": rotation}
+    )
+    return config.model_copy(update={"cavity": new})
+
+
+def _vary_schedules(values: dict[str, Any], strength: float, rng: np.random.Generator) -> None:
+    """Shift each schedule's events in time, and vary the levels of the
+    continuous ones (silica, iron) within 0-1. On/off switches keep their values,
+    so no stage is switched on or off by accident."""
+    schedules = values.get("schedules")
+    if not isinstance(schedules, dict):
+        return
+
+    def shift(x: float) -> float:
+        return min(max(float(x) + strength * rng.uniform(-TIME_SHIFT, TIME_SHIFT), 0.0), 1.0)
+
+    def level(v: float) -> float:
+        return float(v) + 0.5 * strength * (rng.uniform(0.0, 1.0) - float(v))
+
+    for key, schedule in cast(dict[str, dict[str, Any]], schedules).items():
+        if key in CONTINUOUS:
+            schedule["base"] = level(schedule["base"])
+        for event in cast(list[dict[str, Any]], schedule.get("events", [])):
+            if event["type"] == "ramp":
+                a, b = sorted((shift(event["start"]), shift(event["end"])))
+                event["start"], event["end"] = a, min(max(b, a + 0.01), 1.0)
+            elif event["type"] == "pulse":
+                event["at"] = min(shift(event["at"]), 1.0 - float(event["width"]))
+            else:
+                event["at"] = shift(event["at"])
+            if key in CONTINUOUS:
+                event["value"] = level(event["value"])
+
+
+def vary(
+    config: RunConfig,
+    strength: float,
+    rng: np.random.Generator,
+    extras: frozenset[Extra] = frozenset(),
+) -> RunConfig:
+    """One draw: the key settings moved toward random values in their ranges, a
+    new seed, and any `extras` (cavity, schedules, stage order) varied too."""
     model = config.model
     schema = type(model).model_json_schema()
     values = _vary(model.model_dump(mode="json"), schema["properties"], schema, strength, rng)
+    if "schedules" in extras:
+        _vary_schedules(values, strength, rng)
+    if "order" in extras and isinstance(model, Staged) and rng.random() < strength:
+        orders = get_args(Order)
+        values["order"] = orders[int(rng.integers(0, len(orders)))]
     new_model = cast(BaseModel, type(model).model_validate(values))
-    return config.model_copy(update={"model": new_model, "seed": int(rng.integers(0, 1_000_000))})
+    drawn = config.model_copy(update={"model": new_model, "seed": int(rng.integers(0, 1_000_000))})
+    if "cavity" in extras:
+        drawn = _vary_cavity(drawn, strength, rng)
+    return drawn
 
 
 def _vet(config: RunConfig, keep_form: bool) -> str | None:
@@ -124,7 +193,12 @@ def _vet(config: RunConfig, keep_form: bool) -> str | None:
 
 
 def randomize(
-    config: RunConfig, strength: float, *, keep_form: bool = False, seed: int | None = None
+    config: RunConfig,
+    strength: float,
+    *,
+    keep_form: bool = False,
+    seed: int | None = None,
+    extras: frozenset[Extra] = frozenset(),
 ) -> Draw:
     """Draw new settings. For mechanistic models, or any model with keep_form and
     a form to judge, redraw until a quick run still bands (and still passes the
@@ -135,11 +209,11 @@ def randomize(
     mechanistic = kind.startswith("mechanistic-") and kind not in UNCHECKED
     form = keep_form and config.archetype is not None and kind not in UNCHECKED
     if not (mechanistic or form):
-        return Draw(vary(config, strength, rng), 1, False, True, "")
+        return Draw(vary(config, strength, rng, extras), 1, False, True, "")
     last = config
     reason = ""
     for attempt in range(1, MAX_ATTEMPTS + 1):
-        last = vary(config, strength, rng)
+        last = vary(config, strength, rng, extras)
         problem = _vet(last, keep_form)
         if problem is None:
             return Draw(last, attempt, True, True, "")

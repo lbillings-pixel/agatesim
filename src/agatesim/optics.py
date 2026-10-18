@@ -35,7 +35,7 @@ from numpy.typing import NDArray
 
 from agatesim import _scipy
 from agatesim.criteria.common import band_normals, world_gradient
-from agatesim.fields import Phase
+from agatesim.fields import Phase, Pigment
 from agatesim.grid import FloatArray
 from agatesim.render import render_slab
 from agatesim.simulate import SimulationResult
@@ -47,6 +47,20 @@ SCATTER_MILKY = 12.0  # 1/mm, a fully milky (opaque) band
 SCATTER_CLEAR = 0.15  # 1/mm, a fully clear band
 TYNDALL = np.array([0.85, 0.95, 1.2])  # fine particles scatter blue more strongly
 IRON_ABSORPTION = np.array([0.35, 1.0, 2.4])  # 1/mm per unit impurity, R G B
+# Absorption (1/mm per unit impurity, R G B) of each named pigment (ADR 0050):
+# a pigment absorbs the colours it doesn't show. Blue and white are scattering,
+# not pigment: blue takes a little red, white almost nothing. Effective values,
+# chosen so each looks like its slab colour; iron keeps its own.
+PIGMENT_ABSORPTION: dict[Pigment, FloatArray] = {
+    Pigment.IRON: IRON_ABSORPTION,
+    Pigment.HEMATITE: np.array([0.3, 1.6, 2.2]),
+    Pigment.GOETHITE: np.array([0.15, 0.6, 2.2]),
+    Pigment.CELADONITE: np.array([1.6, 0.5, 1.4]),
+    Pigment.MANGANESE: np.array([2.4, 2.4, 2.4]),
+    Pigment.VIOLET: np.array([1.0, 1.8, 0.5]),
+    Pigment.BLUE: np.array([0.8, 0.4, 0.1]),
+    Pigment.WHITE: np.array([0.05, 0.05, 0.05]),
+}
 BACKING = 0.04  # reflectance of whatever the slab rests on
 EXPOSURE = 3.0
 GRATING_ORDERS = 3
@@ -54,6 +68,17 @@ IRIS_GAIN = 3.0  # display exposure for transmitted light
 IRIS_PIGMENT = 3.0  # 1/mm per unit impurity, in transmitted light
 VISIBLE_NM = (380.0, 750.0)
 NORMAL_SMOOTH_MM = 0.25  # scale for band directions
+
+
+def absorption_rgb(result: SimulationResult) -> FloatArray:
+    """Absorption (1/mm, R G B) of each pixel's stain, shape (ny, nx, 3): its
+    impurity times its pigment's absorption (iron where no pigment is named)."""
+    f = result.fields
+    strength = f.impurity.astype(np.float64)[..., None]
+    if f.pigment is None:
+        return strength * IRON_ABSORPTION
+    table = np.stack([PIGMENT_ABSORPTION[Pigment(i)] for i in range(len(Pigment))])
+    return strength * table[f.pigment]
 
 
 def _agate(result: SimulationResult) -> NDArray[np.bool_]:
@@ -95,6 +120,7 @@ class _BandTable:
     translucency: FloatArray  # per time bin
     iron: FloatArray
     solid: FloatArray  # 1 where material was deposited at that time, else 0
+    absorb: FloatArray | None = None  # (BINS, 3) per channel, when pigments are named
 
     BINS = 1000
 
@@ -121,13 +147,38 @@ class _BandTable:
         trans = np.interp(centres, centres[has], trans[has]) if has.any() else np.ones(cls.BINS)
         iron = np.interp(centres, centres[has], iron[has]) if has.any() else np.zeros(cls.BINS)
         solid = (centres <= last + 1.0 / cls.BINS).astype(np.float64)
-        return cls(t=filled, rate=np.hypot(gx, gy), translucency=trans, iron=iron, solid=solid)
+        absorb: FloatArray | None = None
+        if f.pigment is not None:
+            rgb = absorption_rgb(result)[known]
+            channels: list[FloatArray] = []
+            for c in range(3):
+                mean = np.bincount(idx, rgb[:, c], minlength=cls.BINS) / safe
+                channels.append(
+                    np.asarray(np.interp(centres, centres[has], mean[has]), dtype=np.float64)
+                    if has.any()
+                    else np.zeros(cls.BINS)
+                )
+            absorb = np.stack(channels, axis=1)
+        return cls(
+            t=filled,
+            rate=np.hypot(gx, gy),
+            translucency=trans,
+            iron=iron,
+            solid=solid,
+            absorb=absorb,
+        )
 
     def lookup(self, t: FloatArray) -> tuple[FloatArray, FloatArray, FloatArray]:
         i = np.clip((t * self.BINS).astype(np.int64), 0, self.BINS - 1)
         beyond = t >= 1
         solid = np.where(beyond, 0.0, self.solid[i])
         return self.translucency[i], self.iron[i], solid
+
+    def absorb_at(self, t: FloatArray) -> FloatArray:
+        """Per-channel absorption (3, ...) of the band deposited at time t."""
+        assert self.absorb is not None
+        i = np.clip((t * self.BINS).astype(np.int64), 0, self.BINS - 1)
+        return np.moveaxis(self.absorb[i], -1, 0)
 
 
 def refracted_tan(angle_deg: float) -> float:
@@ -155,6 +206,12 @@ def shadow_luminance(
     agate = _agate(result).astype(np.float64)
     trans = np.where(agate > 0, f.translucency.astype(np.float64), 1.0)
     iron = np.where(agate > 0, f.impurity.astype(np.float64), 0.0)
+    # Named pigments absorb per channel; without them, iron as before.
+    tint = (
+        None
+        if f.pigment is None
+        else np.moveaxis(np.where(agate[..., None] > 0, absorption_rgb(result), 0.0), -1, 0)
+    )
     rows0, cols0 = np.indices(grid.shape).astype(np.float64)
     cos_in = 1 / math.sqrt(1 + t_in * t_in)
     az = math.radians(azimuth_deg)
@@ -167,6 +224,7 @@ def shadow_luminance(
         cols). With tilted bands this is the band deposited where growth had gone
         z·tan(tilt) farther: deposition time t + |∇t|·z·tan(tilt)."""
         inside = _sample(agate, rows, cols)
+        later = None
         if table is None or z == 0:
             t = np.clip(_sample(trans, rows, cols), 0, 1)
             fe = np.clip(_sample(iron, rows, cols), 0, 1)
@@ -176,7 +234,13 @@ def shadow_luminance(
             inside = inside * solid
         scatter = (SCATTER_MILKY * (1 - t) + SCATTER_CLEAR * t) * inside
         s = scatter[None] * TYNDALL[:, None, None]
-        return s, s + IRON_ABSORPTION[:, None, None] * (fe * inside)[None]
+        if tint is None:
+            return s, s + IRON_ABSORPTION[:, None, None] * (fe * inside)[None]
+        if later is None or table is None:
+            absorb = np.stack([_sample(tint[c], rows, cols) for c in range(3)])
+        else:
+            absorb = table.absorb_at(later)
+        return s, s + absorb * inside[None]
 
     # Light is tracked in a frame that moves with it: depth (optical) accumulated
     # along each slanted ray, indexed by where the ray entered the surface. Every
@@ -295,11 +359,22 @@ def iris_light(result: SimulationResult, view_deg: float, azimuth_deg: float = 0
         -(SCATTER_MILKY * (1 - t) + SCATTER_CLEAR * t + IRIS_PIGMENT * f.impurity) * optics.slice_mm
     )
     transmit = np.where(agate, transmit, 0.0)
+    # Named pigments tint the transmitted light (the mean absorption matches iron's).
+    tint = (
+        np.ones((*result.grid.shape, 3))
+        if f.pigment is None
+        else np.exp(
+            -(absorption_rgb(result) - f.impurity[..., None] * IRON_ABSORPTION.mean())
+            * IRIS_PIGMENT
+            / IRON_ABSORPTION.mean()
+            * optics.slice_mm
+        )
+    )
     colour = np.zeros((*result.grid.shape, 3))
     grating = np.isfinite(d)
     for m in range(1, GRATING_ORDERS + 1):
         nm = np.where(grating, 1000 * d * along / m, 0.0)
-        colour += wavelength_rgb(nm) * (transmit / m**2)[..., None]
+        colour += wavelength_rgb(nm) * (transmit / m**2)[..., None] * tint
     # Light scattered by the bands themselves: a faint, colourless glow.
     glow = np.where(agate, 0.04 * (1 - t) * np.exp(-IRIS_PIGMENT * f.impurity), 0.0)
     colour += glow[..., None]

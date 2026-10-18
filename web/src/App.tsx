@@ -5,6 +5,7 @@ import {
   type Job,
   type Meta,
   type PreviewResult,
+  type RandomizeExtra,
   type RunConfig,
   type RunDetail,
   type RunSummary,
@@ -114,6 +115,7 @@ export function App() {
   const lastRecorded = useRef(0);
   const [strength, setStrength] = useState(0.4);
   const [keepForm, setKeepForm] = useState(false);
+  const [extras, setExtras] = useState<RandomizeExtra[]>([]);
   const [randomizing, setRandomizing] = useState(false);
   const [randomNote, setRandomNote] = useState("");
 
@@ -341,10 +343,21 @@ export function App() {
   };
 
   const randomizable = fields.length > 0 && JSON.stringify(model?.schema ?? {}).includes('"explore"');
+  // Extras Randomize may vary, where they apply to this model.
+  const extraOptions: [RandomizeExtra, string, string][] = [
+    ["cavity", "cavity", "Another shape of the same host, size within ±30%, any rotation (not with tubes placed)"],
+    ...(model && model.schedules.length > 0
+      ? ([["schedules", "timelines", "Shift timeline events by up to 10% of the run; vary silica and iron levels"]] as [RandomizeExtra, string, string][])
+      : []),
+    ...(config.model.kind === "mechanistic-staged"
+      ? ([["order", "stage order", "A random stage order from the allowed list"]] as [RandomizeExtra, string, string][])
+      : []),
+  ];
   const randomize = () => {
     setRandomizing(true);
     setRandomNote("");
-    api.randomize(config, strength, keepForm && !!config.archetype).then(
+    const allowed = extras.filter((x) => extraOptions.some(([key]) => key === x));
+    api.randomize(config, strength, keepForm && !!config.archetype, allowed).then(
       (r) => {
         if (r.accepted) setConfig(r.config);
         setRandomNote(
@@ -476,6 +489,21 @@ export function App() {
                 />
                 Stay within the form
               </label>
+              <span className="inline small extras" role="group" aria-label="Also vary">
+                <span className="micro-label">Also vary</span>
+                {extraOptions.map(([key, label, help]) => (
+                  <label key={key} className="inline small" title={help}>
+                    <input
+                      type="checkbox"
+                      checked={extras.includes(key)}
+                      onChange={(e) =>
+                        setExtras((xs) => (e.target.checked ? [...xs, key] : xs.filter((x) => x !== key)))
+                      }
+                    />
+                    {label}
+                  </label>
+                ))}
+              </span>
               </>
             )}
             {randomNote && <span className="muted small" aria-live="polite">{randomNote}</span>}

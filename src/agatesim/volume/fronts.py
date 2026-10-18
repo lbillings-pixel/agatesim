@@ -45,6 +45,7 @@ from agatesim.volume.growth import (
 )
 from agatesim.volume.models import Evaluator, Setting, column_of, wall_distance_at
 from agatesim.volume.solids import BoolArray
+from agatesim.volume.sticks import Sticks3, grow_sticks3
 
 
 def _tube_mask(setting: Setting, points: FloatArray, inside: BoolArray) -> BoolArray:
@@ -211,6 +212,19 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
             count = int(column.layer.max()) + 1 if (column.layer >= 0).any() else 0
             stages.append(_Stage("floor", solid, None, column=column, band_count=count))
             solid = replace(solid, bed=column.top)
+        elif stage == "stick":
+            s = params.stick
+            sticks = grow_sticks3(
+                setting,
+                solid,
+                stage_rng,
+                spacing_mm=s.spacing_mm,
+                length_mm=s.length_mm,
+                elongation=s.elongation,
+                scatter_deg=s.axis_scatter_deg,
+            )
+            stages.append(_Stage("stick", solid, None, aggregate=sticks))
+            solid = replace(solid, aggregates=(*solid.aggregates, (sticks, 0.0)))
         elif stage == "garden":
             garden = grow_garden(params.garden, setting, solid, stage_rng)
             stages.append(_Stage("garden", solid, None, aggregate=garden, tint=params.garden.tint))
@@ -242,9 +256,11 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
         t_dep = np.full(n, np.nan, dtype=np.float32)
         pigment = np.zeros(n, dtype=np.uint8)
         pigmented = False  # whether any stage named its pigments (ADR 0050)
+        grain = np.full(n, -1, dtype=np.int32)
+        moulds = np.zeros(n, dtype=bool)  # dissolved sticks: open, but no later stage enters
         next_band = 0
         for i, st in enumerate(stages):
-            open_now = inside & ~tube & (phase == Phase.VOID)
+            open_now = inside & ~tube & ~moulds & (phase == Phase.VOID)
             if st.kind in ("wall", "spherulite"):
                 assert st.history is not None
                 if st.metric is not None:
@@ -261,6 +277,22 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
                 assert st.column is not None
                 fields = st.column.fields(h, open_now)
                 grown = open_now & (fields.phase != Phase.VOID)
+            elif isinstance(st.aggregate, Sticks3):
+                # Stick crystals end replaced by quartz, or dissolved (ADR 0049).
+                idx = np.flatnonzero(open_now)
+                owner = np.full(n, -1, dtype=np.int64)
+                owner[idx] = st.aggregate.owner_at(points[idx])
+                grown = owner >= 0
+                order_at = np.full(n, np.inf)
+                order_at[grown] = st.aggregate.order_at(points[grown])
+                if params.stick.fill == "hollow":
+                    moulds |= grown  # later stages grew around the crystals, now dissolved
+                    continue
+                phase[grown] = Phase.QUARTZ
+                translucency[grown] = 0.9
+                grain[grown] = owner[grown].astype(np.int32)
+                t_dep[grown] = (i + STAGE_SPAN * np.clip(order_at[grown], 0, 1)) / len(order)
+                continue
             else:
                 assert st.aggregate is not None
                 order_at = np.full(n, np.inf)
@@ -287,7 +319,7 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
             impurity=impurity,
             translucency=translucency,
             t_dep=t_dep,
-            grain=np.full(n, -1, dtype=np.int32),
+            grain=grain,
             micro_spacing_um=np.full(n, np.nan, dtype=np.float32),
             pigment=pigment if pigmented else None,
         )

@@ -94,6 +94,9 @@ class RandomizeRequest(BaseModel):
     strength: float = Field(default=0.4, ge=0, le=1)
     keep_form: bool = False
     seed: int | None = Field(default=None, ge=0)
+    extras: list[Literal["cavity", "schedules", "order"]] = Field(
+        default_factory=list[Literal["cavity", "schedules", "order"]]
+    )
 
 
 class OpticsRequest(PreviewRequest):
@@ -293,7 +296,11 @@ def create_app(
     def randomize_settings(request: RandomizeRequest) -> dict[str, object]:
         """New settings drawn within each key setting's bounded range (ADR 0051)."""
         draw = randomize(
-            request.config, request.strength, keep_form=request.keep_form, seed=request.seed
+            request.config,
+            request.strength,
+            keep_form=request.keep_form,
+            seed=request.seed,
+            extras=frozenset(request.extras),
         )
         return {
             "config": draw.config.model_dump(mode="json"),

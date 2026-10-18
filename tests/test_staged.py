@@ -236,14 +236,15 @@ def test_stick_crystals_ignore_the_grid() -> None:
     assert np.mean(phase == Phase.QUARTZ) > 0.85
 
 
-def test_stick_stages_are_rejected_in_3d() -> None:
+def test_stick_stages_are_accepted_in_3d() -> None:
+    """ADR 0053: the stick stage runs in 3D too."""
     from agatesim.volume.config import VolumeConfig
 
-    with pytest.raises(ValueError, match="stick"):
-        VolumeConfig.model_validate(
-            {
-                "name": "stick-3d",
-                "solid": {"preset": "vesicle-round"},
-                "model": {"kind": "mechanistic-staged", "order": "stick-wall"},
-            }
-        )
+    config = VolumeConfig.model_validate(
+        {
+            "name": "stick-3d",
+            "solid": {"preset": "vesicle-round"},
+            "model": {"kind": "mechanistic-staged", "order": "stick-wall"},
+        }
+    )
+    assert config.model.kind == "mechanistic-staged"

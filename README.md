@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status: M20 under way.** All thirteen target forms are reproduced at the procedural tier and at the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)), shadow agate on a stated, unsourced assumption ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)), and ten run in 3D, judged on cuts (all ten mechanistically too). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+> **Status: M20 under way.** All thirteen target forms are reproduced at the procedural tier and at the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)), shadow agate on a stated, unsourced assumption ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)), and eleven run in 3D, judged on cuts (all eleven mechanistically too; stick agate passes no random cut, since a flat cut shows whole sticks only along them). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
 ![Verification presets of all thirteen forms](docs/images/archetypes.png)
 

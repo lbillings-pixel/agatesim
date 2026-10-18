@@ -31,12 +31,13 @@ import math
 from typing import Literal
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim import _rd, _scipy
 from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray, Grid
 from agatesim.models.base import Domain
+from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
 
 ARRIVAL_BINS = 2000
@@ -113,6 +114,13 @@ class Liesegang(BaseModel):
         description="Lattice spacing: the length scale of the diffusion, so of band spacing.",
     )
     max_steps: int = 400_000
+    palette: Palette = Field(
+        default_factory=Palette,
+        description=(
+            "Which pigments colour the precipitate bands, as relative shares (ADR 0050); "
+            "each band takes one."
+        ),
+    )
 
 
 def _lattice_grid(domain: Domain, spacing_mm: float) -> Grid:
@@ -159,7 +167,7 @@ def run_liesegang(
     """H2 in the cavity, or only in `region` (output pixels; for a later stage,
     the space earlier stages left open). The reactant then enters through every
     surface of the region, earlier deposits included (an assumption)."""
-    del rng  # deterministic
+    # The precipitation is deterministic; rng only picks the bands' pigments.
     lattice = _lattice_grid(domain, params.lattice_mm)
     lat_domain = Domain.build(domain.cavity, lattice)
     inside = lat_domain.mask
@@ -228,6 +236,7 @@ def run_liesegang(
     out_t = np.where(mask, t_dep[rows, cols], np.nan)
     phase = np.full(domain.grid.shape, Phase.HOST, dtype=np.uint8)
     phase[mask] = Phase.CHALCEDONY  # the gel crystallises to chalcedony later
+    band_pigment = params.palette.draw(int(band.max()) + 1 if band.size else 0, rng)
     return Fields(
         phase=phase,
         band=out_band,
@@ -236,4 +245,9 @@ def run_liesegang(
         t_dep=out_t.astype(np.float32),
         grain=np.full(domain.grid.shape, -1, dtype=np.int32),
         micro_spacing_um=np.full(domain.grid.shape, np.nan, dtype=np.float32),
+        pigment=(
+            None
+            if band_pigment is None
+            else np.where(out_band >= 0, band_pigment[np.maximum(out_band, 0)], 0).astype(np.uint8)
+        ),
     )

@@ -205,8 +205,6 @@ class VolumeConfig(BaseModel):
             )
         if isinstance(model, Staged) and model.wall_mechanism != "front-feedback":
             raise ValueError("in 3D, staged wall bands use front feedback (H1) only")
-        if isinstance(model, Staged) and "stick" in model.order:
-            raise ValueError("stick stages aren't available in 3D yet")
         if isinstance(model, ProceduralFortification) and model.corner_rounding_mm > 0:
             raise ValueError("corner rounding isn't available in 3D")
         if self.solid.filaments and not isinstance(

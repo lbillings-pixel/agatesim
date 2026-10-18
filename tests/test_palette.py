@@ -124,3 +124,43 @@ def test_pigments_render_in_their_own_colours() -> None:
     assert hem[0] - hem[1] > goe[0] - goe[1]  # redder
     assert cel[1] > cel[0]  # green over red
     assert mn.sum() < min(hem.sum(), goe.sum(), cel.sum())  # darkest
+
+
+def test_pigments_tint_the_shadow_view() -> None:
+    """The reflected-light view absorbs per pigment: hematite returns more red
+    than green, celadonite more green than red, blue more blue than red."""
+    from agatesim.optics import render_shadow
+
+    base = simulate(load_preset("shadow").with_resolution(RESOLUTION))
+    f = base.fields
+    chal = f.phase == Phase.CHALCEDONY
+    strong = np.where(chal, 0.6, 0.0).astype(np.float32)
+
+    def mean(pigment: Pigment) -> np.ndarray:
+        coloured = replace(
+            f, impurity=strong, pigment=np.full(f.phase.shape, pigment, dtype=np.uint8)
+        )
+        return render_shadow(replace(base, fields=coloured), 30).astype(float)[chal].mean(axis=0)
+
+    hem, cel, blue = mean(Pigment.HEMATITE), mean(Pigment.CELADONITE), mean(Pigment.BLUE)
+    assert hem[0] > hem[1]
+    assert cel[1] > cel[0]
+    assert blue[2] > blue[0]
+
+
+def test_h2_bands_take_pigments_from_the_palette() -> None:
+    from agatesim.models import Liesegang
+
+    config = load_preset("fortification-mechanistic").with_resolution(96)
+    config = config.model_copy(
+        update={
+            "cavity": config.cavity.model_copy(update={"preset": "nodule-round", "size_mm": 12}),
+            "model": Liesegang(lattice_mm=0.2, palette=Palette(iron=0, hematite=1, celadonite=1)),
+        }
+    )
+    f = simulate(config).fields
+    assert f.pigment is not None
+    banded = (f.phase == Phase.CHALCEDONY) & (f.band >= 0)
+    assert set(np.unique(f.pigment[banded]).tolist()) <= {Pigment.HEMATITE, Pigment.CELADONITE}
+    for b in np.unique(f.band[banded])[:6]:
+        assert len(np.unique(f.pigment[banded & (f.band == b)])) == 1

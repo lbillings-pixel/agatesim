@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from agatesim.config import load_preset
 from agatesim.explore import MIN_BANDS, randomize, vary
 from agatesim.fields import Phase
-from agatesim.models import FrontFeedback
+from agatesim.models import FrontFeedback, Staged
 from agatesim.server.app import create_app
 from agatesim.simulate import simulate
 
@@ -111,3 +111,48 @@ def test_the_randomize_endpoint_returns_valid_settings(client: TestClient) -> No
     assert body["accepted"] is True
     assert body["config"]["model"] != config["model"]
     assert body["config"]["model"]["kind"] == "procedural-waterline"
+
+
+def test_cavity_varies_within_its_host_and_bounds() -> None:
+    from agatesim.geometry import CAVITY_PRESETS
+
+    config = load_preset("fortification")
+    host = CAVITY_PRESETS[str(config.cavity.preset)].host
+    rng = np.random.default_rng(4)
+    seen: set[str] = set()
+    for _ in range(30):
+        cavity = vary(config, 1.0, rng, frozenset({"cavity"})).cavity
+        assert cavity.preset is not None
+        assert CAVITY_PRESETS[cavity.preset].host is host
+        assert config.cavity.size_mm / 1.31 <= cavity.size_mm <= config.cavity.size_mm * 1.31
+        seen.add(cavity.preset)
+    assert len(seen) > 1
+
+
+def test_timelines_shift_but_switches_keep_their_values() -> None:
+    config = load_preset("stick")
+    rng = np.random.default_rng(6)
+    before = config.model.model_dump(mode="json")["schedules"]
+    for _ in range(20):
+        after = vary(config, 1.0, rng, frozenset({"schedules"})).model.model_dump(mode="json")[
+            "schedules"
+        ]
+        sticks_before, sticks_after = before["sticks"], after["sticks"]
+        assert sticks_after["base"] == sticks_before["base"]
+        assert [e["value"] for e in sticks_after["events"]] == [
+            e["value"] for e in sticks_before["events"]
+        ]
+        for e0, e1 in zip(sticks_before["events"], sticks_after["events"], strict=True):
+            assert abs(e1["at"] - e0["at"]) <= 0.1 + 1e-9
+            assert 0.0 <= e1["at"] <= 1.0
+
+
+def test_stage_order_can_change() -> None:
+    config = load_preset("moss-mechanistic")
+    rng = np.random.default_rng(8)
+    orders: set[str] = set()
+    for _ in range(20):
+        model = vary(config, 1.0, rng, frozenset({"order"})).model
+        assert isinstance(model, Staged)
+        orders.add(model.order)
+    assert len(orders) > 1

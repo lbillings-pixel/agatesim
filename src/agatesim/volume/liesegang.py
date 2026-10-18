@@ -27,7 +27,7 @@ MAX_CELLS = 64_000_000  # about 4.6 GB of GPU memory for the eight fields
 
 
 def prepare_liesegang(params: Liesegang, setting: Setting, rng: np.random.Generator) -> Evaluator:
-    del rng  # deterministic
+    # The precipitation is deterministic; rng only picks the bands' pigments.
     lo, hi = setting.solid.bounds()
     lattice = Lattice3.around(lo, hi, params.lattice_mm, MAX_CELLS)
     centres = lattice.centres()
@@ -62,6 +62,7 @@ def prepare_liesegang(params: Liesegang, setting: Setting, rng: np.random.Genera
     band = bands_by_arrival(arrival, zone, inside_flat, min_cells)
     stain = np.clip(p / max(float(np.percentile(p[inside_flat], 99)), 1e-9), 0, 1)
     t_dep = np.where(inside_flat, arrival / max(float(np.max(arrival[inside_flat])), 1e-9), np.nan)
+    band_pigment = params.palette.draw(int(band.max()) + 1 if band.size else 0, rng)
     cells = np.flatnonzero(inside_flat)
     tree = _scipy.NearestIndex(centres[cells]) if len(cells) else None
 
@@ -82,6 +83,13 @@ def prepare_liesegang(params: Liesegang, setting: Setting, rng: np.random.Genera
             t_dep=np.where(inside_pts, t_dep[k], np.nan).astype(np.float32),
             grain=np.full(n, -1, dtype=np.int32),
             micro_spacing_um=np.full(n, np.nan, dtype=np.float32),
+            pigment=(
+                None
+                if band_pigment is None
+                else np.where(
+                    inside_pts & (band[k] >= 0), band_pigment[np.maximum(band[k], 0)], 0
+                ).astype(np.uint8)
+            ),
         )
 
     return evaluate

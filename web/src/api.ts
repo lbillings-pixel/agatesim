@@ -38,6 +38,9 @@ export interface ModelSchema {
   $defs?: Record<string, NestedSchema>;
 }
 
+/** What Randomize may vary besides the key settings. */
+export type RandomizeExtra = "cavity" | "schedules" | "order";
+
 /** New settings drawn by Randomize. */
 export interface RandomizeResult {
   config: RunConfig;
@@ -489,10 +492,10 @@ export const api = {
       body: JSON.stringify({ config, resolution, view, angle_deg: angleDeg, azimuth_deg: azimuthDeg }),
       signal,
     }),
-  randomize: (config: RunConfig, strength: number, keepForm: boolean) =>
+  randomize: (config: RunConfig, strength: number, keepForm: boolean, extras: RandomizeExtra[]) =>
     request<RandomizeResult>("/api/randomize", {
       method: "POST",
-      body: JSON.stringify({ config, strength, keep_form: keepForm }),
+      body: JSON.stringify({ config, strength, keep_form: keepForm, extras }),
     }),
   startRun: (config: RunConfig) =>
     request<Job>("/api/runs", { method: "POST", body: JSON.stringify(config) }),
