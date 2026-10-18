@@ -74,7 +74,8 @@ individually different), so their surveys are re-run here.
   length law does not follow theirs in either: the moss presets start their
   trees 4 mm apart, so neighbours hardly compete for particles, and the
   competition is what gives N(L) ~ L^-1.25. In ADR 0056's box, with seeds 1 mm
-  apart, it does (α = 1.25). The seed spacing, not the resolution, decides it.
+  apart, it does, at either spacing (α 1.25–1.31 over four seeds; ADR 0056
+  amendment). The seed spacing, not the resolution, decides it.
 - **Random cuts** (100 each, 512 px, seed 0), with the new draws:
 
   | 3D preset | Before (ADR) | Now |

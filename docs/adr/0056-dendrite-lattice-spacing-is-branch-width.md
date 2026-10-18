@@ -92,3 +92,19 @@ a 40 mm nodule, against 10–15 minutes on the CPU now; not yet measured).
 - The dimension Hou et al. report is approached as the branches get thinner
   relative to the scales measured; matching it needs no new physics so far,
   only resolution or a measurement over the matching range of scales.
+
+## Amendment (2026-10-18): the length law doesn't depend on the spacing
+
+Finding 2 rested on one run per spacing. Re-run with the engine of ADR 0057
+over four seeds at 4% concentration, the length law's exponent spreads by
+about ±0.1 from run to run:
+
+| Spacing | α (seeds 1–4) | Mean | Dimension, 0.25–2 mm |
+|---|---|---|---|
+| 0.24 mm | 1.13, 1.31, 1.30, 1.26 | 1.25 | 1.75–1.76 |
+| 0.12 mm | 1.21, 1.32, 1.33, 1.36 | 1.31 | 2.35 |
+
+So the length law matches Hou et al.'s at both spacings (with seeds 1 mm
+apart), and the 1.39 above was one run's scatter. What the coarsening changes
+is the dimension at a fixed physical scale, which is steady from run to run;
+that is the reason left for the finer lattice.
