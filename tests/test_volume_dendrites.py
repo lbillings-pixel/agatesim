@@ -56,7 +56,7 @@ def test_upward_bias_turns_branches_vertical() -> None:
     assert values[0] < 0.6 < 0.8 < values[1]
 
 
-@pytest.mark.parametrize("name", ["moss-3d", "plume-3d"])
+@pytest.mark.parametrize("name", ["moss-3d", "moss-dense-3d", "plume-3d"])
 def test_inclusion_presets_pass_on_their_configured_cut(name: str) -> None:
     config = load_volume_preset(name)
     config = config.with_slice(config.slice.model_copy(update={"resolution": 512}))
