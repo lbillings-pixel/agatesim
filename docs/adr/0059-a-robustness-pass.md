@@ -69,6 +69,10 @@ each; and every model setting pushed to its limits.
    highest value (or four times its default where unbounded, as the sliders
    allow), each run in its own process with a 2-minute limit and a reading of
    its peak memory (about 2,300 runs).
+7. **The Windows start script removed the GPU extra** (`uv sync` without it),
+   so a GPU user starting the app that way was back on the CPU without
+   knowing. It now keeps an installed GPU extra, takes `-Gpu` to install it,
+   and runs with `--no-sync`. The README says how to set the GPU up.
 8. **The 3D cache counted formations, not bytes,** and dropped the oldest
    added, not the least recently used. It now keeps formations up to 1.5 GB of
    their own arrays and search trees (`server/footprint.py`) and at most six,
@@ -84,10 +88,6 @@ each; and every model setting pushed to its limits.
     Each run in the 2D and 3D lists now has Delete, with an inline "Delete this
     run? Yes / No"; the server deletes only a run directory directly inside the
     runs folder. Both lists show the runs folder's size.
-7. **The Windows start script removed the GPU extra** (`uv sync` without it),
-   so a GPU user starting the app that way was back on the CPU without
-   knowing. It now keeps an installed GPU extra, takes `-Gpu` to install it,
-   and runs with `--no-sync`. The README says how to set the GPU up.
 
 ## Status brought up to date
 
