@@ -148,7 +148,11 @@ its own mechanism.
   chalcedony, are compared to moss agate. Each filament has a chalcedony crust up
   to 1 cm thick, and some filaments on ceilings and walls hang downward under
   gravity ([@goetze2020b]). Biosignatures are reported in such fabrics
-  ([@goetze2020] §5.5, [@goetze2020b]).
+  ([@goetze2020] §5.5, [@goetze2020b]). In green moss agates from Japan the
+  filaments, a few micrometres thick, are celadonite that replaced fungal or
+  algal threads, with carbon relics, before opal and then chalcedony enclosed
+  them ([@akahane2025]); in Fuxin moss agate the celadonite is read as
+  precipitated from hydrothermal fluid ([@zhang2026], abstract).
 - **Plumes** are interpreted as silica gardens: plant-like structures formed by
   inorganic self-assembly through osmosis, chemical reaction and buoyancy
   ([@goetze2020] §5.5, citing [@haudin2014]). Buoyancy gives them a preferred
@@ -170,7 +174,10 @@ on 3D Mn-oxide dendrites, N(L) ~ L^-1.25 ([@hou2023]): one tree runs ahead and
 screens the rest. In a closed nodule no tree can, the cavity cuts the longest
 off, and the exponent stays near 1.7 even with seeds 1 mm apart (ADR 0058). The
 model so predicts that dendrites inside closed agate cavities don't follow the
-fracture-surface law; no measurement to test it has been read.
+fracture-surface law. A search found no measurement to test it: the one study
+of dendrites in a closed agate nodule found them growing from its surface
+towards its centre, but gives no lengths with a scale ([@bayirli2017]; ADR 0058
+amendment).
 
 ## 7. Optical archetypes
 

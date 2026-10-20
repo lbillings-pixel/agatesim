@@ -61,3 +61,31 @@ walls meet halfway; every run used up its particles before the sweep limit.
 - Matching Hou et al.'s exponent needs an open setting, such as dendrites on a
   fracture face before the agate fills it; no agate form asks for that yet.
 - Finding measurements of dendrite lengths in moss agate would test finding 3.
+
+## Amendment (2026-10-20): a search for dendrite lengths in agate
+
+Owner request: look for measured dendrite lengths in moss agate, to test
+finding 3. A time-boxed search (web search, OpenAlex, the works citing
+[@hou2023], Europe PMC) found none.
+
+- **The one closed-nodule measurement found** is a single dendritic agate
+  nodule, roughly spherical, cut through its middle: Mn-oxide dendrites grow
+  from its outer surface inward towards the centre, the setting modelled here.
+  It reports a box-counting dimension of 1.63 for the dendritic region of one
+  photograph, and branch lengths of 72–654 px with no scale and no
+  distribution ([@bayirli2017]), so it cannot test the exponent.
+- **A 2025 review of mineral dendrites** by Hou et al.'s group
+  ([@hou2025], abstract only: the publisher's page sits behind a bot check)
+  may say more; its full text is open (CC BY-NC) and worth reading if a route
+  to it opens.
+- **Green moss agate is mostly not dendrites.** Two new studies find the
+  green filaments to be celadonite: replacing fungal or algal threads a few
+  micrometres thick, with carbon relics ([@akahane2025]), or precipitated
+  from hydrothermal fluid ([@zhang2026], abstract). Neither measures lengths.
+  The prediction applies to Mn- or Fe-oxide dendrites in closed cavities
+  (dendritic agate), not to these filaments.
+
+So finding 3 stays an untested prediction. Testing it needs lengths of
+dendrites in closed nodules, measured from their wall, on sections or (better)
+in 3D: the specimens or scans would have to be collected, which no source
+read has done.

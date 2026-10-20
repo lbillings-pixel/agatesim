@@ -240,6 +240,62 @@ topics = ["moss", "filaments", "stalactites", "tubes", "biosignatures", "celadon
 notes = """Filamentous fabrics in basalt cavities, from pseudo-stalactites to irregular mats, grow on a thread-like centre (fungal chitin found in the innermost core) and are wrapped in concentric layers: Fe-rich phases (Fe oxides, celadonite, smectite), then Ca zeolites, then silica (opal-CT, chalcedony, macrocrystalline quartz). Lengths up to 100 cm with constant diameters. In one cavity, filaments on the ceiling and walls partly show gravity-controlled elongation downward, while the floor holds randomly intergrown filaments embedded in chalcedony 'similar to the so-called moss agate', each with a green inner zone and a chalcedony crust up to 1 cm."""
 
 [[references]]
+id = "hou2025"
+kind = "review"
+authors = ["Hou, Z.", "Woś, D.", "Qiu, K.-F.", "Rogowitz, A.", "Tschegg, C.", "Rice, A. H. N.", "Grasemann, B.", "Yu, H.-C.", "Szymczak, P."]
+year = 2025
+title = "Mineral dendrites: Indicators for geological aqueous environments"
+venue = "Earth-Science Reviews 270, 105231"
+doi = "10.1016/j.earscirev.2025.105231"
+access = "open"
+licence = "CC-BY-NC-4.0"
+checked = "abstract"
+topics = ["dendrites", "manganese", "review"]
+notes = """Abstract read 2026-10-20 (via OpenAlex; the publisher's page sits behind a bot check, not passed). Reviews mineral dendrites from early observations to numerical simulations: growth closely coupled to the aqueous environment, morphology highly sensitive to physical and chemical conditions, so dendrites can trace reactant concentration and the history of fluid pulses. Whether it reports dendrite lengths in agate is not known from the abstract."""
+
+[[references]]
+id = "bayirli2017"
+kind = "article"
+authors = ["Bayırlı, M."]
+year = 2017
+title = "Amorf dentritik agatta quasi kristallerin fraktal büyümesi (Fractal growth of quasi crystals in the amorphous dendritic agate)"
+venue = "Balıkesir Üniversitesi Fen Bilimleri Enstitüsü Dergisi 19(2), 116–122"
+doi = "10.25092/baunfbed.340107"
+access = "open"
+licence = "open access (university repository); cite only"
+checked = "full-text"
+topics = ["dendrites", "manganese", "dla", "fractal", "moss"]
+notes = """Read in full 2026-10-20 (Turkish, English abstract). One roughly spherical dendritic agate nodule from a bentonite quarry near Balıkesir, cut through its middle and photographed: Mn-oxide dendrites, randomly placed and oriented, grow from the nodule's outer surface inward towards its centre. Branch lengths 72–654 px in the digitised 256 × 256 image (no scale given); no length distribution. Box-counting dimension of the one dendritic region 1.626 ± 0.006 and density-correlation exponent 0.342 (the abstract's range 1.238–1.626 includes a non-dendritic speckled region, and two of the five rows are DLA simulations). Interprets growth as diffusion-limited, agreeing with DLA. Compares other Mn dendrites: 1.39–1.88 on magnesite ore, 1.75 on vein quartz, 1.78 on limestone and 1.51 on quartz (chopard1991)."""
+
+[[references]]
+id = "akahane2025"
+kind = "article"
+authors = ["Akahane, H.", "Shimizu, M.", "Ogawara, T.", "Ito, M.", "Yoshioka, T.", "Sawada, H.", "Miyajima, H.", "Momma, K.", "Imai, H."]
+year = 2025
+title = "Biogenic filamentous fabrics in green colored moss agates within miocene volcanic rocks in Japan and the associated formation of celadonite"
+venue = "Scientific Reports 15, 25072"
+doi = "10.1038/s41598-025-09178-6"
+access = "open"
+licence = "CC-BY-NC-ND-4.0"
+checked = "full-text"
+topics = ["moss", "filaments", "celadonite", "biosignatures"]
+notes = """Read in full 2026-10-20 (Europe PMC, PMC12254404). Green moss agates from Miocene volcanic rocks at Bodai and Imakane, Japan: filaments a few micrometres thick intertwine into thicker aggregates; they are celadonite with carbon and carbonaceous relics (11 of 15 NanoSIMS δ13C spots in the biogenic range), interpreted as fungi or algae corroded and replaced by celadonite. Sequence: filaments in hydrothermal water, opal grains adhering to them, then chalcedony enclosing both. No measurements of filament lengths or their distribution."""
+
+[[references]]
+id = "zhang2026"
+kind = "article"
+authors = ["Zhang, X.", "Ji, L.", "He, X.", "Hou, C."]
+year = 2026
+title = "Mineralogical Identification and Genesis of Celadonite in Green Moss Agate from Fuxin, Liaoning, China"
+venue = "Minerals 16(10), 1061"
+doi = "10.3390/min16101061"
+access = "open"
+licence = "open access (gold, per OpenAlex; licence not checked); cite only"
+checked = "abstract"
+topics = ["moss", "celadonite"]
+notes = """Abstract read 2026-10-20. Green moss agate in pores and fractures of andesitic breccias (Yixian Formation): inclusions filamentous, clustered, platy, globular and irregular, rich in celadonite; euhedral celadonite crystals grow larger from older to younger growth zones, which with the agate's zoning suggests agate and celadonite both precipitated from hydrothermal fluids (contrast akahane2025's biogenic filaments). No lengths in the abstract."""
+
+[[references]]
 id = "barge2015"
 kind = "review"
 authors = ["Barge, L. M.", "et al. (full list not checked)"]
