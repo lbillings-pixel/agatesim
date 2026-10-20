@@ -99,6 +99,29 @@ def test_full_run_job_lifecycle(client: TestClient) -> None:
     assert client.get(f"/api/runs/{job['run_id']}/tdep.png").status_code == 200
 
 
+def test_a_saved_run_can_be_deleted_and_its_space_is_counted(
+    client: TestClient, tmp_path: Path
+) -> None:
+    job = client.post("/api/runs", json=_config(resolution=96)).json()
+    for _ in range(100):
+        job = client.get(f"/api/jobs/{job['id']}").json()
+        if job["status"] in {"done", "failed"}:
+            break
+        time.sleep(0.1)
+    used = client.get("/api/runs-usage").json()
+    assert used["runs"] == 1
+    assert used["bytes"] > 0
+    # Only runs: other folders, and ids that aren't runs, are left alone.
+    other = tmp_path / "20260101-000000-keep-abcdef"
+    other.mkdir()
+    assert client.delete(f"/api/runs/{other.name}").status_code == 404
+    assert client.delete("/api/runs/..%2F..%2Fsecrets").status_code == 404
+    assert other.is_dir()
+    assert client.delete(f"/api/runs/{job['run_id']}").status_code == 204
+    assert client.get("/api/runs").json() == []
+    assert client.get("/api/runs-usage").json() == {"runs": 0, "bytes": 0}
+
+
 def test_unknown_or_malicious_run_ids_are_404(client: TestClient) -> None:
     assert client.get("/api/runs/20260101-000000-x-abcdef").status_code == 404
     assert client.get("/api/runs/..%2F..%2Fsecrets").status_code == 404

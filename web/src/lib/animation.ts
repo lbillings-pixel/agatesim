@@ -1,6 +1,6 @@
 // Exporting the growth animation as an animated GIF or a video file.
 
-import { encodeGif } from "./gif";
+import { GifEncoder } from "./gif";
 
 export interface Stage {
   start: number;
@@ -70,20 +70,26 @@ const nextTask = () => new Promise((r) => setTimeout(r, 0));
 
 export async function exportGif(source: FrameSource, opts: ExportOptions): Promise<Blob> {
   const { canvas, ctx, scale } = canvasFor(source, MAX_GIF_WIDTH);
-  const frames = [];
   const times = frameTimes(opts);
-  for (const [i, t] of times.entries()) {
+  const encoder = new GifEncoder(canvas.width, canvas.height, times.length, Math.round(100 / opts.fps));
+  const frame = (t: number) => {
     ctx.save();
     ctx.scale(scale, scale);
     source.draw(ctx, t);
     ctx.restore();
-    frames.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-    opts.onProgress?.((0.6 * (i + 1)) / times.length);
-    if (i % 8 === 0) await nextTask(); // keep the page responsive
+    return ctx.getImageData(0, 0, canvas.width, canvas.height);
+  };
+  // Twice through the animation: sample the palette, then encode frame by frame,
+  // so only one frame is held at a time.
+  for (const [pass, take] of [[0, (f: ImageData) => encoder.sample(f)], [1, (f: ImageData) => encoder.add(f)]] as const) {
+    for (const [i, t] of times.entries()) {
+      take(frame(t));
+      opts.onProgress?.(pass === 0 ? (0.3 * (i + 1)) / times.length : 0.3 + (0.7 * (i + 1)) / times.length);
+      if (i % 8 === 0) await nextTask(); // keep the page responsive
+    }
   }
-  const gif = encodeGif(frames, Math.round(100 / opts.fps));
   opts.onProgress?.(1);
-  return new Blob([gif.slice().buffer], { type: "image/gif" });
+  return new Blob(encoder.finish().map((p) => p.slice().buffer), { type: "image/gif" });
 }
 
 /** The best video format this browser can record. */

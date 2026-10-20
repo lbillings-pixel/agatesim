@@ -103,7 +103,7 @@ class ProceduralFortification(BaseModel):
     )
     wobble_scale_mm: float = param(
         2.0,
-        gt=0,
+        ge=0.25,  # finer irregularity is below a band's width; its noise grid grows as 1/scale²
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Length scale of band irregularity.",

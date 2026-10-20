@@ -9,6 +9,7 @@ import base64
 import io
 import json
 import time
+from collections import OrderedDict
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import asdict
@@ -25,7 +26,7 @@ from PIL import Image
 from pydantic import BaseModel, Field
 from starlette.types import Scope
 
-from agatesim import __version__, _rd, optics, progress
+from agatesim import __version__, _rd, estimate, optics, progress
 from agatesim.archetypes import load_registry
 from agatesim.config import RunConfig, load_config, load_preset, preset_description, preset_names
 from agatesim.criteria import evaluate, implemented
@@ -43,7 +44,7 @@ from agatesim.models import (
 )
 from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
-from agatesim.runs import is_run_id, list_runs
+from agatesim.runs import delete_run, is_run_id, list_runs, usage
 from agatesim.server.jobs import Job, JobManager
 from agatesim.server.specimens import specimen_router
 from agatesim.server.tasks import TaskHeader, handle_cancelled, task_router
@@ -90,6 +91,12 @@ class PreviewRequest(BaseModel):
     resolution: int = Field(default=256, ge=64, le=MAX_PREVIEW_RESOLUTION)
 
 
+class EstimateRequest(BaseModel):
+    config: RunConfig
+    preview_resolution: int = Field(default=256, ge=64, le=MAX_PREVIEW_RESOLUTION)
+    run_resolution: int = Field(default=768, ge=64, le=MAX_RUN_RESOLUTION)
+
+
 class RandomizeRequest(BaseModel):
     config: RunConfig
     strength: float = Field(default=0.4, ge=0, le=1)
@@ -110,16 +117,19 @@ SIMULATION_CACHE = 4
 
 
 class _Simulations:
-    """Recent simulations, so optical views at new angles don't re-simulate."""
+    """Recent simulations, so optical views at new angles don't re-simulate.
+    The least recently used goes first."""
 
     def __init__(self) -> None:
-        self._items: dict[str, SimulationResult] = {}
+        self._items: OrderedDict[str, SimulationResult] = OrderedDict()
 
     def get(self, config: RunConfig) -> SimulationResult:
         key = config.digest()
-        if key not in self._items:
+        if key in self._items:
+            self._items.move_to_end(key)
+        else:
             if len(self._items) >= SIMULATION_CACHE:
-                self._items.pop(next(iter(self._items)))
+                self._items.popitem(last=False)
             self._items[key] = simulate(config)
         return self._items[key]
 
@@ -305,6 +315,15 @@ def create_app(
             "stages": stages_json(config.model),
         }
 
+    @app.post("/api/estimate")
+    def estimate_costs(request: EstimateRequest) -> dict[str, object]:
+        """Rough time and memory of the preview and of a full run, for the
+        app's caution badge (ADR 0060)."""
+        return {
+            "preview": estimate.run_2d(request.config, request.preview_resolution).to_json(),
+            "run": estimate.run_2d(request.config, request.run_resolution).to_json(),
+        }
+
     @app.post("/api/randomize")
     def randomize_settings(request: RandomizeRequest, task: TaskHeader = None) -> dict[str, object]:
         """New settings drawn within each key setting's bounded range (ADR 0051)."""
@@ -344,6 +363,19 @@ def create_app(
     @app.get("/api/runs")
     def runs() -> list[dict[str, object]]:
         return [asdict(s) for s in list_runs(runs_dir)]
+
+    @app.get("/api/runs-usage")
+    def runs_usage() -> dict[str, int]:
+        """Saved runs (2D and 3D) and the disk space they take."""
+        return usage(runs_dir)
+
+    @app.delete("/api/runs/{run_id}", status_code=204)
+    def remove_run(run_id: str) -> None:
+        """Delete a saved run, 2D or 3D (the app asks first)."""
+        try:
+            delete_run(runs_dir, run_id)
+        except ValueError as error:
+            raise HTTPException(404, str(error)) from error
 
     @app.get("/api/runs/{run_id}")
     def run_detail(run_id: str) -> dict[str, object]:

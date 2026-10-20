@@ -67,7 +67,7 @@ import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
 
-from agatesim import _scipy
+from agatesim import _scipy, progress
 from agatesim.fields import Fields, Phase, Pigment
 from agatesim.grid import FloatArray
 from agatesim.models.base import Domain
@@ -216,7 +216,7 @@ class FrontFeedback(BaseModel):
     )
     boundary_layer_mm: float = param(
         0.0016,
-        gt=0,
+        ge=0.00005,  # thinner layers lay ever more bands: 14 s for a preview here, minutes below
         units="mm",
         nature=Nature.EFFECTIVE,
         description="δ: thickness of the solution layer at the front; sets the length scale.",
@@ -527,6 +527,9 @@ def history_from_distances(
         return out
 
     def filled(_t: float, y: NDArray[np.float64]) -> float:
+        # Checked once per step: the app's progress (the depth filled) and its
+        # Cancel, which a stiff rhythm can take a minute to reach otherwise.
+        progress.report(float(y[2]) / max(last, 1e-12))
         return last - float(y[2])
 
     def exhausted(_t: float, y: NDArray[np.float64]) -> float:

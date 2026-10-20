@@ -8,7 +8,7 @@ time, it aims to reproduce each of the classic agate forms (fortification,
 waterline, botryoidal, moss, shadow, iris and more) and to show which conditions,
 and which proposed formation mechanisms, can produce them.
 
-> **Status.** All thirteen target forms are reproduced at the procedural tier and at the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)), shadow agate on a stated, unsourced assumption ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)), and eleven run in 3D, judged on cuts (all eleven mechanistically too; stick agate passes no random cut, since a flat cut shows whole sticks only along them). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+> **Status.** All thirteen target forms are reproduced at the procedural tier and at the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)), shadow agate on a stated, unsourced assumption ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)), and eleven run in 3D, judged on cuts (all eleven mechanistically too). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
 
 ![Verification presets of all thirteen forms](docs/images/archetypes.png)
 
@@ -86,8 +86,21 @@ and which proposed formation mechanisms, can produce them.
   1.07–1.18 times thicker than they are, and some forms show on only a minority
   of cuts ([ADR 0021](docs/adr/0021-three-dimensional-runs.md)). In 3D the
   mechanistic plume (garden tubes) passes 79% of random cuts and the
-  mechanistic geode 77%, against 68% and 76% procedurally
-  ([ADR 0047](docs/adr/0047-plume-and-geode-in-3d.md)).
+  mechanistic geode 77%, against 70% and 76% procedurally
+  ([ADR 0047](docs/adr/0047-plume-and-geode-in-3d.md),
+  [ADR 0057](docs/adr/0057-a-reproducible-gpu-dendrite-engine.md)). Stick
+  agate's tests now hold on a cut at any angle to the sticks (a cut across one
+  shows an oval stub as wide as the stick), and 66% and 74% of random cuts pass
+  ([ADR 0055](docs/adr/0055-stick-tests-that-survive-the-cut.md)).
+- **Dendrite branches have a width, and a cavity caps their length.** The 3D
+  dendrites' lattice cell is the finest branch's width, not a numerical step
+  ([ADR 0056](docs/adr/0056-dendrite-lattice-spacing-is-branch-width.md)).
+  Grown from a flat surface into open space, they follow the length law
+  measured for real 3D dendrites, N(L) ~ L^-1.25; inside a closed nodule the
+  cavity cuts the longest off, and the exponent stays near 1.7 even with seeds
+  1 mm apart. So the model predicts that dendrites in closed agate cavities
+  don't follow the fracture-surface law
+  ([ADR 0058](docs/adr/0058-dendrite-lengths-in-a-closed-cavity.md)).
 
 These are results within the models tested, not proof of how agate forms.
 
@@ -140,11 +153,20 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 
 Requires [uv](https://docs.astral.sh/uv/) and, for the web app, [Node.js](https://nodejs.org/) 24.
 
+**An NVIDIA GPU (optional)** makes Liesegang precipitation (H2) and fine
+dendrites practical: `uv sync --extra gpu` installs CuPy, and agatesim then uses
+the GPU whenever it finds one (`AGATESIM_GPU=0` declines it), with results the
+same as on the CPU ([ADR 0054](docs/adr/0054-gpu-by-default-and-progress-for-long-actions.md),
+[ADR 0057](docs/adr/0057-a-reproducible-gpu-dendrite-engine.md)). After that,
+run commands as `uv run --no-sync ...` (or `uv run --extra gpu ...`): a plain
+`uv run` or `uv sync` removes the GPU extra again. `scripts\start.ps1` keeps it.
+
 ### Web app
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\start.ps1           # Windows: build if needed, then serve
 powershell -ExecutionPolicy Bypass -File scripts\start.ps1 -Rebuild  # after pulling changes
+powershell -ExecutionPolicy Bypass -File scripts\start.ps1 -Gpu      # install and use the GPU extra
 ```
 
 or on any platform:
@@ -188,6 +210,13 @@ The app runs only on your machine (bound to localhost). It offers:
   ramps and pulses (growth-history model).
 - **Band statistics** for each result, side by side with a pinned run.
 - **Full-resolution runs** in the background, saved to `runs/`.
+- **Progress for long actions**: building a 3D view, surveying cuts, full runs,
+  slow previews and Randomize show what they are doing, how far they have got
+  and roughly how long is left, with **Cancel**; work you abandon stops. An
+  amber **caution badge** warns beforehand of an action estimated to take over
+  30 seconds or 2 GB of memory.
+- **Saved runs** can be deleted from either run list; both show how much space
+  the runs folder takes.
 - **Run browser and slab viewer** with zoom, pan, a scale bar, a growth slider
   that shows the agate forming over time (play, pause, speeds and looping), and
   side-by-side comparison. On the 3D screen the same control animates the cut
@@ -244,13 +273,15 @@ src/agatesim/
   render.py          slab rendering in diffuse reflected light
   optics.py          optical views: shadow (reflected light) and iris (backlit slice)
   explore.py         Randomize: key settings drawn within bounded ranges
+  progress.py        progress and cancellation for long work
+  _rd.py, _dla.py    GPU-or-CPU solvers: Liesegang reaction-diffusion, dendrite aggregation
   runs.py            run records
   specimen/          photo analysis: scale, outline, observed fields, identification, replica
   volume/            3D runs: solids, models evaluated at points, cuts, random-cut surveys
   server/            FastAPI backend for the web app (`agatesim serve`)
 web/                 React + TypeScript web app (built into server/static)
 scripts/             gallery generator, Windows start script, H1 analysis and 2D front solver,
-                     photo measurements, regression hashes
+                     photo measurements, regression hashes, dendrite studies
 tests/               pytest suite, including negative controls for every criterion
 docs/
   adr/               architecture decision records

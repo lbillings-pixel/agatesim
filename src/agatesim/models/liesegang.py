@@ -42,6 +42,7 @@ from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
 
 ARRIVAL_BINS = 2000
+MAX_CELLS = 16_000_000  # lattice cells at most (about 1 GB on the GPU)
 MIN_BAND_MM2 = 0.5  # bands holding less area than this are slivers at band edges
 
 
@@ -112,7 +113,10 @@ class Liesegang(BaseModel):
         gt=0,
         units="mm",
         nature=Nature.EFFECTIVE,
-        description="Lattice spacing: the length scale of the diffusion, so of band spacing.",
+        description=(
+            "Lattice spacing: the length scale of the diffusion, so of band spacing "
+            "(coarsened beyond 16 million cells)."
+        ),
     )
     max_steps: int = 400_000
     palette: Palette = Field(
@@ -126,7 +130,12 @@ class Liesegang(BaseModel):
 
 def _lattice_grid(domain: Domain, spacing_mm: float) -> Grid:
     xmin, ymin, xmax, ymax = domain.cavity.bounds()
-    resolution = max(8, math.ceil(max(xmax - xmin, ymax - ymin) / spacing_mm))
+    long, short = max(xmax - xmin, ymax - ymin), max(min(xmax - xmin, ymax - ymin), 1e-9)
+    resolution = max(8, math.ceil(long / spacing_mm))
+    # Beyond MAX_CELLS the lattice coarsens, as the 3D one does: a finer spacing
+    # would take more memory than a computer has (0.002 mm across 50 mm: 600
+    # million cells). The grid is about resolution² × short / long cells.
+    resolution = min(resolution, math.floor(math.sqrt(MAX_CELLS * long / short)))
     return Grid.around(domain.cavity.bounds(), resolution, 0.02)
 
 
@@ -140,6 +149,8 @@ def bands_by_arrival(
     if t.size == 0:
         return np.full(arrival.shape, -1, dtype=np.int32)
     edges = np.unique(np.quantile(t, np.linspace(0, 1, ARRIVAL_BINS + 1)))
+    if len(edges) < 2:  # the front reached every cell at once (a tiny cavity): one band
+        return np.where(inside, 0, -1).astype(np.int32)
     which = np.clip(np.searchsorted(edges, arrival, side="right") - 1, 0, len(edges) - 2)
     n = len(edges) - 1
     share = np.bincount(which[inside], zone[inside].astype(np.float64), minlength=n)
@@ -214,6 +225,7 @@ def run_liesegang(
         max_steps=params.max_steps,
         depth=depth,
     )
+    _rd.release_gpu_memory()
     # Cells the front never reached: last, in their own band.
     reached = np.isfinite(arrival)
     late = float(np.nanmax(arrival)) if reached.any() else 1.0

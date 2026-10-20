@@ -170,7 +170,14 @@ export function Volume3D({ volume, plane, busy, progress, growth, exportRef }: V
   // Set up WebGL as soon as the canvas exists.
   const attach = useCallback((canvas: HTMLCanvasElement | null) => {
     canvasRef.current = canvas;
-    if (!canvas || glRef.current) return;
+    if (!canvas) {
+      // Leaving the screen: give the context back now. Browsers keep only about
+      // 16 and otherwise drop the oldest with a warning, after a while.
+      glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
+      glRef.current = null;
+      return;
+    }
+    if (glRef.current) return;
     try {
       glRef.current = setup(canvas);
     } catch (e) {

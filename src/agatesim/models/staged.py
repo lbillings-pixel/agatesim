@@ -50,7 +50,7 @@ import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
 
-from agatesim import _scipy
+from agatesim import _scipy, progress
 from agatesim.fields import Fields, Phase
 from agatesim.models.base import Domain
 from agatesim.models.front_feedback import FrontFeedback, run_front_feedback
@@ -129,7 +129,7 @@ class DendriteStage(BaseModel):
     cells_3d: float = param(
         4.0,
         ge=0.5,
-        le=128,
+        le=64,
         units="million cells",
         nature=Nature.EFFECTIVE,
         description=(
@@ -395,7 +395,9 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
     cavity_pixels = int(domain.mask.sum())
     next_band = 0
     next_grain = 0
+    parts = progress.shares([1.0] * len(stages))  # a stage's share of the progress bar
     for i, (stage, stage_rng) in enumerate(zip(stages, rngs, strict=True)):
+        lo, hi = parts[i]
         open_space = domain.mask & (phase == Phase.VOID)
         if not open_space.any():
             break
@@ -403,9 +405,11 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
             sub = _sub_domain(domain, open_space)
             if params.wall_mechanism == "liesegang":
                 region = None if np.array_equal(open_space, domain.mask) else open_space
-                fields = run_liesegang(params.liesegang, domain, stage_rng, region=region)
+                with progress.span(lo, hi):
+                    fields = run_liesegang(params.liesegang, domain, stage_rng, region=region)
             else:
-                fields = run_front_feedback(params.wall, sub, stage_rng, first=sub is domain)
+                with progress.span(lo, hi):
+                    fields = run_front_feedback(params.wall, sub, stage_rng, first=sub is domain)
             grown = open_space & (fields.phase != Phase.VOID)
             if i == 0 and i < len(stages) - 1:
                 # The first wall stage stops when it has filled the rim's share.
@@ -417,7 +421,8 @@ def run_staged(params: Staged, domain: Domain, rng: np.random.Generator) -> Fiel
             eyes = params.wall.model_copy(
                 update={"growth_form": "spherulitic", "supply_ends_at": params.rim_share}
             )
-            fields = run_front_feedback(eyes, sub, stage_rng, first=sub is domain)
+            with progress.span(lo, hi):
+                fields = run_front_feedback(eyes, sub, stage_rng, first=sub is domain)
             grown = open_space & (fields.phase != Phase.VOID)
         elif stage == "garden":
             fields = _garden_fields(params, domain, open_space, stage_rng)

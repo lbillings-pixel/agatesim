@@ -24,6 +24,7 @@ from agatesim.volume.solids import BoolArray
 
 MIN_BAND_MM3 = 1.0  # bands holding less volume than this are slivers at band edges
 MAX_CELLS = 64_000_000  # about 4.6 GB of GPU memory for the eight fields
+SETUP_CHUNK = 1 << 20  # cells per part of the lattice's setup
 SETUP_SHARE = 0.1  # of the progress bar: the lattice's inside and depth (about 12 s on a GPU run)
 
 
@@ -31,14 +32,21 @@ def prepare_liesegang(params: Liesegang, setting: Setting, rng: np.random.Genera
     # The precipitation is deterministic; rng only picks the bands' pigments.
     lo, hi = setting.solid.bounds()
     lattice = Lattice3.around(lo, hi, params.lattice_mm, MAX_CELLS)
+    nx, ny, nz = lattice.shape
+    inside_flat = np.zeros(lattice.size, dtype=bool)
+    depth = np.full(lattice.size, -1.0)
     with progress.span(0.0, SETUP_SHARE, "Setting up the lattice"):
-        centres = lattice.centres()
-        nx, ny, nz = lattice.shape
-        inside_flat = setting.solid.contains(centres)
-        progress.report(0.3)
+        # In parts (the same values): the coordinates and wall tests of tens of
+        # millions of cells at once took gigabytes.
+        for k in range(0, lattice.size, SETUP_CHUNK):
+            idx = np.arange(k, min(k + SETUP_CHUNK, lattice.size))
+            c = lattice.centres_of(idx)
+            ins = setting.solid.contains(c)
+            inside_flat[idx] = ins
+            if ins.any():
+                depth[idx[ins]] = setting.solid.wall_distance(c[ins])
+            progress.report((k + SETUP_CHUNK) / lattice.size)
         inside = inside_flat.reshape(nz, ny, nx)
-        depth = np.full(lattice.size, -1.0)
-        depth[inside_flat] = setting.solid.wall_distance(centres[inside_flat])
     deepest = np.unravel_index(int(np.argmax(depth)), (nz, ny, nx))
     with progress.span(SETUP_SHARE, 0.97):
         p, arrival, _steps = _rd.liesegang3(
@@ -56,6 +64,7 @@ def prepare_liesegang(params: Liesegang, setting: Setting, rng: np.random.Genera
             max_steps=params.max_steps,
             depth=depth.reshape(nz, ny, nx),
         )
+    _rd.release_gpu_memory()
     p = p.ravel()
     arrival = arrival.ravel()
     reached = np.isfinite(arrival)
@@ -68,15 +77,29 @@ def prepare_liesegang(params: Liesegang, setting: Setting, rng: np.random.Genera
     stain = np.clip(p / max(float(np.percentile(p[inside_flat], 99)), 1e-9), 0, 1)
     t_dep = np.where(inside_flat, arrival / max(float(np.max(arrival[inside_flat])), 1e-9), np.nan)
     band_pigment = params.palette.draw(int(band.max()) + 1 if band.size else 0, rng)
+    # Kept per inside cell only (what a cached run holds): a point takes the
+    # values of the nearest cell inside the cavity. That is its own cell when
+    # its own cell is inside (a cell's centre is the nearest centre to any point
+    # in it); otherwise, at the wall, it is a rim cell (inside, with an outside
+    # neighbour: any other inside cell has a neighbour nearer the point).
     cells = np.flatnonzero(inside_flat)
-    tree = _scipy.NearestIndex(centres[cells]) if len(cells) else None
+    slot = np.full(lattice.size, -1, dtype=np.int32)
+    slot[cells] = np.arange(len(cells), dtype=np.int32)
+    band, stain, t_dep = band[cells], stain[cells], t_dep[cells]
+    rim = np.flatnonzero(_scipy.rim_3d(inside).ravel())
+    tree = _scipy.NearestIndex(lattice.centres_of(rim)) if len(rim) else None
 
     def evaluate(points: FloatArray, inside_pts: BoolArray) -> Fields:
         n = len(points)
         k = np.zeros(n, dtype=np.int64)
         if tree is not None and inside_pts.any():
-            _, nearest = tree.query(points[inside_pts])
-            k[inside_pts] = cells[nearest]
+            pts = points[inside_pts]
+            own = slot[lattice.index(pts)].astype(np.int64)
+            wall = own < 0
+            if wall.any():
+                _, nearest = tree.query(pts[wall])
+                own[wall] = slot[rim[nearest]]
+            k[inside_pts] = own
         s = np.where(inside_pts, stain[k], 0.0)
         phase = np.full(n, Phase.HOST, dtype=np.uint8)
         phase[inside_pts] = Phase.CHALCEDONY  # the gel crystallises to chalcedony later

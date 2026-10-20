@@ -366,16 +366,18 @@ def grow_aggregate(
     rng_sites, rng_grow = rng.spawn(2)
     lo, hi = setting.solid.bounds()
     lattice = Lattice3.around(lo, hi, how.width_mm, how.max_cells)
-    centres = lattice.centres()
-    inside = setting.solid.contains(centres)
     free = np.zeros(lattice.size, dtype=bool)
-    c = centres[inside]
-    d_wall = np.empty(len(c))
-    for k in range(0, len(c), PROGRESS_CHUNK):  # in parts, to report progress (same values)
-        d_wall[k : k + PROGRESS_CHUNK] = setting.solid.wall_distance(c[k : k + PROGRESS_CHUNK])
-        progress.report(0.45 * (k + PROGRESS_CHUNK) / len(c))
-    free[np.flatnonzero(inside)] = solid.distance(c, d_wall, setting.height(c)) > 0
-    progress.report(0.55)  # the wall distance takes about half the time
+    # In parts (the same values): a fine lattice's coordinates at once would take
+    # gigabytes, and the parts report progress.
+    for k in range(0, lattice.size, PROGRESS_CHUNK):
+        idx = np.arange(k, min(k + PROGRESS_CHUNK, lattice.size))
+        c = lattice.centres_of(idx)
+        inside = setting.solid.contains(c)
+        if inside.any():
+            c = c[inside]
+            d_wall = setting.solid.wall_distance(c)
+            free[idx[inside]] = solid.distance(c, d_wall, setting.height(c)) > 0
+        progress.report(0.55 * (k + PROGRESS_CHUNK) / lattice.size)
     sites = place_sites(setting, solid, how.spacing_mm, rng_sites)
     progress.report(0.75)
     points, normals = sites.points, sites.normals

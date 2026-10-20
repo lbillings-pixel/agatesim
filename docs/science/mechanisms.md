@@ -163,6 +163,15 @@ upward-directed growth of plumes. The
 alternatives stay open: dendrites growing in fractures or gel after the
 chalcedony, and viscous fingering.
 
+In 3D (M25–M26) the aggregation lattice's cell turned out to be the finest
+branch's width rather than a numerical step (ADR 0056). Grown from a flat
+surface into open space, the model's dendrites follow the length law measured
+on 3D Mn-oxide dendrites, N(L) ~ L^-1.25 ([@hou2023]): one tree runs ahead and
+screens the rest. In a closed nodule no tree can, the cavity cuts the longest
+off, and the exponent stays near 1.7 even with seeds 1 mm apart (ADR 0058). The
+model so predicts that dendrites inside closed agate cavities don't follow the
+fracture-surface law; no measurement to test it has been read.
+
 ## 7. Optical archetypes
 
 - **Shadow agate:** shadows appear to sweep across the slab as it is tilted, an
@@ -299,5 +308,7 @@ chalcedony, and viscous fingering.
   predicted by geometric selection?
 - In dendritic agate, do the dendrites grow in the silica before it crystallises
   (in a gel), or later along fractures? What fractal dimensions are measured on
-  agate dendrites specifically?
+  agate dendrites specifically? Do their lengths fall off at the long end, as
+  the model predicts for a closed cavity (ADR 0058), rather than as N(L) ~
+  L^-1.25?
 - Plumes as silica gardens: what sets their width and how upright they are?

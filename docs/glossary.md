@@ -54,6 +54,13 @@ Plain-language meanings of terms used in the docs, the web app and the ADRs.
   reject. Every criterion has one, so it can't pass everything.
 - **Cut, random-cut survey.** A plane through a 3D result, judged as a 2D slab;
   a survey judges many random cuts and reports how often the form shows.
+- **Stick section.** What a cut shows of a stick: a bar where the cut runs
+  along it, an oval stub where it crosses it. Either way it is as wide as the
+  stick, which is what the stick tests look for
+  ([ADR 0055](adr/0055-stick-tests-that-survive-the-cut.md)).
+- **Length law.** How the number of dendrites falls with their length, N(L) ~
+  L^-α. Measured 3D dendrites grown from a fracture surface give α ≈ 1.25
+  ([ADR 0058](adr/0058-dendrite-lengths-in-a-closed-cavity.md)).
 
 ## Models
 
@@ -77,6 +84,11 @@ Plain-language meanings of terms used in the docs, the web app and the ADRs.
   chemicals meet, like the bands in some rocks and gels.
 - **H4, hindered settling.** Particles settling in pulses and packing up from
   the floor: the waterline mechanism.
+- **Aggregation, dendrite lattice.** Dendrites grow as diffusing particles
+  stick to the branches they touch. The particles walk on a lattice whose
+  cell is the finest branch's width; a 3D run's cell budget sets how fine that
+  can be ([ADR 0056](adr/0056-dendrite-lattice-spacing-is-branch-width.md),
+  [ADR 0057](adr/0057-a-reproducible-gpu-dendrite-engine.md)).
 - **Open and closed cavity.** An open cavity keeps getting fresh fluid, so its
   bands keep their rhythm; a closed one uses up what it holds, so its silica
   falls until quartz grows. A geode can be open while it bands and close

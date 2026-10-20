@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from agatesim import _rd, progress
-from agatesim.config import RunConfig
+from agatesim.config import RunConfig, load_preset
 from agatesim.server.app import create_app
 from agatesim.simulate import simulate
 from agatesim.volume.config import load_volume_preset
@@ -152,7 +152,7 @@ def test_3d_stages_name_themselves_in_order() -> None:
     with progress.using(tracker):
         prepare_volume(load_volume_preset("stick-mechanistic-3d"))
     assert labels == ["Sticks", "Banded wall (H1)"]
-    assert tracker.fraction == pytest.approx(0.5 / 1.5)  # the wall starts after the sticks' share
+    assert tracker.fraction == pytest.approx(1.0)  # the wall, last, reports through its share
 
 
 def test_gpu_is_used_unless_declined(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -256,3 +256,21 @@ def test_a_burst_of_reports_is_thinned_but_still_cancels(monkeypatch: pytest.Mon
         tracker.cancel()
         with pytest.raises(progress.CancelledError):
             progress.report(0.5)
+
+
+def test_a_stiff_h1_run_reports_progress_and_stops_when_cancelled() -> None:
+    """At its highest rejection H1's rhythm is stiff and its solve takes about a
+    minute: it reports the depth filled, and a cancel stops it within seconds
+    (ADR 0059)."""
+    config = load_preset("fortification-mechanistic").with_resolution(64)
+    model = config.model.model_copy(update={"rejection": 5.0})
+    config = config.model_copy(update={"model": model})
+    tracker = progress.Tracker()
+    stopper = threading.Timer(1.5, tracker.cancel)
+    stopper.start()
+    t0 = time.perf_counter()
+    with progress.using(tracker), pytest.raises(progress.CancelledError):
+        simulate(config)
+    assert time.perf_counter() - t0 < 10
+    assert tracker.fraction is not None
+    assert 0 < tracker.fraction < 1

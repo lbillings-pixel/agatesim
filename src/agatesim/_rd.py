@@ -9,6 +9,7 @@ information.
 from __future__ import annotations
 
 import os
+import sys
 import time
 from typing import Any
 
@@ -43,6 +44,15 @@ def gpu_in_use() -> bool:
 def to_numpy(array: Any) -> np.ndarray:
     get = getattr(array, "get", None)
     return np.asarray(get() if get is not None else array)
+
+
+def release_gpu_memory() -> None:
+    """Hand CuPy's cached, unused GPU memory back to the driver after a large
+    run: the pool otherwise keeps it (3.6 GB after H2 in 3D) for as long as the
+    app runs, out of reach of other programs. Blocks in use are untouched."""
+    cupy = sys.modules.get("cupy")
+    if cupy is not None:
+        cupy.get_default_memory_pool().free_all_blocks()
 
 
 class Lattice:

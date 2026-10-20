@@ -17,6 +17,7 @@ previews, full runs and cuts at any resolution.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import cached_property
 
 import numpy as np
 from numpy.typing import NDArray
@@ -55,8 +56,11 @@ class Lattice3:
         return nx * ny * nz
 
     def centres(self) -> FloatArray:
+        return self.centres_of(np.arange(self.size))
+
+    def centres_of(self, idx: NDArray[np.int64]) -> FloatArray:
+        """Centres of the cells with these flat indices."""
         nx, ny, _ = self.shape
-        idx = np.arange(self.size)
         i, rest = idx % nx, idx // nx
         j, k = rest % ny, rest // ny
         return self.origin + (np.stack([i, j, k], axis=1) + 0.5) * self.h
@@ -86,10 +90,15 @@ class Aggregate3:
         overlap and a branch is a rounded, connected strand, not a stack of cubes."""
         return BALL_RADIUS * self.lattice.h
 
+    @cached_property
+    def _index(self) -> _scipy.NearestIndex:
+        """Built once: every cut, voxel chunk and later stage queries it."""
+        return _scipy.NearestIndex(self.centres())
+
     def _nearest(self, points: FloatArray) -> tuple[FloatArray, NDArray[np.int64]]:
         if not len(self.cells):
             return np.full(len(points), np.inf), np.zeros(len(points), dtype=np.int64)
-        return _scipy.NearestIndex(self.centres()).query(points)
+        return self._index.query(points)
 
     def order_at(self, points: FloatArray) -> FloatArray:
         """Attachment order of the aggregate at each point; inf outside it."""
@@ -101,7 +110,7 @@ class Aggregate3:
     def centres(self) -> FloatArray:
         """Ball centres: cell centres moved by a fixed pseudo-random offset per
         cell (a hash of the cell's index), the same in every run and cut."""
-        base = self.lattice.centres()[self.cells]
+        base = self.lattice.centres_of(self.cells)
         idx = self.cells.astype(np.uint64)
         offsets = np.stack(
             [((idx * np.uint64(m)) % np.uint64(1 << 32)).astype(np.float64) / 2**32 for m in _HASH],
@@ -157,6 +166,7 @@ def grow(
         key=int(rng.integers(0, 1 << 63)),
         sweeps_allowed=_dla.max_sweeps(lattice.size),
     )
+    _rd.release_gpu_memory()
     cells = np.concatenate(order)
     rank = np.concatenate([np.full(len(c), k, dtype=np.float64) for k, c in enumerate(order)])
     return Aggregate3(lattice=lattice, cells=cells, order=rank / max(len(order) - 1, 1))

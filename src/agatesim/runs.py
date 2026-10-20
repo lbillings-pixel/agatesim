@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import platform
 import re
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -99,6 +100,32 @@ def read_summary(path: Path) -> RunSummary:
         nx=meta["grid"]["nx"],
         ny=meta["grid"]["ny"],
     )
+
+
+def run_dirs(out_dir: Path) -> list[Path]:
+    """Every saved run (2D or 3D) in `out_dir`: directories named like a run
+    that hold run metadata."""
+    if not out_dir.is_dir():
+        return []
+    return [p for p in out_dir.iterdir() if is_run_id(p.name) and (p / "metadata.json").is_file()]
+
+
+def usage(out_dir: Path) -> dict[str, int]:
+    """How many saved runs there are and the bytes they take on disk."""
+    dirs = run_dirs(out_dir)
+    size = sum(f.stat().st_size for d in dirs for f in d.rglob("*") if f.is_file())
+    return {"runs": len(dirs), "bytes": size}
+
+
+def delete_run(out_dir: Path, run_id: str) -> None:
+    """Remove one saved run. Only a run directory directly inside `out_dir` is
+    ever removed; anything else raises ValueError."""
+    if not is_run_id(run_id):
+        raise ValueError(f"not a run id: {run_id!r}")
+    path = out_dir / run_id
+    if path.resolve().parent != out_dir.resolve() or not (path / "metadata.json").is_file():
+        raise ValueError(f"no run {run_id!r}")
+    shutil.rmtree(path)
 
 
 def list_runs(out_dir: Path) -> list[RunSummary]:

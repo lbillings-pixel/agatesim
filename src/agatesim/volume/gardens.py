@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from functools import cached_property
 
 import numpy as np
 
@@ -51,15 +52,19 @@ class Garden3:
     order: FloatArray  # (n,)
     radius: float
 
+    @cached_property
+    def _index(self) -> _scipy.NearestIndex:
+        """Over the segments' midpoints; built once, as every query uses it."""
+        return _scipy.NearestIndex((self.a + self.b) / 2)
+
     def _segment_distance(self, points: FloatArray) -> tuple[FloatArray, FloatArray]:
         """Distance from each point to the nearest tube centreline, and the
         earliest order among the segments within a radius of it (inf if none)."""
         n = len(points)
         if not len(self.order) or not n:
             return np.full(n, np.inf), np.full(n, np.inf)
-        mid = (self.a + self.b) / 2
         k = min(NEAREST_SEGMENTS, len(self.order))
-        _, idx = _scipy.NearestIndex(mid).query_k(points, k)
+        _, idx = self._index.query_k(points, k)
         a, b = self.a[idx], self.b[idx]
         ab = b - a
         t = np.clip(

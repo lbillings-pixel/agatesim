@@ -215,7 +215,8 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
                 depth = depth[np.isfinite(depth)]
             else:
                 depth = dist[open_ref]
-            history = forced_history_from(params.wall, depth, stage_rng)
+            with progress.span(lo, hi):  # H1 reports the depth it has filled
+                history = forced_history_from(params.wall, depth, stage_rng)
             limit, t_scale, reach = None, 1.0, history.stopped_mm
             if first_of_several:
                 depths = np.sort(depth)

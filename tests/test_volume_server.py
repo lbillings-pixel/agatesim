@@ -86,3 +86,24 @@ def test_survey_and_a_full_run(client: TestClient, tmp_path: Path) -> None:
     assert slab.status_code == 200
     assert slab.content[1:4] == b"PNG"
     assert client.get("/api/volume/runs/not-a-run").status_code == 404
+
+
+def test_the_formation_cache_keeps_the_recently_used_within_its_budget() -> None:
+    """ADR 0059: least recently used first, within a count and a memory budget,
+    always keeping the newest."""
+    from agatesim.server.footprint import footprint
+    from agatesim.server.volume import Prepared
+
+    base = load_volume_preset("fortification-3d")
+    configs = [base.model_copy(update={"seed": s}) for s in range(3)]
+    cache = Prepared(most=2)
+    for c in configs[:2]:
+        cache.get(c)
+    cache.get(configs[0])  # used again: now the most recent
+    cache.get(configs[2])
+    assert cache.keys() == [configs[0].model_digest(), configs[2].model_digest()]
+    tiny = Prepared(budget_bytes=1)
+    for c in configs:
+        tiny.get(c)
+    assert tiny.keys() == [configs[2].model_digest()]  # over budget, but the newest stays
+    assert footprint(tiny.get(configs[2])) > 0

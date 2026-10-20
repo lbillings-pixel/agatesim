@@ -108,6 +108,12 @@ def erode(mask: NDArray[np.bool_], iterations: int) -> NDArray[np.bool_]:
     return cast(NDArray[np.bool_], out)
 
 
+def rim_3d(inside: NDArray[np.bool_]) -> NDArray[np.bool_]:
+    """Inside cells of a 3D mask with an outside cell among their 26 neighbours."""
+    interior: Any = ndimage.binary_erosion(inside, structure=np.ones((3, 3, 3), dtype=bool))
+    return inside & ~cast(NDArray[np.bool_], interior)
+
+
 def normal_quantile(u: FloatArray) -> NDArray[np.float64]:
     """Standard normal quantiles of uniform draws (clipped away from 0 and 1)."""
     return cast(NDArray[np.float64], special.ndtri(np.clip(u, 1e-12, 1 - 1e-12)))

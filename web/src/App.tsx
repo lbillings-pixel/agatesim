@@ -27,6 +27,8 @@ import { VolumeWorkbench } from "./components/VolumeWorkbench";
 import { type Control, defaultsFor, fieldsFor, withSetting } from "./lib/schema";
 import { newTaskId } from "./lib/progress";
 import { TaskProgress } from "./components/TaskProgress";
+import { CautionBadge } from "./components/CautionBadge";
+import type { CostEstimate } from "./lib/caution";
 import { formPresets, otherPresets, tierOf } from "./lib/forms";
 import { GrowthControls } from "./components/GrowthControls";
 import { RunDiff } from "./components/RunDiff";
@@ -90,6 +92,7 @@ export function App() {
   const [previewBusy, setPreviewBusy] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [previewTask, setPreviewTask] = useState<string | null>(null);
+  const [costs, setCosts] = useState<{ preview: CostEstimate; run: CostEstimate } | null>(null);
   const [previewAgain, setPreviewAgain] = useState(0);
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -185,6 +188,19 @@ export function App() {
       controller.abort();
     };
   }, [config, previewRes, previewAgain]);
+
+  // The caution badges: rough time and memory of the preview and a full run.
+  useEffect(() => {
+    if (!config) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      api.estimate(config, previewRes, runResolution, controller.signal).then(setCosts, () => undefined);
+    }, DEBOUNCE_MS);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [config, previewRes, runResolution]);
 
   // Optical views of the live preview: directional light, at the chosen angle.
   useEffect(() => {
@@ -447,6 +463,7 @@ export function App() {
           <button type="button" className="primary" onClick={startRun} title={`Saved as “${config.name}”`}>
             Run full resolution
           </button>
+          <CautionBadge estimate={costs?.run} />
         </div>
         </>
         )}
@@ -714,6 +731,7 @@ export function App() {
                       ? `${preview.width}×${preview.height} px · ${preview.elapsed_ms} ms`
                       : "")}
             </span>
+            {selected === null && <CautionBadge estimate={costs?.preview} />}
             {selected === null && (
               <div className="light-controls">
                 <div className="toggle" role="radiogroup" aria-label="Lighting">
@@ -945,7 +963,18 @@ export function App() {
 
         </main>
 
-        <RunBrowser runs={runs} jobs={jobs} selected={selected} pinned={pinned} onSelect={setSelected} />
+        <RunBrowser
+          runs={runs}
+          jobs={jobs}
+          selected={selected}
+          pinned={pinned}
+          onSelect={setSelected}
+          onDeleted={(id) => {
+            if (selected === id) setSelected(null);
+            if (pinned === id) setPinned(null);
+            setRuns((all) => all.filter((r) => r.id !== id));
+          }}
+        />
       </div>
       )}
       {drawer && (

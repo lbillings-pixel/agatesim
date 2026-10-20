@@ -540,3 +540,21 @@ td.num { white-space: nowrap; }
   .workspace.volume { grid-template-columns: minmax(0, 1fr); }
   .volume-panes { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Saved runs: delete with an inline confirmation; the folder's size above. */
+.runs li, .volume-runs li { display: grid; gap: 0.2rem; }
+.run-delete { justify-self: end; display: inline-flex; gap: 0.5rem; align-items: baseline; }
+.runs-usage { margin: 0; }
+
+/* Caution badge: an action estimated to be heavy (ADR 0060). */
+:root { --caution: #8a5a00; --caution-bg: #fdf3dc; --caution-line: #e7c77a; }
+@media (prefers-color-scheme: dark) {
+  :root { --caution: #f2c66d; --caution-bg: #2f2612; --caution-line: #6b5420; }
+}
+.caution {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid var(--caution-line);
+  background: var(--caution-bg); color: var(--caution); font-size: 0.8rem; white-space: nowrap; cursor: help;
+}
+.tour-visual { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; padding: 0.8rem; border: 1px dashed var(--line); border-radius: 6px; }
+.tour-visual figcaption { width: 100%; }

@@ -1,5 +1,6 @@
 import type { VolumeRunSummary } from "../api";
 import { volume as volumeApi } from "../api";
+import { DeleteRun, RunsUsage } from "./RunHousekeeping";
 
 function when(iso: string): string {
   const d = new Date(iso);
@@ -16,13 +17,15 @@ interface Props {
   runs: VolumeRunSummary[];
   opening: string | null;
   onOpen: (id: string) => void;
+  onDeleted: (id: string) => void;
 }
 
 /** Saved full 3D runs, newest first; opening one loads its settings into the 3D screen. */
-export function VolumeRuns({ runs, opening, onOpen }: Props) {
+export function VolumeRuns({ runs, opening, onOpen, onDeleted }: Props) {
   return (
     <section className="volume-runs" aria-labelledby="volume-runs-title">
       <h2 id="volume-runs-title">Saved 3D runs</h2>
+      <RunsUsage refresh={runs} />
       {runs.length === 0 ? (
         <p className="muted small">
           Runs you save with “Save a full 3D run” appear here, each with its configured cut and,
@@ -60,6 +63,7 @@ export function VolumeRuns({ runs, opening, onOpen }: Props) {
                     )
                   )}
                 </button>
+                <DeleteRun id={r.id} name={r.name} onDeleted={onDeleted} />
               </li>
             );
           })}

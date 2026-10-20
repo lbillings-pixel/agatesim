@@ -1,5 +1,6 @@
 import type { Job, RunSummary } from "../api";
 import { api, progress } from "../api";
+import { DeleteRun, RunsUsage } from "./RunHousekeeping";
 import { TaskProgress } from "./TaskProgress";
 
 function when(iso: string): string {
@@ -13,14 +14,16 @@ interface Props {
   selected: string | null;
   pinned: string | null;
   onSelect: (id: string) => void;
+  onDeleted: (id: string) => void;
 }
 
-export function RunBrowser({ runs, jobs, selected, pinned, onSelect }: Props) {
+export function RunBrowser({ runs, jobs, selected, pinned, onSelect, onDeleted }: Props) {
   const active = jobs.filter((j) => j.status === "queued" || j.status === "running");
   const failed = jobs.filter((j) => j.status === "failed");
   return (
     <aside className="runs" aria-labelledby="runs-title">
       <h2 id="runs-title">Runs</h2>
+      <RunsUsage refresh={runs} />
       {active.map((j) => (
         <div key={j.id} className="job">
           <span>
@@ -66,6 +69,7 @@ export function RunBrowser({ runs, jobs, selected, pinned, onSelect }: Props) {
               )}
               {r.id === pinned && <span className="pill pinned">pinned</span>}
             </button>
+            <DeleteRun id={r.id} name={r.name} onDeleted={onDeleted} />
           </li>
         ))}
       </ul>

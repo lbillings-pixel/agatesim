@@ -17,7 +17,9 @@
   results match NumPy to rounding.
 
 ## Commands
-- `uv sync`: install
+- `uv sync`: install (`uv sync --extra gpu` with CuPy). Once the GPU extra is
+  installed, run everything as `uv run --no-sync ...`: a plain `uv run` re-syncs
+  and removes CuPy, even under a running job.
 - `uv run pytest` / `uv run ruff check` / `uv run ruff format` / `uv run pyright`
 - `uv run agatesim run <preset|config.toml> [--preview] [--check]`
 - `uv run agatesim volume run|survey <3d-preset>`: 3D runs (ADR 0021). Write 3D
@@ -49,6 +51,12 @@
 - Anything random must be resolution-independent (spawned RNG streams; noise in
   world coordinates), so previews match full runs.
 - Label every model parameter `physical` or `effective` (ADR 0003).
+- Long work reports through `agatesim.progress` (ADR 0054), so the app can show
+  the time left and cancel it. Work on lattices of millions of cells in chunks
+  (never every cell's coordinates at once), build search trees once, and hand
+  GPU memory back after large runs (`_rd.release_gpu_memory`): each has caused
+  gigabytes of waste or a crash before. A GPU path must give the CPU path's
+  result (hashed draws for anything random, ADR 0057).
 - Procedural results are never evidence for a formation mechanism.
 - The owner's specimen photos live in `specimens/` (gitignored) and never enter
   the repository, a commit, an artifact or any external service. Anything derived

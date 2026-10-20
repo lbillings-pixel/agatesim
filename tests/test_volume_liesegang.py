@@ -110,3 +110,35 @@ def test_a_small_3d_run_gives_banded_chalcedony() -> None:
 def test_the_3d_preset_loads() -> None:
     config = load_volume_preset("liesegang-nodule-3d")
     assert isinstance(config.model, Liesegang)
+
+
+def test_points_take_the_nearest_lattice_cell_inside_the_cavity() -> None:
+    """A point takes its own cell when that is inside, else the nearest rim cell
+    (ADR 0054 amendment). Either way the values are those of the nearest inside
+    cell, as a search over every inside cell finds it (random points: no ties)."""
+    from agatesim import _scipy
+    from agatesim.volume.dendrites import Lattice3
+
+    config = VolumeConfig(
+        name="h2",
+        seed=0,
+        archetype=None,
+        solid=SolidConfig(preset="nodule-angular", size_mm=8),
+        model=Liesegang(lattice_mm=0.25),
+    )
+    sim = prepare_volume(config)
+    solid = sim.setting.solid
+    lo, hi = solid.bounds()
+    lattice = Lattice3.around(lo, hi, 0.25)
+    centres = lattice.centres()
+    inside_cells = centres[solid.contains(centres)]
+    points = np.random.default_rng(1).uniform(lo, hi, (20_000, 3))
+    points = points[solid.contains(points)]
+    _, j = _scipy.NearestIndex(inside_cells).query(points)
+    everywhere = np.ones(len(points), dtype=bool)
+    at_points = sim.evaluate(points, everywhere)
+    at_cells = sim.evaluate(inside_cells[j], everywhere)
+    assert np.array_equal(at_points.t_dep, at_cells.t_dep)
+    assert np.array_equal(at_points.band, at_cells.band)
+    # Some points lie in cells whose centre is outside: the rim search is used.
+    assert (~solid.contains(centres[lattice.index(points)])).any()

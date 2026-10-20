@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+import { CautionBadge } from "./CautionBadge";
+
 /** The tour's steps: what each screen is for, in plain language. */
 export const TOUR_STEPS = [
   {
@@ -27,9 +29,17 @@ export const TOUR_STEPS = [
   {
     title: "3D and Specimens",
     body: [
-      "3D treats the cavity as a solid: you choose a cut through it and judge that cut, or survey many random cuts to see how often a form shows.",
+      "3D treats the cavity as a solid: you choose a cut through it and judge that cut, or survey many random cuts to see how often a form shows. Long builds show how far they have got and roughly how long is left; Cancel stops them.",
       "Specimens analyses photos of real agates. Your photos stay on this computer.",
     ],
+  },
+  {
+    title: "Heavy work",
+    body: [
+      "Some actions take minutes or a lot of memory: Liesegang precipitation (H2) without a GPU, fine 3D dendrites, full runs at the largest sizes, long surveys, or front feedback (H1) at extreme settings. Before you start one, an amber badge beside it says roughly how long it will take and, if it is large, how much memory it needs; hover over the badge to see why.",
+      "Once something long is running, a progress bar shows how far it has got, with Cancel.",
+    ],
+    visual: "caution",
   },
   {
     title: "Words and tags",
@@ -94,6 +104,22 @@ export function Tour() {
         {current.body.map((p) => (
           <p key={p}>{p}</p>
         ))}
+        {"visual" in current && current.visual === "caution" && (
+          <figure className="tour-visual">
+            <button type="button" className="primary" tabIndex={-1} aria-hidden="true">
+              Save a full 3D run
+            </button>
+            <CautionBadge
+              estimate={{
+                seconds: 130,
+                memory_gb: 3.4,
+                heavy: true,
+                reasons: ["H2 lattice of 38 million cells, on the GPU", "384³ voxels"],
+              }}
+            />
+            <figcaption className="muted small">Example: what the badge looks like beside an action.</figcaption>
+          </figure>
+        )}
         <div className="tour-actions">
           <button type="button" onClick={() => dialog.current?.close()}>
             {last ? "Close" : "Skip the tour"}

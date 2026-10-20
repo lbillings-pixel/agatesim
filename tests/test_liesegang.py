@@ -93,3 +93,15 @@ def test_gpu_matches_cpu() -> None:
     p_gpu, t_gpu, _ = _rd.liesegang(xp, inside, **kwargs)  # type: ignore[arg-type]
     np.testing.assert_allclose(p_gpu, p_cpu, rtol=1e-6, atol=1e-9)
     np.testing.assert_allclose(t_gpu, t_cpu, equal_nan=True)
+
+
+def test_a_cavity_the_front_fills_at_once_gives_one_band() -> None:
+    """A cavity a few lattice cells across fills before the first record of the
+    front's arrival, so every cell arrives together: one band, not a crash."""
+    from agatesim.models.liesegang import bands_by_arrival
+
+    inside = np.ones(50, dtype=bool)
+    band = bands_by_arrival(np.full(50, 0.3), inside.copy(), inside, min_cells=4)
+    assert (band == 0).all()
+    result = simulate(_config(3.0, 0.25, 64))
+    assert result.fields.band[result.domain.mask].max() == 0

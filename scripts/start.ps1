@@ -2,8 +2,11 @@
 #
 #   .\scripts\start.ps1            # opens http://127.0.0.1:8000/ in your browser
 #   .\scripts\start.ps1 -Rebuild   # rebuild the web UI first (after pulling changes)
+#   .\scripts\start.ps1 -Gpu       # install the GPU extra (CuPy, NVIDIA only) and use it
+#
+# An installed GPU extra is kept: a plain `uv sync` or `uv run` would remove it.
 
-param([switch]$Rebuild, [int]$Port = 8000)
+param([switch]$Rebuild, [switch]$Gpu, [int]$Port = 8000)
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
@@ -13,7 +16,15 @@ Set-Location $root
 $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
     [Environment]::GetEnvironmentVariable("Path", "User")
 
-uv sync --quiet
+$hasGpu = $false
+if (-not $Gpu) {
+    # A failed import writes to stderr, which "Stop" would turn into an error.
+    $ErrorActionPreference = "Continue"
+    uv run --no-sync python -c "import cupy" *> $null
+    $hasGpu = $LASTEXITCODE -eq 0
+    $ErrorActionPreference = "Stop"
+}
+if ($Gpu -or $hasGpu) { uv sync --quiet --extra gpu } else { uv sync --quiet }
 
 $built = Test-Path "src\agatesim\server\static\index.html"
 if ($Rebuild -or -not $built) {
@@ -22,4 +33,4 @@ if ($Rebuild -or -not $built) {
     npm --prefix web run build --silent
 }
 
-uv run agatesim serve --port $Port
+uv run --no-sync agatesim serve --port $Port

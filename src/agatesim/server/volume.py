@@ -7,6 +7,7 @@ import io
 import json
 import threading
 import time
+from collections import OrderedDict
 from dataclasses import replace
 from pathlib import Path
 
@@ -16,11 +17,12 @@ from fastapi.responses import FileResponse, Response
 from PIL import Image
 from pydantic import BaseModel, Field
 
-from agatesim import progress
+from agatesim import estimate, progress
 from agatesim.criteria import evaluate, implemented
 from agatesim.render import render_slab
 from agatesim.runs import is_run_id
-from agatesim.server.jobs import Job, JobManager
+from agatesim.server.footprint import footprint
+from agatesim.server.jobs import SURVEY_RESOLUTION, Job, JobManager
 from agatesim.server.tasks import TaskHeader
 from agatesim.stages import stages_json
 from agatesim.stats import band_statistics
@@ -40,7 +42,8 @@ MAX_CUT_RESOLUTION = 1024
 MAX_VIEW_RESOLUTION = 160
 MAX_SURVEY_CUTS = 200
 MAX_RUN_RESOLUTION = 384
-CACHE = 4
+CACHE = 6  # formations kept at most
+CACHE_BYTES = 1_500_000_000  # and their arrays at most (ADR 0059)
 VOLUME_KINDS = [
     "procedural-growth",
     "procedural-fortification",
@@ -69,22 +72,38 @@ class SurveyRequest(BaseModel):
     seed: int = Field(default=0, ge=0)
 
 
+class VolumeEstimateRequest(BaseModel):
+    config: VolumeConfig
+    view_resolution: int = Field(default=96, ge=16, le=MAX_VIEW_RESOLUTION)
+    cut_resolution: int = Field(default=384, ge=64, le=MAX_CUT_RESOLUTION)
+    survey_cuts: int = Field(default=40, ge=1, le=MAX_SURVEY_CUTS)
+    run_resolution: int = Field(default=192, ge=16, le=MAX_RUN_RESOLUTION)
+    run_survey_cuts: int = Field(default=0, ge=0, le=MAX_SURVEY_CUTS)
+
+
 class VolumeRunRequest(BaseModel):
     config: VolumeConfig
     survey_cuts: int = Field(default=0, ge=0, le=MAX_SURVEY_CUTS)
 
 
-class _Prepared:
+class Prepared:
     """Recently prepared 3D runs, keyed by what their formation depends on, so
     moving the cut or changing resolution doesn't re-run the model.
 
     One preparation at a time. The cut and the 3D view of a new setup arrive
     together and share one preparation, which reports to a shared tracker that
     both requests follow; it stops if every request waiting for it is cancelled
-    (the app moved on), so an abandoned slow run doesn't hold up the next."""
+    (the app moved on), so an abandoned slow run doesn't hold up the next.
 
-    def __init__(self) -> None:
-        self._items: dict[str, VolumeSimulation] = {}
+    The cache keeps the most recently used formations within a memory budget
+    (their arrays and search trees, `footprint`) and a count, always keeping
+    the newest: an H2 formation holds about half a gigabyte, most hold a few
+    megabytes (ADR 0059)."""
+
+    def __init__(self, budget_bytes: int = CACHE_BYTES, most: int = CACHE) -> None:
+        self._items: OrderedDict[str, VolumeSimulation] = OrderedDict()
+        self._budget = budget_bytes
+        self._most = most
         self._pending: dict[str, progress.Tracker] = {}
         self._state = threading.Lock()
         self._build = threading.Lock()
@@ -94,6 +113,7 @@ class _Prepared:
         with self._state:
             sim = self._items.get(key)
             if sim is not None:
+                self._items.move_to_end(key)
                 return replace(sim, config=config)
             shared = self._pending.setdefault(key, progress.Tracker())
         try:
@@ -105,14 +125,31 @@ class _Prepared:
                         progress.report(0.0, "Preparing the formation")
                         sim = prepare_volume(config)
                     with self._state:
-                        if len(self._items) >= CACHE:
-                            self._items.pop(next(iter(self._items)))
                         self._items[key] = sim
+                        self._evict()
         finally:
             with self._state:
                 if not shared.followed():  # nobody else is waiting for it
                     self._pending.pop(key, None)
         return replace(sim, config=config)
+
+    def _evict(self) -> None:
+        """Drop the least recently used formations beyond the count or the
+        budget, keeping the newest. Sizes are measured now: search trees are
+        built on first use, after a formation is cached."""
+        sizes = {key: footprint(sim) for key, sim in self._items.items()}
+        total = sum(sizes.values())
+        while len(self._items) > 1 and (len(self._items) > self._most or total > self._budget):
+            key, _ = self._items.popitem(last=False)
+            total -= sizes[key]
+
+    def has(self, config: VolumeConfig) -> bool:
+        with self._state:
+            return config.model_digest() in self._items
+
+    def keys(self) -> list[str]:
+        with self._state:
+            return list(self._items)
 
 
 def _png_uri(image: Image.Image) -> str:
@@ -129,7 +166,7 @@ def _tdep_image(t_dep: np.ndarray) -> Image.Image:
 
 def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) -> APIRouter:
     router = APIRouter(prefix="/api/volume")
-    prepared = _Prepared()
+    prepared = Prepared()
 
     def run_dir(run_id: str) -> Path:
         path = runs_dir / run_id
@@ -237,6 +274,26 @@ def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) ->
             with progress.span(0.3, 1.0):
                 found = survey(sim, request.cuts, request.resolution, request.seed)
         return {**found.to_json(), "elapsed_ms": round((time.perf_counter() - t0) * 1000)}
+
+    @router.post("/estimate")
+    def estimate_costs(request: VolumeEstimateRequest) -> dict[str, object]:
+        """Rough time and memory of building the view, surveying and a full run,
+        at the resolutions the app would use, for its caution badge (ADR 0060).
+        A formation already prepared costs nothing to build again."""
+        config = request.config
+        archetype = config.archetype
+        cut = min(cut_resolution(archetype, request.cut_resolution), MAX_CUT_RESOLUTION)
+        survey_px = cut_resolution(archetype, request.cut_resolution)
+        run_px = cut_resolution(archetype, SURVEY_RESOLUTION)
+        cached = prepared.has(config)
+        view = estimate.view_3d(config, request.view_resolution, cut)
+        cuts = estimate.survey_3d(config, request.survey_cuts, survey_px)
+        if cached:
+            view = estimate.Estimate(0.5, estimate.BASE_GB)
+            cuts = estimate.survey_3d_prepared(config, request.survey_cuts, survey_px)
+        run_config = config.with_resolution(request.run_resolution)
+        run = estimate.run_3d(run_config, request.run_resolution, request.run_survey_cuts, run_px)
+        return {"view": view.to_json(), "survey": cuts.to_json(), "run": run.to_json()}
 
     @router.post("/runs", status_code=202)
     def start_run(request: VolumeRunRequest) -> Job:

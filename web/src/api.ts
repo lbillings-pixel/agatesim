@@ -1,6 +1,7 @@
 // Types and calls for the agatesim backend (src/agatesim/server/app.py).
 
 import type { Stage } from "./lib/animation";
+import type { CostEstimate } from "./lib/caution";
 import type { Progress } from "./lib/progress";
 import type { Transect } from "./lib/transect";
 
@@ -502,6 +503,24 @@ export const volume = {
       body: JSON.stringify({ config, survey_cuts: surveyCuts }),
     }),
   runs: () => request<VolumeRunSummary[]>("/api/volume/runs"),
+  /** Rough time and memory of building the view, a survey and a full run (the caution badge). */
+  estimate: (
+    config: VolumeConfig,
+    sizes: { view: number; cut: number; surveyCuts: number; run: number; runSurveyCuts: number },
+    signal?: AbortSignal,
+  ) =>
+    request<{ view: CostEstimate; survey: CostEstimate; run: CostEstimate }>("/api/volume/estimate", {
+      method: "POST",
+      body: JSON.stringify({
+        config,
+        view_resolution: sizes.view,
+        cut_resolution: sizes.cut,
+        survey_cuts: sizes.surveyCuts,
+        run_resolution: sizes.run,
+        run_survey_cuts: sizes.runSurveyCuts,
+      }),
+      signal,
+    }),
   run: (id: string) => request<VolumeRunDetail>(`/api/volume/runs/${id}`),
   slabUrl: (id: string) => `/api/volume/runs/${id}/slab.png`,
 };
@@ -559,6 +578,20 @@ export const api = {
   job: (id: string) => request<Job>(`/api/jobs/${id}`),
   runs: () => request<RunSummary[]>("/api/runs"),
   run: (id: string) => request<RunDetail>(`/api/runs/${id}`),
+  /** Delete a saved run, 2D or 3D. */
+  deleteRun: async (id: string): Promise<void> => {
+    const response = await fetch(`/api/runs/${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (!response.ok) throw new Error(await errorMessage(response));
+  },
+  /** Rough time and memory of the preview and of a full run (the caution badge). */
+  estimate: (config: RunConfig, previewResolution: number, runResolution: number, signal?: AbortSignal) =>
+    request<{ preview: CostEstimate; run: CostEstimate }>("/api/estimate", {
+      method: "POST",
+      body: JSON.stringify({ config, preview_resolution: previewResolution, run_resolution: runResolution }),
+      signal,
+    }),
+  /** Saved runs (2D and 3D) and the bytes they take on disk. */
+  runsUsage: () => request<{ runs: number; bytes: number }>("/api/runs-usage"),
   slabUrl: (id: string) => `/api/runs/${id}/slab.png`,
   tdepUrl: (id: string) => `/api/runs/${id}/tdep.png`,
 };

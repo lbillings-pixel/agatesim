@@ -25,6 +25,8 @@ import { ParamPanel, Slider } from "./ParamPanel";
 import { SlabView, slabSource, useSlabPixels } from "./SlabView";
 import { StatsPanel } from "./StatsPanel";
 import { TaskProgress } from "./TaskProgress";
+import { CautionBadge } from "./CautionBadge";
+import type { CostEstimate } from "../lib/caution";
 import { Volume3D, type Volume3DHandle } from "./Volume3D";
 import { VolumeRuns } from "./VolumeRuns";
 
@@ -122,6 +124,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   const [surveyed, setSurveyed] = useState<{ key: string; result: SurveyResult } | null>(null);
   const [surveyTask, setSurveyTask] = useState<string | null>(null);
   const surveyAbort = useRef<AbortController | null>(null);
+  const [costs, setCosts] = useState<{ view: CostEstimate; survey: CostEstimate; run: CostEstimate } | null>(null);
   const [runRes, setRunRes] = useState(192);
   const [job, setJob] = useState<Job | null>(null);
   const [growth, setGrowth] = useState(1);
@@ -201,6 +204,20 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- formationKey stands for config's formation
   }, [formationKey, viewRes, rebuild]);
+
+  // The caution badges: rough time and memory of the view, a survey and a full run.
+  useEffect(() => {
+    if (!config) return;
+    const controller = new AbortController();
+    const sizes = { view: viewRes, cut: cutRes, surveyCuts: surveyCount, run: runRes, runSurveyCuts: config.archetype ? 40 : 0 };
+    const timer = window.setTimeout(() => {
+      volumeApi.estimate(config, sizes, controller.signal).then(setCosts, () => undefined);
+    }, DEBOUNCE_MS);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [config, viewRes, cutRes, surveyCount, runRes, voxels]);
 
   // A survey belongs to one formation and archetype: hide it once either changes.
   const surveyKey = `${formationKey}|${config?.archetype ?? ""}`;
@@ -401,6 +418,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
           <span className="tab-status muted small" aria-live="polite">
             {cutBusy ? "Updating the cut…" : cut ? `cut ${cut.width}×${cut.height} px · ${cut.elapsed_ms} ms` : ""}
           </span>
+          <CautionBadge estimate={costs?.view} />
           {error === STOPPED && (
             <button
               type="button"
@@ -512,6 +530,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
             <button type="button" onClick={runSurvey} disabled={surveyBusy || !config.archetype}>
               {surveyBusy ? "Cutting…" : "Survey random cuts"}
             </button>
+            {config.archetype && <CautionBadge estimate={costs?.survey} />}
             {!config.archetype && <span className="muted small">Choose an archetype to judge the cuts.</span>}
           </div>
           <TaskProgress task={surveyTask} title="Surveying random cuts" onCancel={cancelSurvey} />
@@ -531,6 +550,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
           <button type="button" className="primary" onClick={startRun} disabled={jobRunning}>
             Save a full 3D run
           </button>
+          <CautionBadge estimate={costs?.run} />
           {job && (
             <span className="small muted" aria-live="polite">
               {job.status === "done"
@@ -549,7 +569,12 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
           />
         </section>
 
-        <VolumeRuns runs={savedRuns} opening={opening} onOpen={openRun} />
+        <VolumeRuns
+          runs={savedRuns}
+          opening={opening}
+          onOpen={openRun}
+          onDeleted={(id) => setSavedRuns((all) => all.filter((r) => r.id !== id))}
+        />
       </main>
     </div>
   );
