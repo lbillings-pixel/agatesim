@@ -14,13 +14,19 @@
 from __future__ import annotations
 
 import json
+import math
 import platform
 import sys
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib.metadata import version
 from pathlib import Path
+from typing import Any
 
+import numpy as np
 import zarr
+from numpy.typing import NDArray
+from zarr.core.metadata import ArrayV3Metadata
 
 from agatesim import __version__
 from agatesim.criteria import Evaluation, evaluate, implemented
@@ -28,6 +34,8 @@ from agatesim.render import render_slab, to_png_image
 from agatesim.runs import LIBRARIES, git_state, is_run_id
 from agatesim.stats import band_statistics
 from agatesim.volume.config import load_volume_config
+from agatesim.volume.grid import Grid3
+from agatesim.volume.render import colour_voxels
 from agatesim.volume.simulate import VolumeSimulation
 from agatesim.volume.survey import Survey
 
@@ -155,3 +163,49 @@ def list_volume_runs(out_dir: Path) -> list[dict[str, object]]:
         except (OSError, ValueError, KeyError):
             continue
     return sorted(found, key=lambda r: str(r["started_utc"]), reverse=True)
+
+
+@dataclass(frozen=True)
+class SavedView:
+    """A saved run's volume as the 3D viewer shows it: colours and deposition times."""
+
+    grid: Grid3
+    rgba: NDArray[np.uint8]  # grid.shape + (4,)
+    t_dep: NDArray[np.float32]  # grid.shape; NaN where nothing deposited
+    stride: int  # every stride-th voxel of the saved run along each axis
+
+
+def _array(group: zarr.Group, name: str) -> zarr.Array[ArrayV3Metadata]:
+    array = group[name]
+    if not isinstance(array, zarr.Array):
+        raise ValueError(f"{name} is not an array")
+    return array
+
+
+def read_volume_view(path: Path, most: int) -> SavedView:
+    """The saved fields of a 3D run, coloured for the viewer, with at most `most`
+    voxels along any side (every stride-th voxel of larger runs). Read a slab of
+    z-layers at a time, so a large run never sits in memory as floats whole."""
+    group = zarr.open_group(store=str(path / "fields.zarr"), mode="r")  # pyright: ignore[reportUnknownMemberType]
+    arrays = {name: _array(group, name) for name in ("phase", "translucency", "impurity", "t_dep")}
+    if "pigment" in group:
+        arrays["pigment"] = _array(group, "pigment")
+    nz, ny, nx = (int(n) for n in arrays["phase"].shape)
+    stride = max(1, math.ceil(max(nx, ny, nz) / most))
+    layers = range(0, nz, stride)
+    shape = (len(layers), len(range(0, ny, stride)), len(range(0, nx, stride)))
+    rgba = np.zeros((*shape, 4), dtype=np.uint8)
+    t_dep = np.full(shape, np.nan, dtype=np.float32)
+    step = stride * max(1, 32 // stride)  # whole chunks of 32 saved layers
+    for out, z0 in enumerate(range(0, nz, step)):
+        part = slice(z0, min(z0 + step, nz), stride)
+        f = {name: np.asarray(a[part, ::stride, ::stride]) for name, a in arrays.items()}
+        pigment = f.get("pigment")
+        at = slice(out * (step // stride), out * (step // stride) + len(f["phase"]))
+        rgba[at] = colour_voxels(f["phase"], f["translucency"], f["impurity"], pigment)
+        t_dep[at] = f["t_dep"]
+    attrs: dict[str, Any] = dict(group.attrs)
+    dx = float(attrs["dx_mm"]) * stride
+    ox, oy, oz = (float(v) for v in attrs["origin_mm"])
+    grid = Grid3(nx=shape[2], ny=shape[1], nz=shape[0], dx=dx, origin=(ox, oy, oz))
+    return SavedView(grid=grid, rgba=rgba, t_dep=t_dep, stride=stride)

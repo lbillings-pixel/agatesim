@@ -26,9 +26,11 @@ import { TubePanel } from "./components/TubePanel";
 import { VolumeWorkbench } from "./components/VolumeWorkbench";
 import { type Control, defaultsFor, fieldsFor, withSetting } from "./lib/schema";
 import { newTaskId } from "./lib/progress";
+import { HeldBuild } from "./components/HeldBuild";
 import { TaskProgress } from "./components/TaskProgress";
 import { CautionBadge } from "./components/CautionBadge";
 import type { CostEstimate } from "./lib/caution";
+import { settingDiffs } from "./lib/diff";
 import { formPresets, otherPresets, tierOf } from "./lib/forms";
 import { GrowthControls } from "./components/GrowthControls";
 import { RunDiff } from "./components/RunDiff";
@@ -94,6 +96,11 @@ export function App() {
   const [previewTask, setPreviewTask] = useState<string | null>(null);
   const [costs, setCosts] = useState<{ preview: CostEstimate; run: CostEstimate } | null>(null);
   const [previewAgain, setPreviewAgain] = useState(0);
+  // A heavy preview waits for a press of Build (ADR 0062); approved keeps the one pressed for.
+  const [held, setHeld] = useState<{ key: string; estimate: CostEstimate } | null>(null);
+  const approved = useRef<string | null>(null);
+  // The settings of the last preview that arrived: optical views follow it, never start one.
+  const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [runResolution, setRunResolution] = useState(768);
@@ -121,6 +128,12 @@ export function App() {
   const previous = useRef<RunConfig | null>(null);
   const travelling = useRef(false);
   const lastRecorded = useRef(0);
+  // What Reset returns to: the settings last loaded (a preset, a form, a run, a replica).
+  const [base, setBase] = useState<{ label: string; config: RunConfig } | null>(null);
+  const load = (c: RunConfig, label: string) => {
+    setConfig(c);
+    setBase({ label, config: c });
+  };
   const [strength, setStrength] = useState(0.4);
   const [keepForm, setKeepForm] = useState(false);
   const [extras, setExtras] = useState<RandomizeExtra[]>([]);
@@ -153,7 +166,10 @@ export function App() {
       .then((m) => {
         setMeta(m);
         const start = m.presets.find((p) => p.name === "fortification") ?? m.presets[0];
-        if (start) setConfig(start.config);
+        if (start) {
+          setConfig(start.config);
+          setBase({ label: start.name, config: start.config });
+        }
       })
       .catch((e: unknown) => setLoadError(String(e)));
     refreshRuns();
@@ -163,14 +179,17 @@ export function App() {
   useEffect(() => {
     if (!config) return;
     const controller = new AbortController();
-    const timer = window.setTimeout(() => {
+    const key = JSON.stringify([config, previewRes]);
+    const start = () => {
       const task = newTaskId();
+      setHeld(null);
       setPreviewBusy(true);
       setPreviewTask(task);
       api
         .preview(config, previewRes, controller.signal, task)
         .then((p) => {
           setPreview(p);
+          setPreviewKey(key);
           setPreviewError(null);
         })
         .catch((e: unknown) => {
@@ -182,6 +201,16 @@ export function App() {
             setPreviewTask(null);
           }
         });
+    };
+    const timer = window.setTimeout(() => {
+      if (approved.current === key) return start();
+      // Ask first if it's heavy; if the estimate fails, build as before.
+      api.estimate(config, previewRes, previewRes, controller.signal).then(
+        (c) => (c.preview.heavy ? setHeld({ key, estimate: c.preview }) : start()),
+        () => {
+          if (!controller.signal.aborted) start();
+        },
+      );
     }, DEBOUNCE_MS);
     return () => {
       window.clearTimeout(timer);
@@ -203,8 +232,9 @@ export function App() {
   }, [config, previewRes, runResolution]);
 
   // Optical views of the live preview: directional light, at the chosen angle.
+  // They wait for the preview, so a paused heavy preview isn't built by them instead.
   useEffect(() => {
-    if (!config || light === "reflected") return;
+    if (!config || light === "reflected" || previewKey !== JSON.stringify([config, previewRes])) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       api
@@ -221,7 +251,7 @@ export function App() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [config, previewRes, light, lightAngle, lightDirection]);
+  }, [config, previewRes, previewKey, light, lightAngle, lightDirection]);
 
   // Poll active jobs; refresh the run list when one finishes.
   useEffect(() => {
@@ -381,6 +411,7 @@ export function App() {
       ? ([["order", "stage order", "A random stage order from the allowed list"]] as [RandomizeExtra, string, string][])
       : []),
   ];
+  const changed = base ? settingDiffs(base.config, config) : [];
   const randomize = () => {
     const task = newTaskId();
     const controller = new AbortController();
@@ -418,7 +449,7 @@ export function App() {
     }
     const pair = forms.find((f) => f.id === id);
     const preset = pair?.[wanted] ?? pair?.[wanted === "procedural" ? "mechanistic" : "procedural"];
-    if (preset) setConfig(preset.config);
+    if (preset) load(preset.config, preset.name);
     else update((c) => ({ ...c, archetype: id }));
   };
 
@@ -474,7 +505,7 @@ export function App() {
           meta={meta}
           resolution={Math.min(512, meta.limits.preview)}
           onOpen={(c) => {
-            setConfig(c);
+            load(c, c.name);
             setSelected(null);
             setScreen("simulator");
           }}
@@ -484,7 +515,7 @@ export function App() {
       ) : screen === "specimens" ? (
         <SpecimenWorkbench
           onOpenReplica={(replica) => {
-            setConfig(replica);
+            load(replica, "the specimen replica");
             setSelected(null);
             setScreen("simulator");
           }}
@@ -500,6 +531,20 @@ export function App() {
               <button type="button" onClick={undo} disabled={past.length === 0} title="Undo the last settings change">
                 Undo
               </button>
+              {base && (
+                <button
+                  type="button"
+                  onClick={() => setConfig(base.config)}
+                  disabled={changed.length === 0}
+                  title={
+                    changed.length === 0
+                      ? `All settings are as in ${base.label}`
+                      : `Back to ${base.label} (undoable). Changed: ${changed.map((d) => d.label).join(", ")}`
+                  }
+                >
+                  Reset{changed.length > 0 ? ` (${changed.length} changed)` : ""}
+                </button>
+              )}
               <button type="button" onClick={redo} disabled={future.length === 0} title="Redo">
                 Redo
               </button>
@@ -587,7 +632,7 @@ export function App() {
                   value=""
                   onChange={(e) => {
                     const p = others.find((x) => x.name === e.target.value);
-                    if (p) setConfig(p.config);
+                    if (p) load(p.config, p.name);
                   }}
                 >
                   <option value="" disabled>
@@ -811,6 +856,16 @@ export function App() {
               {opticsNote}
             </p>
           )}
+          {selected === null && held && (
+            <HeldBuild
+              what="the preview"
+              estimate={held.estimate}
+              onBuild={() => {
+                approved.current = held.key;
+                setPreviewAgain((n) => n + 1);
+              }}
+            />
+          )}
           {selected === null && previewBusy && (
             <TaskProgress
               task={previewTask}
@@ -904,7 +959,7 @@ export function App() {
                   <button
                     type="button"
                     onClick={() => {
-                      setConfig(selectedDetail.config);
+                      load(selectedDetail.config, `run ${selectedDetail.config.name}`);
                       setSelected(null);
                     }}
                   >

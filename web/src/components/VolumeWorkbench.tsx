@@ -7,9 +7,11 @@ import {
   type Job,
   type ModelInfo,
   type SliceConfig,
+  type SurveyCut,
   type SurveyResult,
   type VolumeConfig,
   type VolumeMeta,
+  type VolumeRunDetail,
   type VolumeRunSummary,
   type VoxelVolume,
   progress as progressApi,
@@ -26,12 +28,13 @@ import { SlabView, slabSource, useSlabPixels } from "./SlabView";
 import { StatsPanel } from "./StatsPanel";
 import { TaskProgress } from "./TaskProgress";
 import { CautionBadge } from "./CautionBadge";
+import { HeldBuild } from "./HeldBuild";
 import type { CostEstimate } from "../lib/caution";
 import { Volume3D, type Volume3DHandle } from "./Volume3D";
 import { VolumeRuns } from "./VolumeRuns";
 
 const CUT_RESOLUTIONS = [256, 384, 512, 768];
-const VIEW_RESOLUTIONS = [64, 96, 128];
+const VIEW_RESOLUTIONS = [64, 96, 128, 160, 192];
 const RUN_RESOLUTIONS = [128, 192, 256];
 const SURVEY_COUNTS = [20, 40, 100];
 const DEBOUNCE_MS = 250;
@@ -91,6 +94,26 @@ function sideBySide(view: Volume3DHandle | null, cut: FrameSource): FrameSource 
 }
 
 /** A request the server stopped because it was cancelled, in words. */
+/** Start building the view or cut now, or hold it when preparing its formation is
+ * heavy and the owner hasn't pressed Build for it (ADR 0062). */
+function startUnlessHeavy(
+  config: VolumeConfig,
+  sizes: { view: number; cut: number },
+  approved: boolean,
+  signal: AbortSignal,
+  start: () => void,
+  hold: (estimate: CostEstimate) => void,
+) {
+  if (approved) return start();
+  const all = { ...sizes, surveyCuts: 1, run: 64, runSurveyCuts: 0 };
+  volumeApi.estimate(config, all, signal).then(
+    (c) => (c.view.heavy ? hold(c.view) : start()),
+    () => {
+      if (!signal.aborted) start(); // no estimate: build as before
+    },
+  );
+}
+
 const STOPPED = "Stopped. Change a setting, or press Rebuild, to build it again.";
 const message = (e: unknown) => {
   const text = e instanceof Error ? e.message : String(e);
@@ -120,6 +143,13 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   const [cutTask, setCutTask] = useState<string | null>(null);
   const [voxelsTask, setVoxelsTask] = useState<string | null>(null);
   const [rebuild, setRebuild] = useState(0);
+  // A heavy formation waits for Build; approved names the formation pressed for.
+  const [held, setHeld] = useState<{ key: string; estimate: CostEstimate } | null>(null);
+  const approved = useRef<string | null>(null);
+  const sizes = useRef({ view: viewRes, cut: cutRes });
+  useEffect(() => {
+    sizes.current = { view: viewRes, cut: cutRes }; // before the builds below read it
+  }, [viewRes, cutRes]);
   const [surveyCount, setSurveyCount] = useState(40);
   const [surveyed, setSurveyed] = useState<{ key: string; result: SurveyResult } | null>(null);
   const [surveyTask, setSurveyTask] = useState<string | null>(null);
@@ -130,6 +160,11 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   const [growth, setGrowth] = useState(1);
   const [savedRuns, setSavedRuns] = useState<VolumeRunSummary[]>([]);
   const [opening, setOpening] = useState<string | null>(null);
+  // A saved run opened from the list: its own volume, read from its files, shown until
+  // the formation's settings change (moving the cut keeps it).
+  const [saved, setSaved] = useState<{ formation: string; detail: VolumeRunDetail; view: VoxelVolume | null } | null>(
+    null,
+  );
   const view3d = useRef<Volume3DHandle | null>(null);
   const cutPixels = useSlabPixels(cut?.image ?? "", cut?.tdep ?? "");
 
@@ -144,12 +179,18 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
       .catch((e: unknown) => setLoadError(String(e)));
   }, []);
 
+  // The 3D view depends on the formation only, not on the cut.
+  const formationKey = config
+    ? JSON.stringify({ solid: config.solid, gravity: config.gravity, model: config.model, seed: config.seed })
+    : "";
+
   // The cut: debounced, and only the latest request counts.
   useEffect(() => {
     if (!config) return;
     const controller = new AbortController();
-    const timer = window.setTimeout(() => {
+    const start = () => {
       const task = newTaskId();
+      setHeld(null);
       setCutBusy(true);
       setCutTask(task);
       volumeApi
@@ -167,21 +208,22 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
             setCutTask(null);
           }
         });
+    };
+    const timer = window.setTimeout(() => {
+      const hold = (estimate: CostEstimate) => setHeld({ key: formationKey, estimate });
+      startUnlessHeavy(config, sizes.current, approved.current === formationKey, controller.signal, start, hold);
     }, DEBOUNCE_MS);
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- formationKey is part of config
   }, [config, cutRes, rebuild]);
 
-  // The 3D view depends on the formation only, not on the cut.
-  const formationKey = config
-    ? JSON.stringify({ solid: config.solid, gravity: config.gravity, model: config.model, seed: config.seed })
-    : "";
   useEffect(() => {
     if (!config) return;
     const controller = new AbortController();
-    const timer = window.setTimeout(() => {
+    const start = () => {
       const task = newTaskId();
       setVoxelsBusy(true);
       setVoxelsTask(task);
@@ -197,6 +239,10 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
             setVoxelsTask(null);
           }
         });
+    };
+    const timer = window.setTimeout(() => {
+      const hold = (estimate: CostEstimate) => setHeld({ key: formationKey, estimate });
+      startUnlessHeavy(config, sizes.current, approved.current === formationKey, controller.signal, start, hold);
     }, DEBOUNCE_MS);
     return () => {
       window.clearTimeout(timer);
@@ -291,11 +337,23 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
     volumeApi
       .run(id)
       .then(
-        (detail) => setConfig(detail.config),
+        (detail) => {
+          const c = detail.config;
+          const formation = JSON.stringify({ solid: c.solid, gravity: c.gravity, model: c.model, seed: c.seed });
+          setConfig(c);
+          setSaved({ formation, detail, view: null });
+          document.querySelector(".volume-panes")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          return volumeApi.runVoxels(id).then((view) =>
+            setSaved((s) => (s?.detail.summary.id === id ? { ...s, view } : s)),
+          );
+        },
         (e: unknown) => setError(e instanceof Error ? e.message : String(e)),
       )
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setOpening(null));
   };
+  const viewing = saved?.formation === formationKey ? saved : null;
+  const showSurvey = survey ?? (viewing?.detail.survey ? { ...viewing.detail.survey, elapsed_ms: 0 } : null);
   const startRun = () => {
     volumeApi
       .startRun({ ...config, grid: { ...config.grid, resolution: runRes } }, config.archetype ? 40 : 0)
@@ -452,17 +510,44 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
           </label>
         </div>
 
+        {held?.key === formationKey && (
+          <HeldBuild
+            what="this formation"
+            estimate={held.estimate}
+            onBuild={() => {
+              approved.current = held.key;
+              setError(null);
+              setRebuild((n) => n + 1);
+            }}
+          />
+        )}
         {error && (
           <p className="error" role="alert">
             {error}
           </p>
         )}
 
+        {viewing && (
+          <div className="saved-banner" role="status">
+            <p>
+              <strong>Saved run {viewing.detail.summary.name}</strong>
+              {viewing.view
+                ? ` · 3D view from its saved files, ${viewing.view.nx}×${viewing.view.ny}×${viewing.view.nz} voxels` +
+                  (viewing.view.stride && viewing.view.stride > 1 ? ` (every ${viewing.view.stride}th)` : " (full resolution)")
+                : " · loading its saved volume"}
+              . The cut is computed from the model at any resolution, so it matches the saved run's cut; changing a
+              setting other than the cut returns to the live view.
+            </p>
+            <button type="button" onClick={() => setSaved(null)}>
+              Back to the live view
+            </button>
+          </div>
+        )}
         <div className="volume-panes">
           <Volume3D
-            volume={voxels}
+            volume={viewing ? viewing.view : voxels}
             plane={cut?.plane ?? null}
-            busy={voxelsBusy}
+            busy={viewing ? !viewing.view : voxelsBusy}
             progress={
               <TaskProgress
                 task={voxelsTask}
@@ -534,7 +619,18 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
             {!config.archetype && <span className="muted small">Choose an archetype to judge the cuts.</span>}
           </div>
           <TaskProgress task={surveyTask} title="Surveying random cuts" onCancel={cancelSurvey} />
-          {survey && <SurveyTable result={survey} />}
+          {!survey && showSurvey && <p className="muted small">Saved with the run:</p>}
+          {showSurvey && <SurveyTable result={showSurvey} />}
+          {showSurvey && (
+            <SurveyCuts
+              cuts={showSurvey.cuts}
+              current={config.slice}
+              onShow={(c) => {
+                setSlice({ tilt_deg: c.tilt_deg, azimuth_deg: c.azimuth_deg, offset_mm: c.offset_mm });
+                document.querySelector(".volume-panes")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
+          )}
         </section>
 
         <StatsPanel columns={[{ title: "The cut", stats: cut?.stats ?? null }]} />
@@ -554,7 +650,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
           {job && (
             <span className="small muted" aria-live="polite">
               {job.status === "done"
-                ? `Saved to runs/${job.run_id ?? ""}`
+                ? `Saved to runs/${job.run_id ?? ""}, listed under Saved 3D runs below`
                 : job.status === "failed"
                   ? job.error === "cancelled"
                     ? "Cancelled"
@@ -580,13 +676,69 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   );
 }
 
+/** The surveyed cuts as small pictures, passes and fails marked; choosing one shows
+ * it as the main cut, at full detail and judged in full. */
+function SurveyCuts({
+  cuts,
+  current,
+  onShow,
+}: {
+  cuts: SurveyCut[];
+  current: SliceConfig;
+  onShow: (cut: SurveyCut) => void;
+}) {
+  const [only, setOnly] = useState<"all" | "pass" | "fail">("all");
+  const shown = cuts.filter((c) => !c.error && (only === "all" || c.passed === (only === "pass")));
+  const same = (c: SurveyCut) =>
+    c.tilt_deg === current.tilt_deg && c.azimuth_deg === current.azimuth_deg && c.offset_mm === current.offset_mm;
+  return (
+    <div className="survey-cuts">
+      <div className="toggle" role="radiogroup" aria-label="Which cuts to show">
+        {(
+          [
+            ["all", "All"],
+            ["pass", "Passing"],
+            ["fail", "Failing"],
+          ] as const
+        ).map(([v, label]) => (
+          <button key={v} type="button" role="radio" aria-checked={only === v} onClick={() => setOnly(v)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <p className="muted small">Choose a cut to see it in full above, judged test by test.</p>
+      <ul>
+        {shown.map((c) => {
+          const n = cuts.indexOf(c) + 1;
+          const verdict = c.passed === null ? "not judged" : c.passed ? "pass" : "fail";
+          return (
+            <li key={n}>
+              <button
+                type="button"
+                aria-pressed={same(c)}
+                onClick={() => onShow(c)}
+                title={`Cut ${n}: tilt ${Math.round(c.tilt_deg)}°, azimuth ${Math.round(c.azimuth_deg)}°, offset ${c.offset_mm.toFixed(1)} mm · ${verdict}`}
+              >
+                {c.thumbnail && <img src={c.thumbnail} alt={`Random cut ${n}, ${verdict}`} loading="lazy" />}
+                <span className={`pill ${c.passed === null ? "" : c.passed ? "pass" : "fail"}`}>
+                  {n} · {verdict}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 function SurveyTable({ result }: { result: SurveyResult }) {
   const s = result.summary;
   return (
     <div className="survey-result">
       <p>
         <strong>{pct(s.pass_rate)}</strong> of {s.judged} cuts pass as {s.archetype}{" "}
-        <span className="muted small">({(result.elapsed_ms / 1000).toFixed(1)} s)</span>
+        {result.elapsed_ms > 0 && <span className="muted small">({(result.elapsed_ms / 1000).toFixed(1)} s)</span>}
       </p>
       <table className="stats-table">
         <thead>

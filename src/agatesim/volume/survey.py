@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import itertools
 import math
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 
 import numpy as np
@@ -22,7 +23,7 @@ from agatesim.models import FrontFeedback, ProceduralFortification
 from agatesim.simulate import SimulationResult
 from agatesim.stats import wall_rays
 from agatesim.volume.simulate import VolumeSimulation
-from agatesim.volume.slicing import random_cuts
+from agatesim.volume.slicing import Cut, random_cuts
 
 THICKNESS_RAYS = 48
 NEAR_WALL_BANDS = 5  # bands counted from the wall, before rays reach the medial region
@@ -163,7 +164,15 @@ def cut_resolution(archetype: str | None, resolution: int) -> int:
     return max(resolution, MIN_CUT_RESOLUTION.get(archetype or "", 0))
 
 
-def survey(sim: VolumeSimulation, count: int, resolution: int, seed: int = 0) -> Survey:
+def survey(
+    sim: VolumeSimulation,
+    count: int,
+    resolution: int,
+    seed: int = 0,
+    on_cut: Callable[[int, Cut], None] | None = None,
+) -> Survey:
+    """Cut the run at `count` random planes and judge each; `on_cut` sees each
+    cut that could be made, by its index (the app keeps a picture of each)."""
     rng_cuts, rng_rays = np.random.default_rng(seed).spawn(2)
     archetype = sim.config.archetype
     resolution = cut_resolution(archetype, resolution)
@@ -191,6 +200,8 @@ def survey(sim: VolumeSimulation, count: int, resolution: int, seed: int = 0) ->
                 )
             )
             continue
+        if on_cut is not None:
+            on_cut(k, c)
         passed: bool | None = None
         criteria: dict[str, bool] = {}
         values: dict[str, float | None] = {}

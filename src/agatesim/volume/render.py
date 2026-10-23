@@ -18,14 +18,24 @@ from agatesim.volume.simulate import VolumeResult
 def voxel_rgba(volume: VolumeResult) -> NDArray[np.uint8]:
     """RGBA (premultiplied), shaped grid.shape + (4,)."""
     f = volume.fields
-    trans = f.translucency.astype(np.float64)
-    iron = f.impurity.astype(np.float64)
-    rgb = chalcedony_colour(trans, iron, f.pigment)
-    quartz = f.phase == Phase.QUARTZ
+    return colour_voxels(f.phase, f.translucency, f.impurity, f.pigment)
+
+
+def colour_voxels(
+    phase: NDArray[np.uint8],
+    translucency: NDArray[np.float32],
+    impurity: NDArray[np.float32],
+    pigment: NDArray[np.uint8] | None,
+) -> NDArray[np.uint8]:
+    """RGBA (premultiplied) of voxels given their fields, shaped phase.shape + (4,)."""
+    trans = translucency.astype(np.float64)
+    iron = impurity.astype(np.float64)
+    rgb = chalcedony_colour(trans, iron, pigment)
+    quartz = phase == Phase.QUARTZ
     if quartz.any():
         rgb[quartz] = 0.6 * QUARTZ_CLEAR + 0.4 * QUARTZ_MILKY
-    solid = (f.phase == Phase.CHALCEDONY) | quartz
-    out = np.zeros((*f.phase.shape, 4), dtype=np.uint8)
+    solid = (phase == Phase.CHALCEDONY) | quartz
+    out = np.zeros((*phase.shape, 4), dtype=np.uint8)
     out[..., :3] = np.where(solid[..., None], np.clip(np.rint(rgb), 0, 255), 0).astype(np.uint8)
     out[..., 3] = np.where(solid, 255, 0).astype(np.uint8)
     return out

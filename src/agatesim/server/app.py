@@ -133,6 +133,9 @@ class _Simulations:
             self._items[key] = simulate(config)
         return self._items[key]
 
+    def has(self, config: RunConfig) -> bool:
+        return config.digest() in self._items
+
 
 def _png(image: Image.Image) -> bytes:
     buffer = io.BytesIO()
@@ -319,8 +322,11 @@ def create_app(
     def estimate_costs(request: EstimateRequest) -> dict[str, object]:
         """Rough time and memory of the preview and of a full run, for the
         app's caution badge (ADR 0060)."""
+        preview = estimate.run_2d(request.config, request.preview_resolution)
+        if simulations.has(request.config.with_resolution(request.preview_resolution)):
+            preview = estimate.Estimate(0.5, estimate.BASE_GB)  # simulated already
         return {
-            "preview": estimate.run_2d(request.config, request.preview_resolution).to_json(),
+            "preview": preview.to_json(),
             "run": estimate.run_2d(request.config, request.run_resolution).to_json(),
         }
 

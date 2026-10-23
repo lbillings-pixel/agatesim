@@ -72,6 +72,19 @@ def test_the_estimate_endpoints(tmp_path: Path) -> None:
         assert set(three) == {"view", "survey", "run"}
 
 
+def test_a_preview_already_simulated_costs_nothing_again(tmp_path: Path) -> None:
+    """So the app doesn't pause before showing a heavy preview it has (ADR 0062)."""
+    with TestClient(create_app(tmp_path, static_dir=None)) as client:
+        config = load_preset("seam").model_dump(mode="json")
+        ask = {"config": config, "preview_resolution": 128}
+        before = client.post("/api/estimate", json=ask).json()["preview"]
+        client.post("/api/preview", json={"config": config, "resolution": 128})
+        after = client.post("/api/estimate", json=ask).json()["preview"]
+        assert before["seconds"] != 0.5  # a fresh estimate first
+        assert after["seconds"] == 0.5
+        assert not after["heavy"]
+
+
 def test_fine_dendrites_are_light_on_the_cpu_with_numba(monkeypatch: pytest.MonkeyPatch) -> None:
     """ADR 0061: compiled, moss-fine-3d builds in about 19 s without a GPU (it
     took about 2 minutes); the NumPy loop alone is still heavy."""

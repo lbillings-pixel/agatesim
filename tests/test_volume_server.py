@@ -58,10 +58,16 @@ def test_voxels_come_as_raw_rgba(client: TestClient) -> None:
 
 
 def test_survey_and_a_full_run(client: TestClient, tmp_path: Path) -> None:
-    summary = client.post(
+    found = client.post(
         "/api/volume/survey", json={"config": _config(), "cuts": 3, "resolution": 128}
-    ).json()["summary"]
-    assert summary["cuts"] == 3
+    ).json()
+    assert found["summary"]["cuts"] == 3
+    # Each cut comes with where it lies and a small picture, to browse (ADR 0062).
+    assert len(found["cuts"]) == 3
+    for cut in found["cuts"]:
+        assert {"tilt_deg", "azimuth_deg", "offset_mm", "passed"} <= cut.keys()
+        if cut["error"] is None:
+            assert cut["thumbnail"].startswith("data:image/png;base64,")
     config = load_volume_preset("waterline-3d").with_resolution(24).model_dump(mode="json")
     job = client.post("/api/volume/runs", json={"config": config}).json()
     for _ in range(300):
@@ -86,6 +92,19 @@ def test_survey_and_a_full_run(client: TestClient, tmp_path: Path) -> None:
     assert slab.status_code == 200
     assert slab.content[1:4] == b"PNG"
     assert client.get("/api/volume/runs/not-a-run").status_code == 404
+    # A saved run's own volume, read from its files, as the live view sends one.
+    saved = client.get(f"/api/volume/runs/{job['run_id']}/voxels")
+    header = json.loads(saved.headers["X-Volume"])
+    assert max(header["nx"], header["ny"], header["nz"]) == 24
+    assert header["stride"] == 1
+    assert len(saved.content) == 5 * header["nx"] * header["ny"] * header["nz"]
+    live = client.post("/api/volume/voxels", json={"config": config, "resolution": 24})
+    assert saved.content == live.content  # the same voxels, saved or computed afresh
+    halved = json.loads(
+        client.get(f"/api/volume/runs/{job['run_id']}/voxels?most=12").headers["X-Volume"]
+    )
+    assert halved["stride"] == 2
+    assert max(halved["nx"], halved["ny"], halved["nz"]) == 12
 
 
 def test_the_formation_cache_keeps_the_recently_used_within_its_budget() -> None:

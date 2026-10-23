@@ -8,7 +8,7 @@ import json
 import threading
 import time
 from collections import OrderedDict
-from dataclasses import replace
+from dataclasses import asdict, replace
 from pathlib import Path
 
 import numpy as np
@@ -32,16 +32,20 @@ from agatesim.volume.config import (
     load_volume_preset,
     volume_preset_names,
 )
+from agatesim.volume.grid import Grid3
 from agatesim.volume.render import voxel_rgba
-from agatesim.volume.runs import list_volume_runs, volume_run_summary
+from agatesim.volume.runs import list_volume_runs, read_volume_view, volume_run_summary
 from agatesim.volume.simulate import VolumeSimulation, prepare_volume
+from agatesim.volume.slicing import Cut
 from agatesim.volume.solids import SOLID_PRESETS
 from agatesim.volume.survey import cut_resolution, survey
 
 MAX_CUT_RESOLUTION = 1024
-MAX_VIEW_RESOLUTION = 160
+MAX_VIEW_RESOLUTION = 192
+MAX_SAVED_VIEW = 256  # voxels along a side of a saved run's 3D view
 MAX_SURVEY_CUTS = 200
 MAX_RUN_RESOLUTION = 384
+THUMBNAIL = 160  # pixels along a surveyed cut's picture's longer side
 CACHE = 6  # formations kept at most
 CACHE_BYTES = 1_500_000_000  # and their arrays at most (ADR 0059)
 VOLUME_KINDS = [
@@ -164,6 +168,31 @@ def _tdep_image(t_dep: np.ndarray) -> Image.Image:
     return Image.fromarray(coded)
 
 
+def _voxel_response(
+    grid: Grid3, rgba: np.ndarray, t_dep: np.ndarray, t0: float, stride: int = 1
+) -> Response:
+    """Voxel colours as raw RGBA bytes (x fastest, then y, then z), followed by one
+    byte per voxel of deposition time (0..254 = time 0..1, 255 = never), for the
+    growth animation. The grid is described in the X-Volume header."""
+    header = {
+        "nx": grid.nx,
+        "ny": grid.ny,
+        "nz": grid.nz,
+        "dx_mm": grid.dx,
+        "origin_mm": list(grid.origin),
+        "elapsed_ms": round((time.perf_counter() - t0) * 1000),
+        "tdep": True,
+        "stride": stride,
+    }
+    t = np.asarray(t_dep, dtype=np.float64)
+    tdep = np.where(np.isnan(t), 255, np.rint(np.clip(t, 0, 1) * 254)).astype(np.uint8)
+    return Response(
+        rgba.tobytes() + tdep.tobytes(),
+        media_type="application/octet-stream",
+        headers={"X-Volume": json.dumps(header)},
+    )
+
+
 def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) -> APIRouter:
     router = APIRouter(prefix="/api/volume")
     prepared = Prepared()
@@ -237,43 +266,36 @@ def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) ->
 
     @router.post("/voxels")
     def voxels(request: VoxelRequest, task: TaskHeader = None) -> Response:
-        """The volume's colours as raw RGBA bytes (x fastest, then y, then z),
-        followed by one byte per voxel of deposition time (0..254 = time 0..1,
-        255 = never), for the growth animation. The grid is described in the
-        X-Volume header."""
+        """The live volume's colours and deposition times (see _voxel_response)."""
         t0 = time.perf_counter()
         with tasks.track(task):
             with progress.span(0.0, 0.9):
                 sim = prepared.get(request.config)
             progress.report(None, "Colouring the voxels")
             volume = sim.volume(request.resolution)
-        grid = volume.grid
-        header = {
-            "nx": grid.nx,
-            "ny": grid.ny,
-            "nz": grid.nz,
-            "dx_mm": grid.dx,
-            "origin_mm": list(grid.origin),
-            "elapsed_ms": round((time.perf_counter() - t0) * 1000),
-            "tdep": True,
-        }
-        t = np.asarray(volume.fields.t_dep, dtype=np.float64)
-        tdep = np.where(np.isnan(t), 255, np.rint(np.clip(t, 0, 1) * 254)).astype(np.uint8)
-        return Response(
-            voxel_rgba(volume).tobytes() + tdep.tobytes(),
-            media_type="application/octet-stream",
-            headers={"X-Volume": json.dumps(header)},
-        )
+        return _voxel_response(volume.grid, voxel_rgba(volume), volume.fields.t_dep, t0)
 
     @router.post("/survey")
     def run_survey(request: SurveyRequest, task: TaskHeader = None) -> dict[str, object]:
         t0 = time.perf_counter()
+        thumbs: dict[int, str] = {}
+
+        def keep(k: int, c: Cut) -> None:  # a small picture of each cut, to browse
+            image = Image.fromarray(render_slab(c.result))
+            image.thumbnail((THUMBNAIL, THUMBNAIL))
+            thumbs[k] = _png_uri(image)
+
         with tasks.track(task):
             with progress.span(0.0, 0.3):
                 sim = prepared.get(request.config)
             with progress.span(0.3, 1.0):
-                found = survey(sim, request.cuts, request.resolution, request.seed)
-        return {**found.to_json(), "elapsed_ms": round((time.perf_counter() - t0) * 1000)}
+                found = survey(sim, request.cuts, request.resolution, request.seed, on_cut=keep)
+        cuts = [{**asdict(c), "thumbnail": thumbs.get(k)} for k, c in enumerate(found.cuts)]
+        return {
+            "summary": found.summary(),
+            "cuts": cuts,
+            "elapsed_ms": round((time.perf_counter() - t0) * 1000),
+        }
 
     @router.post("/estimate")
     def estimate_costs(request: VolumeEstimateRequest) -> dict[str, object]:
@@ -321,6 +343,17 @@ def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) ->
             file = path / f"{name}.json"
             details[name] = json.loads(file.read_text("utf-8")) if file.exists() else None
         return details
+
+    @router.get("/runs/{run_id}/voxels")
+    def run_voxels(run_id: str, most: int = MAX_SAVED_VIEW) -> Response:
+        """A saved run's own volume, read from its files (as /voxels sends a live
+        one), with at most `most` voxels along a side."""
+        t0 = time.perf_counter()
+        path = run_dir(run_id)
+        if not (path / "fields.zarr").is_dir():
+            raise HTTPException(404, f"{run_id} has no saved volume")
+        view = read_volume_view(path, max(16, min(most, MAX_SAVED_VIEW)))
+        return _voxel_response(view.grid, view.rgba, view.t_dep, t0, stride=view.stride)
 
     @router.get("/runs/{run_id}/slab.png")
     def run_slab(run_id: str) -> FileResponse:

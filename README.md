@@ -186,7 +186,8 @@ The app runs only on your machine (bound to localhost). It offers:
 - **Randomize**: move a model's key settings toward random values within
   bounded ranges (subtle to wild), to explore what it can make; mechanistic
   draws are checked to still band, and can be kept within the chosen form.
-  **Undo and redo** step back through any settings change.
+  **Undo and redo** step back through any settings change; **Reset** returns
+  to the preset, form or run last loaded and counts what differs from it.
 - **Cavity menu** of preset shapes for volcanic, sedimentary and seam settings,
   plus a **drawing tool** for your own (click corners or sketch freehand; keep
   corners angular or smooth them).
@@ -199,7 +200,9 @@ The app runs only on your machine (bound to localhost). It offers:
 - **3D screen**: a cavity as a solid (vesicles, an angular nodule, lobed and
   lumpy nodules, sheet-like seams), a rotatable 3D view opened at a cut, and
   the cut itself as a slab, judged like any 2D result. Tilt and move the cut,
-  or survey random cuts to see how often a cut shows the form.
+  or survey random cuts to see how often a cut shows the form, then browse the
+  cuts as pictures and open any one as the main cut. Opening a saved 3D run
+  shows its own saved volume, at its full resolution up to 256³.
 - **Optical views**: see the preview as a slab lit from one side (shadow agate:
   move the light and the shadows sweep) or as a backlit thin slice (iris agate:
   change the view angle and direction and the colours shift; any band with
@@ -216,7 +219,9 @@ The app runs only on your machine (bound to localhost). It offers:
   slow previews and Randomize show what they are doing, how far they have got
   and roughly how long is left, with **Cancel**; work you abandon stops. An
   amber **caution badge** warns beforehand of an action estimated to take over
-  30 seconds or 2 GB of memory.
+  30 seconds or 2 GB of memory, and a preview that heavy waits for a press of
+  **Build it** instead of starting by itself
+  ([ADR 0062](docs/adr/0062-heavy-previews-wait-saved-3d-views-and-cut-browsing.md)).
 - **Saved runs** can be deleted from either run list; both show how much space
   the runs folder takes.
 - **Run browser and slab viewer** with zoom, pan, a scale bar, a growth slider

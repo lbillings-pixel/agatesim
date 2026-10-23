@@ -415,6 +415,8 @@ export interface VoxelVolume {
   rgba: Uint8Array;
   /** Deposition time per voxel (0..254 = time 0..1, 255 = never), for the growth animation. */
   tdep: Uint8Array | null;
+  /** For a saved run's view: every stride-th voxel of the run along each axis. */
+  stride?: number;
 }
 
 export interface SurveySummary {
@@ -428,8 +430,22 @@ export interface SurveySummary {
   apparent_over_true?: { q25: number; median: number; q75: number };
 }
 
+/** One random cut of a survey: where it was made, its verdict and a small picture. */
+export interface SurveyCut {
+  tilt_deg: number;
+  azimuth_deg: number;
+  offset_mm: number;
+  pieces: number;
+  gravity_in_plane: number | null;
+  passed: boolean | null;
+  criteria: Record<string, boolean>;
+  error: string | null;
+  thumbnail?: string | null;
+}
+
 export interface SurveyResult {
   summary: SurveySummary;
+  cuts: SurveyCut[];
   elapsed_ms: number;
 }
 
@@ -449,6 +465,23 @@ export interface VolumeRunSummary {
 export interface VolumeRunDetail {
   summary: VolumeRunSummary;
   config: VolumeConfig;
+  metrics: Evaluation | null;
+  survey: { summary: SurveySummary; cuts: SurveyCut[] } | null;
+}
+
+/** Voxel colours and deposition times, as the server sends them (an X-Volume header, then bytes). */
+async function readVoxels(response: Response): Promise<VoxelVolume> {
+  if (!response.ok) throw new Error(await errorMessage(response));
+  const header = JSON.parse(response.headers.get("X-Volume") ?? "{}") as Omit<VoxelVolume, "rgba" | "tdep"> & {
+    tdep?: boolean;
+  };
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const n = header.nx * header.ny * header.nz;
+  return {
+    ...header,
+    rgba: bytes.subarray(0, 4 * n),
+    tdep: header.tdep ? bytes.subarray(4 * n, 5 * n) : null,
+  };
 }
 
 export const volume = {
@@ -468,25 +501,18 @@ export const volume = {
     resolution: number,
     signal?: AbortSignal,
     task?: string,
-  ): Promise<VoxelVolume> => {
-    const response = await fetch("/api/volume/voxels", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...taskHeaders(task, signal) },
-      body: JSON.stringify({ config, resolution }),
-      signal,
-    });
-    if (!response.ok) throw new Error(await errorMessage(response));
-    const header = JSON.parse(response.headers.get("X-Volume") ?? "{}") as Omit<VoxelVolume, "rgba" | "tdep"> & {
-      tdep?: boolean;
-    };
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    const n = header.nx * header.ny * header.nz;
-    return {
-      ...header,
-      rgba: bytes.subarray(0, 4 * n),
-      tdep: header.tdep ? bytes.subarray(4 * n, 5 * n) : null,
-    };
-  },
+  ): Promise<VoxelVolume> =>
+    readVoxels(
+      await fetch("/api/volume/voxels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...taskHeaders(task, signal) },
+        body: JSON.stringify({ config, resolution }),
+        signal,
+      }),
+    ),
+  /** A saved run's own volume, read from its files (every stride-th voxel of a large one). */
+  runVoxels: async (id: string, signal?: AbortSignal): Promise<VoxelVolume> =>
+    readVoxels(await fetch(`/api/volume/runs/${encodeURIComponent(id)}/voxels`, { signal })),
   survey: (config: VolumeConfig, cuts: number, resolution: number, signal?: AbortSignal, task?: string) =>
     request<SurveyResult>(
       "/api/volume/survey",

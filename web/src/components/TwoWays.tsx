@@ -3,6 +3,8 @@ import { api, type Meta, type PreviewResult, type RunConfig } from "../api";
 import { overallVerdict } from "./CriteriaPanel";
 import { fieldsFor, imposedSettings } from "../lib/schema";
 import { formPairs, type Preset } from "../lib/forms";
+import type { CostEstimate } from "../lib/caution";
+import { HeldBuild } from "./HeldBuild";
 
 export { formPairs, type FormPair } from "../lib/forms";
 
@@ -37,6 +39,9 @@ export function TwoWays({ meta, resolution, onOpen }: Props) {
     () => pairs.find((p) => p.mechanistic)?.archetype.id ?? pairs[0]?.archetype.id ?? "",
   );
   const [results, setResults] = useState<Record<string, PreviewResult | string>>({});
+  // Heavy previews wait for a press of Build (ADR 0062): their estimates, and the ones pressed.
+  const [held, setHeld] = useState<Record<string, CostEstimate>>({});
+  const [approved, setApproved] = useState<string[]>([]);
   const abort = useRef<AbortController | null>(null);
   const pair = pairs.find((p) => p.archetype.id === selected);
 
@@ -49,6 +54,14 @@ export function TwoWays({ meta, resolution, onOpen }: Props) {
       for (const preset of [pair.procedural, pair.mechanistic]) {
         if (!preset || results[preset.name]) continue;
         try {
+          if (!approved.includes(preset.name)) {
+            const cost = await api.estimate(preset.config, resolution, resolution, controller.signal).catch(() => null);
+            if (controller.signal.aborted) return;
+            if (cost?.preview.heavy) {
+              setHeld((prev) => ({ ...prev, [preset.name]: cost.preview }));
+              continue;
+            }
+          }
           const r = await api.preview(preset.config, resolution, controller.signal);
           setResults((prev) => ({ ...prev, [preset.name]: r }));
         } catch (e) {
@@ -60,7 +73,7 @@ export function TwoWays({ meta, resolution, onOpen }: Props) {
     return () => controller.abort();
     // Results are cached by preset name; re-run only when the form or size changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pair, resolution]);
+  }, [pair, resolution, approved]);
 
   if (!pair) return <p className="muted">No forms to show.</p>;
   const verified = pairs.filter((p) => p.mechanistic).length;
@@ -104,7 +117,14 @@ export function TwoWays({ meta, resolution, onOpen }: Props) {
                   <p className="muted small">{tier.note}</p>
                 </header>
                 {preset ? (
-                  <Version preset={preset} result={results[preset.name]} meta={meta} onOpen={onOpen} />
+                  <Version
+                    preset={preset}
+                    result={results[preset.name]}
+                    held={approved.includes(preset.name) ? undefined : held[preset.name]}
+                    onBuild={() => setApproved((a) => [...a, preset.name])}
+                    meta={meta}
+                    onOpen={onOpen}
+                  />
                 ) : (
                   <p className="twoways-pending">
                     <strong>Not yet.</strong> {PENDING[pair.archetype.id] ?? "No mechanistic version yet."}
@@ -122,11 +142,13 @@ export function TwoWays({ meta, resolution, onOpen }: Props) {
 interface VersionProps {
   preset: Preset;
   result: PreviewResult | string | undefined;
+  held: CostEstimate | undefined;
+  onBuild: () => void;
   meta: Meta;
   onOpen: (config: RunConfig) => void;
 }
 
-function Version({ preset, result, meta, onOpen }: VersionProps) {
+function Version({ preset, result, held, onBuild, meta, onOpen }: VersionProps) {
   const model = meta.models.find((m) => m.kind === preset.config.model.kind);
   const imposed = model ? imposedSettings(fieldsFor(model.schema), preset.config.model) : [];
   // Only the conditions this preset changes from their defaults.
@@ -143,6 +165,8 @@ function Version({ preset, result, meta, onOpen }: VersionProps) {
       <figure className="twoways-slab">
         {typeof result === "object" ? (
           <img src={result.image} alt={`Slab from the ${preset.name} preset`} />
+        ) : held && result === undefined ? (
+          <HeldBuild what="this preview" estimate={held} onBuild={onBuild} />
         ) : (
           <div className="mechanisms-placeholder muted small">{result ?? "Working…"}</div>
         )}
