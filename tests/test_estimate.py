@@ -70,3 +70,22 @@ def test_the_estimate_endpoints(tmp_path: Path) -> None:
         volume = load_volume_preset("fortification-3d").model_dump(mode="json")
         three = client.post("/api/volume/estimate", json={"config": volume}).json()
         assert set(three) == {"view", "survey", "run"}
+
+
+def test_fine_dendrites_are_light_on_the_cpu_with_numba(monkeypatch: pytest.MonkeyPatch) -> None:
+    """ADR 0061: compiled, moss-fine-3d builds in about 19 s without a GPU (it
+    took about 2 minutes); the NumPy loop alone is still heavy."""
+    config = load_volume_preset("moss-fine-3d")
+    monkeypatch.setattr(_rd, "gpu_in_use", lambda: False)
+    monkeypatch.setattr(estimate.os, "cpu_count", lambda: 16)
+    compiled = estimate.view_3d(config, 96, 384)
+    assert 12 < compiled.seconds < 30
+    assert not compiled.heavy
+
+    def no_numba(name: str) -> None:
+        return None
+
+    monkeypatch.setattr(estimate.importlib.util, "find_spec", no_numba)
+    reference = estimate.view_3d(config, 96, 384)
+    assert reference.heavy
+    assert any("no GPU" in r for r in reference.reasons)

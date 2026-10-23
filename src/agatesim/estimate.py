@@ -10,6 +10,8 @@ velocity, and the cuts of a survey. Each estimate names its main reasons.
 
 from __future__ import annotations
 
+import importlib.util
+import os
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -49,12 +51,19 @@ H2_3D_CELLS = 38_000_000
 H2_CPU_FACTOR = 70.0  # the CPU against the GPU, for H2
 H2_WORK_POWER = 5 / 3  # time grows as cells ** power: cells times steps across
 H2_3D_BYTES = 66.0  # peak bytes per lattice cell
-DLA_CPU_SECONDS = 126.0  # moss-fine-3d's aggregation on the CPU
-DLA_GPU_SECONDS = 15.0  # and on the GPU
+# 3D dendrites (ADR 0061): setting the lattice up (wall distances, search trees),
+# linear in its cells, then the aggregation at the cells to the power 5/3.
+DLA_SETUP_SECONDS = 2.2
+DLA_SETUP_PER_CELL = 0.40e-6
+DLA_CPU_SECONDS = 4.5  # moss-fine-3d's aggregation, compiled, on 16 cores
+DLA_CPU_CORES = 16
+DLA_CORES_POWER = 0.6  # fewer cores: 8 cores 5.7 s, 1 core 27 s
+DLA_NUMPY_SECONDS = 112.0  # the reference loop, without Numba
+DLA_GPU_SECONDS = 3.1  # and on the GPU
 DLA_CELLS = 30_000_000
 DLA_BYTES = 12.0  # peak bytes per lattice cell
 DLA_GPU_PARTICLES = 100_000  # the dendrite engine's GPU threshold (agatesim._dla)
-DLA_UPWARD_FACTOR = 2.3  # plumes' upward bias: particles take longer to stick
+DLA_UPWARD_FACTOR = 3.9  # plumes' upward bias: particles take longer to stick
 DLA_2D_SECONDS = 34.0  # 2D dendrites on their full lattice (moss at 0.005 mm branches)
 DLA_2D_POWER = 1.2  # time grows as cells ** power (moss at 0.12 mm: about 1.5 s)
 H4_SECONDS = 4.6  # H4's settling at 12 pulses 2.5 settling times apart (any resolution)
@@ -206,10 +215,16 @@ def _dendrites(
 ) -> Estimate:
     cells = _lattice_cells(config, width_mm, round(budget_millions * 1e6))
     gpu = _gpu() and density * cells * 0.5 >= DLA_GPU_PARTICLES  # about half the lattice is open
-    scale = (cells / DLA_CELLS) ** H2_WORK_POWER
-    s = (DLA_GPU_SECONDS if gpu else DLA_CPU_SECONDS) * scale
+    if gpu:
+        engine = DLA_GPU_SECONDS
+    elif importlib.util.find_spec("numba") is not None:
+        engine = DLA_CPU_SECONDS * (DLA_CPU_CORES / (os.cpu_count() or 1)) ** DLA_CORES_POWER
+    else:
+        engine = DLA_NUMPY_SECONDS
+    engine *= (cells / DLA_CELLS) ** H2_WORK_POWER
     if upward > 0:
-        s *= DLA_UPWARD_FACTOR
+        engine *= DLA_UPWARD_FACTOR
+    s = DLA_SETUP_SECONDS + DLA_SETUP_PER_CELL * cells + engine
     reason = f"dendrite lattice of {cells / 1e6:.0f} million cells, {_where(gpu)}"
     big = cells > DENDRITE_DEFAULT_CELLS
     return Estimate(s, BASE_GB + DLA_BYTES * cells / 1e9, (reason,) if big or s > 10 else ())
