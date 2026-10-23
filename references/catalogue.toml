@@ -249,9 +249,10 @@ venue = "Earth-Science Reviews 270, 105231"
 doi = "10.1016/j.earscirev.2025.105231"
 access = "open"
 licence = "CC-BY-NC-4.0"
-checked = "abstract"
-topics = ["dendrites", "manganese", "review"]
-notes = """Abstract read 2026-10-20 (via OpenAlex; the publisher's page sits behind a bot check, not passed). Reviews mineral dendrites from early observations to numerical simulations: growth closely coupled to the aqueous environment, morphology highly sensitive to physical and chemical conditions, so dendrites can trace reactant concentration and the history of fluid pulses. Whether it reports dendrite lengths in agate is not known from the abstract."""
+checked = "sections"
+sections_read = ["Abstract", "1", "2.1", "2.2", "2.3", "4.1.2 (3D dendrites)", "4.1.3", "4.1.4", "4.2", "4.3", "4.4", "5 (to Fig. 23)", "6", "7", "8"]
+topics = ["dendrites", "manganese", "review", "dla", "silica-gel", "competition"]
+notes = """Read in part 2026-10-23 (PDF supplied by the owner). Mineral dendrites occur in agates among other hosts (Fig. 8B, a photograph; citing Carta 2012 and goetze2020), but "comprehensive investigations still remain remarkably limited" (§2.3), and comprehensive studies of 3D metal-oxide dendrites have been made only by hou2023 (§4.1.2): the length law there, N(x) ~ x^-1.25 for the number of dendrites reaching distance x from the fracture, is the only measurement of its kind reviewed, and no measurement in agate cavities is reported. Planar dendrites have fractal dimensions about 1.50–1.90, 3D ones 2.70–2.80, above 3D DLA's 2.5 (§4.4). DLA and viscous fingering are in the same universality class, so geometry alone may not tell them apart (§2.2). Branches thicken towards their tips, read as competition between neighbours (§4.3). Higher Mn/O2 concentration ratio thickens dendrites, reduces competition and merges branches; wider fracture apertures give thicker, bulkier dendrites (§5). Gold dendrites in colloform opaline vein bands (tens to hundreds of µm) lie randomly within the bands, not rooted on the band base; in crustiform veins they sit against the vein's bottom wall (§4.2.1). Whether gold dendrites grew inside a pre-existing silica gel or with it is debated (§7)."""
 
 [[references]]
 id = "bayirli2017"

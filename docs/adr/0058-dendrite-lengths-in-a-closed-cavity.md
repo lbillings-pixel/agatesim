@@ -75,9 +75,12 @@ finding 3. A time-boxed search (web search, OpenAlex, the works citing
   photograph, and branch lengths of 72–654 px with no scale and no
   distribution ([@bayirli2017]), so it cannot test the exponent.
 - **A 2025 review of mineral dendrites** by Hou et al.'s group
-  ([@hou2025], abstract only: the publisher's page sits behind a bot check)
-  may say more; its full text is open (CC BY-NC) and worth reading if a route
-  to it opens.
+  ([@hou2025], read in part from a copy the owner supplied, 2026-10-23)
+  lists agates among the rocks that host dendrites, with a photograph but no
+  measurements, and names [@hou2023] as the only thorough study of 3D
+  metal-oxide dendrites: its law, grown from a fracture surface, is the only
+  length measurement it reviews. It also notes that higher reactant
+  concentration weakens the competition between dendrites, as found here.
 - **Green moss agate is mostly not dendrites.** Two new studies find the
   green filaments to be celadonite: replacing fungal or algal threads a few
   micrometres thick, with carbon relics ([@akahane2025]), or precipitated
