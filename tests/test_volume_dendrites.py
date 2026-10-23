@@ -111,3 +111,70 @@ def test_the_cell_budget_sets_the_branch_width() -> None:
     lo, hi = np.zeros(3), np.full(3, 40.0)
     assert Lattice3.around(lo, hi, 0.12, 40_000_000).h == pytest.approx(0.12)
     assert Lattice3.around(lo, hi, 0.12).h > 0.2
+
+
+def _cases() -> list[dict[str, object]]:
+    """Engine inputs on a small lattice with scattered walls, so particles get
+    buried, stick from every side and are topped up."""
+    rng = np.random.default_rng(11)
+    nx = ny = nz = 40
+    flat = rng.random(nx * ny * nz) > 0.15
+    shape = flat.reshape(nz, ny, nx)
+    for axis in range(3):  # the border is never free
+        shape = np.moveaxis(shape, axis, 0)
+        shape[[0, -1]] = False
+        shape = np.moveaxis(shape, 0, axis)
+    flat = shape.ravel()
+    seeds = np.flatnonzero(flat)[::997].astype(np.int64)
+    off = [1, -1, nx, -nx, nx * ny, -nx * ny]
+    free = int(flat.sum()) - len(seeds)
+    base: dict[str, object] = {
+        "flat": flat, "seeds": seeds, "off": off, "n": free // 50, "budget": free // 10,
+        "sticking": 0.5, "side": 0.5, "down": -nx * ny, "key": 12345, "sweeps_allowed": 40_000,
+    }  # fmt: skip
+    return [
+        base,
+        {**base, "side": 0.05},  # upward bias
+        {**base, "sticking": 1.0, "side": 1.0, "n": free // 5, "budget": free // 2},
+        {**base, "sweeps_allowed": 300},  # stops at the sweep limit
+        {**base, "n": 40, "budget": 400},  # fewer particles than parallel chunks
+        {**base, "n": free // 10, "budget": free // 50},  # the budget below the concentration
+    ]
+
+
+@pytest.mark.parametrize("case", range(6))
+def test_the_compiled_loop_grows_the_numpy_loops_aggregate(case: int) -> None:
+    """ADR 0061: the compiled CPU loop gives the reference loop's aggregate,
+    sweep by sweep."""
+    from agatesim import _dla_numba
+
+    kwargs = _cases()[case]
+    args = tuple(kwargs[k] for k in ("flat", "seeds", "off", "n", "budget", "sticking", "side",
+                                     "down", "key", "sweeps_allowed"))  # fmt: skip
+    reference = _dla._aggregate_cpu(*args)  # type: ignore[arg-type]
+    compiled = _dla_numba.aggregate_cpu(*args)  # type: ignore[arg-type]
+    assert len(reference) > 2
+    assert len(compiled) == len(reference)
+    for a, b in zip(compiled, reference, strict=True):
+        assert np.array_equal(a, b)
+
+
+def test_nothing_attaches_without_room(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With no particles that can stick, only the seeds come back, on either loop."""
+    from agatesim import _dla_numba
+
+    kwargs = {**_cases()[0], "sticking": 0.0, "side": 0.0, "sweeps_allowed": 50}
+    args = tuple(kwargs[k] for k in ("flat", "seeds", "off", "n", "budget", "sticking", "side",
+                                     "down", "key", "sweeps_allowed"))  # fmt: skip
+    for result in (_dla._aggregate_cpu(*args), _dla_numba.aggregate_cpu(*args)):  # type: ignore[arg-type]
+        assert len(result) == 1
+        assert np.array_equal(result[0], kwargs["seeds"])  # type: ignore[arg-type]
+
+
+def test_numba_can_be_declined(monkeypatch: pytest.MonkeyPatch) -> None:
+    """AGATESIM_NUMBA=0 runs the reference loop, with the same result."""
+    _, fast = _box(0.5, seed=2)
+    monkeypatch.setenv("AGATESIM_NUMBA", "0")
+    assert _dla.compiled_engine() is None
+    _, reference = _box(0.5, seed=2)
+    assert np.array_equal(fast, reference)

@@ -10,12 +10,17 @@ Every random number is a hash of the particle's id, the sweep and a key drawn
 from the run's generator (splitmix64), not a draw from a stream. The same
 integer arithmetic runs on the CPU and the GPU, so a run gives the same
 aggregate on either, as the H2 solver's results agree.
+
+On the CPU the loop runs compiled (agatesim._dla_numba, ADR 0061, about ten
+times faster); the NumPy loop here is the reference it must match, and the
+fallback without Numba.
 """
 # pyright: basic
 
 from __future__ import annotations
 
 import math
+import os
 from typing import Any
 
 import numpy as np
@@ -106,10 +111,26 @@ def aggregate(
     if not (len(seeds) and free and n):
         return [seeds]
     args = (flat, seeds, off, n, budget, sticking, side, down, key, sweeps_allowed)
-    # Both paths give the same aggregate; the GPU pays off only with many particles.
+    # Every path gives the same aggregate; the GPU pays off only with many particles.
     if xp is not np and hasattr(xp, "ElementwiseKernel") and n >= GPU_MIN_PARTICLES:
         return _aggregate_gpu(xp, *args)
+    compiled = compiled_engine()
+    if compiled is not None:
+        return compiled.aggregate_cpu(*args)
     return _aggregate_cpu(*args)
+
+
+def compiled_engine() -> Any:
+    """The compiled CPU loop (agatesim._dla_numba, ADR 0061), unless
+    AGATESIM_NUMBA=0 or Numba can't be loaded; then the NumPy loop below, which
+    stays as the reference."""
+    if os.environ.get("AGATESIM_NUMBA") == "0":
+        return None
+    try:
+        from agatesim import _dla_numba
+    except ImportError:
+        return None
+    return _dla_numba
 
 
 def _aggregate_cpu(
