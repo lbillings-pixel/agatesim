@@ -84,9 +84,16 @@ finding 3. A time-boxed search (web search, OpenAlex, the works citing
 - **Green moss agate is mostly not dendrites.** Two new studies find the
   green filaments to be celadonite: replacing fungal or algal threads a few
   micrometres thick, with carbon relics ([@akahane2025]), or precipitated
-  from hydrothermal fluid ([@zhang2026], abstract). Neither measures lengths.
+  from hydrothermal fluid ([@zhang2026]). Neither measures a length distribution.
   The prediction applies to Mn- or Fe-oxide dendrites in closed cavities
   (dendritic agate), not to these filaments.
+
+- **The law's origin** [@szymczak2006]: the same exponent, 1.25, for
+  dissolution channels that compete for flow, insensitive to spacing and
+  starting lengths, was found with runs stopped while the longest channel
+  was a tenth of the sample, to keep the domain's end out of it: a law of
+  competition in open space, as finding 1 has it. A 2D phase-field study of
+  dendrite forms [@liu2023] reports no length statistics.
 
 So finding 3 stays an untested prediction. Testing it needs lengths of
 dendrites in closed nodules, measured from their wall, on sections or (better)

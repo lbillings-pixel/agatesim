@@ -152,7 +152,8 @@ its own mechanism.
   filaments, a few micrometres thick, are celadonite that replaced fungal or
   algal threads, with carbon relics, before opal and then chalcedony enclosed
   them ([@akahane2025]); in Fuxin moss agate the celadonite is read as
-  precipitated from hydrothermal fluid ([@zhang2026], abstract).
+  precipitated from hydrothermal fluid, growing from the cavity's walls inward,
+  filaments up to 10 mm long and 0.2 mm wide ([@zhang2026]).
 - **Plumes** are interpreted as silica gardens: plant-like structures formed by
   inorganic self-assembly through osmosis, chemical reaction and buoyancy
   ([@goetze2020] §5.5, citing [@haudin2014]). Buoyancy gives them a preferred

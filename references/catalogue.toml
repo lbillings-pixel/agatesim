@@ -291,10 +291,39 @@ title = "Mineralogical Identification and Genesis of Celadonite in Green Moss Ag
 venue = "Minerals 16(10), 1061"
 doi = "10.3390/min16101061"
 access = "open"
-licence = "open access (gold, per OpenAlex; licence not checked); cite only"
-checked = "abstract"
+licence = "CC-BY-4.0"
+checked = "full-text"
 topics = ["moss", "celadonite"]
-notes = """Abstract read 2026-10-20. Green moss agate in pores and fractures of andesitic breccias (Yixian Formation): inclusions filamentous, clustered, platy, globular and irregular, rich in celadonite; euhedral celadonite crystals grow larger from older to younger growth zones, which with the agate's zoning suggests agate and celadonite both precipitated from hydrothermal fluids (contrast akahane2025's biogenic filaments). No lengths in the abstract."""
+notes = """Read in full 2026-10-23 (PDF the owner supplied; reference list skipped). Green moss agate in pores and fractures of andesitic breccias (Yixian Formation, 135–122 Ma), blocks 5–8 cm to tens of cm. Inclusions clustered, filamentous, platy, globular and irregular; most grow from the walls of pores and fractures inward, a few in the interior; filaments up to 10 mm long and 0.2 mm wide (no length distribution). Zoning from core to margin and, at larger scale, green inclusion, opal-CT, chalcedony, macrocrystalline quartz, grown inward from the wall or around isolated inclusions; celadonite grains coarsen from older to younger zones (no sizes given). Celadonite by d(060) 1.501–1.511 Å and EPMA. Genesis: direct hydrothermal precipitation; host alteration rejected; no organic bands by FTIR, which they say doesn't exclude a biogenic precursor (contrast akahane2025). Distinguishes 3D green filaments from 2D DLA-like dendritic texture; no branching or length statistics."""
+
+[[references]]
+id = "liu2023"
+kind = "article"
+authors = ["Liu, C.", "Calo, V. M.", "Regenauer-Lieb, K.", "Hu, M."]
+year = 2023
+title = "Dendritic Growth Patterns in Rocks: Inverting the Driving and Triggering Mechanisms"
+venue = "Journal of Geophysical Research: Solid Earth 128(9)"
+doi = "10.1029/2023JB027105"
+access = "open"
+licence = "open access (licence not checked); cite only"
+checked = "sections"
+sections_read = ["Abstract", "1", "2", "3", "4", "5", "Appendix A (equations missing from the copy read)"]
+topics = ["dendrites", "manganese", "fractal", "phase-field"]
+notes = """Read 2026-10-23 from a copy of the web page the owner made (equations lost). A 2D phase-field model of diffusion-limited precipitation (not DLA) grown from a seed at the bottom of the domain: morphology set by supersaturation, solute diffusivity and a phase-field parameter. Classes by box-counting dimension: needle-like below about 1.71 (1.7 in the Discussion), tree-like 1.71–1.85, seaweed-like above 1.85; the dimension rises with supersaturation and diffusivity. Fitted to Mn dendrites in the field (1.57–1.88); dendrites invert to high diffusivity, read as pressure-driven flow along discontinuities. No length or size statistics, no confinement or cavities, 2D only; agate mentioned once as a host."""
+
+[[references]]
+id = "szymczak2006"
+kind = "article"
+authors = ["Szymczak, P.", "Ladd, A. J. C."]
+year = 2006
+title = "A network model of channel competition in fracture dissolution"
+venue = "Geophysical Research Letters 33, L05401"
+doi = "10.1029/2005GL025334"
+access = "closed"
+licence = "publisher copyright (AGU); cite only"
+checked = "full-text"
+topics = ["competition", "power-law", "dissolution", "fingering"]
+notes = """Read in full 2026-10-23 (author-hosted copy the owner supplied). Longer dissolution channels draw flow from shorter ones, which starve: N(L) ~ L^-m for the number of channels longer than L, m = 1.25 in a network model of 1,200 channels and 1.2–1.4 in pore-scale simulations, insensitive to initial lengths, spacing and resistivities, possibly universal; close to viscous-finger lengths. Runs were stopped when the longest channel reached a tenth of the sample, to avoid finite-size effects, and tip splitting near the outlet is ignored: the law is for competition in an effectively unbounded domain. Cited by hou2023 for the same exponent in dendrites."""
 
 [[references]]
 id = "barge2015"

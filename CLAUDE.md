@@ -7,6 +7,16 @@
 - Ask before hard-to-reverse choices (stack, model architecture, archetype
   criteria). Record them as ADRs in docs/adr/.
 
+## Working efficiently (owner-approved)
+- Every call re-reads the whole session, so keep sessions short: at each
+  milestone update HANDOFF.md and suggest `/clear`.
+- Start a session from CLAUDE.md and HANDOFF.md (kept under ~80 lines); open the
+  roadmap or ADRs only when the task needs them.
+- Grep first, then read only the lines needed; cap command output; don't print
+  whole files, logs or transcripts; look at images only when necessary.
+- Batch independent tool calls; use helper agents for bulky reading
+  (literature, many-file surveys) so only their summary enters the session.
+
 ## Environment (Windows 10, PowerShell 5.1)
 - Tools: uv (Python 3.12), Node.js LTS, git, gh. If they aren't on PATH in a
   session, refresh it first:
@@ -56,7 +66,8 @@
   (never every cell's coordinates at once), build search trees once, and hand
   GPU memory back after large runs (`_rd.release_gpu_memory`): each has caused
   gigabytes of waste or a crash before. A GPU path must give the CPU path's
-  result (hashed draws for anything random, ADR 0057).
+  result (hashed draws for anything random, ADR 0057), and the compiled CPU
+  dendrite loop (`_dla_numba`) the NumPy reference loop's (ADR 0061).
 - Procedural results are never evidence for a formation mechanism.
 - The owner's specimen photos live in `specimens/` (gitignored) and never enter
   the repository, a commit, an artifact or any external service. Anything derived

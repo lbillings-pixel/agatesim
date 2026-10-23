@@ -381,7 +381,7 @@ class ProceduralGrowth(BaseModel):
         description=(
             "In 3D, the most cells the inclusions' lattice may have, in millions; beyond "
             "it the lattice coarsens and the finest branches widen. About 40 keeps "
-            "0.12 mm branches in a 40 mm cavity: practical with a GPU (ADR 0057)."
+            "0.12 mm branches in a 40 mm cavity, in about 20 s with or without a GPU (ADR 0061)."
         ),
     )
     dendrite_tint: float = param(

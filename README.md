@@ -153,11 +153,13 @@ nature ([ADR 0005](docs/adr/0005-verification-tiers-and-parameter-natures.md)).
 
 Requires [uv](https://docs.astral.sh/uv/) and, for the web app, [Node.js](https://nodejs.org/) 24.
 
-**An NVIDIA GPU (optional)** makes Liesegang precipitation (H2) and fine
-dendrites practical: `uv sync --extra gpu` installs CuPy, and agatesim then uses
-the GPU whenever it finds one (`AGATESIM_GPU=0` declines it), with results the
-same as on the CPU ([ADR 0054](docs/adr/0054-gpu-by-default-and-progress-for-long-actions.md),
-[ADR 0057](docs/adr/0057-a-reproducible-gpu-dendrite-engine.md)). After that,
+**An NVIDIA GPU (optional)** makes Liesegang precipitation (H2) practical:
+`uv sync --extra gpu` installs CuPy, and agatesim then uses the GPU whenever it
+finds one (`AGATESIM_GPU=0` declines it), with results the same as on the CPU
+([ADR 0054](docs/adr/0054-gpu-by-default-and-progress-for-long-actions.md),
+[ADR 0057](docs/adr/0057-a-reproducible-gpu-dendrite-engine.md)). Dendrites
+need no GPU: their CPU engine is compiled with Numba, with the same results
+([ADR 0061](docs/adr/0061-a-compiled-cpu-dendrite-engine.md)). After that,
 run commands as `uv run --no-sync ...` (or `uv run --extra gpu ...`): a plain
 `uv run` or `uv sync` removes the GPU extra again. `scripts\start.ps1` keeps it.
 
@@ -275,6 +277,7 @@ src/agatesim/
   explore.py         Randomize: key settings drawn within bounded ranges
   progress.py        progress and cancellation for long work
   _rd.py, _dla.py    GPU-or-CPU solvers: Liesegang reaction-diffusion, dendrite aggregation
+  _dla_numba.py      the dendrite aggregation's compiled CPU loop
   runs.py            run records
   specimen/          photo analysis: scale, outline, observed fields, identification, replica
   volume/            3D runs: solids, models evaluated at points, cuts, random-cut surveys
