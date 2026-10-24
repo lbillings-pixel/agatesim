@@ -763,3 +763,18 @@ licence = "open access (MDPI); licence not checked; cite only"
 checked = "abstract"
 topics = ["colour", "pigment", "hematite", "goethite", "celadonite"]
 notes = "Abstract read 2026-10-17: colour relates to contained minerals and trace elements, via electron transitions or charge transfer of Fe ions; green agate has the most Fe and is coloured by celadonite inclusions; red and yellow are mainly hematite and goethite, red agate holding more Fe than yellow."
+
+# --- Image models ------------------------------------------------------------
+[[references]]
+id = "oquab2023"
+kind = "preprint"
+authors = ["Oquab, M.", "Darcet, T.", "Moutakanni, T.", "Vo, H.", "Szafraniec, M.", "Khalidov, V.", "Fernandez, P.", "Haziza, D.", "Massa, F.", "El-Nouby, A.", "Assran, M.", "Ballas, N.", "Galuba, W.", "Howes, R.", "Huang, P.-Y.", "Li, S.-W.", "Misra, I.", "Rabbat, M.", "Sharma, V.", "Synnaeve, G.", "Xu, H.", "Jegou, H.", "Mairal, J.", "Labatut, P.", "Joulin, A.", "Bojanowski, P."]
+year = 2023
+title = "DINOv2: Learning Robust Visual Features without Supervision"
+venue = "arXiv:2304.07193"
+url = "https://arxiv.org/abs/2304.07193"
+access = "open"
+licence = "arXiv preprint; cite only"
+checked = "abstract"
+topics = ["image model", "self-supervised", "classification"]
+notes = "Abstract read 2026-10-24: self-supervised pretraining on a large curated image set gives general-purpose visual features; a 1B-parameter ViT is distilled into smaller models, reported to beat OpenCLIP on most image- and pixel-level benchmarks. The small distilled model (ViT-S/14) is the one used here (ADR 0067)."

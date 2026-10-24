@@ -334,3 +334,13 @@ def solve_ode(
         return np.asarray(dense(times), dtype=np.float64)
 
     return float(sol.t[-1]), sample
+
+
+def minimize_lbfgs(
+    fun: Callable[[NDArray[np.float64]], tuple[float, NDArray[np.float64]]],
+    x0: NDArray[np.float64],
+) -> NDArray[np.float64]:
+    """The minimum of a smooth function that returns its own gradient."""
+    from scipy.optimize import minimize
+
+    return cast(NDArray[np.float64], minimize(fun, x0, jac=True, method="L-BFGS-B").x)

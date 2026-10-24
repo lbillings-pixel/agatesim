@@ -232,6 +232,54 @@ def _add_library(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> No
     p.set_defaults(func=_cmd_library)
 
 
+def _cmd_classify(args: argparse.Namespace) -> int:
+    from agatesim import classify
+
+    if args.classify_command == "fetch":
+        got = classify.fetch_model()
+        print(f"{'fetched' if got else 'already have'} {classify.MODEL_PATH}")
+        return 0
+    embedder = classify.OnnxEmbedder()
+    if args.classify_command == "photo":
+        from agatesim.specimen.photo import load_photo
+
+        model = classify.Classifier.load()
+        a = classify.answer(model, embedder.embed(load_photo(args.path.read_bytes(), 1024).rgb))
+        print("undetermined" if a.undetermined else "likely: " + ", ".join(f for f, _ in a.likely))
+        for form, p in a.ranked[:5]:
+            print(f"  {form:24s} {p:4.0%}")
+        return 0
+    real, sims, forms = classify.gather(embedder)
+    if args.classify_command == "evaluate":
+        ev = classify.cross_validate(real, sims, forms)
+        print(f"{ev.photos} labelled photos, held out in 5 folds")
+        print(f"most likely form among the labels: {ev.top_hit:.0%}")
+        print(f"every reported form right: {ev.all_right:.0%}")
+        print(f"undetermined: {ev.undetermined:.0%}")
+        for f in ev.forms:
+            print(f"  {f.form:24s} found {f.correct}/{f.photos}, right {f.correct}/{f.reported}")
+        return 0
+    model = classify.train(real + sims, forms, embedder.key)
+    model.save()
+    print(f"trained on {len(real)} labelled photos and {len(sims)} simulated slabs")
+    print(f"saved {classify.CLASSIFIER_PATH}")
+    return 0
+
+
+def _add_classify(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:  # pyright: ignore[reportPrivateUsage]
+    cls = sub.add_parser("classify", help="the learned form classifier (ADR 0067)")
+    csub = cls.add_subparsers(dest="classify_command", required=True)
+    p = csub.add_parser("fetch", help="download the image model (84 MB, once)")
+    p.set_defaults(func=_cmd_classify)
+    p = csub.add_parser("train", help="train on the labels and simulated slabs")
+    p.set_defaults(func=_cmd_classify)
+    p = csub.add_parser("evaluate", help="held-out results on the labelled photos")
+    p.set_defaults(func=_cmd_classify)
+    p = csub.add_parser("photo", help="classify one photo")
+    p.add_argument("path", type=Path)
+    p.set_defaults(func=_cmd_classify)
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     import threading
     import webbrowser
@@ -283,6 +331,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     _add_volume(sub)
     _add_library(sub)
+    _add_classify(sub)
 
     p = sub.add_parser("serve", help="start the local web app")
     p.add_argument("--host", default="127.0.0.1", help="bind address (default: localhost only)")

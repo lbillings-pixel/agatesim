@@ -59,3 +59,5 @@ references/images/full/
 HANDOFF.md
 # Reference library photos, fetched by `agatesim library fetch` (ADR 0066)
 references/library/
+# Image model, its embeddings and the trained classifier, made on demand (ADR 0067)
+references/models/
