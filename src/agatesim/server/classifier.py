@@ -13,7 +13,7 @@ import numpy as np
 from fastapi import APIRouter, HTTPException
 from numpy.typing import NDArray
 
-from agatesim import classify, estimate, progress
+from agatesim import classify, estimate, maps, progress
 from agatesim.server.tasks import TaskHeader
 
 
@@ -26,6 +26,7 @@ class ClassifierService:
         specimens: Path,
         models_dir: Path = classify.MODELS_DIR,
         embedder: Callable[[], classify.Embedder] | None = None,
+        patch_embedder: Callable[[], maps.PatchEmbedder] | None = None,
     ) -> None:
         self.specimens = specimens
         self.models_dir = models_dir
@@ -34,6 +35,12 @@ class ClassifierService:
         self._make_embedder = embedder or (lambda: classify.OnnxEmbedder(self.model_path))
         self._embedder: classify.Embedder | None = None
         self._classifier: tuple[int, classify.Classifier] | None = None
+        self.maps_path = models_dir / maps.MAPS_PATH.name
+        self._make_patch_embedder = patch_embedder or (
+            lambda: maps.OnnxPatchEmbedder(self.model_path)
+        )
+        self._patch_embedder: maps.PatchEmbedder | None = None
+        self._maps: tuple[int, maps.FeatureMaps] | None = None
         self._lock = threading.Lock()
         self._training = threading.Lock()
 
@@ -79,6 +86,42 @@ class ClassifierService:
             "ranked": [{"form": f, "p": round(p, 3)} for f, p in a.ranked],
             "trained_on": dict(zip(model.forms, model.real_counts, strict=True)),
             "threshold": classify.LIKELY,
+        }
+
+    def feature_maps(self, rgb: NDArray[np.uint8]) -> dict[str, object]:
+        """Rough locations (ADR 0068): only maps that passed the tap test, as
+        per-patch probabilities; the others are listed with their scores."""
+        if not self.model_ready():
+            return {"ready": False, "why": "The image model isn't downloaded yet."}
+        if not self.maps_path.exists():
+            return {"ready": False, "why": "No feature maps yet: `agatesim maps build`."}
+        stamp = self.maps_path.stat().st_mtime_ns
+        with self._lock:
+            if self._maps is None or self._maps[0] != stamp:
+                self._maps = (stamp, maps.FeatureMaps.load(self.maps_path))
+            fm = self._maps[1]
+            if self._patch_embedder is None:
+                self._patch_embedder = self._make_patch_embedder()
+            embedder = self._patch_embedder
+        if fm.embedder_key != embedder.key:
+            return {"ready": False, "why": "The maps were made with another image model."}
+        grids = fm.scores(embedder.patches(rgb))
+        return {
+            "ready": True,
+            "maps": [
+                {
+                    "feature": f,
+                    "grid": np.round(grids[f], 3).tolist(),
+                    "score": next(round(t.map, 2) for t in fm.tested if t.feature == f),
+                    "centre": next(round(t.centre, 2) for t in fm.tested if t.feature == f),
+                }
+                for f in fm.shown
+            ],
+            "not_shown": [
+                {"feature": t.feature, "photos": t.photos, "score": round(t.map, 2)}
+                for t in fm.tested
+                if not t.passes
+            ],
         }
 
     def status(self) -> dict[str, object]:

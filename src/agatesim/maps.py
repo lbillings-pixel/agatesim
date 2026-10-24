@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Protocol
 
@@ -156,6 +156,12 @@ class FeatureMaps:
     bias: NDArray[np.float64]  # (features,)
     embedder_key: str
     counts: tuple[int, ...]  # tagged training photos per feature
+    tested: tuple[Score, ...] = ()  # scores on the test taps, from `build`
+
+    @property
+    def shown(self) -> tuple[str, ...]:
+        """Features whose map beat chance and the centre prior on the taps."""
+        return tuple(s.feature for s in self.tested if s.passes)
 
     def reduce(self, patches: NDArray[np.float32]) -> NDArray[np.float32]:
         flat = patches.reshape(-1, patches.shape[-1])
@@ -178,7 +184,12 @@ class FeatureMaps:
             bias=self.bias,
             meta=np.array(
                 json.dumps(
-                    {"features": self.features, "key": self.embedder_key, "counts": self.counts}
+                    {
+                        "features": self.features,
+                        "key": self.embedder_key,
+                        "counts": self.counts,
+                        "tested": [asdict(t) for t in self.tested],
+                    }
                 )
             ),
         )
@@ -195,6 +206,7 @@ class FeatureMaps:
                 z["bias"],
                 meta["key"],
                 tuple(meta["counts"]),
+                tuple(Score(**t) for t in meta.get("tested", [])),
             )
 
 
@@ -308,11 +320,13 @@ def library_bags(cache: PatchCache, ids: Iterable[str], labels: dict[str, Label]
 
 
 def build(cache: PatchCache | None = None, path: Path = MAPS_PATH) -> FeatureMaps:
-    """Train the maps on the library's usable photos minus the held-out ones."""
+    """Train the maps on the library's usable photos minus the held-out ones,
+    score them on the taps, and save both."""
     cache = cache or PatchCache(OnnxPatchEmbedder())
     labels = load_labels()
     bags = library_bags(cache, training_ids(labels, load_taps()), labels)
     maps = train(bags, MAP_FEATURES, cache.embedder.key)
+    maps = replace(maps, tested=tuple(evaluate(maps, cache)))
     maps.save(path)
     return maps
 

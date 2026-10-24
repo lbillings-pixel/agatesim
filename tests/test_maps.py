@@ -134,3 +134,36 @@ def test_the_real_model_gives_a_patch_grid() -> None:
     rng = np.random.default_rng(0)
     p = m.OnnxPatchEmbedder().patches(rng.integers(0, 255, (300, 400, 3), dtype=np.uint8))
     assert p.shape == (28, 37, 384)
+
+
+def test_the_app_shows_only_maps_that_passed_the_tap_test(tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    from fastapi.testclient import TestClient
+
+    from agatesim.server.app import create_app
+    from agatesim.server.classifier import ClassifierService
+
+    folder, models = tmp_path / "specimens", tmp_path / "models"
+    folder.mkdir()
+    models.mkdir()
+    rgb, _ = _photo(np.random.default_rng(1), spot=True)
+    Image.fromarray(rgb).save(folder / "slab.png")
+    service = ClassifierService(folder, models, patch_embedder=PatchColour)
+    with TestClient(create_app(tmp_path / "runs", static_dir=None, classifier=service)) as client:
+        assert not client.post("/api/specimens/slab.png/maps").json()["ready"]
+        (models / MODEL_PATH.name).write_bytes(b"stand-in")
+        assert "maps build" in client.post("/api/specimens/slab.png/maps").json()["why"]
+        bags = [
+            replace(b, tags=b.tags | {"moss"}) if i % 4 == 0 else b for i, b in enumerate(_bags())
+        ]
+        maps = m.train(bags, ["inclusions", "moss"], PatchColour.key)
+        passed = m.score("inclusions", [(0.95, 0.5)] * 8)
+        failed = m.score("moss", [(0.5, 0.5)] * 8)
+        replace(maps, tested=(passed, failed)).save(models / m.MAPS_PATH.name)
+        body = client.post("/api/specimens/slab.png/maps").json()
+    assert body["ready"]
+    (shown,) = body["maps"]
+    assert shown["feature"] == "inclusions"
+    assert np.array(shown["grid"]).shape == (28, 37)
+    assert [n["feature"] for n in body["not_shown"]] == ["moss"]

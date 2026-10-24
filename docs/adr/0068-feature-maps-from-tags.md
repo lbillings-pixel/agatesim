@@ -121,3 +121,9 @@ centre prior:
 These settings were fixed before the taps were read and are not tuned on them:
 tuning on the test taps would make them training data. Any later tuning uses
 the training photos alone, or new taps.
+
+On the Classify screen ("Rough location") only the maps that passed are
+offered, read from the scores `build` stores with them, so a rebuilt map that
+fails is hidden without a code change. The map dims the photo where a feature
+is unlikely (a spotlight) instead of tinting where it is likely: a tint vanished
+on warm-coloured agates.

@@ -13,6 +13,7 @@ import {
 import { USE_LABEL, adviceFor, levelClass } from "../lib/quality";
 import { type Point, type Transect, addMark, distanceTo, project, removeMark, tick } from "../lib/transect";
 import { FormClassifier } from "./FormClassifier";
+import { RoughLocation } from "./RoughLocation";
 import { ReferenceLabeler } from "./ReferenceLabeler";
 import { SpecimenLibrary } from "./SpecimenLibrary";
 
@@ -557,6 +558,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
           </div>
 
           <FormClassifier key={name} name={name} />
+          <RoughLocation key={`maps-${name}`} name={name} />
 
           {analysis && (
             <section className="criteria-panel">

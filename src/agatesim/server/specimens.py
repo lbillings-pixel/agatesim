@@ -377,6 +377,14 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
         rgb = load_photo(path_of(name).read_bytes(), CLASSIFY_LONG_SIDE).rgb
         return classifier.answer(rgb)
 
+    @router.post("/{name}/maps")
+    def feature_maps(name: str) -> dict[str, object]:
+        """Rough locations of features that passed the tap test (ADR 0068)."""
+        if classifier is None:
+            return {"ready": False, "why": "no classifier in this app"}
+        rgb = load_photo(path_of(name).read_bytes(), CLASSIFY_LONG_SIDE).rgb
+        return classifier.feature_maps(rgb)
+
     @router.get("/{name}/label")
     def get_label(name: str) -> Label | None:
         path_of(name)

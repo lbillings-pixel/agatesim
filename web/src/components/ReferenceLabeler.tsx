@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { type LibraryIndex, type LibraryLabel, library } from "../api";
-import {
-  type Filter,
-  draftFor,
-  matches,
-  nextIndex,
-  toggle,
-} from "../lib/labels";
+import { type Filter, draftFor, matches, nextIndex, toggle } from "../lib/labels";
 import { TapLabeler } from "./TapLabeler";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -33,21 +27,14 @@ export function ReferenceLabeler() {
     library.list().then(
       (i) => {
         setIndex(i);
-        setAt(
-          nextIndex(i.images, -1, "unlabelled") ??
-            nextIndex(i.images, -1, "all"),
-        );
+        setAt(nextIndex(i.images, -1, "unlabelled") ?? nextIndex(i.images, -1, "all"));
       },
       (e: unknown) => setError(message(e)),
     );
   }, []);
 
   const image = index && at !== null ? (index.images[at] ?? null) : null;
-  const current = image
-    ? edit?.id === image.id
-      ? edit
-      : draftFor(image)
-    : null;
+  const current = image ? (edit?.id === image.id ? edit : draftFor(image)) : null;
   const draft = current?.label ?? null;
   const guessed = current?.guessed ?? false;
 
@@ -72,9 +59,7 @@ export function ReferenceLabeler() {
       .label(image.id, label)
       .then(
         (saved) => {
-          const images = index.images.map((i) =>
-            i.id === image.id ? { ...i, label: saved } : i,
-          );
+          const images = index.images.map((i) => (i.id === image.id ? { ...i, label: saved } : i));
           setIndex({ ...index, images });
           setAt(nextIndex(images, at ?? -1, filter) ?? at);
         },
@@ -86,28 +71,17 @@ export function ReferenceLabeler() {
   const head = (
     <div className="library-head">
       <div className="tabs" role="tablist" aria-label="Mode">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mode === "label"}
-          onClick={() => setMode("label")}
-        >
+        <button type="button" role="tab" aria-selected={mode === "label"} onClick={() => setMode("label")}>
           Label
         </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mode === "tap"}
-          onClick={() => setMode("tap")}
-        >
+        <button type="button" role="tab" aria-selected={mode === "tap"} onClick={() => setMode("tap")}>
           Test taps
         </button>
       </div>
       {mode === "label" && (
         <p>
           {labelled} of {index.images.length} labelled
-          {fetched < index.images.length &&
-            ` · ${index.images.length - fetched} not fetched yet`}
+          {fetched < index.images.length && ` · ${index.images.length - fetched} not fetched yet`}
         </p>
       )}
       {mode === "label" && (
@@ -168,16 +142,13 @@ export function ReferenceLabeler() {
           <a href={image.licence_url} target="_blank" rel="noreferrer">
             {image.licence}
           </a>
-          {image.label &&
-            ` · labelled ${image.label.verdict === "forms" ? "" : image.label.verdict}`}
+          {image.label && ` · labelled ${image.label.verdict === "forms" ? "" : image.label.verdict}`}
         </figcaption>
       </figure>
       <fieldset className="chips">
         <legend>
           Forms it shows
-          {guessed && (
-            <span className="muted"> (guessed from its title: check them)</span>
-          )}
+          {guessed && <span className="muted"> (guessed from its title: check them)</span>}
         </legend>
         {index.forms.map((f) => (
           <button
@@ -185,9 +156,7 @@ export function ReferenceLabeler() {
             type="button"
             className={`chip${guessed && draft.forms.includes(f.id) ? " guess" : ""}`}
             aria-pressed={draft.forms.includes(f.id)}
-            onClick={() =>
-              set({ forms: toggle(draft.forms, f.id), verdict: "forms" })
-            }
+            onClick={() => set({ forms: toggle(draft.forms, f.id), verdict: "forms" })}
             title={f.name}
           >
             {f.id}
@@ -207,20 +176,11 @@ export function ReferenceLabeler() {
             {f}
           </button>
         ))}
-        <button
-          type="button"
-          className="chip"
-          aria-pressed={!draft.sure}
-          onClick={() => set({ sure: !draft.sure })}
-        >
+        <button type="button" className="chip" aria-pressed={!draft.sure} onClick={() => set({ sure: !draft.sure })}>
           not sure
         </button>
       </fieldset>
-      {draft.forms.length > 0 && (
-        <p className="muted">
-          {draft.forms.map((f) => names[f] ?? f).join(" · ")}
-        </p>
-      )}
+      {draft.forms.length > 0 && <p className="muted">{draft.forms.map((f) => names[f] ?? f).join(" · ")}</p>}
       {error && <p className="error">{error}</p>}
       <div className="labeler-actions">
         <button type="button" onClick={() => go(-1)} disabled={busy}>
@@ -234,18 +194,10 @@ export function ReferenceLabeler() {
         >
           Save
         </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => save({ ...draft, verdict: "cant-tell", forms: [] })}
-        >
+        <button type="button" disabled={busy} onClick={() => save({ ...draft, verdict: "cant-tell", forms: [] })}>
           Can't tell
         </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => save({ ...draft, verdict: "unusable", forms: [] })}
-        >
+        <button type="button" disabled={busy} onClick={() => save({ ...draft, verdict: "unusable", forms: [] })}>
           Not usable
         </button>
         <button type="button" onClick={() => go(1)} disabled={busy}>

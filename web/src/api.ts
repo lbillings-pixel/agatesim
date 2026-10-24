@@ -396,6 +396,8 @@ export const specimens = {
   replicate: (name: string, s: SpecimenSettings) =>
     request<Replica>(`${specimenPath(name)}/replicate`, { method: "POST", body: JSON.stringify(s) }),
   classify: (name: string) => request<ClassifierAnswer>(`${specimenPath(name)}/classify`, { method: "POST" }),
+  /** Rough locations of features whose map passed the tap test (ADR 0068). */
+  maps: (name: string) => request<FeatureMapAnswer>(`${specimenPath(name)}/maps`, { method: "POST" }),
   /** The owner's label of their own photo, kept beside it (never in the library). */
   label: (name: string) => request<LibraryLabel | null>(`${specimenPath(name)}/label`),
   saveLabel: (name: string, label: LibraryLabel) =>
@@ -405,6 +407,15 @@ export const specimens = {
     if (!response.ok) throw new Error(await errorMessage(response));
   },
 };
+
+/** Feature maps on a photo (src/agatesim/maps.py, ADR 0068): per-patch
+ * probabilities in rows of the photo from its top, appearance only. */
+export interface FeatureMapAnswer {
+  ready: boolean;
+  why?: string;
+  maps?: { feature: string; grid: number[][]; score: number; centre: number }[];
+  not_shown?: { feature: string; photos: number; score: number }[];
+}
 
 /** The learned form classifier's answer on a photo (ADR 0067): appearance only. */
 export interface ClassifierAnswer {

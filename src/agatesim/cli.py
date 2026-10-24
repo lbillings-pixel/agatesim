@@ -252,8 +252,10 @@ def _cmd_maps(args: argparse.Namespace) -> int:
     if not maps.MAPS_PATH.exists():
         print("no maps yet: run `agatesim maps build`")
         return 1
+    loaded = maps.FeatureMaps.load()
+    scores = loaded.tested if args.maps_command == "build" else maps.evaluate(loaded)
     print(f"{'feature':12s} photos   map  centre  map-0.5 (low)  map-centre (low)  shown")
-    for s in maps.evaluate(maps.FeatureMaps.load()):
+    for s in scores:
         print(
             f"{s.feature:12s} {s.photos:6d} {s.map:5.2f} {s.centre:7.2f}"
             f" {s.low_vs_chance:+14.2f} {s.low_vs_centre:+17.2f}  {'yes' if s.passes else 'no'}"
