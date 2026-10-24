@@ -209,6 +209,29 @@ def _add_volume(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> Non
     p.set_defaults(func=_cmd_volume_solids)
 
 
+def _cmd_library(args: argparse.Namespace) -> int:
+    from agatesim import library
+
+    lib = library.load_library()
+    if args.library_command == "fetch":
+        n, size = library.fetch(lib, limit=args.limit)
+        print(f"fetched {n} images ({size / 1e6:.0f} MB) into {library.IMAGES_DIR}")
+    have = sum(i.path.exists() for i in lib.images)
+    labels = library.load_labels()
+    print(f"{len(lib.images)} in the list, {have} fetched, {len(labels)} labelled")
+    return 0
+
+
+def _add_library(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:  # pyright: ignore[reportPrivateUsage]
+    lib = sub.add_parser("library", help="the reference library of open-licence photos")
+    lsub = lib.add_subparsers(dest="library_command", required=True)
+    p = lsub.add_parser("fetch", help="download listed images not yet on disk")
+    p.add_argument("--limit", type=int, help="at most this many")
+    p.set_defaults(func=_cmd_library)
+    p = lsub.add_parser("status", help="how many are listed, fetched and labelled")
+    p.set_defaults(func=_cmd_library)
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     import threading
     import webbrowser
@@ -259,6 +282,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=_cmd_run)
 
     _add_volume(sub)
+    _add_library(sub)
 
     p = sub.add_parser("serve", help="start the local web app")
     p.add_argument("--host", default="127.0.0.1", help="bind address (default: localhost only)")

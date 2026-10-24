@@ -1,0 +1,108 @@
+{
+ "artigas-combined": {
+  "classification": "not fit",
+  "forms": [
+   "fortification-waterline",
+   "waterline",
+   "fortification"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "brazil-fortification": {
+  "classification": "not fit",
+  "forms": [
+   "fortification"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "geode-slice-quartz": {
+  "classification": "fit",
+  "forms": [
+   "quartz-geode",
+   "fortification"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "iris-backlit": {
+  "classification": "fit",
+  "forms": [
+   "iris",
+   "botryoidal"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "laguna-shadow-animation": {
+  "forms": [
+   "shadow",
+   "fortification"
+  ],
+  "segmented": false
+ },
+ "moss-dendrites": {
+  "classification": "fit",
+  "forms": [
+   "moss"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "plume-thunderegg": {
+  "classification": "borderline",
+  "forms": [
+   "plume"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "polyhedral-eyes-botryoidal": {
+  "classification": "not fit",
+  "forms": [
+   "fortification",
+   "eye",
+   "botryoidal"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "polyhedral-quartz-centre": {
+  "classification": "borderline",
+  "forms": [
+   "fortification",
+   "quartz-geode"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "uruguay-banding-front": {
+  "classification": "fit",
+  "forms": [
+   "waterline",
+   "fortification-waterline"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "uruguay-banding-oblique": {
+  "classification": "fit",
+  "forms": [
+   "waterline",
+   "fortification-waterline"
+  ],
+  "passed": [],
+  "recognised": []
+ },
+ "vein-eyes-dendrites": {
+  "classification": "fit",
+  "forms": [
+   "seam",
+   "eye",
+   "botryoidal"
+  ],
+  "passed": [],
+  "recognised": []
+ }
+}

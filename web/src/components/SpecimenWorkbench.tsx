@@ -12,6 +12,7 @@ import {
 } from "../api";
 import { USE_LABEL, adviceFor, levelClass } from "../lib/quality";
 import { type Point, type Transect, addMark, distanceTo, project, removeMark, tick } from "../lib/transect";
+import { ReferenceLabeler } from "./ReferenceLabeler";
 import { SpecimenLibrary } from "./SpecimenLibrary";
 
 const MM_PER_INCH = 25.4;
@@ -39,7 +40,7 @@ const blank: SpecimenSettings = { calibration: null, host: "volcanic", up_deg: 9
 /** Specimen photos: a library with quality badges, and per photo: set the
  * scale, analyse, identify forms, fit a replica. */
 export function SpecimenWorkbench({ onOpenReplica }: Props) {
-  const [tab, setTab] = useState<"library" | "classify">("library");
+  const [tab, setTab] = useState<"library" | "classify" | "references">("library");
   const [quality, setQuality] = useState<QualityBadge[] | null>(null);
   const [files, setFiles] = useState<SpecimenFile[]>([]);
   const [name, setName] = useState<string | null>(null);
@@ -196,8 +197,19 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
       <button type="button" role="tab" aria-selected={tab === "classify"} onClick={() => setTab("classify")}>
         Classify{name ? `: ${name}` : ""}
       </button>
+      <button type="button" role="tab" aria-selected={tab === "references"} onClick={() => setTab("references")}>
+        Reference labels
+      </button>
     </div>
   );
+
+  if (tab === "references")
+    return (
+      <div className="specimen-screen">
+        {tabs}
+        <ReferenceLabeler />
+      </div>
+    );
 
   if (tab === "library")
     return (

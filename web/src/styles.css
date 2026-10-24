@@ -450,6 +450,18 @@ td.num { white-space: nowrap; }
 .library-reasons { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
 .library-actions { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .pill.borderline { color: var(--caution); }
+/* Reference labels (ADR 0066): one photo at a time, chips sized for a thumb. */
+.labeler { max-width: 900px; width: 100%; margin: 0 auto; }
+.labeler-photo { margin: 0; display: grid; gap: 0.3rem; }
+.labeler-photo img { width: 100%; max-height: 60vh; object-fit: contain; background: var(--slab-bg); border-radius: 6px; }
+.labeler-photo figcaption { overflow-wrap: anywhere; }
+.chips { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chips legend { padding: 0; margin-bottom: 0.3rem; }
+.chip { min-height: 2.5rem; padding: 0.3rem 0.8rem; border-radius: 999px; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.chip.guess[aria-pressed="true"] { background: transparent; color: var(--accent); border-style: dashed; }
+.labeler-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; position: sticky; bottom: 0; padding: 0.5rem 0; background: var(--bg); }
+.labeler-actions button { min-height: 2.75rem; flex: 1 1 6rem; }
 button.danger { border-color: var(--fail); color: var(--fail); }
 .specimen-quality { display: grid; gap: 0.3rem; }
 .specimen-quality p { margin: 0; }

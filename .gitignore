@@ -57,3 +57,5 @@ references/images/full/
 
 # Session handoff notes for coding agents: local only (personal details, session links)
 HANDOFF.md
+# Reference library photos, fetched by `agatesim library fetch` (ADR 0066)
+references/library/

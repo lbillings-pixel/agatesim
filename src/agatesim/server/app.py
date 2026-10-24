@@ -46,6 +46,7 @@ from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
 from agatesim.runs import delete_run, is_run_id, list_runs, usage
 from agatesim.server.jobs import Job, JobManager
+from agatesim.server.library import library_router
 from agatesim.server.specimens import specimen_router
 from agatesim.server.tasks import TaskHeader, handle_cancelled, task_router
 from agatesim.server.volume import volume_router
@@ -412,6 +413,7 @@ def create_app(
         return Response(_png(encode_tdep(t_dep)), media_type="image/png")
 
     app.include_router(specimen_router(specimens_dir or runs_dir.parent / "specimens"))
+    app.include_router(library_router())
     app.include_router(volume_router(jobs, runs_dir, tasks))
     app.include_router(task_router(tasks))
 

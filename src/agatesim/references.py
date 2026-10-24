@@ -113,7 +113,6 @@ class SpecimenImage(BaseModel):
     licence_url: str
     forms: tuple[str, ...] = Field(min_length=1)
     view: View
-    analysis_ready: bool
     notes: str
 
     @model_validator(mode="after")

@@ -73,7 +73,7 @@ def test_image_with_restrictive_licence_rejected() -> None:
     image = {
         "id": "x", "file": "x.jpg", "title": "t", "source": "s", "author": "a",
         "licence": "All rights reserved", "licence_url": "", "forms": ["moss"],
-        "view": "cut-slab", "analysis_ready": True, "notes": "",
+        "view": "cut-slab", "notes": "",
     }  # fmt: skip
     with pytest.raises(ValidationError, match="can't redistribute"):
         ImageCatalogue.model_validate({"images": [image]})

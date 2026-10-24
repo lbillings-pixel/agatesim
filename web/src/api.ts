@@ -397,6 +397,47 @@ export const specimens = {
     request<Replica>(`${specimenPath(name)}/replicate`, { method: "POST", body: JSON.stringify(s) }),
 };
 
+/** A reference-library photo's labels (src/agatesim/library.py, ADR 0066). */
+export interface LibraryLabel {
+  verdict: "forms" | "cant-tell" | "unusable";
+  forms: string[];
+  sure: boolean;
+  features: string[];
+  note: string;
+}
+
+export interface LibraryImage {
+  id: string;
+  title: string;
+  source: string;
+  author: string;
+  licence: string;
+  licence_url: string;
+  guesses: string[];
+  fetched: boolean;
+  label: LibraryLabel | null;
+}
+
+export interface LibraryIndex {
+  forms: { id: string; name: string }[];
+  features: string[];
+  images: LibraryImage[];
+}
+
+export const library = {
+  list: () => request<LibraryIndex>("/api/library"),
+  imageUrl: (id: string) => `/api/library/${encodeURIComponent(id)}/image`,
+  label: (id: string, label: LibraryLabel) =>
+    request<LibraryLabel>(`/api/library/${encodeURIComponent(id)}/label`, {
+      method: "PUT",
+      body: JSON.stringify(label),
+    }),
+  clear: async (id: string) => {
+    const response = await fetch(`/api/library/${encodeURIComponent(id)}/label`, { method: "DELETE" });
+    if (!response.ok) throw new Error(await errorMessage(response));
+  },
+};
+
 // --- 3D runs (src/agatesim/server/volume.py) ---
 
 export interface SolidConfig {

@@ -1,0 +1,5082 @@
+# Reference library (ADR 0063 tier 1, ADR 0066): openly licensed photos on
+# Wikimedia Commons, fetched on demand into references/library/ (gitignored)
+# by `agatesim library fetch`. Written by scripts/build_library.py; `guesses`
+# come from titles and categories and are not labels.
+
+[[images]]
+id = "beach-agate-with-sagenite-from-central-oregon-coast-near-newport-and-yachats-ore"
+title = "Beach Agate with Sagenite from Central Oregon Coast, near Newport and Yachats, Oregon detail, from- Oregon002 (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Beach_Agate_with_Sagenite_from_Central_Oregon_Coast,_near_Newport_and_Yachats,_Oregon_detail,_from-_Oregon002_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/3/35/Beach_Agate_with_Sagenite_from_Central_Oregon_Coast%2C_near_Newport_and_Yachats%2C_Oregon_detail%2C_from-_Oregon002_%28cropped%29.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Oregon",
+]
+guesses = [
+    "stick",
+]
+
+[[images]]
+id = "sagenitic-fire-agate-01"
+title = "Sagenitic Fire Agate 01.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Sagenitic_Fire_Agate_01.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Sagenitic_Fire_Agate_01.jpg/1280px-Sagenitic_Fire_Agate_01.jpg"
+author = "Lysergian"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Sagenitic_Fire_Agate_01.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Fire agate",
+]
+guesses = [
+    "botryoidal",
+    "stick",
+]
+
+[[images]]
+id = "eye-agate-texas-usa-32775594145"
+title = "Eye Agate (Texas, USA) (32775594145).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Eye_Agate_(Texas,_USA)_(32775594145).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a6/Eye_Agate_%28Texas%2C_USA%29_%2832775594145%29.jpg/1280px-Eye_Agate_%28Texas%2C_USA%29_%2832775594145%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from the United States",
+]
+guesses = [
+    "eye",
+]
+
+[[images]]
+id = "oregon001"
+title = "Oregon001.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Oregon001.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1c/Oregon001.jpg/1280px-Oregon001.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Oregon",
+    "Plume agate",
+]
+guesses = [
+    "plume",
+]
+
+[[images]]
+id = "graveyard-point-plume-agate-slabs-oregon-idaho-border-usa"
+title = "Graveyard Point plume agate slabs, Oregon-Idaho border, USA.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Graveyard_Point_plume_agate_slabs,_Oregon-Idaho_border,_USA.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Graveyard_Point_plume_agate_slabs%2C_Oregon-Idaho_border%2C_USA.jpg/1280px-Graveyard_Point_plume_agate_slabs%2C_Oregon-Idaho_border%2C_USA.jpg"
+author = "Adam Kelliher / Rubble Rock and Gem"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Plume agate",
+]
+guesses = [
+    "plume",
+]
+
+[[images]]
+id = "oregon004"
+title = "Oregon004.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Oregon004.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/eb/Oregon004.jpg/1280px-Oregon004.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Oregon",
+    "Iris Agates",
+]
+guesses = [
+    "iris",
+]
+
+[[images]]
+id = "agat-ojo-de-laguna-chihuahua-meksyk"
+title = "Agat - Ojo de Laguna, Chihuahua, Meksyk.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_-_Ojo_de_Laguna,_Chihuahua,_Meksyk.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Agat_-_Ojo_de_Laguna%2C_Chihuahua%2C_Meksyk.jpg/1280px-Agat_-_Ojo_de_Laguna%2C_Chihuahua%2C_Meksyk.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Laguna Agate",
+]
+guesses = [
+    "eye",
+]
+
+[[images]]
+id = "iris-agate-from-agatized-petrified-wood-stinking-water-oregon-detail-from-oregon"
+title = "Iris Agate from (Agatized Petrified Wood), Stinking Water, Oregon detail, from- Oregon004 (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Iris_Agate_from_(Agatized_Petrified_Wood),_Stinking_Water,_Oregon_detail,_from-_Oregon004_(cropped).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3d/Iris_Agate_from_%28Agatized_Petrified_Wood%29%2C_Stinking_Water%2C_Oregon_detail%2C_from-_Oregon004_%28cropped%29.jpg/1280px-Iris_Agate_from_%28Agatized_Petrified_Wood%29%2C_Stinking_Water%2C_Oregon_detail%2C_from-_Oregon004_%28cropped%29.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Oregon",
+    "Banded agates",
+    "Iris Agates",
+]
+guesses = [
+    "fortification",
+    "iris",
+]
+
+[[images]]
+id = "richardson-ranch-thunder-egg-with-plume-from-plume-beds-richardson-ranch-madras-"
+title = "Richardson Ranch Thunder Egg with Plume from Plume Beds, Richardson Ranch, Madras, Oregon detail, from- Oregon001 (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Richardson_Ranch_Thunder_Egg_with_Plume_from_Plume_Beds,_Richardson_Ranch,_Madras,_Oregon_detail,_from-_Oregon001_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/1/1e/Richardson_Ranch_Thunder_Egg_with_Plume_from_Plume_Beds%2C_Richardson_Ranch%2C_Madras%2C_Oregon_detail%2C_from-_Oregon001_%28cropped%29.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Oregon",
+    "Plume agate",
+]
+guesses = [
+    "plume",
+]
+
+[[images]]
+id = "agat-ojo-de-laguna-chihuahua-meksyk-cropped"
+title = "Agat - Ojo de Laguna, Chihuahua, Meksyk (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_-_Ojo_de_Laguna,_Chihuahua,_Meksyk_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/1/1a/Agat_-_Ojo_de_Laguna%2C_Chihuahua%2C_Meksyk_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Laguna Agate",
+]
+guesses = [
+    "eye",
+]
+
+[[images]]
+id = "iris-agate-from-agatized-petrified-wood-stinking-water-oregon-usa-detail-from-or"
+title = "Iris Agate from (Agatized Petrified Wood), Stinking Water, Oregon, USA detail, from- Oregon004 (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Iris_Agate_from_(Agatized_Petrified_Wood),_Stinking_Water,_Oregon,_USA_detail,_from-_Oregon004_(cropped).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1c/Iris_Agate_from_%28Agatized_Petrified_Wood%29%2C_Stinking_Water%2C_Oregon%2C_USA_detail%2C_from-_Oregon004_%28cropped%29.jpg/1280px-Iris_Agate_from_%28Agatized_Petrified_Wood%29%2C_Stinking_Water%2C_Oregon%2C_USA_detail%2C_from-_Oregon004_%28cropped%29.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Oregon",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "iris",
+]
+
+[[images]]
+id = "quarz-augenachat"
+title = "Quarz - Augenachat.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Quarz_-_Augenachat.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Quarz_-_Augenachat.JPG/1280px-Quarz_-_Augenachat.JPG"
+author = "Ra'ike (see also: de:Benutzer:Ra'ike )"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Tube agates",
+]
+guesses = [
+    "tube",
+]
+
+[[images]]
+id = "agat-ze-stalaktytami-agate-creek-queensland-australia-cropped"
+title = "Agat ze stalaktytami - Agate Creek, Queensland, Australia (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_ze_stalaktytami_-_Agate_Creek,_Queensland,_Australia_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/2/27/Agat_ze_stalaktytami_-_Agate_Creek%2C_Queensland%2C_Australia_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate Creek",
+    "Agates from Australia",
+    "Tube agates",
+]
+guesses = [
+    "tube",
+]
+
+[[images]]
+id = "agat-ze-stalaktytami-agate-creek-queensland-australia"
+title = "Agat ze stalaktytami - Agate Creek, Queensland, Australia.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_ze_stalaktytami_-_Agate_Creek,_Queensland,_Australia.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5d/Agat_ze_stalaktytami_-_Agate_Creek%2C_Queensland%2C_Australia.jpg/1280px-Agat_ze_stalaktytami_-_Agate_Creek%2C_Queensland%2C_Australia.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate Creek",
+    "Agates from Australia",
+    "Tube agates",
+]
+guesses = [
+    "tube",
+]
+
+[[images]]
+id = "agate-agate-creek-queensland-australia"
+title = "Agate - Agate Creek, Queensland, Australia..jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_-_Agate_Creek,_Queensland,_Australia..jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Agate_-_Agate_Creek%2C_Queensland%2C_Australia..jpg/1280px-Agate_-_Agate_Creek%2C_Queensland%2C_Australia..jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate Creek",
+    "Agates from Australia",
+    "Tube agates",
+]
+guesses = [
+    "tube",
+]
+
+[[images]]
+id = "agate-agate-creek-queensland-australia-cropped"
+title = "Agate - Agate Creek, Queensland, Australia. (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_-_Agate_Creek,_Queensland,_Australia._(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/51/Agate_-_Agate_Creek%2C_Queensland%2C_Australia._%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate Creek",
+    "Agates from Australia",
+    "Tube agates",
+]
+guesses = [
+    "tube",
+]
+
+[[images]]
+id = "quarz-augenachat-cropped"
+title = "Quarz - Augenachat (cropped).JPG"
+source = "https://commons.wikimedia.org/wiki/File:Quarz_-_Augenachat_(cropped).JPG"
+url = "https://upload.wikimedia.org/wikipedia/commons/9/91/Quarz_-_Augenachat_%28cropped%29.JPG"
+author = "Ra'ike (see also: de:Benutzer:Ra'ike )"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Tube agates",
+]
+guesses = [
+    "tube",
+]
+
+[[images]]
+id = "oregon003"
+title = "Oregon003.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Oregon003.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/09/Oregon003.jpg/1280px-Oregon003.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Oregon",
+    "Tube agates",
+]
+guesses = [
+    "tube",
+]
+
+[[images]]
+id = "achat-2"
+title = "Achat 2.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Achat_2.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Achat_2.jpg/1280px-Achat_2.jpg"
+author = "Karelj"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Achat_2.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Uruguay",
+]
+guesses = [
+    "waterline",
+]
+
+[[images]]
+id = "agate-geol-water-level"
+title = "Agate geol-water-level.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_geol-water-level.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Agate_geol-water-level.jpg/1280px-Agate_geol-water-level.jpg"
+author = "Hannes Grobe/AWI"
+licence = "CC BY 3.0"
+licence_url = "https://creativecommons.org/licenses/by/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "waterline",
+]
+
+[[images]]
+id = "agate-physical-properties-and-origin-plate-i-bhl48235788"
+title = "Agate, physical properties and origin (Plate I) BHL48235788.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_I)_BHL48235788.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/5a/Agate%2C_physical_properties_and_origin_%28Plate_I%29_BHL48235788.jpg"
+author = "Farrington, Oliver C.; Laufer, Berthold"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_I)_BHL48235788.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate, physical properties and origin",
+    "Agates from Uruguay",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "waterline",
+]
+
+[[images]]
+id = "agate-physical-properties-and-origin-plate-ix-bhl48235754"
+title = "Agate, physical properties and origin (Plate IX) BHL48235754.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_IX)_BHL48235754.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/94/Agate%2C_physical_properties_and_origin_%28Plate_IX%29_BHL48235754.jpg/1280px-Agate%2C_physical_properties_and_origin_%28Plate_IX%29_BHL48235754.jpg"
+author = "Farrington, Oliver C.; Laufer, Berthold"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_IX)_BHL48235754.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate, physical properties and origin",
+    "Agates from Uruguay",
+]
+guesses = [
+    "waterline",
+]
+
+[[images]]
+id = "agate-with-uruguay-type-banding-om1-078a"
+title = "Agate with Uruguay-type banding (OM1-078A).JPG"
+source = "https://commons.wikimedia.org/wiki/File:Agate_with_Uruguay-type_banding_(OM1-078A).JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6b/Agate_with_Uruguay-type_banding_%28OM1-078A%29.JPG/1280px-Agate_with_Uruguay-type_banding_%28OM1-078A%29.JPG"
+author = "HolDu"
+licence = "CC BY-SA 3.0 de"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "waterline",
+]
+
+[[images]]
+id = "center-detail-quartz-uruguay-dation-caillois-cropped"
+title = "Center detail, Quartz Uruguay dation Caillois (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Center_detail,_Quartz_Uruguay_dation_Caillois_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/d/da/Center_detail%2C_Quartz_Uruguay_dation_Caillois_%28cropped%29.jpg"
+author = "Camille Gévaudan"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Uruguay",
+]
+guesses = [
+    "waterline",
+]
+
+[[images]]
+id = "agate-with-uruguay-type-banding-om1-077a"
+title = "Agate with Uruguay-type banding (OM1-077A).JPG"
+source = "https://commons.wikimedia.org/wiki/File:Agate_with_Uruguay-type_banding_(OM1-077A).JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/Agate_with_Uruguay-type_banding_%28OM1-077A%29.JPG/1280px-Agate_with_Uruguay-type_banding_%28OM1-077A%29.JPG"
+author = "HolDu"
+licence = "CC BY-SA 3.0 de"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "waterline",
+]
+
+[[images]]
+id = "achat-1"
+title = "Achat 1.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Achat_1.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Achat_1.jpg/1280px-Achat_1.jpg"
+author = "Karelj"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Achat_1.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Uruguay",
+]
+guesses = [
+    "waterline",
+]
+
+[[images]]
+id = "quartz-uruguay-dation-caillois"
+title = "Quartz Uruguay dation Caillois.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Quartz_Uruguay_dation_Caillois.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/a3/Quartz_Uruguay_dation_Caillois.jpg"
+author = "Camille Gévaudan"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Uruguay",
+]
+guesses = [
+    "waterline",
+]
+
+[[images]]
+id = "fire-agate-and-alexandrite-in-14k2"
+title = "Fire Agate and Alexandrite in 14k2.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Fire_Agate_and_Alexandrite_in_14k2.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Fire_Agate_and_Alexandrite_in_14k2.jpg/1280px-Fire_Agate_and_Alexandrite_in_14k2.jpg"
+author = "Jessa Dow-Anderson (original picture), Nina-marta (modification)"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Fire agate",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "high-grade-slaughter-mountain-arizona-fire-agate-rough"
+title = "High Grade Slaughter Mountain Arizona Fire Agate Rough.jpg"
+source = "https://commons.wikimedia.org/wiki/File:High_Grade_Slaughter_Mountain_Arizona_Fire_Agate_Rough.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/ad/High_Grade_Slaughter_Mountain_Arizona_Fire_Agate_Rough.jpg"
+author = "Maricopa Mining LLC"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Arizona",
+    "Fire agate",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "fire-agate"
+title = "Fire Agate.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Fire_Agate.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e7/Fire_Agate.jpg/1280px-Fire_Agate.jpg"
+author = "Malinadams"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Fire agate",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "fire-agate-2"
+title = "Fire agate.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Fire_agate.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/Fire_agate.jpg/1280px-Fire_agate.jpg"
+author = "Brocken Inaglory"
+licence = "CC BY-SA 3.0"
+licence_url = "http://creativecommons.org/licenses/by-sa/3.0/"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Fire agate",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "agat-winogronowy-agate-grape-san-rafael-swell-emery-county-utah-usa-cropped"
+title = "Agat winogronowy (agate grape) - San Rafael Swell, Emery County, Utah, USA. (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_winogronowy_(agate_grape)_-_San_Rafael_Swell,_Emery_County,_Utah,_USA._(cropped).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/Agat_winogronowy_%28agate_grape%29_-_San_Rafael_Swell%2C_Emery_County%2C_Utah%2C_USA._%28cropped%29.jpg/1280px-Agat_winogronowy_%28agate_grape%29_-_San_Rafael_Swell%2C_Emery_County%2C_Utah%2C_USA._%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Utah",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "detail-agat-ognisty-calvillo-aguascalientes-meksyk-cropped"
+title = "Detail, Agat ognisty - Calvillo, Aguascalientes, Meksyk (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Detail,_Agat_ognisty_-_Calvillo,_Aguascalientes,_Meksyk_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/1/1d/Detail%2C_Agat_ognisty_-_Calvillo%2C_Aguascalientes%2C_Meksyk_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Fire agate",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "winogronowy-agat-agate-grape-san-rafael-swell-emery-county-utah-usa"
+title = "Winogronowy agat ( agate grape) - San Rafael Swell, Emery County, Utah, USA..jpg"
+source = "https://commons.wikimedia.org/wiki/File:Winogronowy_agat_(_agate_grape)_-_San_Rafael_Swell,_Emery_County,_Utah,_USA..jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d7/Winogronowy_agat_%28_agate_grape%29_-_San_Rafael_Swell%2C_Emery_County%2C_Utah%2C_USA..jpg/1280px-Winogronowy_agat_%28_agate_grape%29_-_San_Rafael_Swell%2C_Emery_County%2C_Utah%2C_USA..jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Utah",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "feuerachat-fireagate-from-brazil-tumble-polished-stone"
+title = "Feuerachat Fireagate from Brazil - tumble polished stone.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Feuerachat_Fireagate_from_Brazil_-_tumble_polished_stone.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/51/Feuerachat_Fireagate_from_Brazil_-_tumble_polished_stone.jpg"
+author = "Ra'ike (see also: de:Benutzer:Ra'ike )"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+    "Fire agate",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "agat-ognisty-calvillo-aguascalientes-meksyk"
+title = "Agat ognisty - Calvillo, Aguascalientes, Meksyk.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_ognisty_-_Calvillo,_Aguascalientes,_Meksyk.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/Agat_ognisty_-_Calvillo%2C_Aguascalientes%2C_Meksyk.jpg/1280px-Agat_ognisty_-_Calvillo%2C_Aguascalientes%2C_Meksyk.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Fire agate",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "fire-agate-and-alexandrite-in-14k"
+title = "Fire Agate and Alexandrite in 14k.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Fire_Agate_and_Alexandrite_in_14k.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Fire_Agate_and_Alexandrite_in_14k.jpg/1280px-Fire_Agate_and_Alexandrite_in_14k.jpg"
+author = "Jessa Dow-Anderson (original picture), Nina-marta (modification)"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Fire agate",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "agat-winogronowy-agate-grape-san-rafael-swell-emery-county-utah-usa"
+title = "Agat winogronowy (agate grape) - San Rafael Swell, Emery County, Utah, USA..jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_winogronowy_(agate_grape)_-_San_Rafael_Swell,_Emery_County,_Utah,_USA..jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/Agat_winogronowy_%28agate_grape%29_-_San_Rafael_Swell%2C_Emery_County%2C_Utah%2C_USA..jpg/1280px-Agat_winogronowy_%28agate_grape%29_-_San_Rafael_Swell%2C_Emery_County%2C_Utah%2C_USA..jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Utah",
+]
+guesses = [
+    "botryoidal",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-4"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 4.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_4.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_4.jpg/1280px-Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_4.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "dendrite-in-stone-from-russia"
+title = "Dendrite in stone from Russia.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Dendrite_in_stone_from_Russia.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a6/Dendrite_in_stone_from_Russia.jpg/1280px-Dendrite_in_stone_from_Russia.jpg"
+author = "SKas"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Russia",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "pareidolia-in-dendritic-agate"
+title = "Pareidolia in dendritic agate.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Pareidolia_in_dendritic_agate.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/55/Pareidolia_in_dendritic_agate.jpg"
+author = "Aeddd1900"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-10"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 10.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_10.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_10.jpg/1280px-Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_10.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Montana",
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "pyrolusite-in-moss-agate-geodil-number-41"
+title = "Pyrolusite in moss agate (GeoDIL number - 41).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Pyrolusite_in_moss_agate_(GeoDIL_number_-_41).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6b/Pyrolusite_in_moss_agate_%28GeoDIL_number_-_41%29.jpg/1280px-Pyrolusite_in_moss_agate_%28GeoDIL_number_-_41%29.jpg"
+author = "Shannon Heinle"
+licence = "CC0"
+licence_url = "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Montana",
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "museum-mineralogia-munchen-06"
+title = "Museum Mineralogia München 06.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Museum_Mineralogia_M%C3%BCnchen_06.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/85/Museum_Mineralogia_M%C3%BCnchen_06.jpg/1280px-Museum_Mineralogia_M%C3%BCnchen_06.jpg"
+author = "Edelmauswaldgeist"
+licence = "CC0"
+licence_url = "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-7"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 7.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_7.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/e/e2/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_7.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-2"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 2.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_2.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_2.jpg/1280px-Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_2.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-5"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 5.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_5.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b2/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_5.jpg/1280px-Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_5.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "quartz-moss-agate-geodil-number-2438"
+title = "Quartz, moss agate (GeoDIL number - 2438).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Quartz,_moss_agate_(GeoDIL_number_-_2438).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/3/36/Quartz%2C_moss_agate_%28GeoDIL_number_-_2438%29.jpg"
+author = "Darla Sondrol"
+licence = "CC0"
+licence_url = "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-3"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 3.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_3.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c0/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_3.jpg/1280px-Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_3.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "dendritic-agate-cropped"
+title = "Dendritic agate (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Dendritic_agate_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/6/6d/Dendritic_agate_%28cropped%29.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "dendritic-agate-with-three-dendrite-occurances"
+title = "Dendritic agate with three dendrite occurances.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Dendritic_agate_with_three_dendrite_occurances.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Dendritic_agate_with_three_dendrite_occurances.jpg/1280px-Dendritic_agate_with_three_dendrite_occurances.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "estonian-museum-of-natural-history-specimen-no-196304-photo-g159-g159-6-7-jpg"
+title = "Estonian Museum of Natural History Specimen No 196304 photo (g159 g159-6-7 jpg).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Estonian_Museum_of_Natural_History_Specimen_No_196304_photo_(g159_g159-6-7_jpg).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/2/2a/Estonian_Museum_of_Natural_History_Specimen_No_196304_photo_%28g159_g159-6-7_jpg%29.jpg"
+author = "Tõnis Saadre"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Australia",
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "estonian-museum-of-natural-history-specimen-no-196301-photo-g159-g159-6-1-jpg"
+title = "Estonian Museum of Natural History Specimen No 196301 photo (g159 g159-6-1 jpg).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Estonian_Museum_of_Natural_History_Specimen_No_196301_photo_(g159_g159-6-1_jpg).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Estonian_Museum_of_Natural_History_Specimen_No_196301_photo_%28g159_g159-6-1_jpg%29.jpg/1280px-Estonian_Museum_of_Natural_History_Specimen_No_196301_photo_%28g159_g159-6-1_jpg%29.jpg"
+author = "Tõnis Saadre"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Australia",
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-1"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 1.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_1.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_1.jpg/1280px-Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_1.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "estonian-museum-of-natural-history-specimen-no-178073-photo-g229-g229-436-jpg"
+title = "Estonian Museum of Natural History Specimen No 178073 photo (g229 g229-436 jpg).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Estonian_Museum_of_Natural_History_Specimen_No_178073_photo_(g229_g229-436_jpg).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/e/e7/Estonian_Museum_of_Natural_History_Specimen_No_178073_photo_%28g229_g229-436_jpg%29.jpg"
+author = "Tiit Hunt"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "estonian-museum-of-natural-history-specimen-no-178064-photo-g229-g229-427-jpg"
+title = "Estonian Museum of Natural History Specimen No 178064 photo (g229 g229-427 jpg).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Estonian_Museum_of_Natural_History_Specimen_No_178064_photo_(g229_g229-427_jpg).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/5e/Estonian_Museum_of_Natural_History_Specimen_No_178064_photo_%28g229_g229-427_jpg%29.jpg"
+author = "Tiit Hunt"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "montana-moss-agate"
+title = "Montana Moss Agate.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Montana_Moss_Agate.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Montana_Moss_Agate.jpg/1280px-Montana_Moss_Agate.jpg"
+author = "Bhbritt54 at English Wikipedia"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Montana_Moss_Agate.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Montana",
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moosachat-hg"
+title = "Moosachat hg.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moosachat_hg.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a1/Moosachat_hg.jpg/1280px-Moosachat_hg.jpg"
+author = "Hannes Grobe"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-6"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 6.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_6.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/9/93/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_6.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-detail-cropped"
+title = "Moss agate detail (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_detail_(cropped).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ec/Moss_agate_detail_%28cropped%29.jpg/1280px-Moss_agate_detail_%28cropped%29.jpg"
+author = "Hannes Grobe"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-1"
+title = "Moss agate 1.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_1.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Moss_agate_1.jpg/1280px-Moss_agate_1.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-8"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 8.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_8.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d5/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_8.jpg/1280px-Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_8.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "dendritic-agate"
+title = "Dendritic agate.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Dendritic_agate.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Dendritic_agate.jpg/1280px-Dendritic_agate.jpg"
+author = "Aaaooo1122"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-9"
+title = "Moss agate (gravel bar along the Yellowstone River, Montana, USA) 9.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Moss_agate_(gravel_bar_along_the_Yellowstone_River,_Montana,_USA)_9.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_9.jpg/1280px-Moss_agate_%28gravel_bar_along_the_Yellowstone_River%2C_Montana%2C_USA%29_9.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Moss agate (gravel bar along the Yellowstone River, Montana)",
+]
+guesses = [
+    "moss",
+]
+
+[[images]]
+id = "blue-lace-agate-geode"
+title = "Blue lace agate \"geode\".png"
+source = "https://commons.wikimedia.org/wiki/File:Blue_lace_agate_%22geode%22.png"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/58/Blue_lace_agate_%22geode%22.png"
+author = "I2Overcome"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Blue lace agate",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-lined-geode-black-rock-desert-gerlach-nevada-usa-33974978773"
+title = "Agate-lined geode (Black Rock Desert, Gerlach, Nevada, USA) (33974978773).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-lined_geode_(Black_Rock_Desert,_Gerlach,_Nevada,_USA)_(33974978773).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Agate-lined_geode_%28Black_Rock_Desert%2C_Gerlach%2C_Nevada%2C_USA%29_%2833974978773%29.jpg/1280px-Agate-lined_geode_%28Black_Rock_Desert%2C_Gerlach%2C_Nevada%2C_USA%29_%2833974978773%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from the United States",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "slices-of-agate-geodes"
+title = "Slices of agate geodes.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Slices_of_agate_geodes.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/Slices_of_agate_geodes.jpg/1280px-Slices_of_agate_geodes.jpg"
+author = "W.carter"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-condor-agate-argentina-31941551193"
+title = "Agate-filled geode (Condor Agate; Argentina) (31941551193).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Condor_Agate;_Argentina)_(31941551193).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/Agate-filled_geode_%28Condor_Agate%3B_Argentina%29_%2831941551193%29.jpg/1280px-Agate-filled_geode_%28Condor_Agate%3B_Argentina%29_%2831941551193%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Argentina",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "freiberg-terra-mineralia-achat-amethyst"
+title = "Freiberg, Terra mineralia, Achat, Amethyst.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Freiberg,_Terra_mineralia,_Achat,_Amethyst.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Freiberg%2C_Terra_mineralia%2C_Achat%2C_Amethyst.JPG/1280px-Freiberg%2C_Terra_mineralia%2C_Achat%2C_Amethyst.JPG"
+author = "Dguendel"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Germany",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "geodes-and-agate-filled-nodules-las-choyas-geode-deposit-near-latest-eocene-35-m"
+title = "Geodes and agate-filled nodules (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) (32713526596).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Geodes_and_agate-filled_nodules_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_(32713526596).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/e/e8/Geodes_and_agate-filled_nodules_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_%2832713526596%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-quartz-filled-geode-1-32164187660"
+title = "Agate- & quartz-filled geode 1 (32164187660).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-_%26_quartz-filled_geode_1_(32164187660).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Agate-_%26_quartz-filled_geode_1_%2832164187660%29.jpg/1280px-Agate-_%26_quartz-filled_geode_1_%2832164187660%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-quartz-lined-geode-dryhead-montana-usa-2-31912720794"
+title = "Agate- & quartz-lined geode (Dryhead, Montana, USA) 2 (31912720794).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-_%26_quartz-lined_geode_(Dryhead,_Montana,_USA)_2_(31912720794).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/Agate-_%26_quartz-lined_geode_%28Dryhead%2C_Montana%2C_USA%29_2_%2831912720794%29.jpg/1280px-Agate-_%26_quartz-lined_geode_%28Dryhead%2C_Montana%2C_USA%29_2_%2831912720794%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Montana",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-quartz-lined-geode-4-32632020771"
+title = "Agate- & quartz-lined geode 4 (32632020771).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-_%26_quartz-lined_geode_4_(32632020771).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Agate-_%26_quartz-lined_geode_4_%2832632020771%29.jpg/1280px-Agate-_%26_quartz-lined_geode_4_%2832632020771%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "dugway-geode-juab-county-utah-usa-2-34581522545"
+title = "Dugway Geode (Juab County, Utah, USA) 2 (34581522545).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Dugway_Geode_(Juab_County,_Utah,_USA)_2_(34581522545).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/Dugway_Geode_%28Juab_County%2C_Utah%2C_USA%29_2_%2834581522545%29.jpg/1280px-Dugway_Geode_%28Juab_County%2C_Utah%2C_USA%29_2_%2834581522545%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Utah",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-quartz-lined-geode-5-32375570960"
+title = "Agate- & quartz-lined geode 5 (32375570960).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-_%26_quartz-lined_geode_5_(32375570960).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/17/Agate-_%26_quartz-lined_geode_5_%2832375570960%29.jpg/1280px-Agate-_%26_quartz-lined_geode_5_%2832375570960%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-brazil-1-31912507804"
+title = "Agate-filled geode (Brazil) 1 (31912507804).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Brazil)_1_(31912507804).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/Agate-filled_geode_%28Brazil%29_1_%2831912507804%29.jpg/1280px-Agate-filled_geode_%28Brazil%29_1_%2831912507804%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "dugway-geode-juab-county-utah-usa-1-34540239846"
+title = "Dugway Geode (Juab County, Utah, USA) 1 (34540239846).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Dugway_Geode_(Juab_County,_Utah,_USA)_1_(34540239846).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/Dugway_Geode_%28Juab_County%2C_Utah%2C_USA%29_1_%2834540239846%29.jpg/1280px-Dugway_Geode_%28Juab_County%2C_Utah%2C_USA%29_1_%2834540239846%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Utah",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-amethyste-quartz"
+title = "Agate, amethyste, quartz.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate,_amethyste,_quartz.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Agate%2C_amethyste%2C_quartz.jpg/1280px-Agate%2C_amethyste%2C_quartz.jpg"
+author = "Myself."
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Ruin agate",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 10 (31939794373).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_10_(31939794373).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/44/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_10_%2831939794373%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_10_%2831939794373%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-2"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 13 (32713526846).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_13_(32713526846).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/2/2c/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_13_%2832713526846%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-3"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 14 (31911462034).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_14_(31911462034).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/2/25/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_14_%2831911462034%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-4"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 15 (32631089801).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_15_(32631089801).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/f/f8/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_15_%2832631089801%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-5"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 1 (32712915266).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_1_(32712915266).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/70/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_1_%2832712915266%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_1_%2832712915266%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-6"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 2 (32373849810).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_2_(32373849810).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_2_%2832373849810%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_2_%2832373849810%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-7"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 3 (32373849420).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_3_(32373849420).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_3_%2832373849420%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_3_%2832373849420%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-8"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 4 (31939796183).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_4_(31939796183).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_4_%2831939796183%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_4_%2831939796183%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-9"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 6 (32373848810).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_6_(32373848810).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_6_%2832373848810%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_6_%2832373848810%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-10"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 8 (31939795003).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_8_(31939795003).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_8_%2831939795003%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_8_%2831939795003%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-11"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 9 (32373847520).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_9_(32373847520).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/58/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_9_%2832373847520%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_9_%2832373847520%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-12"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 11 (32373846660).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_11_(32373846660).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a6/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_11_%2832373846660%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_11_%2832373846660%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-13"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 12 (31939793493).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_12_(31939793493).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_12_%2831939793493%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_12_%2831939793493%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-14"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 5 (32373846210).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_5_(32373846210).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b6/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_5_%2832373846210%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_5_%2832373846210%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-15"
+title = "Agate-filled geode (Las Choyas Geode Deposit, near-latest Eocene, ~35 Ma; Chihuahua, Mexico) 7 (32373848270).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Las_Choyas_Geode_Deposit,_near-latest_Eocene,_~35_Ma;_Chihuahua,_Mexico)_7_(32373848270).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_7_%2832373848270%29.jpg/1280px-Agate-filled_geode_%28Las_Choyas_Geode_Deposit%2C_near-latest_Eocene%2C_~35_Ma%3B_Chihuahua%2C_Mexico%29_7_%2832373848270%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-geode-a"
+title = "Agate geode - a.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Agate_geode_-_a.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Agate_geode_-_a.JPG/1280px-Agate_geode_-_a.JPG"
+author = "Mauro Cateb"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-quartz-lined-geode-dryhead-montana-usa-1-32755917835"
+title = "Agate- & quartz-lined geode (Dryhead, Montana, USA) 1 (32755917835).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-_%26_quartz-lined_geode_(Dryhead,_Montana,_USA)_1_(32755917835).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Agate-_%26_quartz-lined_geode_%28Dryhead%2C_Montana%2C_USA%29_1_%2832755917835%29.jpg/1280px-Agate-_%26_quartz-lined_geode_%28Dryhead%2C_Montana%2C_USA%29_1_%2832755917835%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Montana",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-quartz-lined-geode-dryhead-montana-usa-3-31971016393"
+title = "Agate- & quartz-lined geode (Dryhead, Montana, USA) 3 (31971016393).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-_%26_quartz-lined_geode_(Dryhead,_Montana,_USA)_3_(31971016393).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Agate-_%26_quartz-lined_geode_%28Dryhead%2C_Montana%2C_USA%29_3_%2831971016393%29.jpg/1280px-Agate-_%26_quartz-lined_geode_%28Dryhead%2C_Montana%2C_USA%29_3_%2831971016393%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Montana",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-filled-geode-brazil-2-32714553426"
+title = "Agate-filled geode (Brazil) 2 (32714553426).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-filled_geode_(Brazil)_2_(32714553426).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/2/28/Agate-filled_geode_%28Brazil%29_2_%2832714553426%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "sliced-agate-geode-with-crystals-2"
+title = "Sliced agate geode with crystals 2.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Sliced_agate_geode_with_crystals_2.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/7/76/Sliced_agate_geode_with_crystals_2.jpg"
+author = "W.carter"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+    "quartz-geode",
+]
+
+[[images]]
+id = "amethyst-bergkristall-achat-scheibe-aus-schlottwitz-sachsen"
+title = "Amethyst-Bergkristall-Achat-Scheibe aus Schlottwitz, Sachsen.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Amethyst-Bergkristall-Achat-Scheibe_aus_Schlottwitz,_Sachsen.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Amethyst-Bergkristall-Achat-Scheibe_aus_Schlottwitz%2C_Sachsen.JPG/1280px-Amethyst-Bergkristall-Achat-Scheibe_aus_Schlottwitz%2C_Sachsen.JPG"
+author = "LZ6387"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Germany",
+]
+guesses = [
+    "quartz-geode",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-5-34651181261"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 5 (34651181261).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_5_(34651181261).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/b/b4/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_5_%2834651181261%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-stan-minnesota-usa"
+title = "Agat Lake Superior - stan Minnesota, USA.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_-_stan_Minnesota,_USA.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/57/Agat_Lake_Superior_-_stan_Minnesota%2C_USA.jpg/1280px-Agat_Lake_Superior_-_stan_Minnesota%2C_USA.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "image"
+title = "Агат.jpg"
+source = "https://commons.wikimedia.org/wiki/File:%D0%90%D0%B3%D0%B0%D1%82.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/%D0%90%D0%B3%D0%B0%D1%82.jpg/1280px-%D0%90%D0%B3%D0%B0%D1%82.jpg"
+author = "SKas"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "image-2"
+title = "Агатова жеола.jpg"
+source = "https://commons.wikimedia.org/wiki/File:%D0%90%D0%B3%D0%B0%D1%82%D0%BE%D0%B2%D0%B0_%D0%B6%D0%B5%D0%BE%D0%BB%D0%B0.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/40/%D0%90%D0%B3%D0%B0%D1%82%D0%BE%D0%B2%D0%B0_%D0%B6%D0%B5%D0%BE%D0%BB%D0%B0.jpg/1280px-%D0%90%D0%B3%D0%B0%D1%82%D0%BE%D0%B2%D0%B0_%D0%B6%D0%B5%D0%BE%D0%BB%D0%B0.jpg"
+author = "Марися Лебідь"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "image-3"
+title = "Ахат, Шумен.jpg"
+source = "https://commons.wikimedia.org/wiki/File:%D0%90%D1%85%D0%B0%D1%82,_%D0%A8%D1%83%D0%BC%D0%B5%D0%BD.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/%D0%90%D1%85%D0%B0%D1%82%2C_%D0%A8%D1%83%D0%BC%D0%B5%D0%BD.jpg/1280px-%D0%90%D1%85%D0%B0%D1%82%2C_%D0%A8%D1%83%D0%BC%D0%B5%D0%BD.jpg"
+author = "Zhivkay"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "image-4"
+title = "Халцедон-кварцевый агат.jpg"
+source = "https://commons.wikimedia.org/wiki/File:%D0%A5%D0%B0%D0%BB%D1%86%D0%B5%D0%B4%D0%BE%D0%BD-%D0%BA%D0%B2%D0%B0%D1%80%D1%86%D0%B5%D0%B2%D1%8B%D0%B9_%D0%B0%D0%B3%D0%B0%D1%82.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/%D0%A5%D0%B0%D0%BB%D1%86%D0%B5%D0%B4%D0%BE%D0%BD-%D0%BA%D0%B2%D0%B0%D1%80%D1%86%D0%B5%D0%B2%D1%8B%D0%B9_%D0%B0%D0%B3%D0%B0%D1%82.jpg/1280px-%D0%A5%D0%B0%D0%BB%D1%86%D0%B5%D0%B4%D0%BE%D0%BD-%D0%BA%D0%B2%D0%B0%D1%80%D1%86%D0%B5%D0%B2%D1%8B%D0%B9_%D0%B0%D0%B3%D0%B0%D1%82.jpg"
+author = "Горбунова М.С."
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-1-34651205551"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 1 (34651205551).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_1_(34651205551).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_1_%2834651205551%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_1_%2834651205551%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-panoramio-brandon-menth"
+title = "Agate - panoramio - Brandon Menth.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_-_panoramio_-_Brandon_Menth.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Agate_-_panoramio_-_Brandon_Menth.jpg/1280px-Agate_-_panoramio_-_Brandon_Menth.jpg"
+author = "Brandon Menth"
+licence = "CC BY 3.0"
+licence_url = "https://creativecommons.org/licenses/by/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-13-34621074542"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 13 (34621074542).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_13_(34621074542).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/c/c5/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_13_%2834621074542%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+    "Agate nodules",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-17-30746155127"
+title = "Agate 17 (30746155127).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_17_(30746155127).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Agate_17_%2830746155127%29.jpg/1280px-Agate_17_%2830746155127%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-dwie-poowki-minnesota-usa"
+title = "Agat Lake Superior (dwie połówki) - Minnesota, USA.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_(dwie_po%C5%82%C3%B3wki)_-_Minnesota,_USA.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Agat_Lake_Superior_%28dwie_po%C5%82%C3%B3wki%29_-_Minnesota%2C_USA.jpg/1280px-Agat_Lake_Superior_%28dwie_po%C5%82%C3%B3wki%29_-_Minnesota%2C_USA.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-24-51867236448"
+title = "Agate 24 - 51867236448.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_24_-_51867236448.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/7/7e/Agate_24_-_51867236448.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "banded-agate-artigas-or-rio-grande-do-sul-caillois-donation-mnhn-n01"
+title = "Banded agate Artigas or Rio Grande do Sul Caillois Donation MNHN n01.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Banded_agate_Artigas_or_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n01.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Banded_agate_Artigas_or_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n01.jpg/1280px-Banded_agate_Artigas_or_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n01.jpg"
+author = "Marie-Lan Taÿ Pamart"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-3-34397979740"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 3 (34397979740).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_3_(34397979740).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/53/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_3_%2834397979740%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-jiangsu"
+title = "Agate - Jiangsu.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_-_Jiangsu.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/Agate_-_Jiangsu.jpg/1280px-Agate_-_Jiangsu.jpg"
+author = "Leiem"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "geneva-natural-history-museum-agate"
+title = "Geneva Natural History Museum - agate.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Geneva_Natural_History_Museum_-_agate.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/aa/Geneva_Natural_History_Museum_-_agate.jpg"
+author = "Tiia Monto"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-free-texture-2732496325"
+title = "Agate - free texture (2732496325).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_-_free_texture_(2732496325).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/Agate_-_free_texture_%282732496325%29.jpg/1280px-Agate_-_free_texture_%282732496325%29.jpg"
+author = "Floortje Walraven from The Netherlands"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "panoramio-diego-viveros-13"
+title = "- panoramio - Diego Viveros (13).jpg"
+source = "https://commons.wikimedia.org/wiki/File:-_panoramio_-_Diego_Viveros_(13).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/-_panoramio_-_Diego_Viveros_%2813%29.jpg/1280px--_panoramio_-_Diego_Viveros_%2813%29.jpg"
+author = "Diego Viveros"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-india-minerals-gallery-natural-history-museum-london-sw7-flickr-edk7"
+title = "Agate, India - Minerals Gallery, Natural History Museum, London SW7 .. - Flickr - edk7.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate,_India_-_Minerals_Gallery,_Natural_History_Museum,_London_SW7_.._-_Flickr_-_edk7.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/0/0b/Agate%2C_India_-_Minerals_Gallery%2C_Natural_History_Museum%2C_London_SW7_.._-_Flickr_-_edk7.jpg"
+author = "edk7"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "imgp2020363-50579723983"
+title = "IMGP2020363 (50579723983).jpg"
+source = "https://commons.wikimedia.org/wiki/File:IMGP2020363_(50579723983).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/IMGP2020363_%2850579723983%29.jpg/1280px-IMGP2020363_%2850579723983%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-16-34783567065"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 16 (34783567065).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_16_(34783567065).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/1/18/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_16_%2834783567065%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-4-33974568193"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 4 (33974568193).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_4_(33974568193).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/1/16/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_4_%2833974568193%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-tertiary-agate-bay-king-george-island-south-shetland-islands-1"
+title = "Agate (Tertiary; Agate Bay, King George Island, South Shetland Islands) 1.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(Tertiary;_Agate_Bay,_King_George_Island,_South_Shetland_Islands)_1.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/60/Agate_%28Tertiary%3B_Agate_Bay%2C_King_George_Island%2C_South_Shetland_Islands%29_1.jpg/1280px-Agate_%28Tertiary%3B_Agate_Bay%2C_King_George_Island%2C_South_Shetland_Islands%29_1.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-minnesota-stany-zjednoczone-ameryki-ponocnej-usa"
+title = "Agat Lake Superior - Minnesota, Stany Zjednoczone Ameryki Północnej. (USA).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_-_Minnesota,_Stany_Zjednoczone_Ameryki_P%C3%B3%C5%82nocnej._(USA).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Agat_Lake_Superior_-_Minnesota%2C_Stany_Zjednoczone_Ameryki_P%C3%B3%C5%82nocnej._%28USA%29.jpg/1280px-Agat_Lake_Superior_-_Minnesota%2C_Stany_Zjednoczone_Ameryki_P%C3%B3%C5%82nocnej._%28USA%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "details-agat-lake-superior-stan-minnesota-usa-cropped"
+title = "Details, Agat Lake Superior - stan Minnesota, USA (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Details,_Agat_Lake_Superior_-_stan_Minnesota,_USA_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/54/Details%2C_Agat_Lake_Superior_-_stan_Minnesota%2C_USA_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-9-34651173151"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 9 (34651173151).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_9_(34651173151).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/58/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_9_%2834651173151%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate4-hg"
+title = "Agate4 hg.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate4_hg.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/c/c8/Agate4_hg.jpg"
+author = "Hannes Grobe"
+licence = "CC BY-SA 2.5"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.5"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "malawi-agate-malawi-southeastern-africa-32734668126"
+title = "Malawi Agate (Malawi, southeastern Africa) (32734668126).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Malawi_Agate_(Malawi,_southeastern_Africa)_(32734668126).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Malawi_Agate_%28Malawi%2C_southeastern_Africa%29_%2832734668126%29.jpg/1280px-Malawi_Agate_%28Malawi%2C_southeastern_Africa%29_%2832734668126%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-14-34743267776"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 14 (34743267776).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_14_(34743267776).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/6/6f/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_14_%2834743267776%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "quartz-agate-le-vaisseau-bresil-dation-caillois"
+title = "Quartz agate le vaisseau Brésil dation Caillois.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Quartz_agate_le_vaisseau_Br%C3%A9sil_dation_Caillois.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Quartz_agate_le_vaisseau_Br%C3%A9sil_dation_Caillois.jpg/1280px-Quartz_agate_le_vaisseau_Br%C3%A9sil_dation_Caillois.jpg"
+author = "Camille Gévaudan"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-duluth-minnesota-usa"
+title = "Agat Lake Superior - Duluth, Minnesota, USA..jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_-_Duluth,_Minnesota,_USA..jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Agat_Lake_Superior_-_Duluth%2C_Minnesota%2C_USA..jpg/1280px-Agat_Lake_Superior_-_Duluth%2C_Minnesota%2C_USA..jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "imgp2020360-50580579282"
+title = "IMGP2020360 (50580579282).jpg"
+source = "https://commons.wikimedia.org/wiki/File:IMGP2020360_(50580579282).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/IMGP2020360_%2850580579282%29.jpg/1280px-IMGP2020360_%2850580579282%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-physical-properties-and-origin-plate-iii-bhl48235781"
+title = "Agate, physical properties and origin (Plate III) BHL48235781.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_III)_BHL48235781.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/9/95/Agate%2C_physical_properties_and_origin_%28Plate_III%29_BHL48235781.jpg"
+author = "Farrington, Oliver C.; Laufer, Berthold"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_III)_BHL48235781.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate, physical properties and origin",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "banded-agate-from-mexico-cropped"
+title = "Banded agate from Mexico (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Banded_agate_from_Mexico_(cropped).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Banded_agate_from_Mexico_%28cropped%29.jpg/1280px-Banded_agate_from_Mexico_%28cropped%29.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-1-29790070266"
+title = "Agate 1 (29790070266).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_1_(29790070266).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Agate_1_%2829790070266%29.jpg/1280px-Agate_1_%2829790070266%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-9-32408237080"
+title = "Agate 9 (32408237080).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_9_(32408237080).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Agate_9_%2832408237080%29.jpg/1280px-Agate_9_%2832408237080%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-agat-z-jez-gornego-minnesota-usa-cropped"
+title = "Agat Lake Superior (Agat z Jez. Górnego) - Minnesota, USA (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_(Agat_z_Jez._G%C3%B3rnego)_-_Minnesota,_USA_(cropped).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Agat_Lake_Superior_%28Agat_z_Jez._G%C3%B3rnego%29_-_Minnesota%2C_USA_%28cropped%29.jpg/1280px-Agat_Lake_Superior_%28Agat_z_Jez._G%C3%B3rnego%29_-_Minnesota%2C_USA_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-3d-bobonong-botswana"
+title = "Agat 3D - Bobonong, Botswana.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_3D_-_Bobonong,_Botswana.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/Agat_3D_-_Bobonong%2C_Botswana.jpg/1280px-Agat_3D_-_Bobonong%2C_Botswana.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Botswana",
+]
+guesses = []
+
+[[images]]
+id = "nellie-blue-flint-upper-mercer-flint-middle-pennsylvanian-eastern-ohio-usa-60"
+title = "Nellie Blue Flint (Upper Mercer Flint, Middle Pennsylvanian; eastern Ohio, USA) 60.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Nellie_Blue_Flint_(Upper_Mercer_Flint,_Middle_Pennsylvanian;_eastern_Ohio,_USA)_60.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/19/Nellie_Blue_Flint_%28Upper_Mercer_Flint%2C_Middle_Pennsylvanian%3B_eastern_Ohio%2C_USA%29_60.jpg/1280px-Nellie_Blue_Flint_%28Upper_Mercer_Flint%2C_Middle_Pennsylvanian%3B_eastern_Ohio%2C_USA%29_60.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Ohio",
+]
+guesses = []
+
+[[images]]
+id = "agate-chalcedony-quartz-sio2-27632281789"
+title = "Agate chalcedony quartz SiO2 (27632281789).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_chalcedony_quartz_SiO2_(27632281789).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Agate_chalcedony_quartz_SiO2_%2827632281789%29.jpg/1280px-Agate_chalcedony_quartz_SiO2_%2827632281789%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate/chalcedony/quartz from Dolní Olešnice",
+]
+guesses = []
+
+[[images]]
+id = "agate-east-of-the-black-hills-south-dakota-usa-6"
+title = "Agate (east of the Black Hills, South Dakota, USA) 6.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(east_of_the_Black_Hills,_South_Dakota,_USA)_6.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_6.jpg/1280px-Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_6.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in South Dakota",
+]
+guesses = []
+
+[[images]]
+id = "crazy-lace-agate-3-cropped"
+title = "Crazy Lace Agate 3 (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Crazy_Lace_Agate_3_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/2/27/Crazy_Lace_Agate_3_%28cropped%29.jpg"
+author = "Masha Milshina"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Crazy Lace Agate",
+]
+guesses = []
+
+[[images]]
+id = "hildesheim-roemer-und-pelizaeus-museum-achat"
+title = "Hildesheim, Roemer- und Pelizaeus-Museum, Achat.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Hildesheim,_Roemer-_und_Pelizaeus-Museum,_Achat.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/13/Hildesheim%2C_Roemer-_und_Pelizaeus-Museum%2C_Achat.jpg/1280px-Hildesheim%2C_Roemer-_und_Pelizaeus-Museum%2C_Achat.jpg"
+author = "Dguendel"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Germany",
+]
+guesses = []
+
+[[images]]
+id = "raw-agate-only-cleaned-after-was-taken-from-soil-morcinov-locality"
+title = "Raw Agate - Only cleaned after was taken from soil - Morcinov Locality.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Raw_Agate_-_Only_cleaned_after_was_taken_from_soil_-_Morcinov_Locality.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Raw_Agate_-_Only_cleaned_after_was_taken_from_soil_-_Morcinov_Locality.jpg/1280px-Raw_Agate_-_Only_cleaned_after_was_taken_from_soil_-_Morcinov_Locality.jpg"
+author = "Jiri Fiser CeskeAchaty.webnode.cz"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Raw_Agate_-_Only_cleaned_after_was_taken_from_soil_-_Morcinov_Locality.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate from Morcinov",
+]
+guesses = []
+
+[[images]]
+id = "scotland007"
+title = "Scotland007.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Scotland007.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Scotland007.jpg/1280px-Scotland007.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Scotland",
+]
+guesses = []
+
+[[images]]
+id = "imgp2020034-50425771993"
+title = "IMGP2020034 (50425771993).jpg"
+source = "https://commons.wikimedia.org/wiki/File:IMGP2020034_(50425771993).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/IMGP2020034_%2850425771993%29.jpg/1280px-IMGP2020034_%2850425771993%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate from Železnice",
+]
+guesses = []
+
+[[images]]
+id = "agate-sio2-25505269264"
+title = "Agate SiO2 (25505269264).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_SiO2_(25505269264).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/00/Agate_SiO2_%2825505269264%29.jpg/1280px-Agate_SiO2_%2825505269264%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Podkrkonoší",
+]
+guesses = []
+
+[[images]]
+id = "agate-physical-properties-and-origin-plate-viii-bhl48235758"
+title = "Agate, physical properties and origin (Plate VIII) BHL48235758.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_VIII)_BHL48235758.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Agate%2C_physical_properties_and_origin_%28Plate_VIII%29_BHL48235758.jpg/1280px-Agate%2C_physical_properties_and_origin_%28Plate_VIII%29_BHL48235758.jpg"
+author = "Farrington, Oliver C.; Laufer, Berthold"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_VIII)_BHL48235758.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate, physical properties and origin",
+]
+guesses = []
+
+[[images]]
+id = "agate-rio-grande-do-sul-caillois-donation-mnhn-n20"
+title = "Agate Rio Grande do Sul Caillois Donation MNHN n20.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n20.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n20.jpg/1280px-Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n20.jpg"
+author = "Marie-Lan Taÿ Pamart"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+]
+guesses = []
+
+[[images]]
+id = "agate-chalcedony-quartz-sio2-39379585552"
+title = "Agate chalcedony quartz SiO2 (39379585552).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_chalcedony_quartz_SiO2_(39379585552).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Agate_chalcedony_quartz_SiO2_%2839379585552%29.jpg/1280px-Agate_chalcedony_quartz_SiO2_%2839379585552%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate/chalcedony/quartz from Dolní Olešnice",
+]
+guesses = []
+
+[[images]]
+id = "agate-sio2-from-brazil-50583624161"
+title = "Agate SiO2 from Brazil (50583624161).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_SiO2_from_Brazil_(50583624161).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Agate_SiO2_from_Brazil_%2850583624161%29.jpg/1280px-Agate_SiO2_from_Brazil_%2850583624161%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+]
+guesses = []
+
+[[images]]
+id = "agate-east-of-the-black-hills-south-dakota-usa-2"
+title = "Agate (east of the Black Hills, South Dakota, USA) 2.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(east_of_the_Black_Hills,_South_Dakota,_USA)_2.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_2.jpg/1280px-Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_2.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in South Dakota",
+]
+guesses = []
+
+[[images]]
+id = "turnov-muzeum-ceskeho-raje-mineralogicka-expozice-3"
+title = "Turnov muzeum Českého ráje mineralogická expozice (3).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Turnov_muzeum_%C4%8Cesk%C3%A9ho_r%C3%A1je_mineralogick%C3%A1_expozice_(3).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fe/Turnov_muzeum_%C4%8Cesk%C3%A9ho_r%C3%A1je_mineralogick%C3%A1_expozice_%283%29.jpg/1280px-Turnov_muzeum_%C4%8Cesk%C3%A9ho_r%C3%A1je_mineralogick%C3%A1_expozice_%283%29.jpg"
+author = "Lubor Ferenc"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from the Czech Republic",
+]
+guesses = []
+
+[[images]]
+id = "agate-east-of-the-black-hills-south-dakota-usa-21"
+title = "Agate (east of the Black Hills, South Dakota, USA) 21.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(east_of_the_Black_Hills,_South_Dakota,_USA)_21.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1f/Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_21.jpg/1280px-Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_21.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in South Dakota",
+]
+guesses = []
+
+[[images]]
+id = "czech025"
+title = "Czech025.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Czech025.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Czech025.jpg/1280px-Czech025.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from the Czech Republic",
+]
+guesses = []
+
+[[images]]
+id = "agate-chalcedony-quartz-sio2-27633474479"
+title = "Agate chalcedony quartz SiO2 (27633474479).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_chalcedony_quartz_SiO2_(27633474479).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2b/Agate_chalcedony_quartz_SiO2_%2827633474479%29.jpg/1280px-Agate_chalcedony_quartz_SiO2_%2827633474479%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate/chalcedony/quartz from Dolní Olešnice",
+]
+guesses = []
+
+[[images]]
+id = "brazilian-agate-section"
+title = "Brazilian agate section.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Brazilian_agate_section.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ac/Brazilian_agate_section.JPG/1280px-Brazilian_agate_section.JPG"
+author = "Mauro Cateb"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+]
+guesses = []
+
+[[images]]
+id = "museum-of-the-history-of-the-mirozdanie-agate-2026-03-p03"
+title = "Museum of the History of the Mirozdanie - Agate - 2026-03 - p03.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Museum_of_the_History_of_the_Mirozdanie_-_Agate_-_2026-03_-_p03.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Museum_of_the_History_of_the_Mirozdanie_-_Agate_-_2026-03_-_p03.jpg/1280px-Museum_of_the_History_of_the_Mirozdanie_-_Agate_-_2026-03_-_p03.jpg"
+author = "Александр Сигачёв"
+licence = "CC0"
+licence_url = "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Russia",
+]
+guesses = []
+
+[[images]]
+id = "agate-sio2-42668017152"
+title = "Agate SiO2 (42668017152).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_SiO2_(42668017152).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/14/Agate_SiO2_%2842668017152%29.jpg/1280px-Agate_SiO2_%2842668017152%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate from Kozákov",
+]
+guesses = []
+
+[[images]]
+id = "apache-flame-agate-chihuahua-mexico-33716719924"
+title = "Apache Flame Agate (Chihuahua, Mexico) (33716719924).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Apache_Flame_Agate_(Chihuahua,_Mexico)_(33716719924).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/ac/Apache_Flame_Agate_%28Chihuahua%2C_Mexico%29_%2833716719924%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+]
+guesses = []
+
+[[images]]
+id = "laguna-agate-chihuahua-mexico-2-32661870051"
+title = "Laguna Agate (Chihuahua, Mexico) 2 (32661870051).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Laguna_Agate_(Chihuahua,_Mexico)_2_(32661870051).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/Laguna_Agate_%28Chihuahua%2C_Mexico%29_2_%2832661870051%29.jpg/1280px-Laguna_Agate_%28Chihuahua%2C_Mexico%29_2_%2832661870051%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Laguna Agate",
+]
+guesses = []
+
+[[images]]
+id = "agate-rio-grande-do-sul-caillois-donation-mnhn-n14"
+title = "Agate Rio Grande do Sul Caillois Donation MNHN n14.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n14.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7f/Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n14.jpg/1280px-Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n14.jpg"
+author = "Marie-Lan Taÿ Pamart"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+]
+guesses = []
+
+[[images]]
+id = "collections-of-the-ural-geological-museum-235"
+title = "Collections of the Ural Geological Museum - 235.jpeg"
+source = "https://commons.wikimedia.org/wiki/File:Collections_of_the_Ural_Geological_Museum_-_235.jpeg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Collections_of_the_Ural_Geological_Museum_-_235.jpeg/1280px-Collections_of_the_Ural_Geological_Museum_-_235.jpeg"
+author = "Vyacheslav Bukharov"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates in the Ural Geological Museum",
+]
+guesses = []
+
+[[images]]
+id = "agate-east-of-the-black-hills-south-dakota-usa-29"
+title = "Agate (east of the Black Hills, South Dakota, USA) 29.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(east_of_the_Black_Hills,_South_Dakota,_USA)_29.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ad/Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_29.jpg/1280px-Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in South Dakota",
+]
+guesses = []
+
+[[images]]
+id = "achaty-zajecov-3"
+title = "Acháty Zaječov (3).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Ach%C3%A1ty_Zaje%C4%8Dov_(3).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Ach%C3%A1ty_Zaje%C4%8Dov_%283%29.jpg/1280px-Ach%C3%A1ty_Zaje%C4%8Dov_%283%29.jpg"
+author = "Marie Čcheidzeová"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Zaječov Quarry",
+]
+guesses = []
+
+[[images]]
+id = "image-5"
+title = "北宋金边玛瑙碗.jpg"
+source = "https://commons.wikimedia.org/wiki/File:%E5%8C%97%E5%AE%8B%E9%87%91%E8%BE%B9%E7%8E%9B%E7%91%99%E7%A2%97.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/%E5%8C%97%E5%AE%8B%E9%87%91%E8%BE%B9%E7%8E%9B%E7%91%99%E7%A2%97.jpg/1280px-%E5%8C%97%E5%AE%8B%E9%87%91%E8%BE%B9%E7%8E%9B%E7%91%99%E7%A2%97.jpg"
+author = "三猎"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from China",
+]
+guesses = []
+
+[[images]]
+id = "gdcn0024070-50192449478"
+title = "GDCN0024070 (50192449478).jpg"
+source = "https://commons.wikimedia.org/wiki/File:GDCN0024070_(50192449478).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/GDCN0024070_%2850192449478%29.jpg/1280px-GDCN0024070_%2850192449478%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Podkrkonoší",
+]
+guesses = []
+
+[[images]]
+id = "oregon002"
+title = "Oregon002.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Oregon002.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Oregon002.jpg/1280px-Oregon002.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Oregon",
+]
+guesses = []
+
+[[images]]
+id = "holley-blue-agate-linn-county-oregon-usa-7"
+title = "Holley Blue Agate (Linn County, Oregon, USA) 7.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Holley_Blue_Agate_(Linn_County,_Oregon,_USA)_7.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Holley_Blue_Agate_%28Linn_County%2C_Oregon%2C_USA%29_7.jpg/1280px-Holley_Blue_Agate_%28Linn_County%2C_Oregon%2C_USA%29_7.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Oregon",
+]
+guesses = []
+
+[[images]]
+id = "brazilian-agate-section-detail"
+title = "Brazilian agate section (detail).JPG"
+source = "https://commons.wikimedia.org/wiki/File:Brazilian_agate_section_(detail).JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/Brazilian_agate_section_%28detail%29.JPG/1280px-Brazilian_agate_section_%28detail%29.JPG"
+author = "Mauro Cateb"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+]
+guesses = []
+
+[[images]]
+id = "laguna-agate-chihuahua-mexico-3-32785167565"
+title = "Laguna Agate (Chihuahua, Mexico) 3 (32785167565).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Laguna_Agate_(Chihuahua,_Mexico)_3_(32785167565).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Laguna_Agate_%28Chihuahua%2C_Mexico%29_3_%2832785167565%29.jpg/1280px-Laguna_Agate_%28Chihuahua%2C_Mexico%29_3_%2832785167565%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Laguna Agate",
+]
+guesses = []
+
+[[images]]
+id = "agate-from-poczki-gorne-rn3"
+title = "Agate from Płóczki Górne RN3.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_from_P%C5%82%C3%B3czki_G%C3%B3rne_RN3.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Agate_from_P%C5%82%C3%B3czki_G%C3%B3rne_RN3.jpg/1280px-Agate_from_P%C5%82%C3%B3czki_G%C3%B3rne_RN3.jpg"
+author = "Robert Niedźwiedzki"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Płóczki Górne",
+]
+guesses = []
+
+[[images]]
+id = "agate-sio2-25837189020"
+title = "Agate SiO2 (25837189020).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_SiO2_(25837189020).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/Agate_SiO2_%2825837189020%29.jpg/1280px-Agate_SiO2_%2825837189020%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Podkrkonoší",
+]
+guesses = []
+
+[[images]]
+id = "agate-sio2-33455133601"
+title = "Agate - SiO2 (33455133601).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_-_SiO2_(33455133601).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/Agate_-_SiO2_%2833455133601%29.jpg/1280px-Agate_-_SiO2_%2833455133601%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate from Kozákov",
+]
+guesses = []
+
+[[images]]
+id = "agate3-hg"
+title = "Agate3 hg.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate3_hg.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/50/Agate3_hg.jpg/1280px-Agate3_hg.jpg"
+author = "Hannes Grobe"
+licence = "CC BY-SA 2.5"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.5"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "2006-10-30buchstutzeachat07-o"
+title = "2006-10-30BuchstützeAchat07-O.jpg"
+source = "https://commons.wikimedia.org/wiki/File:2006-10-30Buchst%C3%BCtzeAchat07-O.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/a6/2006-10-30Buchst%C3%BCtzeAchat07-O.jpg"
+author = "Wildfeuer"
+licence = "CC BY 2.5"
+licence_url = "https://creativecommons.org/licenses/by/2.5"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-floor-of-lake-superior-offshore-keweenaw-penins"
+title = "Agate nodule (\"Lake Superior Agate\") (floor of Lake Superior, offshore Keweenaw Peninsula, Michigan USA) 1 (46894723004).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(floor_of_Lake_Superior,_offshore_Keweenaw_Peninsula,_Michigan_USA)_1_(46894723004).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_1_%2846894723004%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_1_%2846894723004%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-floor-of-lake-superior-offshore-keweenaw-penins-2"
+title = "Agate nodule (\"Lake Superior Agate\") (floor of Lake Superior, offshore Keweenaw Peninsula, Michigan USA) 2 (33741645898).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(floor_of_Lake_Superior,_offshore_Keweenaw_Peninsula,_Michigan_USA)_2_(33741645898).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_2_%2833741645898%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_2_%2833741645898%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-floor-of-lake-superior-offshore-keweenaw-penins-3"
+title = "Agate nodule (\"Lake Superior Agate\") (floor of Lake Superior, offshore Keweenaw Peninsula, Michigan USA) 3 (47566125682).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(floor_of_Lake_Superior,_offshore_Keweenaw_Peninsula,_Michigan_USA)_3_(47566125682).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e3/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_3_%2847566125682%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_3_%2847566125682%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-floor-of-lake-superior-offshore-keweenaw-penins-4"
+title = "Agate nodule (\"Lake Superior Agate\") (floor of Lake Superior, offshore Keweenaw Peninsula, Michigan USA) 4 (32676323417).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(floor_of_Lake_Superior,_offshore_Keweenaw_Peninsula,_Michigan_USA)_4_(32676323417).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_4_%2832676323417%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_4_%2832676323417%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-floor-of-lake-superior-offshore-keweenaw-penins-5"
+title = "Agate nodule (\"Lake Superior Agate\") (floor of Lake Superior, offshore Keweenaw Peninsula, Michigan USA) 5 (46703511625).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(floor_of_Lake_Superior,_offshore_Keweenaw_Peninsula,_Michigan_USA)_5_(46703511625).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_5_%2846703511625%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_5_%2846703511625%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-floor-of-lake-superior-offshore-keweenaw-penins-6"
+title = "Agate nodule (\"Lake Superior Agate\") (floor of Lake Superior, offshore Keweenaw Peninsula, Michigan USA) 6 (46703504835).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(floor_of_Lake_Superior,_offshore_Keweenaw_Peninsula,_Michigan_USA)_6_(46703504835).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_6_%2846703504835%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28floor_of_Lake_Superior%2C_offshore_Keweenaw_Peninsula%2C_Michigan_USA%29_6_%2846703504835%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-005b-6mm"
+title = "Agate-005b-6mm.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate-005b-6mm.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/Agate-005b-6mm.jpg/1280px-Agate-005b-6mm.jpg"
+author = "Koltovoi"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "schmetterlingsflugel-dab-2022-06"
+title = "Schmetterlingsflügel, DaB. 2022-06.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Schmetterlingsfl%C3%BCgel,_DaB._2022-06.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/Schmetterlingsfl%C3%BCgel%2C_DaB._2022-06.jpg/1280px-Schmetterlingsfl%C3%BCgel%2C_DaB._2022-06.jpg"
+author = "DaB."
+licence = "CC0"
+licence_url = "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "detail-agat-lake-superior-duluth-minnesota-usa-cropped"
+title = "Detail, Agat Lake Superior - Duluth, Minnesota, USA. (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Detail,_Agat_Lake_Superior_-_Duluth,_Minnesota,_USA._(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/b/b9/Detail%2C_Agat_Lake_Superior_-_Duluth%2C_Minnesota%2C_USA._%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "panoramio-diego-viveros-6"
+title = "- panoramio - Diego Viveros (6).jpg"
+source = "https://commons.wikimedia.org/wiki/File:-_panoramio_-_Diego_Viveros_(6).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c4/-_panoramio_-_Diego_Viveros_%286%29.jpg/1280px--_panoramio_-_Diego_Viveros_%286%29.jpg"
+author = "Diego Viveros"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "estonian-museum-of-natural-history-specimen-no-174692-photo-g286-g286-68-1-jpg"
+title = "Estonian Museum of Natural History Specimen No 174692 photo (g286 g286-68 1 jpg).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Estonian_Museum_of_Natural_History_Specimen_No_174692_photo_(g286_g286-68_1_jpg).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a8/Estonian_Museum_of_Natural_History_Specimen_No_174692_photo_%28g286_g286-68_1_jpg%29.jpg/1280px-Estonian_Museum_of_Natural_History_Specimen_No_174692_photo_%28g286_g286-68_1_jpg%29.jpg"
+author = "Tõnis Saadre"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-12-30746153687"
+title = "Agate 12 (30746153687).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_12_(30746153687).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Agate_12_%2830746153687%29.jpg/1280px-Agate_12_%2830746153687%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-madagascar-1-32755917455"
+title = "Agate (Madagascar) 1 (32755917455).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(Madagascar)_1_(32755917455).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Agate_%28Madagascar%29_1_%2832755917455%29.jpg/1280px-Agate_%28Madagascar%29_1_%2832755917455%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "museo-de-la-plata-agata-cropped"
+title = "Museo de La Plata - Ágata (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Museo_de_La_Plata_-_%C3%81gata_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/3/3e/Museo_de_La_Plata_-_%C3%81gata_%28cropped%29.jpg"
+author = "Beatrice Murch from Buenos Aires, Argentina"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-11-30746153457"
+title = "Agate 11 (30746153457).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_11_(30746153457).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Agate_11_%2830746153457%29.jpg/1280px-Agate_11_%2830746153457%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "geological-magazine-bhl36244325"
+title = "Geological magazine BHL36244325.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Geological_magazine_BHL36244325.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Geological_magazine_BHL36244325.jpg/1280px-Geological_magazine_BHL36244325.jpg"
+author = "Woodward, Henry"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Geological_magazine_BHL36244325.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-7-32755748235"
+title = "Agate 7 (32755748235).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_7_(32755748235).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/aa/Agate_7_%2832755748235%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-22-30746156427"
+title = "Agate 22 (30746156427).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_22_(30746156427).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Agate_22_%2830746156427%29.jpg/1280px-Agate_22_%2830746156427%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-shoreline-of-lake-superior-upper-peninsula-of-michigan-usa-2"
+title = "Agate (shoreline of Lake Superior, Upper Peninsula of Michigan, USA) 2.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(shoreline_of_Lake_Superior,_Upper_Peninsula_of_Michigan,_USA)_2.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_2.jpg/1280px-Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_2.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Michigan",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "museo-de-la-plata-agata"
+title = "Museo de La Plata - Ágata.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Museo_de_La_Plata_-_%C3%81gata.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/09/Museo_de_La_Plata_-_%C3%81gata.jpg/1280px-Museo_de_La_Plata_-_%C3%81gata.jpg"
+author = "Beatrice Murch from Buenos Aires, Argentina"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-borden-formation-lower-mississippian-eastern-kentucky-usa-11-32632652021"
+title = "Agate (Borden Formation, Lower Mississippian; eastern Kentucky, USA) 11 (32632652021).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(Borden_Formation,_Lower_Mississippian;_eastern_Kentucky,_USA)_11_(32632652021).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Agate_%28Borden_Formation%2C_Lower_Mississippian%3B_eastern_Kentucky%2C_USA%29_11_%2832632652021%29.jpg/1280px-Agate_%28Borden_Formation%2C_Lower_Mississippian%3B_eastern_Kentucky%2C_USA%29_11_%2832632652021%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-wave-hill-australia-5-32755915795"
+title = "Agate (Wave Hill, Australia) 5 (32755915795).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(Wave_Hill,_Australia)_5_(32755915795).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/2/27/Agate_%28Wave_Hill%2C_Australia%29_5_%2832755915795%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Australia",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "overlege-wingesvei-4a-inne-20200327-112444"
+title = "Overlege Wingesvei 4A inne 20200327 112444.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Overlege_Wingesvei_4A_inne_20200327_112444.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Overlege_Wingesvei_4A_inne_20200327_112444.jpg/1280px-Overlege_Wingesvei_4A_inne_20200327_112444.jpg"
+author = "Magne Tor Ingvald Aga"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-10-34651169521"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 10 (34651169521).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_10_(34651169521).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/7/77/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_10_%2834651169521%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "panoramio-diego-viveros-14"
+title = "- panoramio - Diego Viveros (14).jpg"
+source = "https://commons.wikimedia.org/wiki/File:-_panoramio_-_Diego_Viveros_(14).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/-_panoramio_-_Diego_Viveros_%2814%29.jpg/1280px--_panoramio_-_Diego_Viveros_%2814%29.jpg"
+author = "Diego Viveros"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "blue-agate-pebble-6523571107"
+title = "Blue agate pebble (6523571107).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Blue_agate_pebble_(6523571107).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/5/5b/Blue_agate_pebble_%286523571107%29.jpg"
+author = "MAURO CATEB from Brazil"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "annual-report-of-the-director-to-the-board-of-trustees-for-the-year-1926-1842818"
+title = "Annual report of the Director to the Board of Trustees for the year .. (1926) (18428181092).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Annual_report_of_the_Director_to_the_Board_of_Trustees_for_the_year_.._(1926)_(18428181092).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Annual_report_of_the_Director_to_the_Board_of_Trustees_for_the_year_.._%281926%29_%2818428181092%29.jpg/1280px-Annual_report_of_the_Director_to_the_Board_of_Trustees_for_the_year_.._%281926%29_%2818428181092%29.jpg"
+author = "Internet Archive Book Images"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Annual_report_of_the_Director_to_the_Board_of_Trustees_for_the_year_.._(1926)_(18428181092).jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nowy-kosicol-poland-31912720284"
+title = "Agate (Nowy Kosicol, Poland) (31912720284).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(Nowy_Kosicol,_Poland)_(31912720284).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/70/Agate_%28Nowy_Kosicol%2C_Poland%29_%2831912720284%29.jpg/1280px-Agate_%28Nowy_Kosicol%2C_Poland%29_%2831912720284%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Poland",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "gestein-mit-verschiedenen-mineralen-mineralogia"
+title = "Gestein mit verschiedenen Mineralen, Mineralogia.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Gestein_mit_verschiedenen_Mineralen,_Mineralogia.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Gestein_mit_verschiedenen_Mineralen%2C_Mineralogia.jpg/1280px-Gestein_mit_verschiedenen_Mineralen%2C_Mineralogia.jpg"
+author = "Lodewicus de Honsvels"
+licence = "CC0"
+licence_url = "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "overlege-wingesvei-4a-inne-20200327-112148"
+title = "Overlege Wingesvei 4A inne 20200327 112148.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Overlege_Wingesvei_4A_inne_20200327_112148.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Overlege_Wingesvei_4A_inne_20200327_112148.jpg/1280px-Overlege_Wingesvei_4A_inne_20200327_112148.jpg"
+author = "Magne Tor Ingvald Aga"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "quartz-agateplate-bluegrey"
+title = "Quartz - Agateplate, bluegrey.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Quartz_-_Agateplate,_bluegrey.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/Quartz_-_Agateplate%2C_bluegrey.JPG/1280px-Quartz_-_Agateplate%2C_bluegrey.JPG"
+author = "Ra'ike (see also: de:Benutzer:Ra'ike )"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-panoramio-brandon-menth-1"
+title = "Agate - panoramio - Brandon Menth (1).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_-_panoramio_-_Brandon_Menth_(1).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9d/Agate_-_panoramio_-_Brandon_Menth_%281%29.jpg/1280px-Agate_-_panoramio_-_Brandon_Menth_%281%29.jpg"
+author = "Brandon Menth"
+licence = "CC BY 3.0"
+licence_url = "https://creativecommons.org/licenses/by/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-2-31731816833"
+title = "Agate 2 (31731816833).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_2_(31731816833).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/9/9f/Agate_2_%2831731816833%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-usa-minnesota"
+title = "Agat Lake Superior - USA, Minnesota..jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_-_USA,_Minnesota..jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/Agat_Lake_Superior_-_USA%2C_Minnesota..jpg/1280px-Agat_Lake_Superior_-_USA%2C_Minnesota..jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "achatscheibe"
+title = "Achatscheibe.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Achatscheibe.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8c/Achatscheibe.JPG/1280px-Achatscheibe.JPG"
+author = "Beckstet"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-6-34651179201"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 6 (34651179201).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_6_(34651179201).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_6_%2834651179201%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_6_%2834651179201%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "lampe-mit-geschliffenen-edelsteinen"
+title = "Lampe mit geschliffenen Edelsteinen.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Lampe_mit_geschliffenen_Edelsteinen.JPG"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/a4/Lampe_mit_geschliffenen_Edelsteinen.JPG"
+author = "User:Mattes"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Lampe_mit_geschliffenen_Edelsteinen.JPG"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "mexico004"
+title = "Mexico004.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Mexico004.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d4/Mexico004.jpg/1280px-Mexico004.jpg"
+author = "峠 武宏"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-2-34397987660"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 2 (34397987660).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_2_(34397987660).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_2_%2834397987660%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_2_%2834397987660%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+    "Agate nodules",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-shoreline-of-lake-superior-upper-peninsula-of-michigan-usa-4"
+title = "Agate (shoreline of Lake Superior, Upper Peninsula of Michigan, USA) 4.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(shoreline_of_Lake_Superior,_Upper_Peninsula_of_Michigan,_USA)_4.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_4.jpg/1280px-Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_4.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Michigan",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "estonian-museum-of-natural-history-specimen-no-174648-photo-g286-g286-24-jpg"
+title = "Estonian Museum of Natural History Specimen No 174648 photo (g286 g286-24 jpg).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Estonian_Museum_of_Natural_History_Specimen_No_174648_photo_(g286_g286-24_jpg).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/Estonian_Museum_of_Natural_History_Specimen_No_174648_photo_%28g286_g286-24_jpg%29.jpg/1280px-Estonian_Museum_of_Natural_History_Specimen_No_174648_photo_%28g286_g286-24_jpg%29.jpg"
+author = "Tõnis Saadre"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-luminescence-in-ultraviolet-rays"
+title = "Agate luminescence in ultraviolet rays.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_luminescence_in_ultraviolet_rays.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2f/Agate_luminescence_in_ultraviolet_rays.jpg/1280px-Agate_luminescence_in_ultraviolet_rays.jpg"
+author = "Dr Anatoly"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-19-30746155707"
+title = "Agate 19 (30746155707).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_19_(30746155707).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/4/47/Agate_19_%2830746155707%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "panoramio-diego-viveros-12"
+title = "- panoramio - Diego Viveros (12).jpg"
+source = "https://commons.wikimedia.org/wiki/File:-_panoramio_-_Diego_Viveros_(12).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/-_panoramio_-_Diego_Viveros_%2812%29.jpg/1280px--_panoramio_-_Diego_Viveros_%2812%29.jpg"
+author = "Diego Viveros"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "banded-agate-artigas-or-rio-grande-do-sul-caillois-donation-mnhn-n02"
+title = "Banded agate Artigas or Rio Grande do Sul Caillois Donation MNHN n02.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Banded_agate_Artigas_or_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n02.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/Banded_agate_Artigas_or_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n02.jpg/1280px-Banded_agate_Artigas_or_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n02.jpg"
+author = "Marie-Lan Taÿ Pamart"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "quartz-agateplate-redbrown-white"
+title = "Quartz - Agateplate, redbrown-white.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Quartz_-_Agateplate,_redbrown-white.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Quartz_-_Agateplate%2C_redbrown-white.jpg/1280px-Quartz_-_Agateplate%2C_redbrown-white.jpg"
+author = "Ra'ike (see also: de:Benutzer:Ra'ike )"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-21-30746156187"
+title = "Agate 21 (30746156187).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_21_(30746156187).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Agate_21_%2830746156187%29.jpg/1280px-Agate_21_%2830746156187%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "imgp2020365-50579721383"
+title = "IMGP2020365 (50579721383).jpg"
+source = "https://commons.wikimedia.org/wiki/File:IMGP2020365_(50579721383).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2b/IMGP2020365_%2850579721383%29.jpg/1280px-IMGP2020365_%2850579721383%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-dwie-poowki-minnesota-usa-cropped"
+title = "Agat Lake Superior (dwie połówki) - Minnesota, USA (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_(dwie_po%C5%82%C3%B3wki)_-_Minnesota,_USA_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/e/ea/Agat_Lake_Superior_%28dwie_po%C5%82%C3%B3wki%29_-_Minnesota%2C_USA_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-2-23518382156"
+title = "Agate nodule (\"Lake Superior Agate\") 2 (23518382156).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_2_(23518382156).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/c/c9/Agate_nodule_%28%22Lake_Superior_Agate%22%29_2_%2823518382156%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-bobonong-botswana"
+title = "Agat - Bobonong, Botswana.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_-_Bobonong,_Botswana.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Agat_-_Bobonong%2C_Botswana.jpg/1280px-Agat_-_Bobonong%2C_Botswana.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate nodules",
+    "Agates from Botswana",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-d-bruyere"
+title = "Agate D Bruyere.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_D_Bruyere.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/Agate_D_Bruyere.jpg/1280px-Agate_D_Bruyere.jpg"
+author = "Delphine Bruyere"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-adrasman-city-tajikistan-32755918215"
+title = "Agate (Adrasman City, Tajikistan) (32755918215).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(Adrasman_City,_Tajikistan)_(32755918215).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/29/Agate_%28Adrasman_City%2C_Tajikistan%29_%2832755918215%29.jpg/1280px-Agate_%28Adrasman_City%2C_Tajikistan%29_%2832755918215%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "imgp2020361-50579722543"
+title = "IMGP2020361 (50579722543).jpg"
+source = "https://commons.wikimedia.org/wiki/File:IMGP2020361_(50579722543).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/07/IMGP2020361_%2850579722543%29.jpg/1280px-IMGP2020361_%2850579722543%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-lake-superior-agate-minnesota-usa"
+title = "Agat Lake Superior (Lake superior agate) - Minnesota, USA.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_(Lake_superior_agate)_-_Minnesota,_USA.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Agat_Lake_Superior_%28Lake_superior_agate%29_-_Minnesota%2C_USA.jpg/1280px-Agat_Lake_Superior_%28Lake_superior_agate%29_-_Minnesota%2C_USA.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+    "Agate nodules",
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-stan-minnesota-usa-cropped"
+title = "Agat Lake Superior - stan Minnesota, USA (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_-_stan_Minnesota,_USA_(cropped).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Agat_Lake_Superior_-_stan_Minnesota%2C_USA_%28cropped%29.jpg/1280px-Agat_Lake_Superior_-_stan_Minnesota%2C_USA_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "blue-lace-agate-from-sweden-erbil-stones-and-gems-museum-erbil-citadel-hawler-ir"
+title = "Blue lace agate from Sweden. Erbil Stones and Gems Museum, Erbil Citadel, Hawler, Iraq.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Blue_lace_agate_from_Sweden._Erbil_Stones_and_Gems_Museum,_Erbil_Citadel,_Hawler,_Iraq.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Blue_lace_agate_from_Sweden._Erbil_Stones_and_Gems_Museum%2C_Erbil_Citadel%2C_Hawler%2C_Iraq.jpg/1280px-Blue_lace_agate_from_Sweden._Erbil_Stones_and_Gems_Museum%2C_Erbil_Citadel%2C_Hawler%2C_Iraq.jpg"
+author = "Osama Shukir Muhammed Amin FRCP(Glasg)"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate3-hg-cropped"
+title = "Agate3 hg (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate3_hg_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/e/e6/Agate3_hg_%28cropped%29.jpg"
+author = "Hannes Grobe"
+licence = "CC BY-SA 2.5"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.5"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "precious-stone-agate-blue-semi-precious-stone"
+title = "Precious Stone Agate Blue Semi-Precious Stone.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Precious_Stone_Agate_Blue_Semi-Precious_Stone.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/b/be/Precious_Stone_Agate_Blue_Semi-Precious_Stone.jpg"
+author = "ondra244"
+licence = "CC0"
+licence_url = "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-physical-properties-and-origin-plate-ii-bhl48235784"
+title = "Agate, physical properties and origin (Plate II) BHL48235784.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_II)_BHL48235784.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Agate%2C_physical_properties_and_origin_%28Plate_II%29_BHL48235784.jpg/1280px-Agate%2C_physical_properties_and_origin_%28Plate_II%29_BHL48235784.jpg"
+author = "Farrington, Oliver C.; Laufer, Berthold"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_II)_BHL48235784.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate, physical properties and origin",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-agat-z-jeziora-gornego-minnesota-usa"
+title = "Agat Lake Superior (Agat z Jeziora Górnego)- Minnesota, USA.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_(Agat_z_Jeziora_G%C3%B3rnego)-_Minnesota,_USA.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/eb/Agat_Lake_Superior_%28Agat_z_Jeziora_G%C3%B3rnego%29-_Minnesota%2C_USA.jpg/1280px-Agat_Lake_Superior_%28Agat_z_Jeziora_G%C3%B3rnego%29-_Minnesota%2C_USA.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "mineral-181-hg"
+title = "Mineral-181 hg.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Mineral-181_hg.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Mineral-181_hg.jpg/1280px-Mineral-181_hg.jpg"
+author = "Hannes Grobe/AWI"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-shoreline-of-lake-superior-upper-peninsula-of-michigan-usa-5"
+title = "Agate (shoreline of Lake Superior, Upper Peninsula of Michigan, USA) 5.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(shoreline_of_Lake_Superior,_Upper_Peninsula_of_Michigan,_USA)_5.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_5.jpg/1280px-Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_5.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Michigan",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-z-geoda-rancho-gregoria-meksyk"
+title = "Agat z geodą - Rancho Gregoria, Meksyk.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_z_geod%C4%85_-_Rancho_Gregoria,_Meksyk.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/17/Agat_z_geod%C4%85_-_Rancho_Gregoria%2C_Meksyk.jpg/1280px-Agat_z_geod%C4%85_-_Rancho_Gregoria%2C_Meksyk.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-7-34743298056"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 7 (34743298056).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_7_(34743298056).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/a5/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_7_%2834743298056%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-shoreline-of-lake-superior-upper-peninsula-of-michigan-usa-7"
+title = "Agate (shoreline of Lake Superior, Upper Peninsula of Michigan, USA) 7.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(shoreline_of_Lake_Superior,_Upper_Peninsula_of_Michigan,_USA)_7.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/7/78/Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_7.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Michigan",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "museo-di-mineralogia-trasperenze-quarzo-agata-02"
+title = "Museo di mineralogia, trasperenze, quarzo agata 02.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Museo_di_mineralogia,_trasperenze,_quarzo_agata_02.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/Museo_di_mineralogia%2C_trasperenze%2C_quarzo_agata_02.JPG/1280px-Museo_di_mineralogia%2C_trasperenze%2C_quarzo_agata_02.JPG"
+author = "Sailko"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "estonian-museum-of-natural-history-specimen-no-176133-photo-g244-g244-9-1-jpg"
+title = "Estonian Museum of Natural History Specimen No 176133 photo (g244 g244-9 1 jpg).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Estonian_Museum_of_Natural_History_Specimen_No_176133_photo_(g244_g244-9_1_jpg).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Estonian_Museum_of_Natural_History_Specimen_No_176133_photo_%28g244_g244-9_1_jpg%29.jpg/1280px-Estonian_Museum_of_Natural_History_Specimen_No_176133_photo_%28g244_g244-9_1_jpg%29.jpg"
+author = "Tõnis Saadre"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-shoreline-of-lake-superior-upper-peninsula-of-michigan-usa-8"
+title = "Agate (shoreline of Lake Superior, Upper Peninsula of Michigan, USA) 8.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(shoreline_of_Lake_Superior,_Upper_Peninsula_of_Michigan,_USA)_8.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/62/Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_8.jpg/1280px-Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_8.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Michigan",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "quarz-achatmandel"
+title = "Quarz - Achatmandel.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Quarz_-_Achatmandel.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7f/Quarz_-_Achatmandel.jpg/1280px-Quarz_-_Achatmandel.jpg"
+author = "Ra'ike (see also: de:Benutzer:Ra'ike )"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-agat-z-jez-gornego-minnesota-usa"
+title = "Agat Lake Superior (Agat z Jez. Górnego) - Minnesota, USA.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_(Agat_z_Jez._G%C3%B3rnego)_-_Minnesota,_USA.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Agat_Lake_Superior_%28Agat_z_Jez._G%C3%B3rnego%29_-_Minnesota%2C_USA.jpg/1280px-Agat_Lake_Superior_%28Agat_z_Jez._G%C3%B3rnego%29_-_Minnesota%2C_USA.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "2006-10-30buchstutzeachat03"
+title = "2006-10-30BuchstützeAchat03.jpg"
+source = "https://commons.wikimedia.org/wiki/File:2006-10-30Buchst%C3%BCtzeAchat03.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/17/2006-10-30Buchst%C3%BCtzeAchat03.jpg/1280px-2006-10-30Buchst%C3%BCtzeAchat03.jpg"
+author = "Wildfeuer"
+licence = "CC BY 2.5"
+licence_url = "https://creativecommons.org/licenses/by/2.5"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "unknown-polished-rock-macro-1"
+title = "Unknown Polished Rock Macro 1.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Unknown_Polished_Rock_Macro_1.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Unknown_Polished_Rock_Macro_1.JPG/1280px-Unknown_Polished_Rock_Macro_1.JPG"
+author = "“Jon Zander ( Digon3 )”"
+licence = "CC BY-SA 3.0"
+licence_url = "http://creativecommons.org/licenses/by-sa/3.0/"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "banded-agate"
+title = "Banded Agate.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Banded_Agate.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Banded_Agate.JPG/1280px-Banded_Agate.JPG"
+author = "Teravolt ( talk )"
+licence = "CC BY 3.0"
+licence_url = "https://creativecommons.org/licenses/by/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "tampere-mineral-museum-13"
+title = "Tampere Mineral Museum 13.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Tampere_Mineral_Museum_13.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/d/da/Tampere_Mineral_Museum_13.jpg"
+author = "Tiia Monto"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-borden-formation-lower-mississippian-eastern-kentucky-usa-6-32632652621"
+title = "Agate (Borden Formation, Lower Mississippian; eastern Kentucky, USA) 6 (32632652621).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(Borden_Formation,_Lower_Mississippian;_eastern_Kentucky,_USA)_6_(32632652621).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8e/Agate_%28Borden_Formation%2C_Lower_Mississippian%3B_eastern_Kentucky%2C_USA%29_6_%2832632652621%29.jpg/1280px-Agate_%28Borden_Formation%2C_Lower_Mississippian%3B_eastern_Kentucky%2C_USA%29_6_%2832632652621%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agat-lake-superior-agat-z-jeziora-gornego-minnesota-usa-cropped"
+title = "Agat Lake Superior (Agat z Jeziora Górnego)- Minnesota, USA (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agat_Lake_Superior_(Agat_z_Jeziora_G%C3%B3rnego)-_Minnesota,_USA_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/2/2c/Agat_Lake_Superior_%28Agat_z_Jeziora_G%C3%B3rnego%29-_Minnesota%2C_USA_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-physical-properties-and-origin-plate-iv-bhl48235776"
+title = "Agate, physical properties and origin (Plate IV) BHL48235776.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_IV)_BHL48235776.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/d/d7/Agate%2C_physical_properties_and_origin_%28Plate_IV%29_BHL48235776.jpg"
+author = "Farrington, Oliver C.; Laufer, Berthold"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Agate,_physical_properties_and_origin_(Plate_IV)_BHL48235776.jpg"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate, physical properties and origin",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "teepee-canyon-agate-custer-south-dakota-usa-26560771781"
+title = "Teepee Canyon Agate (Custer, South Dakota, USA) (26560771781).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Teepee_Canyon_Agate_(Custer,_South_Dakota,_USA)_(26560771781).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f9/Teepee_Canyon_Agate_%28Custer%2C_South_Dakota%2C_USA%29_%2826560771781%29.jpg/1280px-Teepee_Canyon_Agate_%28Custer%2C_South_Dakota%2C_USA%29_%2826560771781%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-17-34743255036"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 17 (34743255036).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_17_(34743255036).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/9/98/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_17_%2834743255036%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate5-hg"
+title = "Agate5 hg.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate5_hg.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Agate5_hg.jpg/1280px-Agate5_hg.jpg"
+author = "Hannes Grobe"
+licence = "CC BY-SA 2.5"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.5"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "imgp2020364-50580451931"
+title = "IMGP2020364 (50580451931).jpg"
+source = "https://commons.wikimedia.org/wiki/File:IMGP2020364_(50580451931).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/IMGP2020364_%2850580451931%29.jpg/1280px-IMGP2020364_%2850580451931%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-shoreline-of-lake-superior-upper-peninsula-of-michigan-usa-1"
+title = "Agate (shoreline of Lake Superior, Upper Peninsula of Michigan, USA) 1.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(shoreline_of_Lake_Superior,_Upper_Peninsula_of_Michigan,_USA)_1.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_1.jpg/1280px-Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_1.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Michigan",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "details-agat-lake-superior-agat-z-jez-gornego-minnesota-usa-cropped"
+title = "Details, Agat Lake Superior (Agat z Jez. Górnego) - Minnesota, USA (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Details,_Agat_Lake_Superior_(Agat_z_Jez._G%C3%B3rnego)_-_Minnesota,_USA_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/7/72/Details%2C_Agat_Lake_Superior_%28Agat_z_Jez._G%C3%B3rnego%29_-_Minnesota%2C_USA_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-16-30746154767"
+title = "Agate 16 (30746154767).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_16_(30746154767).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Agate_16_%2830746154767%29.jpg/1280px-Agate_16_%2830746154767%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "panoramio-diego-viveros-8"
+title = "- panoramio - Diego Viveros (8).jpg"
+source = "https://commons.wikimedia.org/wiki/File:-_panoramio_-_Diego_Viveros_(8).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/-_panoramio_-_Diego_Viveros_%288%29.jpg/1280px--_panoramio_-_Diego_Viveros_%288%29.jpg"
+author = "Diego Viveros"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "estonian-museum-of-natural-history-specimen-no-174649-photo-g286-g286-25-1-jpg"
+title = "Estonian Museum of Natural History Specimen No 174649 photo (g286 g286-25 1 jpg).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Estonian_Museum_of_Natural_History_Specimen_No_174649_photo_(g286_g286-25_1_jpg).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Estonian_Museum_of_Natural_History_Specimen_No_174649_photo_%28g286_g286-25_1_jpg%29.jpg/1280px-Estonian_Museum_of_Natural_History_Specimen_No_174649_photo_%28g286_g286-25_1_jpg%29.jpg"
+author = "Tõnis Saadre"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "imgp2020362-50580450116"
+title = "IMGP2020362 (50580450116).jpg"
+source = "https://commons.wikimedia.org/wiki/File:IMGP2020362_(50580450116).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/IMGP2020362_%2850580450116%29.jpg/1280px-IMGP2020362_%2850580450116%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-12-34651139191"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 12 (34651139191).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_12_(34651139191).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a8/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_12_%2834651139191%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_12_%2834651139191%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "detail-agat-lake-superior-stan-minnesota-usa-cropped"
+title = "Detail, Agat Lake Superior - stan Minnesota, USA (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Detail,_Agat_Lake_Superior_-_stan_Minnesota,_USA_(cropped).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/8/80/Detail%2C_Agat_Lake_Superior_-_stan_Minnesota%2C_USA_%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "red-and-yellow-banded-agate-8337255067"
+title = "Red and yellow banded agate (8337255067).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Red_and_yellow_banded_agate_(8337255067).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/1/17/Red_and_yellow_banded_agate_%288337255067%29.jpg"
+author = "MAURO CATEB from Brazil"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate1-hg"
+title = "Agate1 hg.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate1_hg.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Agate1_hg.jpg/1280px-Agate1_hg.jpg"
+author = "Hannes Grobe"
+licence = "CC BY-SA 2.5"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.5"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-11-34783586145"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 11 (34783586145).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_11_(34783586145).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/d/dd/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_11_%2834783586145%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "earth-and-man-agate"
+title = "Earth-and-Man--Agate.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Earth-and-Man--Agate.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/c/c3/Earth-and-Man--Agate.jpg"
+author = "Vassia Atanassova - Spiritia"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate7-hg"
+title = "Agate7 hg.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate7_hg.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7f/Agate7_hg.jpg/1280px-Agate7_hg.jpg"
+author = "Hannes Grobe"
+licence = "CC BY-SA 2.5"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.5"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-14-30746154167"
+title = "Agate 14 (30746154167).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_14_(30746154167).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/Agate_14_%2830746154167%29.jpg/1280px-Agate_14_%2830746154167%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-23-48609868172"
+title = "Agate 23 (48609868172).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_23_(48609868172).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/0/0a/Agate_23_%2848609868172%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "3-agate-fragments"
+title = "3 agate fragments.jpg"
+source = "https://commons.wikimedia.org/wiki/File:3_agate_fragments.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/3_agate_fragments.jpg/1280px-3_agate_fragments.jpg"
+author = "Mauro Cateb"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agates-of-count-jozef-brunswick-in-hnhm-ludovika-sq-2-6-district-viii-budapest"
+title = "Agates of Count Jozef Brunswick in HNHM. - Ludovika Sq 2-6., District VIII., Budapest.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Agates_of_Count_Jozef_Brunswick_in_HNHM._-_Ludovika_Sq_2-6.,_District_VIII.,_Budapest.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Agates_of_Count_Jozef_Brunswick_in_HNHM._-_Ludovika_Sq_2-6.%2C_District_VIII.%2C_Budapest.JPG/1280px-Agates_of_Count_Jozef_Brunswick_in_HNHM._-_Ludovika_Sq_2-6.%2C_District_VIII.%2C_Budapest.JPG"
+author = "Globetrotter19"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Germany",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-1-23248724760"
+title = "Agate nodule (\"Lake Superior Agate\") 1 (23248724760).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_1_(23248724760).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7f/Agate_nodule_%28%22Lake_Superior_Agate%22%29_1_%2823248724760%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_1_%2823248724760%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-detail-agat-lake-superior-usa-minnesota-cropped"
+title = "Agate detail, Agat Lake Superior - USA, Minnesota. (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_detail,_Agat_Lake_Superior_-_USA,_Minnesota._(cropped).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d4/Agate_detail%2C_Agat_Lake_Superior_-_USA%2C_Minnesota._%28cropped%29.jpg/1280px-Agate_detail%2C_Agat_Lake_Superior_-_USA%2C_Minnesota._%28cropped%29.jpg"
+author = "Lech Darski"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Minnesota",
+    "Lake Superior Agate",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-shoreline-of-lake-superior-upper-peninsula-of-michigan-usa-3"
+title = "Agate (shoreline of Lake Superior, Upper Peninsula of Michigan, USA) 3.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(shoreline_of_Lake_Superior,_Upper_Peninsula_of_Michigan,_USA)_3.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/af/Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_3.jpg/1280px-Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_3.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Michigan",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "berschweiler-agate-near-trier-germany-31942571364"
+title = "Berschweiler Agate (near Trier, Germany) (31942571364).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Berschweiler_Agate_(near_Trier,_Germany)_(31942571364).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/Berschweiler_Agate_%28near_Trier%2C_Germany%29_%2831942571364%29.jpg/1280px-Berschweiler_Agate_%28near_Trier%2C_Germany%29_%2831942571364%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-borden-formation-lower-mississippian-eastern-kentucky-usa-8-32756316565"
+title = "Agate (Borden Formation, Lower Mississippian; eastern Kentucky, USA) 8 (32756316565).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(Borden_Formation,_Lower_Mississippian;_eastern_Kentucky,_USA)_8_(32756316565).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Agate_%28Borden_Formation%2C_Lower_Mississippian%3B_eastern_Kentucky%2C_USA%29_8_%2832756316565%29.jpg/1280px-Agate_%28Borden_Formation%2C_Lower_Mississippian%3B_eastern_Kentucky%2C_USA%29_8_%2832756316565%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-8-34651174951"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 8 (34651174951).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_8_(34651174951).jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/af/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_8_%2834651174951%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-15-34397930990"
+title = "Agate nodule (\"Lake Superior Agate\") (Jo Daviess County, Illinois, USA) 15 (34397930990).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(%22Lake_Superior_Agate%22)_(Jo_Daviess_County,_Illinois,_USA)_15_(34397930990).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/df/Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_15_%2834397930990%29.jpg/1280px-Agate_nodule_%28%22Lake_Superior_Agate%22%29_%28Jo_Daviess_County%2C_Illinois%2C_USA%29_15_%2834397930990%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate (\"Lake Superior Agate\", found in Illinois)",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "unknown-polished-rock-macro-2"
+title = "Unknown Polished Rock Macro 2.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Unknown_Polished_Rock_Macro_2.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Unknown_Polished_Rock_Macro_2.JPG/1280px-Unknown_Polished_Rock_Macro_2.JPG"
+author = "“Jon Zander ( Digon3 )”"
+licence = "CC BY-SA 3.0"
+licence_url = "http://creativecommons.org/licenses/by-sa/3.0/"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "polished-agate-macro-3"
+title = "Polished Agate Macro 3.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Polished_Agate_Macro_3.JPG"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/19/Polished_Agate_Macro_3.JPG/1280px-Polished_Agate_Macro_3.JPG"
+author = "“Jon Zander ( Digon3 )”"
+licence = "CC BY-SA 3.0"
+licence_url = "http://creativecommons.org/licenses/by-sa/3.0/"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "edelsteine-im-museum"
+title = "Edelsteine im Museum.JPG"
+source = "https://commons.wikimedia.org/wiki/File:Edelsteine_im_Museum.JPG"
+url = "https://upload.wikimedia.org/wikipedia/commons/9/93/Edelsteine_im_Museum.JPG"
+author = "Picture8"
+licence = "Public domain"
+licence_url = "https://commons.wikimedia.org/wiki/File:Edelsteine_im_Museum.JPG"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-shoreline-of-lake-superior-upper-peninsula-of-michigan-usa-6"
+title = "Agate (shoreline of Lake Superior, Upper Peninsula of Michigan, USA) 6.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(shoreline_of_Lake_Superior,_Upper_Peninsula_of_Michigan,_USA)_6.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_6.jpg/1280px-Agate_%28shoreline_of_Lake_Superior%2C_Upper_Peninsula_of_Michigan%2C_USA%29_6.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in Michigan",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "minerales-en-el-museo-geominero-madrid-espana-2016-31"
+title = "Minerales en el Museo Geominero, Madrid, España, 2016 31.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Minerales_en_el_Museo_Geominero,_Madrid,_Espa%C3%B1a,_2016_31.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/Minerales_en_el_Museo_Geominero%2C_Madrid%2C_Espa%C3%B1a%2C_2016_31.jpg/1280px-Minerales_en_el_Museo_Geominero%2C_Madrid%2C_Espa%C3%B1a%2C_2016_31.jpg"
+author = "Benjamín Núñez González"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Mexico",
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate8-hg"
+title = "Agate8 hg.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate8_hg.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/1/19/Agate8_hg.jpg"
+author = "Hannes Grobe"
+licence = "CC BY-SA 2.5"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.5"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Banded agates",
+]
+guesses = [
+    "fortification",
+]
+
+[[images]]
+id = "agate-rio-grande-do-sul-caillois-donation-mnhn-n25"
+title = "Agate Rio Grande do Sul Caillois Donation MNHN n25.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n25.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n25.jpg/1280px-Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n25.jpg"
+author = "Marie-Lan Taÿ Pamart"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+]
+guesses = []
+
+[[images]]
+id = "muzeum-zota-w-zotoryi-agaty-21-07-2011-p"
+title = "Muzeum Złota w Złotoryi agaty 21.07.2011 p.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Muzeum_Z%C5%82ota_w_Z%C5%82otoryi_agaty_21.07.2011_p.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Muzeum_Z%C5%82ota_w_Z%C5%82otoryi_agaty_21.07.2011_p.jpg/1280px-Muzeum_Z%C5%82ota_w_Z%C5%82otoryi_agaty_21.07.2011_p.jpg"
+author = "Przykuta"
+licence = "CC BY-SA 3.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/3.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Płóczki Górne",
+]
+guesses = []
+
+[[images]]
+id = "agate-sio2-26017794802"
+title = "Agate - SiO2 (26017794802).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_-_SiO2_(26017794802).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/22/Agate_-_SiO2_%2826017794802%29.jpg/1280px-Agate_-_SiO2_%2826017794802%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Krkonoše",
+]
+guesses = []
+
+[[images]]
+id = "crazy-lace-agate-11-cropped"
+title = "Crazy Lace Agate 11 (cropped).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Crazy_Lace_Agate_11_(cropped).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6a/Crazy_Lace_Agate_11_%28cropped%29.jpg/1280px-Crazy_Lace_Agate_11_%28cropped%29.jpg"
+author = "Masha Milshina"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Crazy Lace Agate",
+]
+guesses = []
+
+[[images]]
+id = "mineralienmuseum-teis-2015-1"
+title = "Mineralienmuseum Teis 2015 (1).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Mineralienmuseum_Teis_2015_(1).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/Mineralienmuseum_Teis_2015_%281%29.jpg/1280px-Mineralienmuseum_Teis_2015_%281%29.jpg"
+author = "Marie Čcheidzeová"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Mineralogy museum Tiso/Teis",
+]
+guesses = []
+
+[[images]]
+id = "agate-east-of-the-black-hills-south-dakota-usa-11"
+title = "Agate (east of the Black Hills, South Dakota, USA) 11.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_(east_of_the_Black_Hills,_South_Dakota,_USA)_11.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/55/Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_11.jpg/1280px-Agate_%28east_of_the_Black_Hills%2C_South_Dakota%2C_USA%29_11.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate in South Dakota",
+]
+guesses = []
+
+[[images]]
+id = "agate-chalcedony-quartz-sio2-27633464919"
+title = "Agate chalcedony quartz SiO2 (27633464919).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_chalcedony_quartz_SiO2_(27633464919).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Agate_chalcedony_quartz_SiO2_%2827633464919%29.jpg/1280px-Agate_chalcedony_quartz_SiO2_%2827633464919%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate/chalcedony/quartz from Dolní Olešnice",
+]
+guesses = []
+
+[[images]]
+id = "agate-nodule-borden-formation-lower-mississippian-eastern-kentucky-usa-1-3263264"
+title = "Agate nodule (Borden Formation, Lower Mississippian; eastern Kentucky, USA) 1 (32632646741).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_nodule_(Borden_Formation,_Lower_Mississippian;_eastern_Kentucky,_USA)_1_(32632646741).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Agate_nodule_%28Borden_Formation%2C_Lower_Mississippian%3B_eastern_Kentucky%2C_USA%29_1_%2832632646741%29.jpg/1280px-Agate_nodule_%28Borden_Formation%2C_Lower_Mississippian%3B_eastern_Kentucky%2C_USA%29_1_%2832632646741%29.jpg"
+author = "James St. John"
+licence = "CC BY 2.0"
+licence_url = "https://creativecommons.org/licenses/by/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate nodules",
+]
+guesses = []
+
+[[images]]
+id = "gaillac-museum-d-histoire-naturelle-115"
+title = "Gaillac - Muséum d'histoire naturelle 115.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Gaillac_-_Mus%C3%A9um_d%27histoire_naturelle_115.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Gaillac_-_Mus%C3%A9um_d%27histoire_naturelle_115.jpg/1280px-Gaillac_-_Mus%C3%A9um_d%27histoire_naturelle_115.jpg"
+author = "Tylwyth Eldar"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from France",
+]
+guesses = []
+
+[[images]]
+id = "achaty-zajecov-2"
+title = "Acháty Zaječov (2).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Ach%C3%A1ty_Zaje%C4%8Dov_(2).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/57/Ach%C3%A1ty_Zaje%C4%8Dov_%282%29.jpg/1280px-Ach%C3%A1ty_Zaje%C4%8Dov_%282%29.jpg"
+author = "Marie Čcheidzeová"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Zaječov Quarry",
+]
+guesses = []
+
+[[images]]
+id = "agate-rio-grande-do-sul-caillois-donation-mnhn-n10"
+title = "Agate Rio Grande do Sul Caillois Donation MNHN n10.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n10.jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n10.jpg/1280px-Agate_Rio_Grande_do_Sul_Caillois_Donation_MNHN_n10.jpg"
+author = "Marie-Lan Taÿ Pamart"
+licence = "CC BY 4.0"
+licence_url = "https://creativecommons.org/licenses/by/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from Brazil",
+]
+guesses = []
+
+[[images]]
+id = "achat-rasovka"
+title = "Achát Rašovka.jpg"
+source = "https://commons.wikimedia.org/wiki/File:Ach%C3%A1t_Ra%C5%A1ovka.jpg"
+url = "https://upload.wikimedia.org/wikipedia/commons/a/a0/Ach%C3%A1t_Ra%C5%A1ovka.jpg"
+author = "Marie Čcheidzeová"
+licence = "CC BY-SA 4.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/4.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agates from the Czech Republic",
+]
+guesses = []
+
+[[images]]
+id = "agate-quartz-sio2-13403766363"
+title = "Agate, quartz SiO2 (13403766363).jpg"
+source = "https://commons.wikimedia.org/wiki/File:Agate,_quartz_SiO2_(13403766363).jpg"
+url = "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ec/Agate%2C_quartz_SiO2_%2813403766363%29.jpg/1280px-Agate%2C_quartz_SiO2_%2813403766363%29.jpg"
+author = "Jan Helebrant"
+licence = "CC BY-SA 2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0"
+tier = 1
+retrieved = "2026-10-24"
+categories = [
+    "Agate/quartz from Dolní Olešnice",
+]
+guesses = []

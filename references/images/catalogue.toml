@@ -4,8 +4,8 @@
 #
 #   forms           archetype ids the photo shows (validated against the registry)
 #   view            "cut-slab" (sawn/polished face) or "rough" (natural surface)
-#   analysis_ready  flat cut face, roughly face-on, unobstructed: usable as a test
-#                   input for photo analysis (ADR 0006)
+# Whether a photo is fit for analysis is measured by the quality gate (ADR 0064),
+# not set by hand; tests/data/reference_regression.json records it (ADR 0066).
 #
 # Reviewed by eye on 2026-10-15. Validated by agatesim.references.
 
@@ -21,7 +21,6 @@ forms = [
     "fortification",
 ]
 view = "cut-slab"
-analysis_ready = true
 notes = "Classic grey-blue fortification banding in a polished slab with a small lenticular core."
 
 [[images]]
@@ -37,7 +36,6 @@ forms = [
     "quartz-geode",
 ]
 view = "cut-slab"
-analysis_ready = true
 notes = "Angular (polyhedral) cavity: banding keeps sharp corners, then gives way to radiating quartz with a small central void. Backlit."
 
 [[images]]
@@ -54,7 +52,6 @@ forms = [
     "botryoidal",
 ]
 view = "cut-slab"
-analysis_ready = true
 notes = "Angular cavity with a fortification rim; interior shows concentric eyes and mammillary (botryoidal) growth surfaces."
 
 [[images]]
@@ -71,7 +68,6 @@ forms = [
     "fortification",
 ]
 view = "cut-slab"
-analysis_ready = true
 notes = "Textbook combined specimen: horizontal (Uruguay-type) layers fill the lower half; wall-parallel banding arches over the upper half. Backlit."
 
 [[images]]
@@ -87,7 +83,6 @@ forms = [
     "fortification-waterline",
 ]
 view = "cut-slab"
-analysis_ready = true
 notes = "Broken/cut nodule: thick white horizontal layers inside a dark wall-parallel rim. Layers are tilted in the photo, so gravity at formation was not 'down the page'."
 
 [[images]]
@@ -103,7 +98,6 @@ forms = [
     "fortification-waterline",
 ]
 view = "cut-slab"
-analysis_ready = false
 notes = "Same specimen as uruguay-banding-front, viewed obliquely; useful for robustness tests, not for measurement."
 
 [[images]]
@@ -119,7 +113,6 @@ forms = [
     "fortification",
 ]
 view = "cut-slab"
-analysis_ready = false
 notes = "Thin backlit slice: banded rim, quartz crystals lining an open central void. Held in fingers, which occlude one end."
 
 [[images]]
@@ -134,7 +127,6 @@ forms = [
     "quartz-geode",
 ]
 view = "rough"
-analysis_ready = false
 notes = "Broken geode: chalcedony rim with a quartz-crystal lined cavity. Not a flat cut."
 
 [[images]]
@@ -149,7 +141,6 @@ forms = [
     "botryoidal",
 ]
 view = "rough"
-analysis_ready = false
 notes = "Botryoidal chalcedony crust on schist: the grape-like growth surface itself, not a cut section."
 
 [[images]]
@@ -164,7 +155,6 @@ forms = [
     "moss",
 ]
 view = "cut-slab"
-analysis_ready = true
 notes = "Close-up of dense dark dendritic (moss) inclusions in translucent chalcedony."
 
 [[images]]
@@ -179,7 +169,6 @@ forms = [
     "plume",
 ]
 view = "cut-slab"
-analysis_ready = true
 notes = "Detail of plume inclusions in a thunder egg from Richardson Ranch, Oregon."
 
 [[images]]
@@ -196,7 +185,6 @@ forms = [
     "botryoidal",
 ]
 view = "cut-slab"
-analysis_ready = true
 notes = "Vein agate: lobate wall-parallel banding with several eyes, plus acicular silver/dendritic inclusions in the white core."
 
 [[images]]
@@ -212,7 +200,6 @@ forms = [
     "botryoidal",
 ]
 view = "cut-slab"
-analysis_ready = false
 notes = "Backlit iris agate: diffraction colours along very fine bands that follow botryoidal growth fronts. Lighting-dependent by nature."
 
 [[images]]
@@ -228,5 +215,4 @@ forms = [
     "fortification",
 ]
 view = "cut-slab"
-analysis_ready = false
 notes = "Animated GIF of a hand-held Laguna agate slice: banding shows the shadow (parallax) effect as it is turned."

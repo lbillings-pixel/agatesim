@@ -35,6 +35,9 @@
 - `uv run agatesim volume run|survey <3d-preset>`: 3D runs (ADR 0021). Write 3D
   runs under the repo's `runs/`: deep paths (the scratchpad) exceed Windows'
   path limit inside fields.zarr
+- `uv run agatesim library fetch|status`: the reference library (ADR 0066);
+  `scripts/build_library.py` rebuilds its list, `scripts/reference_regression.py
+  --write` re-records the reference-photo snapshot when analysis changes on purpose
 - `uv run agatesim archetypes --write docs/archetypes.md`: regenerate after
   editing registry.toml
 - `uv run python scripts/make_gallery.py`: regenerate docs/images after model or
