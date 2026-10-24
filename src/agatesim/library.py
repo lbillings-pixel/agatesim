@@ -184,7 +184,7 @@ def save_label(image_id: str, label: Label | None, path: Path = LABELS_TOML) -> 
     for k, v in body.items():
         v.setdefault("verdict", labels[k].verdict)
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(header + tomli_w.dumps({"labels": body}), "utf-8")
+    tmp.write_text(header + tomli_w.dumps({"labels": body}), "utf-8", newline="\n")
     tmp.replace(path)
 
 

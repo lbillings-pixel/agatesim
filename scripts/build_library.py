@@ -233,7 +233,7 @@ def main() -> int:
         "# by `agatesim library fetch`. Written by scripts/build_library.py; `guesses`\n"
         "# come from titles and categories and are not labels.\n\n"
     )
-    LIBRARY_TOML.write_text(header + tomli_w.dumps({"images": entries}), "utf-8")
+    LIBRARY_TOML.write_text(header + tomli_w.dumps({"images": entries}), "utf-8", newline="\n")
     print(f"wrote {len(entries)} entries to {LIBRARY_TOML}", file=sys.stderr)
     return 0
 
