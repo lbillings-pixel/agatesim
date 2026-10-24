@@ -5,7 +5,15 @@ from __future__ import annotations
 import numpy as np
 
 from agatesim.config import load_preset
-from agatesim.specimen.benchmark import Transect, compare, score, score_along
+from agatesim.specimen.benchmark import (
+    Transect,
+    compare,
+    pooled,
+    score,
+    score_along,
+    score_fixed,
+    shuffled,
+)
 from agatesim.specimen.edges import boundary_edges, edge_crossings
 from agatesim.specimen.observe import observe
 from agatesim.specimen.photo import load_photo
@@ -75,3 +83,44 @@ def test_chance_recall_grows_with_the_number_of_guesses() -> None:
     assert few.chance_recall <= 1 / len(marked)
     assert many.chance_recall > 0.3
     assert score(marked, np.array([])).chance_recall == 0.0
+
+
+def test_shuffling_keeps_the_count_and_the_gaps() -> None:
+    found = np.array([1.0, 1.3, 2.0, 2.2, 3.5])
+    out = shuffled(found, 0.0, 5.0, np.random.default_rng(1))
+    assert len(out) == len(found)
+    assert np.all((out >= 0.0) & (out < 5.0))
+    # Round the 5 mm loop the gaps are the same ones in another order, plus the
+    # one closing the loop.
+    loop = np.sort(out)
+    gaps = np.diff(np.concatenate([loop, [loop[0] + 5.0]]))
+    expected = np.concatenate([np.diff(found), [5.0 - (found[-1] - found[0])]])
+    assert np.allclose(np.sort(gaps), np.sort(expected))
+
+
+def test_fixed_tolerance_scores_beat_shuffles_only_when_positions_are_right() -> None:
+    rng = np.random.default_rng(0)
+    marks = np.cumsum(rng.uniform(0.3, 1.2, 40))
+    exact = score_fixed(marks, marks + rng.normal(0, 0.05, 40), 0.2)
+    assert exact.f is not None
+    assert exact.f > 0.9
+    assert exact.chance_f is not None
+    assert exact.chance_f < 0.5
+    # Negative control: boundaries at random positions score near the shuffles.
+    guess = score_fixed(marks, np.sort(rng.uniform(marks[0], marks[-1], 40)), 0.2)
+    assert guess.f is not None
+    assert guess.chance_f is not None
+    assert abs(guess.f - guess.chance_f) < 0.15
+    # A wider tolerance finds more, by chance too.
+    wide = score_fixed(marks, np.sort(rng.uniform(marks[0], marks[-1], 40)), 0.5)
+    assert wide.chance_f is not None
+    assert wide.chance_f > guess.chance_f
+
+
+def test_pooled_scores_count_lines_together() -> None:
+    a = score_fixed(np.array([1.0, 2.0]), np.array([1.05]), 0.2)
+    b = score_fixed(np.array([1.0, 2.0, 3.0]), np.array([2.0, 3.0, 9.0]), 0.2)
+    p = pooled([a, b])
+    assert (p.marked, p.found, p.matched) == (5, 4, 3)
+    assert p.f == 2 * 3 / 9
+    assert score_fixed(np.array([]), np.array([]), 0.2).f is None

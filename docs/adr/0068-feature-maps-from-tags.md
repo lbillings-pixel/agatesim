@@ -127,3 +127,28 @@ offered, read from the scores `build` stores with them, so a rebuilt map that
 fails is hidden without a code change. The map dims the photo where a feature
 is unlikely (a spotlight) instead of tinting where it is likely: a tint vanished
 on warm-coloured agates.
+
+## Results: band boundaries in mm (2026-10-24)
+
+`scripts/score_boundaries.py` runs the app's analysis on the owner's marked
+photos (3 photos, 4 lines, 164 marks; median marked spacing 0.36 mm) and scores
+both finders within fixed tolerances (`benchmark.score_fixed`). The baseline
+shuffles each line's found boundaries: same count and gaps, random order and
+offset (200 draws). Summary numbers only, as the photos are private. Cost:
+44 s, 1.73 GB peak (the full-resolution edge pass).
+
+| finder | tolerance | found | precision | recall | F | shuffled F |
+|---|---|---|---|---|---|---|
+| boundary detector | 0.2 mm | 206 | 0.68 | 0.85 | 0.76 | 0.47 |
+| boundary detector | 0.5 mm | 206 | 0.70 | 0.88 | 0.78 | 0.57 |
+| band tracing | 0.2 mm | 56 | 0.55 | 0.19 | 0.28 | 0.24 |
+| band tracing | 0.5 mm | 56 | 0.71 | 0.24 | 0.36 | 0.32 |
+
+The detector beats its shuffles on all four lines (F 0.65–0.86 against
+0.34–0.55 at 0.2 mm); the tracing is near chance, as ADR 0019 found. Two
+cautions: the detector's settings were chosen on these same lines (ADR 0019),
+so its figures are somewhat optimistic; and 0.5 mm exceeds the median marked
+spacing, so at that tolerance nearly any boundary lands near some mark (hence
+the higher shuffled F). The 0.2 mm figures are the ones to quote, and they sit
+at the photos' resolution (0.22–0.25 mm, ADR 0065). As decided, the detector
+stays; a new edge model waits for better photos or new marks on unseen lines.

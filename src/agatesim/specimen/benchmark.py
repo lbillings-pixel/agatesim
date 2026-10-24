@@ -23,6 +23,7 @@ MIN_RUN_PX = 2  # traced runs shorter than this (analysis pixels) are slivers, n
 MIN_TOLERANCE_MM = 0.1  # about how well a boundary can be clicked at full resolution
 TOLERANCE_SHARE = 0.25  # of the median marked spacing
 CHANCE_DRAWS = 200
+TOLERANCES_MM = (0.2, 0.5)  # fixed tolerances for scoring in mm (ADR 0068 section 4)
 
 
 class Transect(BaseModel):
@@ -138,6 +139,83 @@ def _match(
         used_t.add(j)
         offsets.append(d)
     return len(offsets), offsets
+
+
+@dataclass(frozen=True)
+class FixedScore:
+    """Precision, recall and F within a fixed tolerance in mm (ADR 0068
+    section 4), beside the same for shuffled boundaries: the found boundaries'
+    gaps in a random order, at a random offset, wrapped within the line's
+    marked and found span. Shuffling keeps how many there are and how they
+    are spaced, so only their positions are tested."""
+
+    tolerance_mm: float
+    marked: int
+    found: int
+    matched: int
+    chance_matched: float  # mean over CHANCE_DRAWS shuffles
+
+    @property
+    def precision(self) -> float | None:
+        return self.matched / self.found if self.found else None
+
+    @property
+    def recall(self) -> float | None:
+        return self.matched / self.marked if self.marked else None
+
+    @property
+    def f(self) -> float | None:
+        return _f(self.matched, self.marked, self.found)
+
+    @property
+    def chance_f(self) -> float | None:
+        return _f(self.chance_matched, self.marked, self.found)
+
+
+def _f(matched: float, marked: int, found: int) -> float | None:
+    """F (the harmonic mean of precision and recall) = 2 matched / (marked + found)."""
+    return 2 * matched / (marked + found) if marked + found else None
+
+
+def shuffled(found_mm: FloatArray, lo: float, hi: float, rng: np.random.Generator) -> FloatArray:
+    """Found boundaries with their gaps shuffled and the run shifted at random,
+    wrapped within [lo, hi]."""
+    found_mm = np.sort(np.asarray(found_mm, dtype=np.float64))
+    if len(found_mm) == 0 or hi <= lo:
+        return found_mm
+    gaps = rng.permutation(np.diff(found_mm))
+    run = np.concatenate([[0.0], np.cumsum(gaps)])
+    return lo + (rng.uniform(0.0, hi - lo) + run) % (hi - lo)
+
+
+def score_fixed(
+    marked_mm: FloatArray, found_mm: FloatArray, tolerance_mm: float, seed: int = 0
+) -> FixedScore:
+    marked_mm = np.sort(np.asarray(marked_mm, dtype=np.float64))
+    found_mm = np.sort(np.asarray(found_mm, dtype=np.float64))
+    matched, _ = _match(marked_mm, found_mm, tolerance_mm)
+    both = np.concatenate([marked_mm, found_mm])
+    chance = 0.0
+    if len(marked_mm) and len(found_mm):
+        rng = np.random.default_rng(seed)
+        lo, hi = float(both.min()), float(both.max())
+        draws = [
+            _match(marked_mm, shuffled(found_mm, lo, hi, rng), tolerance_mm)[0]
+            for _ in range(CHANCE_DRAWS)
+        ]
+        chance = float(np.mean(draws))
+    return FixedScore(tolerance_mm, len(marked_mm), len(found_mm), matched, chance)
+
+
+def pooled(scores: list[FixedScore]) -> FixedScore:
+    """Several lines' scores at one tolerance, counted together."""
+    return FixedScore(
+        scores[0].tolerance_mm,
+        sum(s.marked for s in scores),
+        sum(s.found for s in scores),
+        sum(s.matched for s in scores),
+        sum(s.chance_matched for s in scores),
+    )
 
 
 def compare(obs: Observation, transect: Transect) -> tuple[list[float], TransectScore]:
