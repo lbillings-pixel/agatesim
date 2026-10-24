@@ -491,16 +491,17 @@ notes = "Bibliographic details confirmed from indexes (ADR 0028). The classic li
 [[references]]
 id = "jahnke2008"
 kind = "preprint"
-authors = ["Jahnke", "Kantelhardt"]
+authors = ["Jahnke, L.", "Kantelhardt, J. W."]
 year = 2008
 title = "Comparison of models and lattice-gas simulations for Liesegang patterns"
 venue = "arXiv:0803.3634"
 url = "https://arxiv.org/abs/0803.3634"
 access = "open"
 licence = "arXiv licence; check the specific paper"
-checked = "abstract"
-topics = ["liesegang", "model-comparison", "lattice-gas"]
-notes = "Reviews the main Liesegang models and checks them against 3D lattice-gas simulations. Initials and journal version still to confirm."
+checked = "sections"
+sections_read = ["1", "2"]
+topics = ["liesegang", "model-comparison", "lattice-gas", "spacing-law", "width-law"]
+notes = "Reviews the main Liesegang models and checks them against 3D lattice-gas simulations. §1–2 read 2026-10-24 (M34): spacing law x_n/x_(n-1) → 1 + p, 'Typical empirical values for p reported in literature range from 0.05 to 0.4'; width law w_n ∝ x_n^α, with experiments mostly fitted by 0.9 < α < 1. Chemical Liesegang systems, not agate. Journal version (EPJ Special Topics) not checked."
 
 [[references]]
 id = "liu2025"
@@ -677,6 +678,20 @@ licence = "publisher copyright; cite only"
 checked = "abstract"
 topics = ["agate", "fractal", "hurst-exponent", "banding", "greyscale-profiles"]
 notes = "Greyscale profiles of an agate's coloured bands analysed by the width (standard deviation at different length scales) and bridge methods: self-affine over about two decades, Hurst exponents 0.36 ± 0.05 and 0.49 ± 0.05. Whether profiles ran across or along the bands, and the interpretation, are not in the abstract."
+
+[[references]]
+id = "goldbaum2019"
+kind = "article"
+authors = ["Goldbaum, J.", "Howard, C.", "Rabinovitch, A."]
+year = 2019
+title = "Spatial Chirp of Agate Bands"
+venue = "Minerals 9(10), 634"
+doi = "10.3390/min9100634"
+access = "open"
+licence = "CC-BY-4.0"
+checked = "full-text"
+topics = ["agate", "banding", "band-width", "rim-to-centre", "image-analysis"]
+notes = """Read in full 2026-10-24 (M34). 28 band sequences on 13 unpolished white-striped agate slices (8 Madagascar, 3 Botswana, 2 Australia), photographed in daylight, greyscale profiles in FIJI along pencil lines drawn about 90° to the bands; band width between profile maxima (§2.1). Band width "is not constant", changing fastest near the rim; local frequency fitted as f0 + C(d+x)², from bands of equal volume on concentric shells (width ∝ r⁻², §2.2, eqs 1–11); oblique cuts widen apparent widths by 1/sin θ (eqs 6–7). Table 1: f0 1–5.3 mm⁻¹, C 0.001–0.86 mm⁻², R² 0.9765–0.9993, although the text says R² > 0.995 for all; treat the numbers as weak. Volcanic geodes from three localities only. Used in ADR 0069 for the direction of the rim-to-centre trend."""
 
 [[references]]
 id = "moxon2013"
