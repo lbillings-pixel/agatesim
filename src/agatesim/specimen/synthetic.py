@@ -80,3 +80,50 @@ def photograph(
 
 def array(photo: SyntheticPhoto) -> NDArray[np.uint8]:
     return np.asarray(Image.open(io.BytesIO(photo.jpeg)).convert("RGB"), dtype=np.uint8)
+
+
+def degrade(
+    photo: SyntheticPhoto,
+    *,
+    shrink: float = 1.0,
+    blur_px: float = 0.0,
+    noise: float = 0.0,
+    cast: tuple[float, float, float] = (1.0, 1.0, 1.0),
+    glare: float = 0.0,
+    quality: int = 92,
+    seed: int = 0,
+) -> SyntheticPhoto:
+    """The same photo taken worse, on purpose, to test the quality scores:
+    fewer pixels (`shrink` < 1), defocus (Gaussian blur, px after shrinking),
+    sensor noise (grey levels), a colour cast (channel gains), a glare spot
+    covering `glare` of the slab, and JPEG compression."""
+    image = Image.open(io.BytesIO(photo.jpeg)).convert("RGB")
+    w, h = image.size
+    if shrink != 1.0:
+        image = image.resize((round(w * shrink), round(h * shrink)), Image.Resampling.LANCZOS)
+    rgb = np.asarray(image, dtype=np.float64)
+    if blur_px > 0:
+        rgb = _scipy.gaussian_rgb(rgb, blur_px)
+    rgb = rgb * np.asarray(cast)
+    cx, cy = photo.centre[0] * shrink, photo.centre[1] * shrink
+    if glare > 0:
+        # A clipped disc of `glare` of the slab's area, beside the centre.
+        area = float(photo.result.domain.mask.sum()) * shrink**2
+        radius = math.sqrt(glare * area / math.pi)
+        yy, xx = np.mgrid[0 : rgb.shape[0], 0 : rgb.shape[1]]
+        spot = (xx - cx - 0.2 * math.sqrt(area)) ** 2 + (yy - cy) ** 2 < radius**2
+        rgb[spot] = 255.0
+    if noise > 0:
+        rgb = rgb + np.random.default_rng(seed).normal(0, noise, rgb.shape)
+    buffer = io.BytesIO()
+    Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8)).save(
+        buffer, format="JPEG", quality=quality
+    )
+    (x1, y1), (x2, y2) = photo.ruler_points
+    return SyntheticPhoto(
+        jpeg=buffer.getvalue(),
+        mm_per_px=photo.mm_per_px / shrink,
+        result=photo.result,
+        ruler_points=((x1 * shrink, y1 * shrink), (x2 * shrink, y2 * shrink)),
+        centre=(cx, cy),
+    )

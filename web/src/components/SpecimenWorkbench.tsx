@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   type Host,
+  type QualityBadge,
   type Replica,
   type RunConfig,
   type SpecimenAnalysis,
@@ -9,7 +10,9 @@ import {
   type SpecimenSettings,
   specimens,
 } from "../api";
+import { USE_LABEL, adviceFor, levelClass } from "../lib/quality";
 import { type Point, type Transect, addMark, distanceTo, project, removeMark, tick } from "../lib/transect";
+import { SpecimenLibrary } from "./SpecimenLibrary";
 
 const MM_PER_INCH = 25.4;
 const UP_CHOICES: [number, string][] = [
@@ -33,8 +36,11 @@ interface Props {
 
 const blank: SpecimenSettings = { calibration: null, host: "volcanic", up_deg: 90, seed: null, transects: [] };
 
-/** Specimen photos: set the scale, analyse, identify forms, fit a replica. */
+/** Specimen photos: a library with quality badges, and per photo: set the
+ * scale, analyse, identify forms, fit a replica. */
 export function SpecimenWorkbench({ onOpenReplica }: Props) {
+  const [tab, setTab] = useState<"library" | "classify">("library");
+  const [quality, setQuality] = useState<QualityBadge[] | null>(null);
   const [files, setFiles] = useState<SpecimenFile[]>([]);
   const [name, setName] = useState<string | null>(null);
   const [settings, setSettings] = useState<SpecimenSettings>(blank);
@@ -61,7 +67,15 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     refresh();
   }, []);
 
+  const score = (n: string, s: SpecimenSettings) =>
+    specimens.quality(n, s).then(
+      (r) => setQuality(r.badges),
+      () => setQuality(null),
+    );
+
   const choose = (n: string) => {
+    setTab("classify");
+    setQuality(null);
     setName(n);
     setAnalysis(null);
     setReplica(null);
@@ -73,6 +87,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     setLineStart(null);
     setSaved(true);
     specimens.settings(n).then((s) => {
+      void score(n, s);
       setSettings({ ...s, transects: s.transects ?? [] });
       setActive(s.transects?.length ? 0 : null);
       const c = s.calibration;
@@ -101,6 +116,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     setError(null);
     try {
       await specimens.saveSettings(name, s);
+      void score(name, s); // the scale and the specimen pick change the scores
       await action(s);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -170,21 +186,45 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     }
   };
 
-  const upload = (file: File | undefined) => {
-    if (!file) return;
-    setBusy("Uploading");
-    specimens
-      .upload(file)
-      .then((r) => {
-        refresh();
-        choose(r.name);
-      }, (e: unknown) => setError(e instanceof Error ? e.message : String(e)))
-      .finally(() => setBusy(null));
-  };
-
   const scaleReady = points.length === 2 && distance > 0;
 
+  const tabs = (
+    <div className="tabs specimen-tabs" role="tablist" aria-label="Specimens">
+      <button type="button" role="tab" aria-selected={tab === "library"} onClick={() => setTab("library")}>
+        Library
+      </button>
+      <button type="button" role="tab" aria-selected={tab === "classify"} onClick={() => setTab("classify")}>
+        Classify{name ? `: ${name}` : ""}
+      </button>
+    </div>
+  );
+
+  if (tab === "library")
+    return (
+      <div className="specimen-screen">
+        {tabs}
+        <SpecimenLibrary
+          files={files}
+          selected={name}
+          onOpen={choose}
+          onUploaded={choose}
+          onRenamed={(from, to) => {
+            if (from === name) setName(to);
+          }}
+          onDeleted={(n) => {
+            if (n === name) {
+              setName(null);
+              setQuality(null);
+            }
+          }}
+          refresh={() => void refresh()}
+        />
+      </div>
+    );
+
   return (
+    <div className="specimen-screen">
+      {tabs}
     <div className="specimens">
       <aside className="specimen-list" aria-label="Specimen photos">
         <h2>Specimens</h2>
@@ -201,10 +241,6 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
             </li>
           ))}
         </ul>
-        <label className="upload">
-          <span className="micro-label">Add a photo</span>
-          <input type="file" accept="image/jpeg,image/png" onChange={(e) => upload(e.target.files?.[0])} />
-        </label>
       </aside>
 
       {name ? (
@@ -396,6 +432,23 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
             <p className="error" role="alert">
               {error}
             </p>
+          )}
+          {quality && (
+            <section className="specimen-quality" aria-label="Photo quality">
+              {quality.map((b) => (
+                <div key={b.use}>
+                  <span className={levelClass(b.level)}>
+                    {USE_LABEL[b.use]}: {b.level}
+                  </span>
+                  {b.reasons.length > 0 && (
+                    <span className="muted small"> {b.reasons.map((r) => r.message).join("; ")}</span>
+                  )}
+                </div>
+              ))}
+              {adviceFor(quality).length > 0 && (
+                <p className="muted small">Better photos: {adviceFor(quality).join("; ")}.</p>
+              )}
+            </section>
           )}
 
           <div className="specimen-views">
@@ -596,8 +649,9 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
           )}
         </main>
       ) : (
-        <main className="specimen-main muted">Choose a photo, or add one.</main>
+        <main className="specimen-main muted">Choose a photo in the Library, or add one there.</main>
       )}
+    </div>
     </div>
   );
 }

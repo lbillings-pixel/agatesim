@@ -561,6 +561,20 @@ topics = ["image-analysis", "structure-tensor", "orientation"]
 notes = "Origin of the structure tensor: local orientation from the averaged outer product of image gradients. URL is the author's publication list (no full text read). Used for the band direction in photos (agatesim.specimen.observe.band_orientation)."
 
 [[references]]
+id = "donoho1994"
+kind = "article"
+authors = ["Donoho, D. L.", "Johnstone, I. M."]
+year = 1994
+title = "Ideal spatial adaptation by wavelet shrinkage"
+venue = "Biometrika 81(3), 425–455"
+doi = "10.1093/biomet/81.3.425"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "citation"
+topics = ["image-analysis", "noise-estimation", "wavelets"]
+notes = "Cited for the median-absolute-deviation estimate of noise from the finest wavelet detail (median |d| / 0.6745), a standard estimator; not read. Used for the noise score of the photo quality gate (agatesim.specimen.quality.noise_sigma, ADR 0064), checked on synthetic white noise in tests/test_quality.py."
+
+[[references]]
 id = "weickert1998"
 kind = "book"
 authors = ["Weickert, J."]

@@ -15,7 +15,7 @@ from agatesim.criteria import evaluate
 from agatesim.specimen.fit import replicate
 from agatesim.specimen.identify import DETECTION_RATE, PASS_RELIABLE, SUPPORTED, identify
 from agatesim.specimen.observe import Observation, observe, simplify
-from agatesim.specimen.photo import load_photo
+from agatesim.specimen.photo import load_photo, strip_metadata
 from agatesim.specimen.scale import Calibration, camera_height_mm, face_mm_per_px
 from agatesim.specimen.segment import segment, trace_outline
 from agatesim.specimen.synthetic import SyntheticPhoto, photograph
@@ -50,6 +50,34 @@ def test_metadata_is_dropped_but_focal_length_is_read() -> None:
     assert photo.focal_35mm == 26
     again = Image.open(io.BytesIO(photo.png()))
     assert len(again.getexif()) == 0
+
+
+def test_stripping_metadata_keeps_pixels_orientation_and_focal_length() -> None:
+    """Uploads lose GPS, comments and appended images (MPF depth maps carry
+    their own metadata), but JPEG pixels stay bit for bit."""
+    rng = np.random.default_rng(0)
+    image = Image.fromarray(rng.integers(0, 255, (48, 64, 3), dtype=np.uint8))
+    exif = Image.Exif()
+    exif[0x0112] = 6  # rotated
+    exif[0x8769] = {0xA405: 26}
+    exif[0x8825] = {1: "N", 2: (51.0, 30.0, 0.0)}
+    for progressive in (False, True):
+        buffer = io.BytesIO()
+        image.save(buffer, format="JPEG", exif=exif, comment=b"secret", progressive=progressive)
+        data = buffer.getvalue() + buffer.getvalue()
+        clean = strip_metadata(data)
+        assert b"secret" not in clean
+        assert clean.count(bytes([0xFF, 0xD8])) == 1
+        again = Image.open(io.BytesIO(clean))
+        assert np.array_equal(np.asarray(again), np.asarray(Image.open(io.BytesIO(data))))
+        assert again.getexif().get_ifd(0x8825) == {}
+        assert load_photo(clean).focal_35mm == 26
+        assert load_photo(clean).rgb.shape == (64, 48, 3)  # still turned upright
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG", exif=exif)
+    png = Image.open(io.BytesIO(strip_metadata(buffer.getvalue())))
+    assert png.getexif().get_ifd(0x8825) == {}
+    assert np.array_equal(np.asarray(png), np.asarray(image))
 
 
 def test_perspective_correction() -> None:

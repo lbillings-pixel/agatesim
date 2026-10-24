@@ -1,9 +1,12 @@
-"""Specimen photos in the web app: list, upload, view, analyse, replicate.
+"""Specimen photos in the web app: list, upload, rename, delete, score,
+view, analyse, replicate.
 
 Photos live in a folder on the user's machine (by default `specimens/`, which is
-gitignored). The app serves them only as metadata-free PNGs, and saves its own
-settings for each photo (scale, host, which way was up) beside them in
-`.agatesim/`.
+gitignored). Uploads are stored without location or other metadata (only the
+orientation and focal length are kept), and the app serves them only as
+metadata-free images. It saves its own settings for each photo (scale, host,
+which way was up) and its quality scores beside them in `.agatesim/`; deleted
+photos move to `.agatesim/deleted/`.
 """
 
 from __future__ import annotations
@@ -12,6 +15,7 @@ import base64
 import io
 import json
 import re
+import time
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any
@@ -31,7 +35,8 @@ from agatesim.specimen.edges import EdgeMap, boundary_edges, edge_crossings
 from agatesim.specimen.fit import replicate
 from agatesim.specimen.identify import NOT_FROM_PHOTOS, identify
 from agatesim.specimen.observe import Observation, band_map, observe
-from agatesim.specimen.photo import Photo, load_photo
+from agatesim.specimen.photo import Photo, load_photo, strip_metadata
+from agatesim.specimen.quality import assess, badges
 from agatesim.specimen.scale import Calibration, face_mm_per_px
 from agatesim.specimen.segment import segment
 from agatesim.stats import band_statistics
@@ -39,8 +44,17 @@ from agatesim.stats import band_statistics
 NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._ -]{0,80}\.(?:jpe?g|png)$", re.IGNORECASE)
 MAX_UPLOAD_BYTES = 40 * 1024 * 1024
 VIEW_LONG_SIDE = 1600  # the working image the UI shows and clicks on
+THUMB_LONG_SIDE = 360
+THUMBS = 200
 CACHE = 4
 REPLICA_RESOLUTION = 512
+QUALITY_VERSION = 2  # raise when the scores change, so cached ones are redone
+
+
+class Rename(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    to: str
 
 
 class SpecimenSettings(BaseModel):
@@ -86,6 +100,9 @@ def specimen_router(folder: Path) -> APIRouter:
     router = APIRouter(prefix="/api/specimens")
     photos: OrderedDict[str, Photo] = OrderedDict()
     observations: OrderedDict[str, Observation] = OrderedDict()
+    edge_cache: dict[str, EdgeMap] = {}
+    detail_cache: dict[str, bytes] = {}
+    thumbs: OrderedDict[str, bytes] = OrderedDict()
 
     def path_of(name: str) -> Path:
         if not NAME.fullmatch(name):
@@ -97,6 +114,42 @@ def specimen_router(folder: Path) -> APIRouter:
 
     def settings_path(name: str) -> Path:
         return folder / ".agatesim" / f"{name}.json"
+
+    def quality_path(name: str) -> Path:
+        return folder / ".agatesim" / f"{name}.quality.json"
+
+    def sidecars(name: str) -> list[Path]:
+        return [settings_path(name), quality_path(name)]
+
+    def saved_settings(name: str) -> SpecimenSettings:
+        p = settings_path(name)
+        if p.exists():
+            return SpecimenSettings.model_validate_json(p.read_text("utf-8"))
+        return SpecimenSettings()
+
+    def quality_key(name: str, settings: SpecimenSettings) -> str:
+        stat = path_of(name).stat()
+        told = settings.model_dump_json(include={"calibration", "seed"})
+        return f"{QUALITY_VERSION}:{stat.st_size}:{stat.st_mtime_ns}:{told}"
+
+    def cached_quality(name: str, settings: SpecimenSettings) -> dict[str, Any] | None:
+        p = quality_path(name)
+        if not p.exists():
+            return None
+        try:
+            saved = json.loads(p.read_text("utf-8"))
+        except ValueError:
+            return None
+        return saved if saved.get("key") == quality_key(name, settings) else None
+
+    def forget(name: str) -> None:
+        """Drop everything cached for a photo (after a rename or delete)."""
+        photos.pop(name, None)
+        detail_cache.pop(name, None)
+        thumbs.pop(name, None)
+        for cache in (observations, edge_cache):
+            for key in [k for k in cache if k.startswith(name)]:
+                del cache[key]
 
     def photo(name: str) -> Photo:
         if name not in photos:
@@ -136,8 +189,6 @@ def specimen_router(folder: Path) -> APIRouter:
             "seg_mask": seg.mask,
         }
 
-    edge_cache: dict[str, EdgeMap] = {}
-
     def edges_of(name: str, mask: NDArray[np.bool_]) -> EdgeMap:
         key = name + str(hash(mask.tobytes()))
         if key not in edge_cache:
@@ -153,11 +204,13 @@ def specimen_router(folder: Path) -> APIRouter:
         out: list[dict[str, object]] = []
         for path in sorted(folder.iterdir()):
             if path.is_file() and NAME.fullmatch(path.name):
+                quality = cached_quality(path.name, saved_settings(path.name))
                 out.append(
                     {
                         "name": path.name,
                         "bytes": path.stat().st_size,
                         "has_settings": settings_path(path.name).exists(),
+                        "badges": None if quality is None else quality["badges"],
                     }
                 )
         return out
@@ -173,6 +226,7 @@ def specimen_router(folder: Path) -> APIRouter:
             raise HTTPException(422, "empty or too large (40 MB at most)")
         try:
             load_photo(data, 64)
+            data = strip_metadata(data)
         except Exception as e:  # any decoding failure means it isn't a usable image
             raise HTTPException(422, "not a readable image") from e
         folder.mkdir(parents=True, exist_ok=True)
@@ -186,7 +240,17 @@ def specimen_router(folder: Path) -> APIRouter:
     def photo_png(name: str) -> Response:
         return Response(photo(name).png(), media_type="image/png")
 
-    detail_cache: dict[str, bytes] = {}
+    @router.get("/{name}/thumb")
+    def thumb(name: str) -> Response:
+        """A small JPEG for the library (written from an array: no EXIF)."""
+        if name not in thumbs:
+            small = load_photo(path_of(name).read_bytes(), THUMB_LONG_SIDE)
+            buffer = io.BytesIO()
+            Image.fromarray(small.rgb).save(buffer, format="JPEG", quality=85)
+            thumbs[name] = buffer.getvalue()
+            if len(thumbs) > THUMBS:
+                thumbs.popitem(last=False)
+        return Response(thumbs[name], media_type="image/jpeg")
 
     @router.get("/{name}/detail")
     def photo_detail(name: str) -> Response:
@@ -203,10 +267,7 @@ def specimen_router(folder: Path) -> APIRouter:
     @router.get("/{name}/settings")
     def get_settings(name: str) -> SpecimenSettings:
         path_of(name)
-        p = settings_path(name)
-        if p.exists():
-            return SpecimenSettings.model_validate_json(p.read_text("utf-8"))
-        return SpecimenSettings()
+        return saved_settings(name)
 
     @router.put("/{name}/settings")
     def put_settings(name: str, settings: SpecimenSettings) -> SpecimenSettings:
@@ -215,6 +276,75 @@ def specimen_router(folder: Path) -> APIRouter:
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(settings.model_dump_json(indent=1), "utf-8")
         return settings
+
+    @router.post("/{name}/rename")
+    def rename(name: str, body: Rename) -> dict[str, object]:
+        source = path_of(name)
+        to = body.to.strip()
+        if not NAME.fullmatch(to):
+            raise HTTPException(
+                422, "use a .jpg, .jpeg or .png name of letters, digits, . _ - and spaces"
+            )
+        same_kind = {".jpg": ".jpeg", ".jpeg": ".jpg"}
+        old_ext, new_ext = source.suffix.lower(), Path(to).suffix.lower()
+        if new_ext != old_ext and same_kind.get(old_ext) != new_ext:
+            raise HTTPException(422, f"keep the {old_ext} ending")
+        target = folder / to
+        if target.exists() and target.name.lower() != name.lower():
+            raise HTTPException(409, f"{to} already exists")
+        forget(name)
+        source.rename(target)
+        for old, new in zip(sidecars(name), sidecars(to), strict=True):
+            if old.exists():
+                old.replace(new)
+        return {"name": to}
+
+    @router.delete("/{name}")
+    def delete(name: str) -> dict[str, object]:
+        """Move the photo and its settings to `.agatesim/deleted/`, so a mistake
+        can be undone by hand."""
+        source = path_of(name)
+        bin_ = folder / ".agatesim" / "deleted"
+        bin_.mkdir(parents=True, exist_ok=True)
+        stem = name
+        if (bin_ / name).exists():
+            stem = time.strftime("%Y%m%d-%H%M%S ") + name
+        forget(name)
+        source.replace(bin_ / stem)
+        for side in sidecars(name):
+            if side.exists():
+                side.replace(bin_ / (stem + side.name[len(name) :]))
+        return {"deleted": name, "kept_in": f".agatesim/deleted/{stem}"}
+
+    @router.post("/{name}/quality")
+    def quality(name: str, settings: SpecimenSettings) -> dict[str, object]:
+        """Scores of the photo and which uses it is fit for (cached beside it)."""
+        cached = cached_quality(name, settings)
+        if cached is not None:
+            return {"quality": cached["quality"], "badges": cached["badges"]}
+        p = photo(name)
+        seg = segment(p.rgb, settings.seed)
+        mm_per_px: float | None = None
+        ruler = None
+        if settings.calibration is not None:
+            try:
+                mm_per_px, _ = face_mm_per_px(
+                    settings.calibration, p.focal_35mm, (p.shape[1], p.shape[0]), p.scale_factor
+                )
+                ruler = (settings.calibration.p1, settings.calibration.p2)
+            except ValueError:
+                pass
+        full = load_photo(path_of(name).read_bytes(), 10**6)
+        q = assess(full.rgb, seg.mask, seg.outline, mm_per_px=mm_per_px, ruler=ruler)
+        del full
+        out: dict[str, object] = {
+            "quality": q.to_json(),
+            "badges": [b.to_json() for b in badges(q)],
+        }
+        target = quality_path(name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps({"key": quality_key(name, settings), **out}), "utf-8")
+        return out
 
     @router.post("/{name}/analyse")
     def analyse(name: str, settings: SpecimenSettings) -> dict[str, object]:

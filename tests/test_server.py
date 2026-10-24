@@ -246,6 +246,30 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         assert replica["image"].startswith("data:image/png;base64,")
         assert c.get("/api/specimens/..%2Fsecret.jpg/photo").status_code == 404
 
+        # Stored without the location; scored, renamed and deleted (into a bin).
+        assert Image.open(folder / "slab.jpg").getexif().get_ifd(0x8825) == {}
+        thumb = Image.open(io.BytesIO(c.get("/api/specimens/slab.jpg/thumb").content))
+        assert max(thumb.size) == 360
+        assert len(thumb.getexif()) == 0
+        scored = c.post("/api/specimens/slab.jpg/quality", json=settings).json()
+        assert {b["use"] for b in scored["badges"]} == {"classification", "calibration"}
+        assert scored["quality"]["mm_per_px"] == pytest.approx(syn.mm_per_px, rel=0.01)
+        (listed,) = c.get("/api/specimens").json()
+        assert listed["badges"] == scored["badges"]  # cached beside the photo
+        to = {"to": "slab two.jpeg"}
+        assert c.post("/api/specimens/slab.jpg/rename", json={"to": "x.png"}).status_code == 422
+        assert c.post("/api/specimens/slab.jpg/rename", json=to).status_code == 200
+        (listed,) = c.get("/api/specimens").json()
+        assert listed["name"] == "slab two.jpeg"
+        assert listed["has_settings"]
+        assert listed["badges"] == scored["badges"]
+        assert c.get("/api/specimens/slab.jpg/photo").status_code == 404
+        assert c.delete("/api/specimens/slab%20two.jpeg").status_code == 200
+        assert c.get("/api/specimens").json() == []
+        kept = folder / ".agatesim" / "deleted"
+        assert (kept / "slab two.jpeg").is_file()
+        assert (kept / "slab two.jpeg.json").is_file()
+
 
 def test_glossary_is_served(client: TestClient) -> None:
     body = client.get("/api/glossary").json()

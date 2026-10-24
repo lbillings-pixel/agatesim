@@ -271,6 +271,39 @@ export interface SpecimenFile {
   name: string;
   bytes: number;
   has_settings: boolean;
+  badges: QualityBadge[] | null; // null until the photo has been scored
+}
+
+export type QualityLevel = "fit" | "borderline" | "not fit";
+
+export interface QualityReason {
+  score: string;
+  level: QualityLevel;
+  message: string;
+  advice: string;
+}
+
+export interface QualityBadge {
+  use: "classification" | "calibration";
+  level: QualityLevel;
+  reasons: QualityReason[];
+}
+
+/** Measured scores of a photo's cut face (src/agatesim/specimen/quality.py). */
+export interface PhotoQuality {
+  face_px: number;
+  band_spacing_px: number | null;
+  band_contrast: number | null;
+  contrast_to_noise: number | null;
+  fine_detail: number | null;
+  edge_width_px: number | null;
+  noise: number;
+  blocking: number;
+  clipped: number;
+  cast: number | null;
+  cast_hue: string | null;
+  mm_per_px: number | null;
+  profiles_used: number;
 }
 
 export interface SpecimenSettings {
@@ -344,6 +377,15 @@ export const specimens = {
     return (await response.json()) as { name: string };
   },
   photoUrl: (name: string) => `${specimenPath(name)}/photo`,
+  thumbUrl: (name: string) => `${specimenPath(name)}/thumb`,
+  rename: (name: string, to: string) =>
+    request<{ name: string }>(`${specimenPath(name)}/rename`, { method: "POST", body: JSON.stringify({ to }) }),
+  remove: (name: string) => request<{ deleted: string; kept_in: string }>(specimenPath(name), { method: "DELETE" }),
+  quality: (name: string, s: SpecimenSettings) =>
+    request<{ quality: PhotoQuality; badges: QualityBadge[] }>(`${specimenPath(name)}/quality`, {
+      method: "POST",
+      body: JSON.stringify(s),
+    }),
   detailUrl: (name: string) => `${specimenPath(name)}/detail`,
   settings: (name: string) => request<SpecimenSettings>(`${specimenPath(name)}/settings`),
   saveSettings: (name: string, s: SpecimenSettings) =>
