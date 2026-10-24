@@ -155,6 +155,9 @@ class EmbeddingCache:
                 self._data = {k: z[k] for k in z.files}
         self._dirty = False
 
+    def __contains__(self, key: str) -> bool:
+        return key in self._data
+
     def get(self, key: str, rgb: Callable[[], NDArray[np.uint8]]) -> NDArray[np.float32]:
         if key not in self._data:
             self._data[key] = self.embedder.embed(rgb())
@@ -197,6 +200,75 @@ def library_examples(
             Example(key, e, frozenset(labels[image.id].forms), 1.0, specimen_group(image.id), False)
         )
     return out
+
+
+# The owner's own photos are labelled apart from the library (ADR 0066): one
+# label beside each photo in the specimens folder, never in the repository.
+OWN_LABEL_SUFFIX = ".label.json"
+
+
+def own_label_path(folder: Path, name: str) -> Path:
+    return folder / ".agatesim" / f"{name}{OWN_LABEL_SUFFIX}"
+
+
+def own_labels(folder: Path) -> dict[str, Label]:
+    """The owner's labels of their own photos, by photo name."""
+    side = folder / ".agatesim"
+    if not side.is_dir():
+        return {}
+    out: dict[str, Label] = {}
+    for p in sorted(side.glob(f"*{OWN_LABEL_SUFFIX}")):
+        name = p.name[: -len(OWN_LABEL_SUFFIX)]
+        if (folder / name).is_file():
+            out[name] = Label.model_validate_json(p.read_text("utf-8"))
+    return out
+
+
+def _own_key(path: Path) -> str:
+    st = path.stat()
+    return f"own/{path.name}/{st.st_size}/{st.st_mtime_ns}"
+
+
+def own_examples(cache: EmbeddingCache, folder: Path) -> list[Example]:
+    """The owner's photos they have labelled with forms. Each is its own group:
+    photos of one specimen can't be told apart by name here."""
+    from agatesim.specimen.photo import load_photo
+
+    todo = [(n, lab) for n, lab in own_labels(folder).items() if lab.verdict == "forms"]
+    out: list[Example] = []
+    for n, (name, label) in enumerate(todo):
+        progress.report(n / max(len(todo), 1), f"reading {name}")
+        path = folder / name
+        key = _own_key(path)
+        e = cache.get(key, lambda p=path: load_photo(p.read_bytes(), 1024).rgb)
+        out.append(Example(key, e, frozenset(label.forms), 1.0, f"own/{name}", False))
+    return out
+
+
+def missing_embeddings(cache: EmbeddingCache, specimens: Path | None = None) -> tuple[int, int]:
+    """Photos and simulated slabs that training would still have to embed."""
+    labels = load_labels()
+    photos = sum(
+        1
+        for i in load_library().images
+        if i.id in labels
+        and labels[i.id].verdict == "forms"
+        and i.path.exists()
+        and f"lib/{i.id}/{i.path.stat().st_size}" not in cache
+    )
+    if specimens is not None:
+        photos += sum(
+            1
+            for name, lab in own_labels(specimens).items()
+            if lab.verdict == "forms" and _own_key(specimens / name) not in cache
+        )
+    sims = sum(
+        1
+        for form in trainable_forms()
+        for v in range(SIM_VARIANTS)
+        if f"sim{SIM_VERSION}/{form}/{v}" not in cache
+    )
+    return photos, sims
 
 
 def _render_sim(config: RunConfig, seed: int) -> NDArray[np.uint8]:
@@ -416,12 +488,17 @@ def cross_validate(
     )
 
 
-def gather(embedder: Embedder) -> tuple[list[Example], list[Example], list[str]]:
-    """The labelled photos, the simulated slabs and the forms to train on."""
-    cache = EmbeddingCache(embedder)
+def gather(
+    embedder: Embedder, specimens: Path | None = None, cache: EmbeddingCache | None = None
+) -> tuple[list[Example], list[Example], list[str]]:
+    """The labelled photos (the library's, and the owner's own when `specimens`
+    is given), the simulated slabs and the forms to train on."""
+    cache = EmbeddingCache(embedder) if cache is None else cache
     forms = trainable_forms()
     with progress.span(0.0, 0.2, "reading the labelled photos"):
         real = library_examples(cache)
+        if specimens is not None:
+            real += own_examples(cache, specimens)
     with progress.span(0.2, 1.0, "simulating slabs"):
         sims = simulated_examples(cache, forms)
     cache.save()

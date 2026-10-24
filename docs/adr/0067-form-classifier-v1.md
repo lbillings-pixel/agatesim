@@ -105,5 +105,30 @@ the stronger evidence (ADR 0063).
   checking elsewhere.
 - More labels should help the rare forms most: the owner's next batches are the
   main lever, then photo-like renders.
-- M32 part 2: answers on the Classify screen, with progress and an estimate, and
-  the owner's corrections as labels.
+- M32 part 2 (below): answers on the Classify screen, and the owner's
+  corrections as labels.
+
+## Part 2: the Classify screen and the owner's corrections (2026-10-24)
+
+- **Answers on the screen.** Opening one of the owner's photos asks the
+  classifier at once (the photo read at 1024 px, as the training photos were;
+  about 0.1 s once the model is loaded). The screen shows the likely forms, or
+  "undetermined", the five most likely with their probabilities, and how many
+  labelled photos of each form it learned from, so a form learned from four
+  photos reads as the weak guess it is. If the model isn't downloaded or the
+  classifier isn't trained, the screen says so.
+- **Confirm or correct.** The likely forms open pre-selected as guesses (dashed
+  chips); the owner confirms them, corrects them, or answers "can't tell" or
+  "not usable", with the same chips as the library labels. The label is kept
+  beside the photo (`specimens/.agatesim/<photo>.label.json`), follows it when
+  it is renamed and goes to the bin with it. The owner's labels never enter
+  `references/library-labels.toml` (ADR 0066) or the repository.
+- **Retraining** from the screen (or `agatesim classify train`, which reads
+  `specimens/` by default) learns from the owner's labelled photos alongside
+  the library's, each owner photo its own group in cross-validation. Their
+  embeddings and the trained classifier stay in `references/models/`
+  (gitignored), on the PC. Retraining reports progress, and its estimate
+  (`estimate.train_classifier`: 2 s, plus 0.15 s per photo and 0.45 s per
+  simulated slab not yet embedded) flags it as heavy only when the simulated
+  slabs must be rendered again. Measured: 1.7 s with a full
+  cache.

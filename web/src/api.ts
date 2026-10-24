@@ -395,6 +395,46 @@ export const specimens = {
     request<SpecimenAnalysis>(`${specimenPath(name)}/analyse`, { method: "POST", body: JSON.stringify(s) }),
   replicate: (name: string, s: SpecimenSettings) =>
     request<Replica>(`${specimenPath(name)}/replicate`, { method: "POST", body: JSON.stringify(s) }),
+  classify: (name: string) => request<ClassifierAnswer>(`${specimenPath(name)}/classify`, { method: "POST" }),
+  /** The owner's label of their own photo, kept beside it (never in the library). */
+  label: (name: string) => request<LibraryLabel | null>(`${specimenPath(name)}/label`),
+  saveLabel: (name: string, label: LibraryLabel) =>
+    request<LibraryLabel>(`${specimenPath(name)}/label`, { method: "PUT", body: JSON.stringify(label) }),
+  clearLabel: async (name: string) => {
+    const response = await fetch(`${specimenPath(name)}/label`, { method: "DELETE" });
+    if (!response.ok) throw new Error(await errorMessage(response));
+  },
+};
+
+/** The learned form classifier's answer on a photo (ADR 0067): appearance only. */
+export interface ClassifierAnswer {
+  ready: boolean;
+  /** Why there is no answer yet. */
+  why?: string;
+  /** Forms at or above the threshold, most likely first; empty: undetermined. */
+  likely?: { form: string; p: number }[];
+  ranked?: { form: string; p: number }[];
+  /** Labelled photos of each form it was trained on. */
+  trained_on?: Record<string, number>;
+  threshold?: number;
+}
+
+export interface ClassifierStatus {
+  model: boolean;
+  trained: boolean;
+  own_labels: number;
+  training: boolean;
+  estimate?: CostEstimate;
+}
+
+export const classifier = {
+  status: () => request<ClassifierStatus>("/api/classifier"),
+  train: (task: string) =>
+    request<{ photos: number; own_photos: number; simulated: number }>(
+      "/api/classifier/train",
+      { method: "POST" },
+      task,
+    ),
 };
 
 /** A reference-library photo's labels (src/agatesim/library.py, ADR 0066). */

@@ -40,3 +40,19 @@ export function nextIndex(images: LibraryImage[], from: number, filter: Filter, 
   }
   return null;
 }
+
+/** The label one of the owner's photos opens with: their saved label, or else
+ * the classifier's likely forms pre-selected (marked as guesses until saved). */
+export function draftFromAnswer(
+  saved: LibraryLabel | null,
+  likely: string[],
+): {
+  label: LibraryLabel;
+  guessed: boolean;
+} {
+  if (saved) return { label: { ...saved }, guessed: false };
+  return {
+    label: { verdict: "forms", forms: [...likely], sure: true, features: [], note: "" },
+    guessed: likely.length > 0,
+  };
+}

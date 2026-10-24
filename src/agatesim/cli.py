@@ -249,7 +249,8 @@ def _cmd_classify(args: argparse.Namespace) -> int:
         for form, p in a.ranked[:5]:
             print(f"  {form:24s} {p:4.0%}")
         return 0
-    real, sims, forms = classify.gather(embedder)
+    own = args.specimens if args.specimens.is_dir() else None
+    real, sims, forms = classify.gather(embedder, own)
     if args.classify_command == "evaluate":
         ev = classify.cross_validate(real, sims, forms)
         print(f"{ev.photos} labelled photos, held out in 5 folds")
@@ -271,10 +272,18 @@ def _add_classify(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
     csub = cls.add_subparsers(dest="classify_command", required=True)
     p = csub.add_parser("fetch", help="download the image model (84 MB, once)")
     p.set_defaults(func=_cmd_classify)
-    p = csub.add_parser("train", help="train on the labels and simulated slabs")
-    p.set_defaults(func=_cmd_classify)
-    p = csub.add_parser("evaluate", help="held-out results on the labelled photos")
-    p.set_defaults(func=_cmd_classify)
+    for name, text in (
+        ("train", "train on the labels and simulated slabs"),
+        ("evaluate", "held-out results on the labelled photos"),
+    ):
+        p = csub.add_parser(name, help=text)
+        p.add_argument(
+            "--specimens",
+            type=Path,
+            default=Path("specimens"),
+            help="also the owner's labels of their own photos here (default: specimens)",
+        )
+        p.set_defaults(func=_cmd_classify)
     p = csub.add_parser("photo", help="classify one photo")
     p.add_argument("path", type=Path)
     p.set_defaults(func=_cmd_classify)

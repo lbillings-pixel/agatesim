@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { LibraryImage } from "../api";
-import { draftFor, nextIndex, toggle } from "./labels";
+import { draftFor, draftFromAnswer, nextIndex, toggle } from "./labels";
 
 const image = (id: string, over: Partial<LibraryImage> = {}): LibraryImage => ({
   id,
@@ -54,5 +54,18 @@ describe("labelling", () => {
     expect(nextIndex(images, 0, "unlabelled", -1)).toBe(3);
     expect(nextIndex(images, 0, "labelled")).toBe(1);
     expect(nextIndex([image("a", { label: done })], 0, "unlabelled")).toBeNull();
+  });
+});
+
+describe("the owner's photos", () => {
+  it("open with the classifier's likely forms as guesses, or the saved label", () => {
+    const fresh = draftFromAnswer(null, ["moss", "fortification"]);
+    expect(fresh.guessed).toBe(true);
+    expect(fresh.label.forms).toEqual(["moss", "fortification"]);
+    expect(draftFromAnswer(null, []).guessed).toBe(false);
+    const saved = { verdict: "cant-tell" as const, forms: [], sure: false, features: [], note: "" };
+    const kept = draftFromAnswer(saved, ["moss"]);
+    expect(kept).toEqual({ label: saved, guessed: false });
+    expect(kept.label).not.toBe(saved);
   });
 });

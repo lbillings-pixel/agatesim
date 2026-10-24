@@ -28,7 +28,10 @@ from PIL import Image
 from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim.archetypes import Host
+from agatesim.classify import own_label_path
+from agatesim.library import Label, check_label
 from agatesim.render import render_slab
+from agatesim.server.classifier import ClassifierService
 from agatesim.simulate import simulate
 from agatesim.specimen.benchmark import Transect, compare, score_along
 from agatesim.specimen.edges import EdgeMap, boundary_edges, edge_crossings
@@ -48,6 +51,7 @@ THUMB_LONG_SIDE = 360
 THUMBS = 200
 CACHE = 4
 REPLICA_RESOLUTION = 512
+CLASSIFY_LONG_SIDE = 1024  # as the classifier's training photos were read
 QUALITY_VERSION = 3  # raise when the scores change, so cached ones are redone
 
 
@@ -96,7 +100,7 @@ def _transect_json(
     }
 
 
-def specimen_router(folder: Path) -> APIRouter:
+def specimen_router(folder: Path, classifier: ClassifierService | None = None) -> APIRouter:
     router = APIRouter(prefix="/api/specimens")
     photos: OrderedDict[str, Photo] = OrderedDict()
     observations: OrderedDict[str, Observation] = OrderedDict()
@@ -119,7 +123,7 @@ def specimen_router(folder: Path) -> APIRouter:
         return folder / ".agatesim" / f"{name}.quality.json"
 
     def sidecars(name: str) -> list[Path]:
-        return [settings_path(name), quality_path(name)]
+        return [settings_path(name), quality_path(name), own_label_path(folder, name)]
 
     def saved_settings(name: str) -> SpecimenSettings:
         p = settings_path(name)
@@ -364,6 +368,38 @@ def specimen_router(folder: Path) -> APIRouter:
             "not_from_photos": NOT_FROM_PHOTOS,
             "transects": [_transect_json(obs, t, edges) for t in settings.transects],
         }
+
+    @router.post("/{name}/classify")
+    def classify_photo(name: str) -> dict[str, object]:
+        """The learned classifier's answer (ADR 0067): appearance only."""
+        if classifier is None:
+            return {"ready": False, "why": "no classifier in this app"}
+        rgb = load_photo(path_of(name).read_bytes(), CLASSIFY_LONG_SIDE).rgb
+        return classifier.answer(rgb)
+
+    @router.get("/{name}/label")
+    def get_label(name: str) -> Label | None:
+        path_of(name)
+        p = own_label_path(folder, name)
+        return Label.model_validate_json(p.read_text("utf-8")) if p.exists() else None
+
+    @router.put("/{name}/label")
+    def put_label(name: str, label: Label) -> Label:
+        """The owner's label of their own photo, kept beside it (ADR 0066)."""
+        path_of(name)
+        try:
+            check_label(label)
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        p = own_label_path(folder, name)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(label.model_dump_json(), "utf-8")
+        return label
+
+    @router.delete("/{name}/label", status_code=204)
+    def clear_label(name: str) -> None:
+        path_of(name)
+        own_label_path(folder, name).unlink(missing_ok=True)
 
     @router.post("/{name}/replicate")
     def make_replica(name: str, settings: SpecimenSettings) -> dict[str, object]:

@@ -45,6 +45,7 @@ from agatesim.models import (
 from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
 from agatesim.runs import delete_run, is_run_id, list_runs, usage
+from agatesim.server.classifier import ClassifierService, classifier_router
 from agatesim.server.jobs import Job, JobManager
 from agatesim.server.library import library_router
 from agatesim.server.specimens import specimen_router
@@ -235,6 +236,7 @@ def create_app(
     runs_dir: Path,
     static_dir: Path | None = STATIC_DIR,
     specimens_dir: Path | None = None,
+    classifier: ClassifierService | None = None,
 ) -> FastAPI:
     tasks = progress.Registry()
     jobs = JobManager(runs_dir, tasks)
@@ -412,7 +414,10 @@ def create_app(
         t_dep = np.asarray(group["t_dep"])
         return Response(_png(encode_tdep(t_dep)), media_type="image/png")
 
-    app.include_router(specimen_router(specimens_dir or runs_dir.parent / "specimens"))
+    specimens_dir = specimens_dir or runs_dir.parent / "specimens"
+    classifier = classifier or ClassifierService(specimens_dir)
+    app.include_router(specimen_router(specimens_dir, classifier))
+    app.include_router(classifier_router(classifier, tasks))
     app.include_router(library_router())
     app.include_router(volume_router(jobs, runs_dir, tasks))
     app.include_router(task_router(tasks))

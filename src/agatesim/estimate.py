@@ -301,3 +301,26 @@ def run_3d(
     )
     out = build_3d(config).plus(fields)
     return out.plus(_cuts(survey_cuts, cut_resolution, config.archetype)) if survey_cuts else out
+
+
+# The form classifier (ADR 0067): fitting is about 2 s; what costs is embedding
+# photos and rendering simulated slabs not yet in the embeddings cache.
+TRAIN_SECONDS = 2.0
+EMBED_PHOTO_SECONDS = 0.15  # reading and embedding one labelled photo (17 s for 127)
+EMBED_SIM_SECONDS = 0.45  # rendering and embedding one simulated slab (173 s for 390)
+TRAIN_GB = 0.25
+
+
+def train_classifier(photos: int, sims: int) -> Estimate:
+    """Retraining when `photos` labelled photos and `sims` simulated slabs still
+    need embedding."""
+    reasons: list[str] = []
+    if sims:
+        reasons.append(f"renders {sims} simulated slabs once")
+    if photos:
+        reasons.append(f"reads {photos} newly labelled photos")
+    return Estimate(
+        TRAIN_SECONDS + photos * EMBED_PHOTO_SECONDS + sims * EMBED_SIM_SECONDS,
+        BASE_GB + TRAIN_GB,
+        tuple(reasons),
+    )

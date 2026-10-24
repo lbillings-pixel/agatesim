@@ -460,6 +460,15 @@ td.num { white-space: nowrap; }
 .chip { min-height: 2.5rem; padding: 0.3rem 0.8rem; border-radius: 999px; }
 .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
 .chip.guess[aria-pressed="true"] { background: transparent; color: var(--accent); border-style: dashed; }
+.form-classifier { display: grid; gap: 0.6rem; margin: 1rem 0; }
+.classifier-likely { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; }
+.classifier-ranked { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.25rem; }
+.classifier-ranked li { display: grid; grid-template-columns: minmax(7rem, 12rem) minmax(4rem, 1fr) 3rem auto; gap: 0.5rem; align-items: center; }
+.classifier-bar { height: 0.5rem; background: var(--line); border-radius: 999px; overflow: hidden; }
+.classifier-bar span { display: block; height: 100%; background: var(--accent); }
+.classifier-label { display: grid; gap: 0.6rem; }
+.classifier-train { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+@media (max-width: 600px) { .classifier-ranked li { grid-template-columns: 7rem 1fr 3rem; } .classifier-ranked li .muted { grid-column: 1 / -1; } }
 .labeler-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; position: sticky; bottom: 0; padding: 0.5rem 0; background: var(--bg); }
 .labeler-actions button { min-height: 2.75rem; flex: 1 1 6rem; }
 button.danger { border-color: var(--fail); color: var(--fail); }
