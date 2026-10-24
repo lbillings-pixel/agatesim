@@ -242,6 +242,34 @@ def _add_library(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> No
     p.set_defaults(func=_cmd_library)
 
 
+def _cmd_maps(args: argparse.Namespace) -> int:
+    from agatesim import maps
+
+    if args.maps_command == "build":
+        m = maps.build()
+        trained = ", ".join(f"{f} ({n})" for f, n in zip(m.features, m.counts, strict=True))
+        print(f"trained maps for {trained} into {maps.MAPS_PATH}")
+    if not maps.MAPS_PATH.exists():
+        print("no maps yet: run `agatesim maps build`")
+        return 1
+    print(f"{'feature':12s} photos   map  centre  map-0.5 (low)  map-centre (low)  shown")
+    for s in maps.evaluate(maps.FeatureMaps.load()):
+        print(
+            f"{s.feature:12s} {s.photos:6d} {s.map:5.2f} {s.centre:7.2f}"
+            f" {s.low_vs_chance:+14.2f} {s.low_vs_centre:+17.2f}  {'yes' if s.passes else 'no'}"
+        )
+    return 0
+
+
+def _add_maps(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:  # pyright: ignore[reportPrivateUsage]
+    m = sub.add_parser("maps", help="feature maps from image-level tags (ADR 0068)")
+    msub = m.add_subparsers(dest="maps_command", required=True)
+    p = msub.add_parser("build", help="train the maps, leaving out the test photos, and score them")
+    p.set_defaults(func=_cmd_maps)
+    p = msub.add_parser("score", help="score the trained maps on the test taps")
+    p.set_defaults(func=_cmd_maps)
+
+
 def _cmd_classify(args: argparse.Namespace) -> int:
     from agatesim import classify
 
@@ -350,6 +378,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     _add_volume(sub)
     _add_library(sub)
+    _add_maps(sub)
     _add_classify(sub)
 
     p = sub.add_parser("serve", help="start the local web app")

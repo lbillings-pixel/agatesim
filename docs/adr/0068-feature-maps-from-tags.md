@@ -93,3 +93,31 @@ model waits for better photos or for this score to show room to improve.
   stays on disk, not in memory all at once).
 - If tag-only maps fail the test, the next lever is point labels for
   training [@raine2024], reusing the same taps.
+
+## Results (2026-10-24, first run)
+
+`agatesim maps build` trains on the usable library photos minus the 40
+held-out ones and any photo that probably shows the same specimen
+(`specimen_group`). Patch features (384) are reduced to 64 whitened principal
+components; a photo's score is the mean of its top 10% of patches; the fit
+starts from the tagged-minus-untagged mean direction, because at zero every
+patch ties and the fit stalls. Plume (7 training photos) gets no map. Cost:
+86 s and 0.85 GB peak the first time (patch features of 230 photos, 157 MB on
+disk); 9 s from the cache.
+
+Mean per-photo ranking score on the owner's 841 taps, with the lower 95%
+bound (paired bootstrap over photos) of the gain over chance and over the
+centre prior:
+
+| feature | test photos | map | centre prior | gain vs chance (low) | gain vs centre (low) | shown |
+|---|---|---|---|---|---|---|
+| quartz core | 21 | 0.91 | 0.70 | +0.34 | +0.08 | yes |
+| open cavity | 11 | 0.85 | 0.85 | +0.21 | -0.20 | no |
+| host rock | 7 | 0.89 | 0.21 | +0.30 | +0.47 | yes |
+| inclusions | 6 | 0.78 | 0.47 | +0.09 | -0.08 | no |
+| moss | 13 | 0.84 | 0.32 | +0.22 | +0.31 | yes |
+| tube | 6 | 0.39 | 0.76 | -0.41 | -0.84 | no |
+
+These settings were fixed before the taps were read and are not tuned on them:
+tuning on the test taps would make them training data. Any later tuning uses
+the training photos alone, or new taps.
