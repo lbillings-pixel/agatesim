@@ -73,6 +73,18 @@ def test_stripping_metadata_keeps_pixels_orientation_and_focal_length() -> None:
         assert again.getexif().get_ifd(0x8825) == {}
         assert load_photo(clean).focal_35mm == 26
         assert load_photo(clean).rgb.shape == (64, 48, 3)  # still turned upright
+    # A phone photo with a depth map opens as MPO: it must stay a JPEG, not
+    # become a PNG four times the size under a .jpeg name.
+    buffer = io.BytesIO()
+    image.save(buffer, format="MPO", exif=exif, save_all=True, append_images=[image])
+    mpo = buffer.getvalue()
+    assert Image.open(io.BytesIO(mpo)).format == "MPO"
+    clean = strip_metadata(mpo)
+    again = Image.open(io.BytesIO(clean))
+    assert again.format == "JPEG"
+    assert len(clean) < len(mpo)
+    assert np.array_equal(np.asarray(again), np.asarray(Image.open(io.BytesIO(mpo))))
+    assert again.getexif().get_ifd(0x8825) == {}
     buffer = io.BytesIO()
     image.save(buffer, format="PNG", exif=exif)
     png = Image.open(io.BytesIO(strip_metadata(buffer.getvalue())))

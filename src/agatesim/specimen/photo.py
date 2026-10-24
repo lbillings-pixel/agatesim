@@ -129,7 +129,7 @@ def strip_metadata(data: bytes) -> bytes:
     (no re-encoding); a PNG is re-saved in its own mode, which is lossless."""
     with Image.open(io.BytesIO(data)) as image:
         exif = _minimal_exif(image)
-        if image.format == "JPEG":
+        if image.format in ("JPEG", "MPO"):  # phones' photos with depth maps open as MPO
             return _jpeg_without_metadata(data, exif)
         buffer = io.BytesIO()
         image.save(buffer, format="PNG", **({"exif": exif} if exif else {}))
