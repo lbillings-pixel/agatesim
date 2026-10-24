@@ -48,7 +48,7 @@ THUMB_LONG_SIDE = 360
 THUMBS = 200
 CACHE = 4
 REPLICA_RESOLUTION = 512
-QUALITY_VERSION = 2  # raise when the scores change, so cached ones are redone
+QUALITY_VERSION = 3  # raise when the scores change, so cached ones are redone
 
 
 class Rename(BaseModel):

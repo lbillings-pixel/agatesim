@@ -9,23 +9,32 @@ tracing any band:
   are the alternating turns of brightness that rise or fall by more than three
   times the noise and half the profile's spread (so grain coarser than a pixel
   isn't taken for bands); the spacing is the distance between neighbouring turns (one
-  band's thickness). The contrast is the spread (interquartile range) of
+  band's thickness), each turn placed to a fraction of a pixel by a parabola
+  through it and its neighbours. On a phone photo the spacing barely depends on
+  how close the camera was: as finer bands blur away, only coarser ones are
+  counted, so it settles at 6-9 px (ADR 0065). The contrast is the spread (interquartile range) of
   brightness along the profile, which needs no turns, so noise alone scores
   about 1.35 times the noise and nothing is selected to look good.
 - **fine bands**: the share of the profiles' band detail (periods of 2 to 64
   px) at periods under 4 px, after the noise's share is taken off. Bands
   finer than the pixels can't be counted, so a photo taken from too far reads
   as coarser-banded than it is; detail piled up at the pixel limit gives it
-  away (on synthetic photos: 3% when bands are 7 px apart, 14% at 2.8 px).
+  away (on synthetic photos: 3% when bands are 7 px apart, 14% at 2.8 px). A
+  phone's own smoothing removes that detail before it can be counted, so on
+  phone photos this reads about 0 whatever the distance (ADR 0065).
 - **edge width** (px): how wide the specimen's rim is, from profiles across the
   outline (the full width at half maximum of the brightness slope, which a
   shadow beside the rim doesn't change). The rim is a sharp step on
   the face's plane, so defocus and shake widen it as they widen band boundaries,
   whatever the bands are like. A perfectly sharp edge measures about 2.4 px
   (the 1 px smoothing that keeps noise down).
+- **resolution** (mm): the edge width on the face's scale, about the thinnest
+  band the photo can show (ADR 0065); it needs the ruler.
 - **noise** (grey levels): the finest-scale variation of brightness, from the
   median of the diagonal wavelet detail (Donoho's estimator), in tiles on the
-  face. Fine texture counts too: either competes with the band edges.
+  face. Fine texture counts too: either competes with the band edges. Phone
+  processing and JPEG compression can smooth the finest scale below the floor
+  (1 grey level), so the floor is a lower bound, not a measurement.
 - **JPEG blocking**: how much the brightness jumps at one of the eight column
   (and row) phases more than at the others; heavy compression leaves 8 px blocks.
 - **clipped highlights**: share of the face where a channel is at its ceiling
@@ -84,6 +93,7 @@ class Quality:
     contrast_to_noise: float | None
     fine_detail: float | None  # share of band detail at periods under 4 px
     edge_width_px: float | None
+    resolution_mm: float | None  # edge width on the face, if the ruler has been clicked
     noise: float  # grey levels
     blocking: float  # 1 = none
     clipped: float  # share of the face
@@ -173,6 +183,16 @@ def turns(profile: NDArray[np.float64], threshold: float) -> list[int]:
     return out
 
 
+def vertex(profile: NDArray[np.float64], i: int) -> float:
+    """Position of the extremum at `i` to a fraction of a pixel: the vertex of
+    the parabola through it and its two neighbours."""
+    if not 0 < i < len(profile) - 1:
+        return float(i)
+    a, b, c = profile[i - 1], profile[i], profile[i + 1]
+    curvature = a - 2 * b + c
+    return i + (0.5 * float(a - c) / float(curvature) if curvature != 0 else 0.0)
+
+
 def _window(
     lum: NDArray[np.float32], r0: float, c0: float, reach: int
 ) -> NDArray[np.float64] | None:
@@ -227,8 +247,9 @@ def band_profiles(
         q1, q3 = np.quantile(profile, [0.25, 0.75])
         spreads.append(float(q3 - q1))
         threshold = max(TURN_NOISE * noise, TURN_SPREAD * float(q3 - q1))
-        idx = turns(_scipy.gaussian(profile, PROFILE_SMOOTH_PX), threshold)
-        spacings.extend(float(b - a) for a, b in itertools.pairwise(idx))
+        smooth = _scipy.gaussian(profile, PROFILE_SMOOTH_PX)
+        at = [vertex(smooth, i) for i in turns(smooth, threshold)]
+        spacings.extend(b - a for a, b in itertools.pairwise(at))
         fine.append(fine_share(profile, noise))
     return spacings, spreads, fine, len(spreads)
 
@@ -399,6 +420,7 @@ def assess(
             (ruler[1][0] / scale, ruler[1][1] / scale),
         )
     contrast = float(np.median(spreads)) if spreads else None
+    mm_full = None if mm_per_px is None else mm_per_px * scale
     return Quality(
         face_px=face_px,
         band_spacing_px=float(np.median(spacings)) if spacings else None,
@@ -406,33 +428,37 @@ def assess(
         contrast_to_noise=None if contrast is None else contrast / noise,
         fine_detail=float(np.median(fine)) if fine else None,
         edge_width_px=edge,
+        resolution_mm=None if edge is None or mm_full is None else edge * mm_full,
         noise=noise,
         blocking=block,
         clipped=clipped,
         cast=cast,
         cast_hue=hue,
-        mm_per_px=None if mm_per_px is None else mm_per_px * scale,
+        mm_per_px=mm_full,
         profiles_used=used,
     )
 
 
 @dataclass(frozen=True)
 class Limits:
-    """(fit, borderline) limits of each score for one use."""
+    """(fit, borderline) limits of each score for one use (None: not checked)."""
 
-    spacing_px: tuple[float, float]  # at least
+    spacing_px: tuple[float, float] | None  # at least
     contrast_to_noise: tuple[float, float]  # at least
-    fine_detail: tuple[float, float]  # at most
+    fine_detail: tuple[float, float] | None  # at most
     edge_per_spacing: tuple[float, float]  # at most
     edge_px: tuple[float, float]  # at most: blur erases the finest bands, so the
     # spacing left behind grows with it and the ratio alone under-reports blur
     clipped: tuple[float, float]  # at most
     blocking: tuple[float, float]  # at most
+    resolution_mm: tuple[float, float] | None  # at most
     needs_scale: bool
     cast: float | None  # a caution above this (calibration of colour)
 
 
-# Effective limits, set on degraded synthetic photos (ADR 0064).
+# Effective limits, set on degraded synthetic photos (ADR 0064). Calibration
+# judges resolution in mm, not band spacing in px, which a phone photo can't
+# show changing with distance (ADR 0065).
 LIMITS: dict[Use, Limits] = {
     "classification": Limits(
         spacing_px=(5.0, 3.5),
@@ -442,17 +468,19 @@ LIMITS: dict[Use, Limits] = {
         edge_px=(9.0, 13.0),
         clipped=(0.05, 0.15),
         blocking=(1.6, 2.2),
+        resolution_mm=None,
         needs_scale=False,
         cast=None,
     ),
     "calibration": Limits(
-        spacing_px=(8.0, 5.0),
+        spacing_px=None,
         contrast_to_noise=(5.0, 3.0),
-        fine_detail=(0.06, 0.1),
+        fine_detail=None,
         edge_per_spacing=(0.6, 0.75),
         edge_px=(6.0, 9.0),
         clipped=(0.01, 0.05),
         blocking=(1.25, 1.6),
+        resolution_mm=(0.2, 0.4),
         needs_scale=True,
         cast=0.1,
     ),
@@ -489,13 +517,14 @@ def badge(q: Quality, use: Use) -> Badge:
         )
     else:
         spacing = q.band_spacing_px
-        check(
-            "band spacing",
-            _level(spacing, lim.spacing_px, at_least=True),
-            f"bands are {spacing:.1f} px apart; {lim.spacing_px[0]:g} px or more is best",
-            "move closer, crop less, or use a macro lens",
-        )
-        if q.fine_detail is not None:
+        if lim.spacing_px is not None:
+            check(
+                "band spacing",
+                _level(spacing, lim.spacing_px, at_least=True),
+                f"bands are {spacing:.1f} px apart; {lim.spacing_px[0]:g} px or more is best",
+                "move closer, crop less, or use a macro lens",
+            )
+        if q.fine_detail is not None and lim.fine_detail is not None:
             check(
                 "fine bands",
                 _level(q.fine_detail, lim.fine_detail, at_least=False),
@@ -513,6 +542,14 @@ def badge(q: Quality, use: Use) -> Badge:
                 f"edges are blurred over {q.edge_width_px:.1f} px, {ratio:.0%} of the band spacing",
                 "focus on the cut face, steady the camera, and stop the lens down a little",
             )
+    if lim.resolution_mm is not None and q.resolution_mm is not None:
+        check(
+            "resolution",
+            _level(q.resolution_mm, lim.resolution_mm, at_least=False),
+            f"bands thinner than about {q.resolution_mm:.2f} mm are lost; "
+            f"{lim.resolution_mm[0]:g} mm or finer is best",
+            "move closer or use a macro lens, and focus on the cut face",
+        )
     if q.contrast_to_noise is not None:
         check(
             "band contrast",

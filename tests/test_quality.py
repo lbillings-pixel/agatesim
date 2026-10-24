@@ -19,6 +19,7 @@ from agatesim.specimen.quality import (
     noise_sigma,
     ruler_cast,
     turns,
+    vertex,
 )
 from agatesim.specimen.segment import segment
 from agatesim.specimen.synthetic import SyntheticPhoto, degrade, photograph
@@ -183,3 +184,25 @@ def test_fine_share_of_coarse_and_fine_bands() -> None:
     assert fine_share(20 * np.sin(2 * np.pi * x / 3), 1.0) > 0.95
     noise = np.random.default_rng(3).normal(0, 5, 97)
     assert fine_share(20 * np.sin(2 * np.pi * x / 20) + noise, 5.0) < 0.05  # noise is taken off
+
+
+def test_vertex_places_a_turn_between_pixels() -> None:
+    x = np.arange(9, dtype=np.float64)
+    assert vertex(-((x - 4.3) ** 2), 4) == pytest.approx(4.3)
+    assert vertex(-((x - 4.3) ** 2), 0) == 0.0
+
+
+def test_resolution_is_the_edge_width_on_the_face_and_grows_with_distance() -> None:
+    """ADR 0065: band spacing in px hardly changes once finer bands blur away,
+    so calibration judges the resolution in mm instead."""
+    base, far = _scores(), _scores(shrink=0.5)
+    assert base.resolution_mm is not None
+    assert base.edge_width_px is not None
+    assert base.mm_per_px is not None
+    assert base.resolution_mm == pytest.approx(base.edge_width_px * base.mm_per_px)
+    assert far.resolution_mm is not None
+    assert 1.6 < far.resolution_mm / base.resolution_mm < 2.4
+    assert "resolution" not in _flagged(_scores(shrink=2.0), "calibration")
+    assert "resolution" in _flagged(far, "calibration")
+    assert "resolution" not in _flagged(far, "classification")
+    assert _assess(degrade(_clean(), noise=2.0), scale=False).resolution_mm is None

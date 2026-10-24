@@ -297,6 +297,7 @@ export interface PhotoQuality {
   contrast_to_noise: number | null;
   fine_detail: number | null;
   edge_width_px: number | null;
+  resolution_mm: number | null;
   noise: number;
   blocking: number;
   clipped: number;

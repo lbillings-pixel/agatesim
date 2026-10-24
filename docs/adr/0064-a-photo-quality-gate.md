@@ -1,6 +1,6 @@
 # 64. A photo quality gate, a specimen library, and uploads without location
 
-- Status: accepted (M30, stage 1 of [ADR 0063](0063-specimen-work-restarted-in-stages.md))
+- Status: accepted (M30, stage 1 of [ADR 0063](0063-specimen-work-restarted-in-stages.md)); calibration limits amended by [ADR 0065](0065-photo-resolution-in-mm.md)
 - Date: 2026-10-24
 
 ## Context
