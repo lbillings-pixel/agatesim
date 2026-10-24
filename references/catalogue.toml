@@ -775,6 +775,67 @@ venue = "arXiv:2304.07193"
 url = "https://arxiv.org/abs/2304.07193"
 access = "open"
 licence = "arXiv preprint; cite only"
+checked = "sections"
+sections_read = ["linear-probe segmentation results"]
+topics = ["image model", "self-supervised", "classification", "segmentation"]
+notes = "Linear-probe segmentation results read 2026-10-24 (M33): a linear layer on frozen, bilinearly upsampled patch tokens of ViT-S/14 gives mIoU 44.3 on ADE20k and 81.1 on VOC (47.2 and 82.6 with the last four layers, 640 px and multiscale); patches are 14 px. Abstract read 2026-10-24: self-supervised pretraining on a large curated image set gives general-purpose visual features; a 1B-parameter ViT is distilled into smaller models, reported to beat OpenCLIP on most image- and pixel-level benchmarks. The small distilled model (ViT-S/14) is the one used here (ADR 0067)."
+
+[[references]]
+id = "zhou2016"
+kind = "article"
+authors = ["Zhou, B.", "Khosla, A.", "Lapedriza, A.", "Oliva, A.", "Torralba, A."]
+year = 2016
+title = "Learning Deep Features for Discriminative Localization"
+venue = "CVPR 2016; arXiv:1512.04150"
+url = "https://arxiv.org/abs/1512.04150"
+access = "open"
+licence = "arXiv preprint; cite only"
+checked = "sections"
+sections_read = ["localisation results"]
+topics = ["image model", "weak supervision", "localisation"]
+notes = "Class activation maps (CAM), results read 2026-10-24 (M33): a network trained with image-level labels only localises objects with top-5 error 37.1% on ILSVRC, against 26.7% for a fully supervised network; the authors note the coarse 7 x 7 map and that CAMs highlight the most discriminative parts rather than the whole object. Basis of ADR 0068."
+
+[[references]]
+id = "raine2024"
+kind = "preprint"
+authors = ["Raine, S.", "et al. (full list not checked)"]
+year = 2024
+title = "Human-in-the-Loop Segmentation of Multi-species Coral Imagery"
+venue = "CVPR 2024 Workshops; arXiv:2404.09406"
+url = "https://arxiv.org/abs/2404.09406"
+access = "open"
+licence = "arXiv preprint; cite only"
+checked = "sections"
+sections_read = ["method", "Table I"]
+topics = ["image model", "segmentation", "point labels"]
+notes = "Method and Table I read 2026-10-24 (M33): denoised DINOv2 features at 512 px, upsampled to pixels, with point labels spread by nearest neighbour; mIoU 52.6 with 5 points per image, 59.5 with 10, 68.0 with 25, 85.0 with 300; evenly spaced points instead of chosen ones gave 38.7 at 5 points. The authors report SAM2 gave no usable segments on their textured coral photos. The closest published analogue to locating features in agate photos; option not chosen in ADR 0068 but kept for later."
+
+[[references]]
+id = "darcet2024"
+kind = "article"
+authors = ["Darcet, T.", "Oquab, M.", "Mairal, J.", "Bojanowski, P."]
+year = 2024
+title = "Vision Transformers Need Registers"
+venue = "ICLR 2024; arXiv:2309.16588"
+url = "https://arxiv.org/abs/2309.16588"
+access = "open"
+licence = "arXiv preprint; cite only"
+checked = "sections"
+sections_read = ["main text"]
+topics = ["image model", "patch features"]
+notes = "Main text read 2026-10-24 (M33): high-norm artefact tokens in patch-feature maps appear in large ViTs (ViT-L and up), not in small ones; adding register tokens removes them and improves dense results. Suggests the ViT-S/14 used here has largely clean patch maps; not checked on our model."
+
+[[references]]
+id = "arbelaez2011"
+kind = "article"
+authors = ["Arbelaez, P.", "Maire, M.", "Fowlkes, C.", "Malik, J."]
+year = 2011
+title = "Contour Detection and Hierarchical Image Segmentation"
+venue = "IEEE Trans. Pattern Anal. Mach. Intell. 33(5), 898-916"
+doi = "10.1109/TPAMI.2010.161"
+url = "https://doi.org/10.1109/TPAMI.2010.161"
+access = "closed"
+licence = "cite only"
 checked = "abstract"
-topics = ["image model", "self-supervised", "classification"]
-notes = "Abstract read 2026-10-24: self-supervised pretraining on a large curated image set gives general-purpose visual features; a 1B-parameter ViT is distilled into smaller models, reported to beat OpenCLIP on most image- and pixel-level benchmarks. The small distilled model (ViT-S/14) is the one used here (ADR 0067)."
+topics = ["boundaries", "evaluation"]
+notes = "Abstract read 2026-10-24 (M33). The BSDS500 benchmark: detected boundaries scored by precision and recall after one-to-one matching to human boundaries within a distance tolerance. The tolerance value (0.0075 of the image diagonal) is as quoted by later papers, not read here. Basis of mm-tolerance boundary scoring in ADR 0068."
