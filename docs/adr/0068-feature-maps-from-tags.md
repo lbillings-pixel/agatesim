@@ -61,6 +61,15 @@ only if it beats both. A synthetic photo with a known inserted region
 (`agatesim.specimen.synthetic`) checks the pipeline end to end, and a photo
 lacking the feature serves as the negative control.
 
+The held-out photos are chosen once (`agatesim library hold-out`) and recorded
+with the taps in `references/library-taps.toml`; the list can't change once
+taps exist. Each feature gets about the same share of its photos (at least 2),
+rarest first, then the rest are filled in a fixed hashed order. The 40 chosen
+hold out 21 of 89 quartz-core photos, open cavity 14/56, host rock 8/28,
+inclusions 6/24, moss 13/55, tube 6/26 and plume 2/9. Points are fractions of
+the photo's width and height; a photo counts as tapped with at least 3 inside
+and 3 outside points for each of its tagged features (about 5 each asked).
+
 ### 3. What is not promised
 
 Patches of about 1.6 mm can't resolve 0.2 mm band boundaries or thin moss

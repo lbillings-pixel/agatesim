@@ -1,0 +1,48 @@
+# Test taps for the feature maps (ADR 0068), written by the labelling
+# screen's tap mode. Points are (x, y) fractions of the photo from its
+# top left. Appearance only: never evidence for a formation mechanism.
+
+test = [
+    "2006-10-30buchstutzeachat03",
+    "achat-2",
+    "agat-lake-superior-agat-z-jez-gornego-minnesota-usa",
+    "agat-lake-superior-agat-z-jez-gornego-minnesota-usa-cropped",
+    "agat-lake-superior-duluth-minnesota-usa",
+    "agat-lake-superior-usa-minnesota",
+    "agat-winogronowy-agate-grape-san-rafael-swell-emery-county-utah-usa-cropped",
+    "agate-borden-formation-lower-mississippian-eastern-kentucky-usa-6-32632652621",
+    "agate-east-of-the-black-hills-south-dakota-usa-6",
+    "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-10",
+    "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-12",
+    "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-5",
+    "agate-filled-geode-las-choyas-geode-deposit-near-latest-eocene-35-ma-chihuahua-m-7",
+    "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-6-34651179201",
+    "agate-rio-grande-do-sul-caillois-donation-mnhn-n10",
+    "agate-rio-grande-do-sul-caillois-donation-mnhn-n14",
+    "agate-sio2-25505269264",
+    "agate5-hg",
+    "amethyst-bergkristall-achat-scheibe-aus-schlottwitz-sachsen",
+    "banded-agate-from-mexico-cropped",
+    "blue-lace-agate-geode",
+    "dugway-geode-juab-county-utah-usa-1-34540239846",
+    "estonian-museum-of-natural-history-specimen-no-174692-photo-g286-g286-68-1-jpg",
+    "estonian-museum-of-natural-history-specimen-no-178073-photo-g229-g229-436-jpg",
+    "eye-agate-texas-usa-32775594145",
+    "feuerachat-fireagate-from-brazil-tumble-polished-stone",
+    "hildesheim-roemer-und-pelizaeus-museum-achat",
+    "imgp2020360-50580579282",
+    "imgp2020361-50579722543",
+    "imgp2020365-50579721383",
+    "laguna-agate-chihuahua-mexico-2-32661870051",
+    "mineral-181-hg",
+    "moosachat-hg",
+    "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-7",
+    "moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-9",
+    "oregon001",
+    "panoramio-diego-viveros-6",
+    "precious-stone-agate-blue-semi-precious-stone",
+    "quarz-augenachat",
+    "quarz-augenachat-cropped",
+]
+
+[taps]

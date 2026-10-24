@@ -464,8 +464,28 @@ export interface LibraryIndex {
   images: LibraryImage[];
 }
 
+/** Test taps on one held-out photo (src/agatesim/taps.py, ADR 0068): points
+ * as [x, y] fractions of the photo from its top left. */
+export interface FeatureTaps {
+  inside: [number, number][];
+  outside: [number, number][];
+}
+
+export interface TapPhoto {
+  id: string;
+  targets: string[];
+  taps: Record<string, FeatureTaps>;
+  done: boolean;
+}
+
 export const library = {
   list: () => request<LibraryIndex>("/api/library"),
+  taps: () => request<{ photos: TapPhoto[] }>("/api/library/taps"),
+  saveTaps: (id: string, taps: Record<string, FeatureTaps>) =>
+    request<{ taps: Record<string, FeatureTaps>; done: boolean }>(
+      `/api/library/${encodeURIComponent(id)}/taps`,
+      { method: "PUT", body: JSON.stringify(taps) },
+    ),
   imageUrl: (id: string) => `/api/library/${encodeURIComponent(id)}/image`,
   label: (id: string, label: LibraryLabel) =>
     request<LibraryLabel>(`/api/library/${encodeURIComponent(id)}/label`, {

@@ -628,3 +628,14 @@ button.danger { border-color: var(--fail); color: var(--fail); }
 .held-build p { margin: 0; flex: 1 1 16rem; color: var(--caution); }
 .tour-visual { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; padding: 0.8rem; border: 1px dashed var(--line); border-radius: 6px; }
 .tour-visual figcaption { width: 100%; }
+.tapper { display: grid; gap: 0.6rem; }
+.tapper p { margin: 0; }
+.tap-frame { display: flex; justify-content: center; background: var(--slab-bg); border-radius: 6px; }
+.tap-photo { position: relative; display: inline-block; touch-action: manipulation; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.tap-photo img { display: block; max-width: 100%; max-height: 70vh; width: auto; height: auto; }
+.tap-dot { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; pointer-events: none; opacity: 0.45; box-sizing: border-box; }
+.tap-dot.active { opacity: 1; }
+.tap-dot.inside, .tap-key.inside { background: var(--pass); border: 2px solid #fff; }
+.tap-dot.outside, .tap-key.outside { background: transparent; border: 3px solid var(--fail); box-shadow: 0 0 0 1px #fff; }
+.tap-key { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 50%; vertical-align: -0.1rem; box-sizing: border-box; }
+.tap-credit { overflow-wrap: anywhere; }

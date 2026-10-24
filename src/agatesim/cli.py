@@ -212,6 +212,13 @@ def _add_volume(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> Non
 def _cmd_library(args: argparse.Namespace) -> int:
     from agatesim import library
 
+    if args.library_command == "hold-out":
+        from agatesim import taps
+
+        test = taps.choose_test_set(library.load_labels(), n=args.n)
+        taps.write_test_set(test)
+        print(f"held out {len(test)} photos for tap testing in {taps.TAPS_TOML}")
+        return 0
     lib = library.load_library()
     if args.library_command == "fetch":
         n, size = library.fetch(lib, limit=args.limit)
@@ -229,6 +236,9 @@ def _add_library(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> No
     p.add_argument("--limit", type=int, help="at most this many")
     p.set_defaults(func=_cmd_library)
     p = lsub.add_parser("status", help="how many are listed, fetched and labelled")
+    p.set_defaults(func=_cmd_library)
+    p = lsub.add_parser("hold-out", help="choose the photos held out for tap testing (ADR 0068)")
+    p.add_argument("--n", type=int, default=40, help="how many (default 40)")
     p.set_defaults(func=_cmd_library)
 
 
