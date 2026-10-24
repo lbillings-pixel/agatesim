@@ -1372,7 +1372,6 @@ forms = [
 ]
 features = [
     "quartz core",
-    "open cavity",
 ]
 
 [labels.annual-report-of-the-director-to-the-board-of-trustees-for-the-year-1926-1842818]
@@ -1452,7 +1451,6 @@ forms = [
     "fortification",
 ]
 features = [
-    "host rock",
     "open cavity",
 ]
 
@@ -1641,7 +1639,6 @@ forms = [
     "moss",
 ]
 features = [
-    "open cavity",
     "quartz core",
 ]
 
@@ -1870,9 +1867,6 @@ features = [
 verdict = "forms"
 forms = [
     "fortification",
-]
-features = [
-    "open cavity",
 ]
 
 [labels.imgp2020362-50580450116]
