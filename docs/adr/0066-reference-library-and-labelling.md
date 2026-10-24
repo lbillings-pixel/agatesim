@@ -51,7 +51,9 @@ A photo's label is one of three verdicts:
 - **not usable**: not a specimen as it formed, or too poor to judge.
 
 A label may also be marked "not sure", list features (quartz core, open cavity,
-inclusions, host rock, polished, rough) and carry a note. The file is sorted by
+inclusions, host rock, polished, rough, iridescence) and carry a note.
+Iridescence was added after the first 75 labels, for fire agate: its play of
+colour is clear in photos but is not a form any model makes (roadmap M36). The file is sorted by
 id, so its history reads cleanly. Labels say what a photo looks like and are
 never evidence for a formation mechanism. The owner's own photos are labelled
 apart from the library and never enter this file.

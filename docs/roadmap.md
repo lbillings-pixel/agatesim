@@ -41,3 +41,4 @@ Milestones end with a check-in: results, images, and the next decisions.
 | **M33: Feature detection** | Stage 4: quartz core, inclusions (moss, tube, plume), band boundaries | planned |
 | **M34: Calibration from photos** | Stage 5: model calibration from photos that pass the quality gate | planned |
 | **M35: Replication and fidelity** | Stage 6: procedural look-alikes; mechanistic fits as fidelity tests | planned |
+| **M36: Fire agate** | Literature pass on the iridescence of fire agate; render the colour that thin layers over botryoidal growth would show; owner decides whether fire becomes a form (an archetype with its own criteria) or stays a feature. Photos are already tagged "iridescence" (ADR 0066) | planned |

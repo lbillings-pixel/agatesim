@@ -36,7 +36,15 @@ AGENT = "agatesim-library/0.1 (https://github.com/lbillings-pixel/agatesim)"
 FETCH_PAUSE_S = 0.5
 
 # Features a photo can show besides its forms (ADR 0063 section 3).
-FEATURES = ("quartz core", "open cavity", "inclusions", "host rock", "polished", "rough")
+FEATURES = (
+    "quartz core",
+    "open cavity",
+    "inclusions",
+    "host rock",
+    "polished",
+    "rough",
+    "iridescence",
+)
 
 # Words in a title or category that suggest a form. Guesses only: the owner
 # confirms or corrects every one.

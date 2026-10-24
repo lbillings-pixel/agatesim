@@ -1,4 +1,592 @@
 # Labels of the reference library (ADR 0066), written by the labelling
 # screen. Appearance only: never evidence for a formation mechanism.
 
-[labels]
+[labels.achat-1]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "open cavity",
+    "host rock",
+]
+
+[labels.achat-2]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+    "shadow",
+]
+features = [
+    "open cavity",
+    "quartz core",
+    "inclusions",
+]
+
+[labels.agat-ognisty-calvillo-aguascalientes-meksyk]
+verdict = "forms"
+forms = [
+    "eye",
+    "botryoidal",
+]
+features = [
+    "rough",
+    "iridescence",
+]
+
+[labels.agat-ojo-de-laguna-chihuahua-meksyk]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "fortification",
+]
+features = [
+    "quartz core",
+    "open cavity",
+]
+
+[labels.agat-ojo-de-laguna-chihuahua-meksyk-cropped]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+]
+
+[labels.agat-winogronowy-agate-grape-san-rafael-swell-emery-county-utah-usa]
+verdict = "forms"
+forms = [
+    "botryoidal",
+]
+features = [
+    "rough",
+    "host rock",
+]
+
+[labels.agat-winogronowy-agate-grape-san-rafael-swell-emery-county-utah-usa-cropped]
+verdict = "forms"
+forms = [
+    "botryoidal",
+]
+features = [
+    "host rock",
+    "rough",
+]
+
+[labels.agat-ze-stalaktytami-agate-creek-queensland-australia]
+verdict = "forms"
+forms = [
+    "tube",
+    "quartz-geode",
+    "fortification",
+]
+features = [
+    "host rock",
+]
+
+[labels.agat-ze-stalaktytami-agate-creek-queensland-australia-cropped]
+verdict = "forms"
+forms = [
+    "tube",
+]
+
+[labels.agate-agate-creek-queensland-australia]
+verdict = "forms"
+forms = [
+    "fortification",
+    "tube",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+]
+
+[labels.agate-agate-creek-queensland-australia-cropped]
+verdict = "forms"
+forms = [
+    "tube",
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+]
+
+[labels.agate-filled-geode-brazil-1-31912507804]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "fortification",
+]
+features = [
+    "quartz core",
+]
+
+[labels.agate-filled-geode-condor-agate-argentina-31941551193]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "fortification",
+]
+features = [
+    "open cavity",
+]
+
+[labels.agate-geol-water-level]
+verdict = "forms"
+forms = [
+    "fortification",
+    "waterline",
+    "fortification-waterline",
+]
+
+[labels.agate-lined-geode-black-rock-desert-gerlach-nevada-usa-33974978773]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "botryoidal",
+    "fortification",
+]
+features = [
+    "host rock",
+    "open cavity",
+]
+
+[labels.agate-physical-properties-and-origin-plate-i-bhl48235788]
+verdict = "unusable"
+
+[labels.agate-physical-properties-and-origin-plate-ix-bhl48235754]
+verdict = "unusable"
+
+[labels.agate-quartz-filled-geode-1-32164187660]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "host rock",
+    "quartz core",
+    "open cavity",
+]
+
+[labels.agate-quartz-lined-geode-4-32632020771]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "open cavity",
+    "quartz core",
+]
+
+[labels.agate-quartz-lined-geode-5-32375570960]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "fortification",
+]
+features = [
+    "open cavity",
+    "quartz core",
+]
+
+[labels.agate-quartz-lined-geode-dryhead-montana-usa-2-31912720794]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "fortification",
+    "botryoidal",
+]
+features = [
+    "open cavity",
+    "host rock",
+]
+
+[labels.agate-with-uruguay-type-banding-om1-077a]
+verdict = "forms"
+forms = [
+    "waterline",
+    "fortification",
+    "fortification-waterline",
+]
+
+[labels.agate-with-uruguay-type-banding-om1-078a]
+verdict = "forms"
+forms = [
+    "waterline",
+    "fortification",
+    "fortification-waterline",
+]
+
+[labels.beach-agate-with-sagenite-from-central-oregon-coast-near-newport-and-yachats-ore]
+verdict = "forms"
+forms = [
+    "moss",
+    "stick",
+]
+features = [
+    "inclusions",
+]
+
+[labels.blue-lace-agate-geode]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "fortification",
+]
+features = [
+    "host rock",
+    "open cavity",
+]
+
+[labels.center-detail-quartz-uruguay-dation-caillois-cropped]
+verdict = "forms"
+forms = [
+    "eye",
+]
+
+[labels.dendrite-in-stone-from-russia]
+verdict = "unusable"
+
+[labels.dendritic-agate]
+verdict = "unusable"
+
+[labels.dendritic-agate-cropped]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.dendritic-agate-with-three-dendrite-occurances]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.detail-agat-ognisty-calvillo-aguascalientes-meksyk-cropped]
+verdict = "forms"
+forms = [
+    "botryoidal",
+    "eye",
+]
+features = [
+    "rough",
+    "iridescence",
+]
+
+[labels.dugway-geode-juab-county-utah-usa-2-34581522545]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "fortification",
+    "botryoidal",
+]
+features = [
+    "open cavity",
+    "quartz core",
+]
+
+[labels.estonian-museum-of-natural-history-specimen-no-178064-photo-g229-g229-427-jpg]
+verdict = "forms"
+forms = [
+    "moss",
+]
+features = [
+    "polished",
+]
+
+[labels.estonian-museum-of-natural-history-specimen-no-178073-photo-g229-g229-436-jpg]
+verdict = "forms"
+forms = [
+    "moss",
+]
+features = [
+    "inclusions",
+    "polished",
+]
+
+[labels.estonian-museum-of-natural-history-specimen-no-196301-photo-g159-g159-6-1-jpg]
+verdict = "unusable"
+
+[labels.estonian-museum-of-natural-history-specimen-no-196304-photo-g159-g159-6-7-jpg]
+verdict = "unusable"
+
+[labels.eye-agate-texas-usa-32775594145]
+verdict = "forms"
+forms = [
+    "eye",
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "host rock",
+    "polished",
+]
+
+[labels.feuerachat-fireagate-from-brazil-tumble-polished-stone]
+verdict = "forms"
+forms = [
+    "botryoidal",
+    "eye",
+    "moss",
+]
+features = [
+    "polished",
+    "iridescence",
+]
+
+[labels.fire-agate]
+verdict = "forms"
+forms = [
+    "botryoidal",
+]
+features = [
+    "rough",
+    "iridescence",
+]
+
+[labels.fire-agate-2]
+verdict = "unusable"
+
+[labels.fire-agate-and-alexandrite-in-14k]
+verdict = "unusable"
+
+[labels.fire-agate-and-alexandrite-in-14k2]
+verdict = "unusable"
+
+[labels.freiberg-terra-mineralia-achat-amethyst]
+verdict = "unusable"
+
+[labels.geodes-and-agate-filled-nodules-las-choyas-geode-deposit-near-latest-eocene-35-m]
+verdict = "unusable"
+
+[labels.graveyard-point-plume-agate-slabs-oregon-idaho-border-usa]
+verdict = "unusable"
+
+[labels.high-grade-slaughter-mountain-arizona-fire-agate-rough]
+verdict = "forms"
+forms = [
+    "botryoidal",
+]
+features = [
+    "rough",
+    "iridescence",
+]
+
+[labels.iris-agate-from-agatized-petrified-wood-stinking-water-oregon-detail-from-oregon]
+verdict = "forms"
+forms = [
+    "fortification",
+    "iris",
+]
+
+[labels.iris-agate-from-agatized-petrified-wood-stinking-water-oregon-usa-detail-from-or]
+verdict = "forms"
+forms = [
+    "iris",
+    "fortification",
+]
+
+[labels.montana-moss-agate]
+verdict = "forms"
+forms = [
+    "moss",
+    "fortification",
+]
+features = [
+    "polished",
+]
+
+[labels.moosachat-hg]
+verdict = "forms"
+forms = [
+    "moss",
+]
+features = [
+    "polished",
+]
+
+[labels.moss-agate-1]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-detail-cropped]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-1]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-10]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-2]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-3]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-4]
+verdict = "forms"
+forms = [
+    "moss",
+    "fortification",
+]
+features = [
+    "polished",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-5]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-6]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-7]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-8]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.moss-agate-gravel-bar-along-the-yellowstone-river-montana-usa-9]
+verdict = "forms"
+forms = [
+    "moss",
+]
+
+[labels.museum-mineralogia-munchen-06]
+verdict = "forms"
+forms = [
+    "moss",
+    "fortification",
+]
+
+[labels.oregon001]
+verdict = "forms"
+forms = [
+    "plume",
+]
+features = [
+    "inclusions",
+    "polished",
+]
+
+[labels.oregon003]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "fortification",
+]
+features = [
+    "quartz core",
+    "host rock",
+]
+
+[labels.oregon004]
+verdict = "forms"
+forms = [
+    "iris",
+    "fortification",
+]
+sure = false
+
+[labels.pareidolia-in-dendritic-agate]
+verdict = "unusable"
+
+[labels.pyrolusite-in-moss-agate-geodil-number-41]
+verdict = "forms"
+forms = [
+    "moss",
+]
+features = [
+    "host rock",
+    "inclusions",
+]
+
+[labels.quartz-moss-agate-geodil-number-2438]
+verdict = "unusable"
+
+[labels.quartz-uruguay-dation-caillois]
+verdict = "forms"
+forms = [
+    "eye",
+]
+
+[labels.quarz-augenachat]
+verdict = "forms"
+forms = [
+    "tube",
+]
+
+[labels.quarz-augenachat-cropped]
+verdict = "forms"
+forms = [
+    "tube",
+]
+
+[labels.richardson-ranch-thunder-egg-with-plume-from-plume-beds-richardson-ranch-madras-]
+verdict = "forms"
+forms = [
+    "plume",
+]
+
+[labels.sagenitic-fire-agate-01]
+verdict = "forms"
+forms = [
+    "botryoidal",
+    "stick",
+    "iris",
+    "fortification",
+]
+features = [
+    "polished",
+    "iridescence",
+]
+
+[labels.slices-of-agate-geodes]
+verdict = "unusable"
+
+[labels.winogronowy-agat-agate-grape-san-rafael-swell-emery-county-utah-usa]
+verdict = "forms"
+forms = [
+    "botryoidal",
+]
+features = [
+    "rough",
+]
