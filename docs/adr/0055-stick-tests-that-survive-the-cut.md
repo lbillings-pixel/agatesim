@@ -82,3 +82,16 @@ run at 768 px too.
 - Cuts that run nearly parallel to the vein and through its stick layer show
   70–100 crowded sections with no banding between them; the wrap test has
   nothing to judge there and fails.
+
+## Amendment: too coarse to judge (2026-10-25)
+
+On a preview (96 px, 1.45 mm pixels) some stick patches were a single pixel,
+whose width is undefined (NaN). One NaN made the median width NaN, so no patch
+was a section and the stick tests reported a confident 0 ("width nan mm").
+Patches of fewer than 3 pixels are now skipped (no measurable shape), and when
+the sticks' median width is under 2 pixels every stick test reports "not
+measured: resolution too coarse to judge", as the corner test does for bands
+under 5 px apart. No threshold changes; at the verifying resolution (768) the
+0.3 mm² floor already means at least 9 pixels, so verified results are
+unchanged. At 384 px the sticks (2.3 px wide) are still judged (44 of 47
+sections in stick-mechanistic).

@@ -407,6 +407,16 @@ def test_stick_criteria_reject_bands_that_ignore_the_sticks() -> None:
     assert _failed(evaluate("stick", replace(bands, fields=pasted))) == {"bands-wrap-sticks"}
 
 
+@pytest.mark.parametrize("name", ["stick", "stick-mechanistic"])
+def test_stick_criteria_say_a_preview_is_too_coarse(name: str) -> None:
+    """On a preview the sticks are under 2 px wide: no single-pixel patch's
+    undefined width (NaN) may turn that into a confident zero."""
+    ev = _evaluate("stick", load_preset(name).with_resolution(96))
+    for r in ev.results:
+        assert r.value is None, (r.id, r.value)
+        assert "too coarse" in r.detail, (r.id, r.detail)
+
+
 # --- Moss and plume ---------------------------------------------------------------
 
 

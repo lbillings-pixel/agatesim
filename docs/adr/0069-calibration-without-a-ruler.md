@@ -288,3 +288,13 @@ dendrites) and are left out of the table; none sits outside the photos' range.
   either milky or clear, two fixed values (ADR 0048's assumption), so every
   band swings by the same amount; only the iron stain varies. A low contrast
   spread is what that assumption predicts, not a fault in the statistic.
+- **Result** (`volume shape`, 12 draws, cuts that matched their photos;
+  photos 0.44). Where the bands are the chalcedony's own, the setting raises
+  contrast spread: draws with it at 0.3 or more against below 0.3 read 0.44
+  against 0.36 in fortification (median now 0.41), 0.42 against 0.34 in tube,
+  0.39 against 0.29 in stick, 0.37 against 0.27 in plume and 0.46 against
+  0.41 in moss-dense. In botryoidal, eye and quartz geode it shows no rise
+  (rank correlations -0.01 to -0.37 on 16-19 cuts, within what 12 draws can
+  move). Medians stay at or below the photos' (0.30-0.44), so the upper half
+  of the range does the matching. Mechanistic models are unchanged
+  (fortification-mechanistic 0.17).

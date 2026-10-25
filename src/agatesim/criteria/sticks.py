@@ -27,6 +27,8 @@ from agatesim.grid import FloatArray
 from agatesim.simulate import SimulationResult
 
 MIN_STICK_MM2 = 0.3  # patches smaller than this are specks, not sticks
+MIN_PATCH_PX = 3  # fewer pixels have no measurable shape (one has no spread at all)
+MIN_WIDTH_PX = 2  # sticks narrower than this (median) are too coarse to judge
 MIN_BOX_FILL = 0.6  # share of its oriented bounding box a stick section fills (convex)
 WIDTH_TOLERANCE = 0.25  # a section's width within this share of the cut's median width
 ZONE_RATIO = 0.5  # near a stick: at most half as far from it as from any other solid
@@ -84,7 +86,7 @@ def sticks(result: SimulationResult) -> list[Stick]:
             continue
         patch = labels == k
         area = float(patch.sum()) * cell
-        if area < MIN_STICK_MM2:
+        if area < MIN_STICK_MM2 or patch.sum() < MIN_PATCH_PX:
             continue
         fill, width, mid, along, half = _shape(pixel_points(grid, patch), area, grid.dx)
         out.append(Stick(patch, min(fill, 1.0), width, mid, along, half))
@@ -99,6 +101,17 @@ def sections(found: list[Stick]) -> list[Stick]:
     return [s for s in found if s.convex and abs(s.width - median) <= WIDTH_TOLERANCE * median]
 
 
+def _too_coarse(found: list[Stick], dx: float) -> str | None:
+    """Why the sticks can't be judged on this grid, if they can't: their median
+    width under MIN_WIDTH_PX pixels (a preview), so their shapes are pixels."""
+    if not found:
+        return None
+    median = float(np.median([s.width for s in found]))
+    if median < MIN_WIDTH_PX * dx:
+        return f"sticks under {MIN_WIDTH_PX} px wide; resolution too coarse to judge"
+    return None
+
+
 def stick_sections(result: SimulationResult) -> Measurement:
     """Share of the patches that are sections of crystal-shaped rods: convex
     (filling at least 60% of their oriented box) and as wide as the others
@@ -106,6 +119,8 @@ def stick_sections(result: SimulationResult) -> Measurement:
     found = sticks(result)
     if not found:
         return None, "no sticks"
+    if coarse := _too_coarse(found, result.grid.dx):
+        return None, coarse
     ok = sections(found)
     width = float(np.median([s.width for s in ok])) if ok else float("nan")
     return len(ok) / len(found), f"{len(ok)} of {len(found)} patches; width {width:.2f} mm"
@@ -114,13 +129,18 @@ def stick_sections(result: SimulationResult) -> Measurement:
 def stick_count(result: SimulationResult) -> Measurement:
     """Number of stick sections."""
     found = sticks(result)
+    if coarse := _too_coarse(found, result.grid.dx):
+        return None, coarse
     return float(len(sections(found))), f"{len(found)} patches"
 
 
 def pseudomorph_fill(result: SimulationResult) -> Measurement:
     """Share of the stick sections' area filled with quartz or left open,
     rather than an opaque mineral."""
-    found = sections(sticks(result))
+    every_stick = sticks(result)
+    if coarse := _too_coarse(every_stick, result.grid.dx):
+        return None, coarse
+    found = sections(every_stick)
     if not found:
         return None, "no stick sections"
     phase = result.fields.phase
@@ -139,6 +159,8 @@ def bands_wrap_sticks(result: SimulationResult) -> Measurement:
     far from the stick as from any other solid (the wall or another patch);
     sticks start on the wall, so a gap to the nearest solid would be zero."""
     every_stick = sticks(result)
+    if coarse := _too_coarse(every_stick, result.grid.dx):
+        return None, coarse
     found = sections(every_stick)
     if not found:
         return None, "no stick sections"
