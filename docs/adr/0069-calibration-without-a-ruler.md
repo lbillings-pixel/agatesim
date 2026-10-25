@@ -298,3 +298,28 @@ dendrites) and are left out of the table; none sits outside the photos' range.
   move). Medians stay at or below the photos' (0.30-0.44), so the upper half
   of the range does the matching. Mechanistic models are unchanged
   (fortification-mechanistic 0.17).
+
+## Amendment: M34 closed; graded milkiness not pursued (2026-10-25)
+
+- **Question.** Would milkiness that grades with the incorporated impurity,
+  instead of ADR 0048's two fixed values, give front feedback the contrast
+  spread it lacks (0.17 against the photos' 0.44)?
+- **Measured first** (fortification-mechanistic, preview size, impurity peak
+  of each impurity-rich band): the peaks barely differ. Spread (coefficient of
+  variation) 2.6% on 18 bands with a steady supply, 2.5% on 14 with supply
+  noise 0.3, 2.3% on 17 with 0.6. Supply noise changes how many bands form and
+  how thick they are, not how far each one's impurity climbs: the cycle turns
+  over at the same trapping threshold every time, so its peak is capped.
+- **Decision (owner).** No graded milkiness: it would make every milky band
+  almost equally milky, and the spread would stay near 0.17. Tying milkiness to
+  something that does vary (band thickness, growth speed) would stack a second
+  unsourced link on ADR 0048's, and is not done.
+- **What it shows.** Front feedback as modelled predicts bands of nearly equal
+  contrast. Natural agates spread more, so something besides this feedback
+  varies band contrast in nature. That counts against front feedback as the
+  whole account of the bands; it is not evidence for any other mechanism.
+  Making the peaks vary (for example a trapping threshold that drifts) would
+  change the mechanism and needs its own literature pass.
+- **M34 closed** with this amendment. Procedural models match the photos'
+  contrast spread through `contrast_variability`; the mechanistic models stay
+  as they are.
