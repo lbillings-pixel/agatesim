@@ -201,3 +201,43 @@ dendrites) and are left out of the table; none sits outside the photos' range.
   settings behind the rest; step 4 needs either a decision from these results
   directly (e.g. widen the thickness-variability ranges), or more draws of the
   models chosen (about 6 s per cut).
+
+## Amendment: step 4, wider Randomize ranges (2026-10-25)
+
+- **48 draws per model** (owner's choice; 96 cuts each, 5.5 h, about 3 GB).
+  The step-3 findings hold. Fifteen settings now beat chance on some statistic
+  (about 5 of 110 would by chance alone). Thickness spread is moved by almost
+  none of them: eye's period variability (+0.52) and plume's dendrite density
+  (+0.57). Band period (moss, quartz-geode, tube) and band thickness
+  (fortification) raise H; that may be partly the blur, which smooths wider bands
+  less. Longer or more elongated sticks set the stick models' quartz core share
+  (+0.79, -0.69); in botryoidal-mechanistic, wider spherulite spacing lowers the
+  trend (-0.45).
+- **Every model already has a thickness-variability setting** (period or
+  thickness variability, supply noise, dose variability), and the measured
+  spread rises with it only slowly: at the top of the old ranges, procedural
+  spreads reach about 0.59 against the photos' 0.63. Fitted lines put the photos'
+  median at a log-normal sigma of about 1.0-1.2, and at supply noise 0.3-0.75
+  where it helps at all.
+- **Ranges changed** (Randomize only; presets and their verified results are
+  untouched): period and thickness variability 0.1-0.8 to 0.1-1.2; supply noise
+  0-0.3 to 0-0.6; spherulite spacing 6-14 mm to 13-24 mm; spherulite rate
+  variability (front feedback) gains a range, 0-0.6. Botryoidal criteria still
+  pass on all 20 random cuts at spacings of 10, 14, 18 and 22 mm. The seven
+  botryoidal photos in the library have a trend of -0.07 (-0.60 to 0.91), flatter
+  than the library as a whole. No source gives the spread of band thickness, so
+  the library is the reference (as above), and these settings stay effective.
+- The cut cache's key now includes the model's schema, so a changed range
+  redoes that model's cuts.
+- **Re-check** (12 draws per model, 80 min). The spread rose by 0.02-0.10 in
+  most procedural models (cuts below the photos' range: fortification 58% to 41%,
+  tube 71% to 52%, botryoidal 51% to 29%). Half or more of the cuts are still too
+  even in 9 of the 22 models (stick, seam, tube, both fortification-mechanistic
+  presets and several moss presets). Botryoidal-mechanistic's trend fell from 2.9
+  to 2.0, but 62% of its cuts are still above the photos' range. Unchanged models
+  shift by up to about 0.02 in median and 10 points in share between the 48- and
+  12-draw runs, so smaller moves are noise.
+- **What this means.** Wider ranges close only part of the gap: thicker and
+  thinner bands in sequence are not enough. One untested explanation is that a
+  photographed band's width varies along its own length (pinching and
+  swelling), while a simulated band keeps one thickness all the way round.

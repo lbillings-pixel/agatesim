@@ -232,7 +232,9 @@ def _draw(config: VolumeConfig, rng: np.random.Generator) -> VolumeConfig | None
 
 
 def _key(config: VolumeConfig, draws: int, cuts: int, resolution: int, n_looks: int) -> str:
-    text = json.dumps(config.model_dump(mode="json"), sort_keys=True)
+    # The model's schema holds its Randomize ranges, so widening one redoes the cuts.
+    schema = type(config.model).model_json_schema()
+    text = json.dumps([config.model_dump(mode="json"), schema], sort_keys=True)
     digest = hashlib.sha256(text.encode()).hexdigest()[:12]
     return f"{VERSION}:{digest}:{draws}:{cuts}:{resolution}:{n_looks}"
 

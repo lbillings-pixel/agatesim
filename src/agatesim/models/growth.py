@@ -220,7 +220,7 @@ class ProceduralGrowth(BaseModel):
         units="",
         nature=Nature.IMPOSED,
         description="Spread of band durations (log-normal sigma).",
-        explore=(0.1, 0.8),
+        explore=(0.1, 1.2),
     )
     alternation: float = param(
         0.7,

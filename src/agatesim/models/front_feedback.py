@@ -343,7 +343,7 @@ class FrontFeedback(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Mean spacing of spherulite nucleation sites on the wall (spherulitic growth).",
-        explore=(6.0, 14.0),
+        explore=(13.0, 24.0),
         log=True,
     )
     spherulite_rate_variability: float = param(
@@ -353,6 +353,7 @@ class FrontFeedback(BaseModel):
         units="",
         nature=Nature.EFFECTIVE,
         description="Spread of growth rates between spherulites (log-normal sigma).",
+        explore=(0.0, 0.6),
     )
     supply_noise: float = param(
         0.0,
@@ -364,7 +365,7 @@ class FrontFeedback(BaseModel):
             "Fluctuation of the bulk silica supply (standard deviation; 0 = constant). "
             "An external forcing the bands may record."
         ),
-        explore=(0.0, 0.3),
+        explore=(0.0, 0.6),
     )
     noise_time: float = param(
         200.0,
