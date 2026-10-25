@@ -240,6 +240,15 @@ class ProceduralGrowth(BaseModel):
         description="Difference in translucency between milky and clear bands.",
         explore=(0.3, 1.0),
     )
+    contrast_variability: float = param(
+        0.0,
+        ge=0,
+        le=1.5,
+        units="",
+        nature=Nature.IMPOSED,
+        description="Band-to-band variation in milky/clear contrast (log spread; 0 = even).",
+        explore=(0.0, 0.6),
+    )
     iron_variability: float = param(
         0.2,
         ge=0,
@@ -1135,6 +1144,7 @@ def growth_fields(
         iron=0.0,
         iron_variability=0.0,
         rng=rng_bands,
+        contrast_variability=params.contrast_variability,
     )
     mids = (bands.edges[:-1] + bands.edges[1:]) / 2
     band_iron = np.clip(

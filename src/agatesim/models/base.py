@@ -93,11 +93,14 @@ def make_bands(
     iron: float,
     iron_variability: float,
     rng: np.random.Generator,
+    contrast_variability: float = 0.0,
 ) -> BandSequence:
     """A sequence of bands whose thicknesses sum to at least `total_mm`.
 
     Thicknesses are log-normal with the given mean. Translucency alternates
-    milky/clear with strength `alternation` (0 = random, 1 = strict).
+    milky/clear with strength `alternation` (0 = random, 1 = strict); each
+    band's swing is scaled by a log-normal factor of mean 1 and log spread
+    `contrast_variability` (0 = every band the same contrast).
     """
     # Separate streams, so band k's properties don't depend on how many bands
     # there are (which varies slightly with grid resolution).
@@ -114,6 +117,11 @@ def make_bands(
     edges = np.concatenate([[0.0], np.cumsum(thicknesses)])
     parity = np.where(np.arange(n) % 2 == 0, 1.0, -1.0)
     swing = alternation * parity + (1 - alternation) * rng_trans.uniform(-1, 1, n)
+    if contrast_variability > 0:
+        # Its own stream, so the other band properties are as without it.
+        rng_contrast = rng_trans.spawn(1)[0]
+        cv = contrast_variability
+        swing = swing * np.exp(cv * rng_contrast.standard_normal(n) - cv * cv / 2)
     translucency = np.clip(0.5 + 0.5 * opacity_contrast * swing, 0.0, 1.0)
     impurity = np.clip(iron + iron_variability * rng_iron.uniform(-1, 1, n), 0.0, 1.0)
     return BandSequence(edges=edges, impurity=impurity, translucency=translucency)

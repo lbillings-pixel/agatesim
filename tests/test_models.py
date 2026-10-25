@@ -9,7 +9,7 @@ from agatesim.models.base import make_bands
 from agatesim.simulate import SimulationResult, simulate
 
 
-def _bands(seed: int, total: float = 20.0):
+def _bands(seed: int, total: float = 20.0, contrast_variability: float = 0.0):
     return make_bands(
         total_mm=total,
         mean_thickness_mm=0.5,
@@ -19,6 +19,7 @@ def _bands(seed: int, total: float = 20.0):
         iron=0.3,
         iron_variability=0.2,
         rng=np.random.default_rng(seed),
+        contrast_variability=contrast_variability,
     )
 
 
@@ -36,6 +37,16 @@ def test_band_properties_do_not_depend_on_band_count() -> None:
     np.testing.assert_array_equal(short.edges, long.edges[: n + 1])
     np.testing.assert_array_equal(short.translucency, long.translucency[:n])
     np.testing.assert_array_equal(short.impurity, long.impurity[:n])
+
+
+def test_contrast_variability_varies_only_contrast() -> None:
+    even, uneven = _bands(5), _bands(5, contrast_variability=0.5)
+    np.testing.assert_array_equal(even.edges, uneven.edges)
+    np.testing.assert_array_equal(even.impurity, uneven.impurity)
+    # Swings keep their sign (milky stays milky) but no longer share one size.
+    swing_even, swing_uneven = even.translucency - 0.5, uneven.translucency - 0.5
+    assert np.all(np.sign(swing_uneven) == np.sign(swing_even))
+    assert not np.allclose(np.abs(swing_uneven), np.abs(swing_even))
 
 
 def test_mean_thickness() -> None:

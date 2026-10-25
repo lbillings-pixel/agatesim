@@ -272,3 +272,19 @@ dendrites) and are left out of the table; none sits outside the photos' range.
 - **Limits.** Photos' swings also carry lighting, colour and texture that a
   render lacks, so part of their contrast spread may not be banding at all.
   Twelve draws move a share by about 10 points, so the per-model figures are rough.
+
+## Amendment: step 6, contrast variability (2026-10-25)
+
+- **A procedural setting, `contrast_variability`** (imposed; procedural
+  fortification and procedural growth, 2D and 3D): each band's milky/clear
+  swing is scaled by a log-normal factor of mean 1 and this log spread, drawn
+  from its own stream so band widths, iron and the sign of each swing are
+  unchanged. Default 0, so presets and verified results are unchanged; the
+  Randomize range is 0-0.6. The waterline models already match the photos and
+  do not get it.
+- **Not in the mechanistic models** (owner's choice): a knob with no mechanism
+  behind it would hide what their low spread shows.
+- **Why fortification-mechanistic reads 0.17.** Front feedback makes each band
+  either milky or clear, two fixed values (ADR 0048's assumption), so every
+  band swings by the same amount; only the iron stain varies. A low contrast
+  spread is what that assumption predicts, not a fault in the statistic.

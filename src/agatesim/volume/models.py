@@ -192,6 +192,7 @@ def _fortification(
         iron=params.iron,
         iron_variability=params.iron_variability,
         rng=rng_bands,
+        contrast_variability=params.contrast_variability,
     )
     bands = replace(
         bands,

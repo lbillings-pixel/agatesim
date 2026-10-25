@@ -75,6 +75,15 @@ class ProceduralFortification(BaseModel):
         description="Difference in translucency between milky and clear bands.",
         explore=(0.3, 1.0),
     )
+    contrast_variability: float = param(
+        0.0,
+        ge=0,
+        le=1.5,
+        units="",
+        nature=Nature.IMPOSED,
+        description="Band-to-band variation in milky/clear contrast (log spread; 0 = even).",
+        explore=(0.0, 0.6),
+    )
     iron: float = param(
         0.25,
         ge=0,
@@ -165,6 +174,7 @@ def run_fortification(
         iron=params.iron,
         iron_variability=params.iron_variability,
         rng=rng_bands,
+        contrast_variability=params.contrast_variability,
     )
     bands = replace(
         bands,
