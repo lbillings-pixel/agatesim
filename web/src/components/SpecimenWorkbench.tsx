@@ -451,9 +451,10 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
             <section className="specimen-quality" aria-label="Photo quality">
               {quality.map((b) => (
                 <div key={b.use}>
-                  <span className={levelClass(b.level)}>
+                  <span className={levelClass(b.level)} title={b.note}>
                     {USE_LABEL[b.use]}: {b.level}
                   </span>
+                  {b.note && <span className="muted small"> ({b.note})</span>}
                   {b.reasons.length > 0 && (
                     <span className="muted small"> {b.reasons.map((r) => r.message).join("; ")}</span>
                   )}

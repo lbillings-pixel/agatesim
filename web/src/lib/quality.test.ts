@@ -38,6 +38,9 @@ describe("quality badges", () => {
   it("summarise the scores that fall short, worst first", () => {
     expect(badgeSummary(calibration)).toBe("Calibrate: not fit (no scale is set; bands are 6.0 px apart)");
     expect(badgeSummary({ use: "classification", level: "fit", reasons: [] })).toBe("Classify: fit");
+    expect(badgeSummary({ use: "shape", level: "fit", note: "judges band shape only", reasons: [] })).toBe(
+      "Band shape: fit. This judges band shape only",
+    );
   });
 
   it("give each piece of advice once", () => {

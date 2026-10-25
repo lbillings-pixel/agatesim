@@ -60,7 +60,7 @@ the face's own size or by the median band spacing:
 |---|---|---|
 | Thickness spread | coefficient of variation of band widths along each profile | none |
 | Rim-to-centre trend | slope of log band width against depth into the face (depth from the rim divided by the face's inner radius) | positive, faster near the rim [@goldbaum2019] |
-| Roughness | Hurst exponent of the grey profile, over scales from one to ten band spacings | 0.36–0.49 [@holten1998] |
+| Roughness | Hurst exponent of the grey profile, over windows of two to ten band spacings (amended in step 2, below) | 0.36–0.49 [@holten1998] |
 | Spacing ratio | median ratio of successive band widths | Liesegang only [@jahnke2008] |
 | Quartz core share | share of the face in the quartz-core map (photos) or the quartz field (simulations) | none |
 
@@ -98,3 +98,31 @@ thresholds don't change here.
   spread reflects what people photograph, not every agate.
 - The quartz core share on photos comes from the M33 map (score 0.91 on the
   owner's taps, centre 0.70), so it is rougher than the other statistics.
+
+## Amendment: step 2 (2026-10-24)
+
+- **Roughness windows start at two band spacings, not one.** A band spacing
+  is one band (turn to turn), half a light-and-dark period. On perfectly even
+  synthetic bands, windows from one spacing gave H = 0.45, inside the published
+  agate range, because the spread jumps when a window first holds a light and a
+  dark band. From two spacings, even bands give H = 0.09, and 200 independent random walks
+  0.50-0.53 (five seeds).
+- **H also rises with the trend.** Smooth bands that thicken inward give H of
+  about 0.5 with no roughness at all. H is compared between photos and
+  simulations measured alike; it is not read as roughness alone, nor matched to
+  [@holten1998].
+- **Thickness spread reads low**: 0.18 on synthetic bands whose true spread is
+  0.29 (the thinnest blur, and a profile holds about a dozen bands). Photos and
+  simulations share the bias.
+- Code: `specimen/shape.py` (statistics), `shapes.py` and
+  `agatesim library shape` (the library, cached in
+  `references/models/shapes.json`), the `shape` use in `specimen/quality.py`.
+- **The library** (230 usable photos; 312 s, under 0.62 GB, cached after):
+  59 fit and 85 borderline for shape. Medians (10th-90th percentile), fit /
+  borderline: spread 0.64 (0.54-0.74) / 0.63 (0.56-0.74); trend 0.34 (-0.62
+  to 1.55) / 0.47 (-0.63 to 1.32); H 0.45 (0.25-0.56) / 0.41 (0.22-0.62);
+  ratio 1.016 (0.96-1.12) / 1.018 (0.97-1.11); quartz core share 0.01
+  (0-0.18) / 0.03 (0-0.30). The two groups agree, so borderline photos add
+  numbers without shifting the spread. The trend's median is positive, as in
+  [@goldbaum2019], but at least a tenth of the photos read negative. The core
+  share counts patches the map scores at 0.5 or more, and reads low.

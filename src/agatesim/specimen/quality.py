@@ -78,7 +78,7 @@ FINE_PERIOD_PX = 4.0  # detail at shorter periods is at the pixel limit
 LONGEST_PERIOD_PX = 64.0
 GAUSSIAN_AREA = 1.0645  # area of a Gaussian over peak height times FWHM
 
-Use = Literal["classification", "calibration"]
+Use = Literal["classification", "calibration", "shape"]
 Level = Literal["fit", "borderline", "not fit"]
 LEVELS: tuple[Level, ...] = ("fit", "borderline", "not fit")
 
@@ -121,7 +121,12 @@ class Badge:
     reasons: list[Reason] = field(default_factory=list[Reason])
 
     def to_json(self) -> dict[str, object]:
-        return {"use": self.use, "level": self.level, "reasons": [asdict(r) for r in self.reasons]}
+        return {
+            "use": self.use,
+            "level": self.level,
+            "note": NOTES.get(self.use, ""),
+            "reasons": [asdict(r) for r in self.reasons],
+        }
 
 
 def luminance(rgb: NDArray[np.uint8], rows: int = 512) -> NDArray[np.float32]:
@@ -203,9 +208,9 @@ def _window(
     return lum[rr - reach : rr + reach + 1, cc - reach : cc + reach + 1].astype(np.float64)
 
 
-def _band_profile(win: NDArray[np.float64]) -> NDArray[np.float64] | None:
-    """The brightness profile through the window's centre along the band
-    normal (structure tensor); None where the bands have no clear direction."""
+def band_direction(win: NDArray[np.float64]) -> float | None:
+    """The band normal's angle (radians, from the column axis) at the window's
+    centre, from its structure tensor; None where the bands have no clear direction."""
     reach = win.shape[0] // 2
     gy, gx = np.gradient(_scipy.gaussian(win, 1.0))
     span = np.arange(-reach, reach + 1, dtype=np.float64) / (0.5 * reach)
@@ -215,7 +220,16 @@ def _band_profile(win: NDArray[np.float64]) -> NDArray[np.float64] | None:
     coherence = math.hypot(jxx - jyy, 2 * jxy) / max(jxx + jyy, 1e-12)
     if coherence < MIN_COHERENCE:
         return None
-    theta = 0.5 * math.atan2(2 * jxy, jxx - jyy)
+    return 0.5 * math.atan2(2 * jxy, jxx - jyy)
+
+
+def _band_profile(win: NDArray[np.float64]) -> NDArray[np.float64] | None:
+    """The brightness profile through the window's centre along the band
+    normal; None where the bands have no clear direction."""
+    theta = band_direction(win)
+    if theta is None:
+        return None
+    reach = win.shape[0] // 2
     t = np.arange(-reach, reach + 1, dtype=np.float64)
     return _scipy.bilinear(win, reach + t * math.sin(theta), reach + t * math.cos(theta))
 
@@ -484,6 +498,22 @@ LIMITS: dict[Use, Limits] = {
         needs_scale=True,
         cast=0.1,
     ),
+    # Calibration's limits without the ruler's checks (ADR 0069): band shape only.
+    "shape": Limits(
+        spacing_px=None,
+        contrast_to_noise=(5.0, 3.0),
+        fine_detail=None,
+        edge_per_spacing=(0.6, 0.75),
+        edge_px=(6.0, 9.0),
+        clipped=(0.01, 0.05),
+        blocking=(1.25, 1.6),
+        resolution_mm=None,
+        needs_scale=False,
+        cast=None,
+    ),
+}
+NOTES: dict[Use, str] = {
+    "shape": "judges band shape only, without a ruler: sizes in mm still need one",
 }
 MIN_PROFILES = 20
 

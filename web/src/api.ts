@@ -284,7 +284,8 @@ export interface QualityReason {
 }
 
 export interface QualityBadge {
-  use: "classification" | "calibration";
+  use: "classification" | "calibration" | "shape";
+  note?: string; // what the use does and doesn't judge, if it needs saying
   level: QualityLevel;
   reasons: QualityReason[];
 }

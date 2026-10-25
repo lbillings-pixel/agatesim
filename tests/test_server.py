@@ -252,7 +252,7 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         assert max(thumb.size) == 360
         assert len(thumb.getexif()) == 0
         scored = c.post("/api/specimens/slab.jpg/quality", json=settings).json()
-        assert {b["use"] for b in scored["badges"]} == {"classification", "calibration"}
+        assert {b["use"] for b in scored["badges"]} == {"classification", "calibration", "shape"}
         assert scored["quality"]["mm_per_px"] == pytest.approx(syn.mm_per_px, rel=0.01)
         (listed,) = c.get("/api/specimens").json()
         assert listed["badges"] == scored["badges"]  # cached beside the photo

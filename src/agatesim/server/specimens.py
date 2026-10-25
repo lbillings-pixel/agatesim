@@ -52,7 +52,7 @@ THUMBS = 200
 CACHE = 4
 REPLICA_RESOLUTION = 512
 CLASSIFY_LONG_SIDE = 1024  # as the classifier's training photos were read
-QUALITY_VERSION = 3  # raise when the scores change, so cached ones are redone
+QUALITY_VERSION = 4  # raise when the scores change, so cached ones are redone
 
 
 class Rename(BaseModel):

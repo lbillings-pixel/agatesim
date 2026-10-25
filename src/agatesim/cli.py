@@ -219,6 +219,21 @@ def _cmd_library(args: argparse.Namespace) -> int:
         taps.write_test_set(test)
         print(f"held out {len(test)} photos for tap testing in {taps.TAPS_TOML}")
         return 0
+    if args.library_command == "shape":
+        from agatesim import shapes
+
+        entries = shapes.measure_library()
+        print(f"band shape of {len(entries)} usable photos, cached in {shapes.SHAPES_PATH}")
+        print(
+            f"{'level':10s} {'statistic':9s} {'photos':>6s} {'10%':>7s} {'median':>7s} {'90%':>7s}"
+        )
+        for level in ("fit", "borderline"):
+            for stat, s in shapes.spreads(entries, level).items():
+                if s is not None:
+                    print(
+                        f"{level:10s} {stat:9s} {s.n:6d} {s.low:7.3f} {s.median:7.3f} {s.high:7.3f}"
+                    )
+        return 0
     lib = library.load_library()
     if args.library_command == "fetch":
         n, size = library.fetch(lib, limit=args.limit)
@@ -236,6 +251,8 @@ def _add_library(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> No
     p.add_argument("--limit", type=int, help="at most this many")
     p.set_defaults(func=_cmd_library)
     p = lsub.add_parser("status", help="how many are listed, fetched and labelled")
+    p.set_defaults(func=_cmd_library)
+    p = lsub.add_parser("shape", help="band shape statistics of the usable photos (ADR 0069)")
     p.set_defaults(func=_cmd_library)
     p = lsub.add_parser("hold-out", help="choose the photos held out for tap testing (ADR 0068)")
     p.add_argument("--n", type=int, default=40, help="how many (default 40)")
