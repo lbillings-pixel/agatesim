@@ -32,15 +32,23 @@ NOISE = 2.0
 WIDTH = 6.0  # px: band width at the rim
 
 
-def _face(phase: Callable[[NDArray[np.float64]], NDArray[np.float64]], *, seed: int = 0) -> Shape:
+def _face(
+    phase: Callable[[NDArray[np.float64]], NDArray[np.float64]],
+    *,
+    seed: int = 0,
+    swing: NDArray[np.float64] | None = None,
+) -> Shape:
     """A disc of concentric bands, brightness cos(pi * phase(depth in px from
     the rim)) so each band (turn to turn) is one unit of phase, a plain quartz
-    core in the middle, and noise."""
+    core in the middle, and noise. `swing` scales the brightness at each turn
+    (one value per unit of phase), so bands differ in contrast."""
     yy, xx = np.mgrid[0:SIZE, 0:SIZE].astype(np.float64)
     r = np.hypot(yy - SIZE / 2, xx - SIZE / 2)
     mask = r < RADIUS
     x = np.clip(RADIUS - r, 0, None)
-    lum = 128 + 50 * np.cos(np.pi * phase(x))
+    p = phase(x)
+    amplitude = 1.0 if swing is None else np.interp(p, np.arange(swing.size), swing)
+    lum = 128 + 50 * amplitude * np.cos(np.pi * p)
     lum[r < CORE * RADIUS] = 128
     lum += np.random.default_rng(seed).normal(0, NOISE, lum.shape)
     return measure(lum.astype(np.float32), mask, 1.0, NOISE, WIDTH, rng=np.random.default_rng(seed))
@@ -49,6 +57,12 @@ def _face(phase: Callable[[NDArray[np.float64]], NDArray[np.float64]], *, seed: 
 @cache
 def _even() -> Shape:
     return _face(lambda x: x / WIDTH)
+
+
+@cache
+def _faint_and_strong() -> Shape:
+    swing = np.random.default_rng(2).uniform(0.3, 1.0, 200)  # even widths, uneven contrast
+    return _face(lambda x: x / WIDTH, swing=swing)
 
 
 @cache
@@ -81,6 +95,21 @@ def test_even_bands_have_no_spread_trend_or_ratio() -> None:
     assert abs(s.ratio - 1) < 0.01
 
 
+def test_even_bands_have_even_contrast() -> None:
+    s = _even()
+    assert s.contrast is not None
+    assert s.contrast < 0.1
+
+
+def test_bands_of_uneven_contrast_have_contrast_spread() -> None:
+    s = _faint_and_strong()
+    assert s.contrast is not None
+    assert 0.15 < s.contrast < 0.3
+    # Every band still makes its turns, so widths stay even.
+    assert s.spread is not None
+    assert s.spread < 0.15
+
+
 def test_uneven_bands_have_spread_but_no_trend() -> None:
     s = _uneven()
     # Reads low (0.18 for a true 0.29): the thinnest bands blur, and a profile
@@ -89,6 +118,8 @@ def test_uneven_bands_have_spread_but_no_trend() -> None:
     assert 0.12 < s.spread < 0.4
     assert s.trend is not None
     assert abs(s.trend) < 0.3
+    assert s.contrast is not None
+    assert s.contrast < 0.12  # uneven widths alone leave contrast even
 
 
 def test_bands_thickening_inward_have_a_positive_trend() -> None:
@@ -148,7 +179,7 @@ def test_a_face_without_bands_reports_nothing() -> None:
     mask = np.hypot(yy - SIZE / 2, xx - SIZE / 2) < RADIUS
     lum = 128 + np.random.default_rng(0).normal(0, NOISE, mask.shape)
     s = measure(lum.astype(np.float32), mask, 1.0, NOISE, WIDTH, rng=np.random.default_rng(0))
-    assert (s.spread, s.trend, s.ratio) == (None, None, None)
+    assert (s.spread, s.contrast, s.trend, s.ratio) == (None, None, None, None)
 
 
 def test_core_share_counts_face_patches_only() -> None:

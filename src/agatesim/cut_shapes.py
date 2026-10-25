@@ -55,7 +55,7 @@ from agatesim.volume.simulate import prepare_volume
 from agatesim.volume.slicing import random_cuts
 
 CUT_SHAPES_PATH = MODELS_DIR / "cut-shapes.json"
-VERSION = 1  # raise when the blur, the cuts or the statistics change
+VERSION = 2  # raise when the blur, the cuts or the statistics change
 DRAWS = 12  # settings drawn per model
 CUTS = 2  # random cuts per draw
 PROBE_RESOLUTION = 512  # pixels across the first, quick look at a cut

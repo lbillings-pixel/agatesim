@@ -241,3 +241,34 @@ dendrites) and are left out of the table; none sits outside the photos' range.
   thinner bands in sequence are not enough. One untested explanation is that a
   photographed band's width varies along its own length (pinching and
   swelling), while a simulated band keeps one thickness all the way round.
+
+## Amendment: step 5, band contrast (2026-10-25)
+
+- **Pinch and swell is not testable by these statistics.** A profile crosses
+  each band once, so a band that is thin where it is crossed reads the same
+  whether it is thin everywhere or pinches there. On synthetic concentric bands
+  degraded like 24 library photos, along-band width changes (log amplitude
+  0.5) raised the measured spread exactly as more band-to-band variability
+  does. The measured spread also levels off near 0.6: a log-normal sigma of
+  1.2 (true CV about 1.8) reads 0.59, because blur and the turn threshold even
+  out the widths. Varying band contrast (log-normal sigma 0.7) raised it
+  separately, by 0.04-0.15: a band too faint to make a turn joins its
+  neighbours into one wide band.
+- **A sixth statistic, contrast spread** (`specimen.shape`): the coefficient of
+  variation of each band's brightness swing between the turns that bound it,
+  the median over profiles. On synthetic faces it reads 0.02 for even bands,
+  0.06 for bands of uneven width only, and 0.20 for bands of uneven contrast
+  only (true value about 0.2); the even face is its negative control.
+- **Photos** (`agatesim library shape`, 5 min): 0.44 (10-90%: 0.36-0.54), alike
+  for fit and borderline photos.
+- **Cuts** (12 draws, 83 min): most models are below the photos. Medians 0.30-0.40 in
+  most models (procedural ones included), lowest in fortification-mechanistic
+  (0.17), moss-mechanistic (0.26), plume-mechanistic (0.31) and tube (0.33);
+  only the two waterline models (0.43, 0.45) sit at the photos' median.
+  Seam-mechanistic is the opposite case: contrast fine (0.42), widths far too
+  even (spread 0.38, 91% of cuts below the photos). In fortification (procedural)
+  lower alternation (more random milkiness) raises the spread (-0.89), as the
+  contrast effect predicts.
+- **Limits.** Photos' swings also carry lighting, colour and texture that a
+  render lacks, so part of their contrast spread may not be banding at all.
+  Twelve draws move a share by about 10 points, so the per-model figures are rough.

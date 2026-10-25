@@ -10,6 +10,12 @@ turns.
 
 - **thickness spread**: the coefficient of variation of band widths along each
   profile; the median over profiles.
+- **contrast spread**: the coefficient of variation of each band's brightness
+  swing (between the two turns that bound it, the same turns that set its
+  width) along each profile; the median over profiles. Faint bands lift the
+  thickness spread too: a band too faint to make a turn joins its neighbours
+  into one wide band. Brightness is only ever compared within a profile, so
+  neither a scale nor a calibrated exposure is needed.
 - **rim-to-centre trend**: the least-squares slope of log band width against
   depth into the face (distance from the rim over the face's inner radius, the
   largest such distance). Positive: bands thicken towards the centre, as in
@@ -56,7 +62,7 @@ from agatesim.specimen.quality import (
 REACH_SPACINGS = 8.0  # a profile reaches this many band spacings each way
 MIN_REACH_PX, MAX_REACH_PX = 24, 320
 MARGIN_SPACINGS = 1.0  # profiles stop this far inside the face's outline
-MIN_WIDTHS = 4  # bands a profile needs to count for spread and ratio
+MIN_WIDTHS = 4  # bands a profile needs to count for spread, contrast and ratio
 MIN_PROFILES = 20
 MIN_TREND_WIDTHS = 40
 MIN_DEPTH_RANGE = 0.2  # the trend needs bands spread over this share of the depth
@@ -73,6 +79,7 @@ class Shape:
     """Scale-free statistics of one face's bands."""
 
     spread: float | None  # coefficient of variation of widths along a profile
+    contrast: float | None  # coefficient of variation of band swings along a profile
     trend: float | None  # d(log width) / d(depth over inner radius)
     hurst: float | None
     ratio: float | None  # width of each band over the one outside it
@@ -156,13 +163,14 @@ def measure(
     windows = window_lengths(spacing_px)
     variance: dict[int, list[float]] = {k: [0.0, 0] for k in windows}
     spreads: list[float] = []
+    contrasts: list[float] = []
     ratios: list[float] = []
     trend_depth: list[float] = []
     trend_width: list[float] = []
     used = 0
     rows, cols = np.nonzero(inner)
     if rows.size == 0:
-        return Shape(None, None, None, None, 0, 0)
+        return Shape(None, None, None, None, None, 0, 0)
     t = np.arange(-reach, reach + 1, dtype=np.float64)
     for i in rng.choice(rows.size, size=min(profiles, rows.size), replace=False):
         r0 = int((rows[i] + 0.5) / scale)
@@ -204,6 +212,8 @@ def measure(
         trend_width.extend(widths.tolist())
         if widths.size >= MIN_WIDTHS:
             spreads.append(float(widths.std() / widths.mean()))
+            swings = np.abs(np.diff(np.interp(at, x, smooth)))
+            contrasts.append(float(swings.std() / swings.mean()))
             inward = widths if mid_depth[-1] >= mid_depth[0] else widths[::-1]
             slope = np.polyfit(np.arange(inward.size), np.log(inward), 1)[0]
             ratios.append(float(math.exp(slope)))
@@ -215,6 +225,7 @@ def measure(
             trend = float(np.polyfit(d, np.log(trend_width), 1)[0])
     return Shape(
         spread=float(np.median(spreads)) if enough and len(spreads) >= MIN_PROFILES else None,
+        contrast=float(np.median(contrasts)) if enough and len(contrasts) >= MIN_PROFILES else None,
         trend=trend,
         hurst=hurst(variance) if enough else None,
         ratio=float(np.median(ratios)) if enough and len(ratios) >= MIN_PROFILES else None,

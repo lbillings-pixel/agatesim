@@ -35,9 +35,9 @@ from agatesim.specimen.segment import segment
 from agatesim.specimen.shape import core_share, measure
 
 SHAPES_PATH = MODELS_DIR / "shapes.json"
-VERSION = 2  # raise when the gate or the statistics change, so cached ones are redone
+VERSION = 3  # raise when the gate or the statistics change, so cached ones are redone
 WORKING_PX = 1600  # the app's working size
-STATISTICS = ("spread", "trend", "hurst", "ratio", "core")
+STATISTICS = ("spread", "contrast", "trend", "hurst", "ratio", "core")
 
 
 @dataclass(frozen=True)
