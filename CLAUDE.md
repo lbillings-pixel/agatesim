@@ -30,7 +30,8 @@
 - `uv sync`: install (`uv sync --extra gpu` with CuPy). Once the GPU extra is
   installed, run everything as `uv run --no-sync ...`: a plain `uv run` re-syncs
   and removes CuPy, even under a running job.
-- `uv run pytest` / `uv run ruff check` / `uv run ruff format` / `uv run pyright`
+- `uv run pytest` (full, ~14 min; `-m "not slow"` quick tier ~6.5 min, list in
+  tests/conftest.py) / `uv run ruff check` / `uv run ruff format` / `uv run pyright`
 - `uv run agatesim run <preset|config.toml> [--preview] [--check]`
 - `uv run agatesim library shape` then `volume shape [presets]`: band shape on
   photos vs blurred random cuts (ADR 0069; ~80 min for all, cached)

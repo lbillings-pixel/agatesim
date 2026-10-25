@@ -74,3 +74,4 @@ venv = ".venv"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["-ra", "--strict-markers", "--strict-config"]
+markers = ["slow: takes 5 s or more (listed in tests/conftest.py); -m 'not slow' is the quick tier"]
