@@ -24,7 +24,16 @@ from agatesim.library import (
     load_library,
     save_label,
 )
-from agatesim.taps import TAPS_TOML, FeatureTaps, load_taps, save_taps, tapped, targets
+from agatesim.taps import (
+    TAPS_TOML,
+    TRAIN_TAPS_TOML,
+    FeatureTaps,
+    Kind,
+    load_taps,
+    save_taps,
+    tapped,
+    targets,
+)
 
 
 def library_router(
@@ -32,6 +41,7 @@ def library_router(
     labels_toml: Path = LABELS_TOML,
     images_dir: Path = IMAGES_DIR,
     taps_toml: Path = TAPS_TOML,
+    train_taps_toml: Path = TRAIN_TAPS_TOML,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/library")
     lock = threading.Lock()
@@ -71,13 +81,17 @@ def library_router(
             ],
         }
 
+    def taps_path(kind: Kind) -> Path:
+        return taps_toml if kind == "test" else train_taps_toml
+
     @router.get("/taps")
-    def taps_index() -> dict[str, object]:
-        """The held-out test photos (ADR 0068), with what to tap and the taps so far."""
+    def taps_index(kind: Kind = "test") -> dict[str, object]:
+        """A tap set's photos: the held-out test photos (ADR 0068) or the
+        training photos (ADR 0070), with what to tap and the taps so far."""
         labels = load_labels(labels_toml)
-        held = load_taps(taps_toml)
+        held = load_taps(taps_path(kind), kind)
         out: list[dict[str, object]] = []
-        for image_id in held.test:
+        for image_id in held.photos:
             label = labels.get(image_id)
             taps = held.taps.get(image_id, {})
             out.append(
@@ -91,12 +105,14 @@ def library_router(
         return {"photos": out}
 
     @router.put("/{image_id}/taps")
-    def put_taps(image_id: str, taps: dict[str, FeatureTaps]) -> dict[str, object]:
+    def put_taps(
+        image_id: str, taps: dict[str, FeatureTaps], kind: Kind = "test"
+    ) -> dict[str, object]:
         image(image_id)
         with lock:
             label = load_labels(labels_toml).get(image_id)
             try:
-                saved = save_taps(image_id, label, taps, taps_toml)
+                saved = save_taps(image_id, label, taps, taps_path(kind))
             except ValueError as e:
                 raise HTTPException(422, str(e)) from None
         return {"taps": {f: t.model_dump() for f, t in saved.items()}, "done": tapped(label, saved)}

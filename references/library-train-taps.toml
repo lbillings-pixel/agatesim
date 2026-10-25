@@ -1,0 +1,48 @@
+# Training taps for the feature maps (ADR 0070), written by the labelling
+# screen's tap mode. Points are (x, y) fractions of the photo from its
+# top left. Appearance only: never evidence for a formation mechanism.
+
+train = [
+    "achatscheibe",
+    "agat-lake-superior-minnesota-stany-zjednoczone-ameryki-ponocnej-usa",
+    "agat-ze-stalaktytami-agate-creek-queensland-australia",
+    "agate-12-30746153687",
+    "agate-19-30746155707",
+    "agate-2-31731816833",
+    "agate-24-51867236448",
+    "agate-7-32755748235",
+    "agate-9-32408237080",
+    "agate-agate-creek-queensland-australia-cropped",
+    "agate-borden-formation-lower-mississippian-eastern-kentucky-usa-11-32632652021",
+    "agate-borden-formation-lower-mississippian-eastern-kentucky-usa-8-32756316565",
+    "agate-d-bruyere",
+    "agate-india-minerals-gallery-natural-history-museum-london-sw7-flickr-edk7",
+    "agate-lined-geode-black-rock-desert-gerlach-nevada-usa-33974978773",
+    "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-10-34651169521",
+    "agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-4-33974568193",
+    "agate-nowy-kosicol-poland-31912720284",
+    "agate-quartz-lined-geode-4-32632020771",
+    "agate-quartz-lined-geode-5-32375570960",
+    "agate-quartz-lined-geode-dryhead-montana-usa-2-31912720794",
+    "agate-quartz-lined-geode-dryhead-montana-usa-3-31971016393",
+    "agate-rio-grande-do-sul-caillois-donation-mnhn-n20",
+    "agate-rio-grande-do-sul-caillois-donation-mnhn-n25",
+    "agate-sio2-from-brazil-50583624161",
+    "agate3-hg",
+    "agate7-hg",
+    "brazilian-agate-section",
+    "czech025",
+    "details-agat-lake-superior-agat-z-jez-gornego-minnesota-usa-cropped",
+    "details-agat-lake-superior-stan-minnesota-usa-cropped",
+    "dugway-geode-juab-county-utah-usa-2-34581522545",
+    "earth-and-man-agate",
+    "estonian-museum-of-natural-history-specimen-no-176133-photo-g244-g244-9-1-jpg",
+    "gaillac-museum-d-histoire-naturelle-115",
+    "holley-blue-agate-linn-county-oregon-usa-7",
+    "museo-de-la-plata-agata-cropped",
+    "museum-mineralogia-munchen-06",
+    "pyrolusite-in-moss-agate-geodil-number-41",
+    "turnov-muzeum-ceskeho-raje-mineralogicka-expozice-3",
+]
+
+[taps]

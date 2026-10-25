@@ -58,3 +58,21 @@ both. Settings are fixed before the test taps are read, and no tuning uses them.
 - Point labels are appearance only, never evidence for a formation mechanism.
 - If tube still fails with points, its photos may be too few or too varied for a
   map; the next step would be more tube photos, not more tuning.
+
+## Implementation (2026-10-25)
+
+- `agatesim library train-set` chose 40 photos (`taps.choose_training_set`)
+  from the 104 usable tagged photos of no held-out specimen: 6 each of the failed
+  maps first, rarest first, then 2 each of the others, then hashed order. With
+  overlaps the list holds open cavity 15, inclusions 6, tube 11, plume 6 (of 7),
+  quartz core 21, host rock 6, moss 11. It is in
+  `references/library-train-taps.toml` and is fixed once tapped.
+- Specimens > Reference labels has a "Taps" mode with a "test photos /
+  training photos" switch; the API takes `?kind=train`.
+- `maps._fit_one` adds the mean logistic loss of the patch under each tap
+  (inside 1, outside 0); the tag terms' weights sum to 1, so the points weigh as
+  much as the tags. With no training taps the fit is unchanged. A synthetic test
+  where the tag cannot tell two always-paired spots apart shows the taps decide
+  it, and reversed taps teach the reverse (negative control).
+- Next: the owner taps the 40 training photos; then `build` retrains and scores
+  on the unchanged test taps (`agatesim maps build`).

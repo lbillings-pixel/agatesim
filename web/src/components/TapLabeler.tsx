@@ -4,6 +4,7 @@ import {
   type FeatureTaps,
   type LibraryIndex,
   type TapPhoto,
+  type TapSet,
   library,
 } from "../api";
 import {
@@ -18,9 +19,31 @@ import {
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-/** Tap points inside and outside each tagged feature on the photos held out
- * for testing the feature maps (ADR 0068). Library photos only. */
-export function TapLabeler({ index }: { index: LibraryIndex }) {
+const NAMES: Record<TapSet, { photos: string; taps: string; none: string }> =
+  {
+    test: {
+      photos: "test photos",
+      taps: "Test taps",
+      none: "No photos are held out for testing yet (`agatesim library hold-out`).",
+    },
+    train: {
+      photos: "training photos",
+      taps: "Training taps",
+      none: "No training photos are chosen yet (`agatesim library train-set`).",
+    },
+  };
+
+/** Tap points inside and outside each tagged feature on a tap set: the photos
+ * held out for testing the feature maps (ADR 0068) or the photos whose taps
+ * train them (ADR 0070). Library photos only. */
+export function TapLabeler({
+  index,
+  set,
+}: {
+  index: LibraryIndex;
+  set: TapSet;
+}) {
+  const names = NAMES[set];
   const [photos, setPhotos] = useState<TapPhoto[] | null>(null);
   const [at, setAt] = useState(0);
   // Unsaved taps on the photo on screen.
@@ -34,23 +57,18 @@ export function TapLabeler({ index }: { index: LibraryIndex }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    library.taps().then(
+    library.taps(set).then(
       ({ photos }) => {
         setPhotos(photos);
         setAt(nextUndone(photos, -1) ?? 0);
       },
       (e: unknown) => setError(message(e)),
     );
-  }, []);
+  }, [set]);
 
   if (error && !photos) return <p className="error">{error}</p>;
-  if (!photos) return <p>Loading the test photos…</p>;
-  if (photos.length === 0)
-    return (
-      <p>
-        No photos are held out for testing yet (`agatesim library hold-out`).
-      </p>
-    );
+  if (!photos) return <p>Loading the {names.photos}…</p>;
+  if (photos.length === 0) return <p>{names.none}</p>;
 
   const photo = photos[at] ?? photos[0];
   if (!photo) return null;
@@ -73,7 +91,7 @@ export function TapLabeler({ index }: { index: LibraryIndex }) {
     setBusy(true);
     setError(null);
     library
-      .saveTaps(photo.id, taps)
+      .saveTaps(photo.id, taps, set)
       .then(
         (saved) => {
           const next = photos.map((p) =>
@@ -107,7 +125,7 @@ export function TapLabeler({ index }: { index: LibraryIndex }) {
   return (
     <div className="tapper">
       <p>
-        Test taps: {done} of {photos.length} photos done · photo {at + 1}
+        {names.taps}: {done} of {photos.length} photos done · photo {at + 1}
         {photo.done && !dirty && " · done"}
       </p>
       <p className="muted">

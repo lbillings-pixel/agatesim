@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 
-import { type LibraryIndex, type LibraryLabel, library } from "../api";
+import {
+  type LibraryIndex,
+  type LibraryLabel,
+  type TapSet,
+  library,
+} from "../api";
 import { type Filter, draftFor, matches, nextIndex, toggle } from "../lib/labels";
 import { TapLabeler } from "./TapLabeler";
 
@@ -14,6 +19,7 @@ export function ReferenceLabeler() {
   const [filter, setFilter] = useState<Filter>("unlabelled");
   // Labelling tags, or tapping test points for the feature maps (ADR 0068).
   const [mode, setMode] = useState<"label" | "tap">("label");
+  const [tapSet, setTapSet] = useState<TapSet>("test");
   // Edits to the photo on screen; another photo opens with its own draft.
   const [edit, setEdit] = useState<{
     id: string;
@@ -75,7 +81,7 @@ export function ReferenceLabeler() {
           Label
         </button>
         <button type="button" role="tab" aria-selected={mode === "tap"} onClick={() => setMode("tap")}>
-          Test taps
+          Taps
         </button>
       </div>
       {mode === "label" && (
@@ -101,6 +107,18 @@ export function ReferenceLabeler() {
           </select>
         </label>
       )}
+      {mode === "tap" && (
+        <label>
+          Tap{" "}
+          <select
+            value={tapSet}
+            onChange={(e) => setTapSet(e.target.value as TapSet)}
+          >
+            <option value="test">test photos</option>
+            <option value="train">training photos</option>
+          </select>
+        </label>
+      )}
     </div>
   );
 
@@ -108,7 +126,7 @@ export function ReferenceLabeler() {
     return (
       <div className="specimen-library labeler">
         {head}
-        <TapLabeler index={index} />
+        <TapLabeler key={tapSet} index={index} set={tapSet} />
       </div>
     );
 

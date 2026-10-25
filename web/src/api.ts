@@ -476,8 +476,11 @@ export interface LibraryIndex {
   images: LibraryImage[];
 }
 
-/** Test taps on one held-out photo (src/agatesim/taps.py, ADR 0068): points
- * as [x, y] fractions of the photo from its top left. */
+/** Taps on one photo of a tap set (src/agatesim/taps.py): the held-out test
+ * photos (ADR 0068) or the training photos (ADR 0070). Points are [x, y]
+ * fractions of the photo from its top left. */
+export type TapSet = "test" | "train";
+
 export interface FeatureTaps {
   inside: [number, number][];
   outside: [number, number][];
@@ -492,10 +495,11 @@ export interface TapPhoto {
 
 export const library = {
   list: () => request<LibraryIndex>("/api/library"),
-  taps: () => request<{ photos: TapPhoto[] }>("/api/library/taps"),
-  saveTaps: (id: string, taps: Record<string, FeatureTaps>) =>
+  taps: (set: TapSet) =>
+    request<{ photos: TapPhoto[] }>(`/api/library/taps?kind=${set}`),
+  saveTaps: (id: string, taps: Record<string, FeatureTaps>, set: TapSet) =>
     request<{ taps: Record<string, FeatureTaps>; done: boolean }>(
-      `/api/library/${encodeURIComponent(id)}/taps`,
+      `/api/library/${encodeURIComponent(id)}/taps?kind=${set}`,
       { method: "PUT", body: JSON.stringify(taps) },
     ),
   imageUrl: (id: string) => `/api/library/${encodeURIComponent(id)}/image`,

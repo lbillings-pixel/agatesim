@@ -268,6 +268,14 @@ def _cmd_library(args: argparse.Namespace) -> int:
         taps.write_test_set(test)
         print(f"held out {len(test)} photos for tap testing in {taps.TAPS_TOML}")
         return 0
+    if args.library_command == "train-set":
+        from agatesim import taps
+
+        test = taps.load_taps().photos
+        train = taps.choose_training_set(library.load_labels(), test, n=args.n)
+        taps.write_photo_set(train, taps.TRAIN_TAPS_TOML, "train")
+        print(f"chose {len(train)} photos to tap for training in {taps.TRAIN_TAPS_TOML}")
+        return 0
     if args.library_command == "shape":
         from agatesim import shapes
 
@@ -306,6 +314,9 @@ def _add_library(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> No
     p = lsub.add_parser("hold-out", help="choose the photos held out for tap testing (ADR 0068)")
     p.add_argument("--n", type=int, default=40, help="how many (default 40)")
     p.set_defaults(func=_cmd_library)
+    p = lsub.add_parser("train-set", help="choose the photos to tap for map training (ADR 0070)")
+    p.add_argument("--n", type=int, default=40, help="how many (default 40)")
+    p.set_defaults(func=_cmd_library)
 
 
 def _cmd_maps(args: argparse.Namespace) -> int:
@@ -330,7 +341,9 @@ def _cmd_maps(args: argparse.Namespace) -> int:
 
 
 def _add_maps(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:  # pyright: ignore[reportPrivateUsage]
-    m = sub.add_parser("maps", help="feature maps from image-level tags (ADR 0068)")
+    m = sub.add_parser(
+        "maps", help="feature maps from image-level tags and training taps (ADR 0068, 0070)"
+    )
     msub = m.add_subparsers(dest="maps_command", required=True)
     p = msub.add_parser("build", help="train the maps, leaving out the test photos, and score them")
     p.set_defaults(func=_cmd_maps)

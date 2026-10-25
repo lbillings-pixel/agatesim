@@ -1,9 +1,15 @@
-"""Test taps for the feature maps (ADR 0068 section 2).
+"""Taps for the feature maps: a test set (ADR 0068 section 2) and a training
+set (ADR 0070).
 
 About 40 labelled library photos are held out from map training. On each, the
 owner taps points inside a tagged feature and points outside it (on the stone),
 and the maps are scored on how well they rank inside points above outside ones.
 The held-out list and the taps live in references/library-taps.toml.
+
+About 40 more photos, apart from the held-out ones and their specimens, get
+the same taps for training: each map fits the patch under a tap as well as the
+photo's tags. They live in references/library-train-taps.toml, so the test
+file is never touched.
 
 Points are fractions of the photo's width and height (0 to 1, from the top
 left), so they hold at any resolution. Taps say where a feature looks to be,
@@ -15,6 +21,7 @@ from __future__ import annotations
 import hashlib
 import tomllib
 from pathlib import Path
+from typing import Literal
 
 import tomli_w
 from pydantic import BaseModel, ConfigDict
@@ -22,10 +29,17 @@ from pydantic import BaseModel, ConfigDict
 from agatesim.library import ROOT, Label
 
 TAPS_TOML = ROOT / "references" / "library-taps.toml"
+TRAIN_TAPS_TOML = ROOT / "references" / "library-train-taps.toml"
+
+Kind = Literal["test", "train"]
 
 # Features that get a map: tags with enough photos (ADR 0068 section 1). Forms
 # and features share one namespace here; none of the names collide.
 MAP_FEATURES = ("quartz core", "open cavity", "host rock", "inclusions", "moss", "tube", "plume")
+
+# Maps that failed on image-level tags (ADR 0068); the training set favours them.
+FAILED_MAPS = ("open cavity", "inclusions", "tube", "plume")
+FAILED_QUOTA = 6  # training photos each, where the library has them
 
 # A photo counts as tapped once every target has this many points of each kind.
 ENOUGH = 3
@@ -41,11 +55,13 @@ class FeatureTaps(BaseModel):
 
 
 class Taps(BaseModel):
-    """The held-out photos and the taps made on them so far."""
+    """One tap set's photos and the taps made on them so far. The file names
+    the list after its kind (`test = [...]` or `train = [...]`)."""
 
     model_config = ConfigDict(extra="forbid")
 
-    test: list[str] = []
+    kind: Kind = "test"
+    photos: list[str] = []
     taps: dict[str, dict[str, FeatureTaps]] = {}
 
 
@@ -61,17 +77,12 @@ def _rank(image_id: str) -> str:
     return hashlib.sha256(f"agatesim-taps:{image_id}".encode()).hexdigest()
 
 
-def choose_test_set(labels: dict[str, Label], n: int = 40) -> list[str]:
-    """Hold out `n` photos with at least one target, about the same share of
-    each feature's photos (at least 2 each), rarest feature first; the rest are
-    filled in a fixed hashed order, so the choice doesn't depend on file order."""
-    pool = sorted((k for k, v in labels.items() if targets(v)), key=_rank)
-    tagged = {k: set(targets(labels[k])) for k in pool}
-    share = n / len(pool) if pool else 0.0
-    counts = {f: sum(f in t for t in tagged.values()) for f in MAP_FEATURES}
+def _choose(
+    pool: list[str], tagged: dict[str, set[str]], quotas: list[tuple[str, int]], n: int
+) -> list[str]:
+    """Fill each (feature, quota) in turn from the hashed pool, then the rest."""
     chosen: list[str] = []
-    for f in sorted(MAP_FEATURES, key=lambda f: counts[f]):
-        quota = min(counts[f], max(2, round(counts[f] * share)))
+    for f, quota in quotas:
         for k in pool:
             if sum(f in tagged[c] for c in chosen) >= quota or len(chosen) >= n:
                 break
@@ -81,19 +92,62 @@ def choose_test_set(labels: dict[str, Label], n: int = 40) -> list[str]:
     return sorted(chosen)
 
 
-def load_taps(path: Path = TAPS_TOML) -> Taps:
+def choose_test_set(labels: dict[str, Label], n: int = 40) -> list[str]:
+    """Hold out `n` photos with at least one target, about the same share of
+    each feature's photos (at least 2 each), rarest feature first; the rest are
+    filled in a fixed hashed order, so the choice doesn't depend on file order."""
+    pool = sorted((k for k, v in labels.items() if targets(v)), key=_rank)
+    tagged = {k: set(targets(labels[k])) for k in pool}
+    share = n / len(pool) if pool else 0.0
+    counts = {f: sum(f in t for t in tagged.values()) for f in MAP_FEATURES}
+    quotas = [
+        (f, min(counts[f], max(2, round(counts[f] * share))))
+        for f in sorted(MAP_FEATURES, key=lambda f: counts[f])
+    ]
+    return _choose(pool, tagged, quotas, n)
+
+
+def choose_training_set(labels: dict[str, Label], test: list[str], n: int = 40) -> list[str]:
+    """`n` photos to tap for training (ADR 0070): none held out or of a held-out
+    specimen; FAILED_QUOTA each of the failed maps' photos (rarest first, as
+    many as exist), then 2 each of the others, then hashed order."""
+    from agatesim.classify import specimen_group
+
+    test_groups = {specimen_group(k) for k in test}
+    pool = sorted(
+        (k for k, v in labels.items() if targets(v) and specimen_group(k) not in test_groups),
+        key=_rank,
+    )
+    tagged = {k: set(targets(labels[k])) for k in pool}
+    counts = {f: sum(f in t for t in tagged.values()) for f in MAP_FEATURES}
+    failed = sorted(FAILED_MAPS, key=lambda f: counts[f])
+    others = sorted((f for f in MAP_FEATURES if f not in FAILED_MAPS), key=lambda f: counts[f])
+    quotas = [(f, min(counts[f], FAILED_QUOTA)) for f in failed]
+    quotas += [(f, min(counts[f], 2)) for f in others]
+    return _choose(pool, tagged, quotas, n)
+
+
+_HEADERS: dict[Kind, str] = {
+    "test": "# Test taps for the feature maps (ADR 0068), written by the labelling\n",
+    "train": "# Training taps for the feature maps (ADR 0070), written by the labelling\n",
+}
+
+
+def load_taps(path: Path = TAPS_TOML, kind: Kind = "test") -> Taps:
+    """A tap set; `kind` names a file not written yet (written ones say)."""
     if not path.exists():
-        return Taps()
-    return Taps.model_validate(tomllib.loads(path.read_text("utf-8")))
+        return Taps(kind=kind)
+    raw = tomllib.loads(path.read_text("utf-8"))
+    found: Kind = "train" if "train" in raw else "test"
+    return Taps.model_validate({"kind": found, "photos": raw.pop(found, []), **raw})
 
 
 def _write(taps: Taps, path: Path) -> None:
-    header = (
-        "# Test taps for the feature maps (ADR 0068), written by the labelling\n"
+    header = _HEADERS[taps.kind] + (
         "# screen's tap mode. Points are (x, y) fractions of the photo from its\n"
         "# top left. Appearance only: never evidence for a formation mechanism.\n\n"
     )
-    body: dict[str, object] = {"test": taps.test}
+    body: dict[str, object] = {taps.kind: taps.photos}
     body["taps"] = {
         k: {f: t.model_dump(exclude_defaults=True) for f, t in sorted(v.items())}
         for k, v in sorted(taps.taps.items())
@@ -103,13 +157,19 @@ def _write(taps: Taps, path: Path) -> None:
     tmp.replace(path)
 
 
-def write_test_set(test: list[str], path: Path = TAPS_TOML) -> None:
-    """Record the held-out list; refused once taps exist, since changing it
-    would let maps train on photos they are tested on."""
-    old = load_taps(path)
+def write_photo_set(photos: list[str], path: Path = TAPS_TOML, kind: Kind = "test") -> None:
+    """Record a tap set's photos; refused once taps exist: changing the held-out
+    list would let maps train on photos they are tested on, and the training
+    list is fixed once tapped too (ADR 0070)."""
+    old = load_taps(path, kind)
     if any(old.taps.values()):
-        raise ValueError("taps exist already: the held-out list is fixed")
-    _write(Taps(test=sorted(test)), path)
+        name = "held-out" if kind == "test" else "training"
+        raise ValueError(f"taps exist already: the {name} list is fixed")
+    _write(Taps(kind=kind, photos=sorted(photos)), path)
+
+
+def write_test_set(test: list[str], path: Path = TAPS_TOML) -> None:
+    write_photo_set(test, path, "test")
 
 
 def _check_point(p: Point) -> Point:
@@ -125,10 +185,11 @@ def save_taps(
     taps: dict[str, FeatureTaps],
     path: Path = TAPS_TOML,
 ) -> dict[str, FeatureTaps]:
-    """Replace one held-out photo's taps (empty features are dropped)."""
+    """Replace one photo's taps in a tap set (empty features are dropped)."""
     old = load_taps(path)
-    if image_id not in old.test:
-        raise ValueError(f"{image_id!r} isn't a held-out test photo")
+    if image_id not in old.photos:
+        name = "held-out test" if old.kind == "test" else "training"
+        raise ValueError(f"{image_id!r} isn't a {name} photo")
     allowed = targets(label) if label else []
     unknown = [f for f in taps if f not in allowed]
     if unknown:

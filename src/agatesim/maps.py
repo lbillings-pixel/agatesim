@@ -28,7 +28,14 @@ from PIL import Image
 from agatesim import progress
 from agatesim.classify import MEAN, MODEL_PATH, MODEL_SHA256, MODELS_DIR, STD, specimen_group
 from agatesim.library import Label, LibraryImage, load_labels, load_library
-from agatesim.taps import MAP_FEATURES, FeatureTaps, Taps, load_taps, targets
+from agatesim.taps import (
+    MAP_FEATURES,
+    TRAIN_TAPS_TOML,
+    FeatureTaps,
+    Taps,
+    load_taps,
+    targets,
+)
 
 MAPS_PATH = MODELS_DIR / "maps.npz"
 PATCH_PX = 14
@@ -137,11 +144,29 @@ def library_patches(cache: PatchCache, image: LibraryImage) -> NDArray[np.float3
 @dataclass(frozen=True)
 class Bag:
     """One training photo: its patch features (patches x dims, float16 to halve
-    the memory) and its tags."""
+    the memory), its tags, and any training taps as (feature, patch index,
+    1 inside or 0 outside) (ADR 0070)."""
 
     key: str
     patches: NDArray[np.float16]
     tags: frozenset[str]
+    points: tuple[tuple[str, int, float], ...] = ()
+
+
+def patch_index(rows: int, cols: int, x: float, y: float) -> int:
+    """The flat index of the patch under (x, y), fractions of the photo."""
+    return min(int(y * rows), rows - 1) * cols + min(int(x * cols), cols - 1)
+
+
+def tap_points(
+    rows: int, cols: int, taps: dict[str, FeatureTaps]
+) -> tuple[tuple[str, int, float], ...]:
+    return tuple(
+        (f, patch_index(rows, cols, x, y), target)
+        for f, t in sorted(taps.items())
+        for pts, target in ((t.inside, 1.0), (t.outside, 0.0))
+        for x, y in pts
+    )
 
 
 @dataclass(frozen=True)
@@ -234,10 +259,14 @@ def _top(n: int, share: float = TOP_SHARE) -> int:
 
 
 def _fit_one(
-    xs: Sequence[NDArray[np.float32]], y: NDArray[np.float64]
+    xs: Sequence[NDArray[np.float32]],
+    y: NDArray[np.float64],
+    points: Sequence[tuple[int, int, float]] = (),
 ) -> tuple[NDArray[np.float64], float]:
     """Multiple-instance logistic regression: a photo's score is the mean of
-    its top patches' scores; L2 on the weights, rare positives weighted up."""
+    its top patches' scores; L2 on the weights, rare positives weighted up.
+    Tapped patches (photo, patch, 1 or 0) add a logistic term on the patch's
+    own score; all points together weigh as much as all tags (ADR 0070)."""
     from agatesim._scipy import minimize_lbfgs
 
     pos, neg = float(y.sum()), float((1 - y).sum())
@@ -247,6 +276,10 @@ def _fit_one(
     sw = sw / sw.sum()
     lam = REGULARISATION / len(y)
     ks = [_top(len(x)) for x in xs]
+    px: NDArray[np.float64] = np.array([xs[i][j] for i, j, _ in points], np.float64).reshape(
+        len(points), xs[0].shape[1]
+    )
+    pt: NDArray[np.float64] = np.array([t for _, _, t in points], np.float64)
 
     def loss(theta: NDArray[np.float64]) -> tuple[float, NDArray[np.float64]]:
         beta, b = theta[:-1], theta[-1]
@@ -260,6 +293,12 @@ def _fit_one(
             g = wi * (1.0 / (1.0 + np.exp(-s)) - yi)
             grad[:-1] += g * x[idx].mean(axis=0)
             grad[-1] += g
+        if len(pt):
+            s: NDArray[np.float64] = px @ beta + b
+            total += float(np.mean(np.logaddexp(0.0, s) - pt * s))
+            g = (1.0 / (1.0 + np.exp(-s)) - pt) / len(pt)
+            grad[:-1] += px.T @ g
+            grad[-1] += float(g.sum())
         return total, grad
 
     # Start from the difference of tagged and untagged photos' mean patches: at
@@ -282,7 +321,8 @@ def train(
     bias: list[float] = []
     for i, f in enumerate(kept):
         progress.report(i / len(kept), f"training the {f} map")
-        beta, b = _fit_one(xs, np.array([f in bag.tags for bag in bags], np.float64))
+        points = [(i, j, t) for i, bag in enumerate(bags) for g, j, t in bag.points if g == f]
+        beta, b = _fit_one(xs, np.array([f in bag.tags for bag in bags], np.float64), points)
         weights.append(beta)
         bias.append(b)
     return FeatureMaps(
@@ -299,7 +339,7 @@ def train(
 def training_ids(labels: dict[str, Label], held: Taps) -> list[str]:
     """Usable labelled photos, leaving out the held-out ones and every photo
     that probably shows the same specimen as one of them."""
-    test_groups = {specimen_group(k) for k in held.test}
+    test_groups = {specimen_group(k) for k in held.photos}
     return sorted(
         k
         for k, v in labels.items()
@@ -307,7 +347,14 @@ def training_ids(labels: dict[str, Label], held: Taps) -> list[str]:
     )
 
 
-def library_bags(cache: PatchCache, ids: Iterable[str], labels: dict[str, Label]) -> list[Bag]:
+def library_bags(
+    cache: PatchCache,
+    ids: Iterable[str],
+    labels: dict[str, Label],
+    taps: dict[str, dict[str, FeatureTaps]] | None = None,
+) -> list[Bag]:
+    """Training bags; `taps` are training taps by photo (ADR 0070)."""
+    taps = taps or {}
     images = {i.id: i for i in load_library().images}
     todo = [k for k in ids if k in images and images[k].path.exists()]
     out: list[Bag] = []
@@ -315,16 +362,18 @@ def library_bags(cache: PatchCache, ids: Iterable[str], labels: dict[str, Label]
         progress.report(n / max(len(todo), 1), f"reading {images[k].title}")
         p = library_patches(cache, images[k])
         flat = p.reshape(-1, p.shape[-1]).astype(np.float16)
-        out.append(Bag(k, flat, frozenset(targets(labels[k]))))
+        points = tap_points(p.shape[0], p.shape[1], taps.get(k, {}))
+        out.append(Bag(k, flat, frozenset(targets(labels[k])), points))
     return out
 
 
 def build(cache: PatchCache | None = None, path: Path = MAPS_PATH) -> FeatureMaps:
     """Train the maps on the library's usable photos minus the held-out ones,
-    score them on the taps, and save both."""
+    with the training taps, score them on the test taps, and save both."""
     cache = cache or PatchCache(OnnxPatchEmbedder())
     labels = load_labels()
-    bags = library_bags(cache, training_ids(labels, load_taps()), labels)
+    train_taps = load_taps(TRAIN_TAPS_TOML, "train").taps
+    bags = library_bags(cache, training_ids(labels, load_taps()), labels, train_taps)
     maps = train(bags, MAP_FEATURES, cache.embedder.key)
     maps = replace(maps, tested=tuple(evaluate(maps, cache)))
     maps.save(path)
@@ -409,8 +458,8 @@ def evaluate(maps: FeatureMaps, cache: PatchCache | None = None) -> list[Score]:
     held = load_taps()
     images = {i.id: i for i in load_library().images}
     per: dict[str, list[tuple[float, float]]] = {f: [] for f in maps.features}
-    for n, k in enumerate(held.test):
-        progress.report(n / len(held.test), "scoring the maps on the test taps")
+    for n, k in enumerate(held.photos):
+        progress.report(n / len(held.photos), "scoring the maps on the test taps")
         taps = held.taps.get(k, {})
         if not any(f in taps for f in maps.features) or not images[k].path.exists():
             continue

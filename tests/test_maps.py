@@ -98,6 +98,49 @@ def test_a_map_learnt_from_tags_finds_the_inserted_region() -> None:
     assert float(maps.scores(e.patches(plain))["inclusions"].max()) < 0.5
 
 
+RED, BLUE = (200, 40, 40), (40, 40, 200)
+
+
+def _two_spots(rng: np.random.Generator) -> NDArray[np.uint8]:
+    """A red spot top left and a blue one bottom right, always together."""
+    rgb = np.clip(rng.normal(120, 20, (300, 400, 3)), 0, 255).astype(np.uint8)
+    rgb[35:115, 40:120] = RED
+    rgb[185:265, 280:360] = BLUE
+    return rgb
+
+
+def _red_over_blue(inside: tuple[float, float], outside: tuple[float, float]) -> float:
+    """Train on photos where the tag can't tell red from blue (both always
+    appear together) and a few tapped photos; return the red spot's score
+    minus the blue spot's on a new photo."""
+    rng = np.random.default_rng(3)
+    e = PatchColour()
+    bags: list[m.Bag] = []
+    for i in range(40):
+        tagged = i % 2 == 0
+        rgb = _two_spots(rng) if tagged else _photo(rng, spot=False)[0]
+        p = e.patches(rgb)
+        taps = {"inclusions": FeatureTaps(inside=[inside] * 3, outside=[outside] * 3)}
+        points = m.tap_points(p.shape[0], p.shape[1], taps) if tagged and i < 12 else ()
+        flat = p.reshape(-1, p.shape[-1]).astype(np.float16)
+        bags.append(m.Bag(str(i), flat, frozenset({"inclusions"} if tagged else set()), points))
+    maps = m.train(bags, ["inclusions"], "patch-colour")
+    grid = maps.scores(e.patches(_two_spots(rng)))["inclusions"]
+    return m.value_at(grid, 0.2, 0.25) - m.value_at(grid, 0.8, 0.75)
+
+
+def test_training_taps_tell_apart_what_the_tags_cannot() -> None:
+    red, blue = (0.2, 0.25), (0.8, 0.75)
+    assert _red_over_blue(inside=red, outside=blue) > 0.3
+    # Negative control: the same taps reversed teach the opposite.
+    assert _red_over_blue(inside=blue, outside=red) < -0.3
+
+
+def test_tap_points_are_the_patches_under_the_taps() -> None:
+    taps = {"moss": FeatureTaps(inside=[(0.0, 0.0), (1.0, 1.0)], outside=[(0.5, 0.5)])}
+    assert m.tap_points(4, 6, taps) == (("moss", 0, 1.0), ("moss", 23, 1.0), ("moss", 15, 0.0))
+
+
 def test_a_map_no_better_than_the_centre_prior_fails() -> None:
     # Negative control for the shortcut: equal to the centre prior on every photo.
     s = m.score("quartz core", [(0.8, 0.8)] * 10)
@@ -116,7 +159,7 @@ def test_training_leaves_out_test_photos_and_their_specimens() -> None:
         "moss-b": usable,
         "junk": Label(verdict="unusable"),
     }
-    assert m.training_ids(labels, Taps(test=["moss-a"])) == ["moss-b"]
+    assert m.training_ids(labels, Taps(photos=["moss-a"])) == ["moss-b"]
 
 
 def test_maps_round_trip(tmp_path: Path) -> None:
