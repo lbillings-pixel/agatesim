@@ -32,6 +32,8 @@
   and removes CuPy, even under a running job.
 - `uv run pytest` / `uv run ruff check` / `uv run ruff format` / `uv run pyright`
 - `uv run agatesim run <preset|config.toml> [--preview] [--check]`
+- `uv run agatesim library shape` then `volume shape [presets]`: band shape on
+  photos vs blurred random cuts (ADR 0069; ~80 min for all, cached)
 - `uv run agatesim volume run|survey <3d-preset>`: 3D runs (ADR 0021). Write 3D
   runs under the repo's `runs/`: deep paths (the scratchpad) exceed Windows'
   path limit inside fields.zarr

@@ -14,6 +14,7 @@ import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -34,7 +35,7 @@ from agatesim.specimen.segment import segment
 from agatesim.specimen.shape import core_share, measure
 
 SHAPES_PATH = MODELS_DIR / "shapes.json"
-VERSION = 1  # raise when the gate or the statistics change, so cached ones are redone
+VERSION = 2  # raise when the gate or the statistics change, so cached ones are redone
 WORKING_PX = 1600  # the app's working size
 STATISTICS = ("spread", "trend", "hurst", "ratio", "core")
 
@@ -66,6 +67,10 @@ def measure_photo(
     q = assess(full, seg.mask, seg.outline)
     entry: dict[str, object] = {"level": badge(q, "shape").level, "segmented": True}
     entry["reasons"] = [r.score for r in badge(q, "shape").reasons]
+    # What simulated cuts are blurred and roughened to match (ADR 0069 section 3).
+    entry["spacing_px"] = _rounded(q.band_spacing_px)
+    entry["edge_px"] = _rounded(q.edge_width_px)
+    entry["noise"] = _rounded(q.noise)
     if q.band_spacing_px is not None:
         lum = luminance(full)
         scale = seg.mask.shape[1] / full.shape[1]
@@ -76,6 +81,10 @@ def measure_photo(
         share = core_share(maps.scores(patches)["quartz core"], seg.mask)
         entry["core"] = None if share is None else round(share, 4)
     return entry
+
+
+def _rounded(v: float | None) -> float | None:
+    return None if v is None else round(v, 4)
 
 
 def measure_library(path: Path = SHAPES_PATH) -> dict[str, dict[str, object]]:
@@ -108,6 +117,13 @@ def measure_library(path: Path = SHAPES_PATH) -> dict[str, dict[str, object]]:
     return out
 
 
+def load_entries(path: Path = SHAPES_PATH) -> dict[str, dict[str, object]]:
+    """The cached library entries ({} before `measure_library` has run)."""
+    if not path.exists():
+        return {}
+    return cast(dict[str, dict[str, object]], json.loads(path.read_text("utf-8")))
+
+
 def _write(path: Path, entries: dict[str, dict[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".part")
@@ -115,9 +131,12 @@ def _write(path: Path, entries: dict[str, dict[str, object]]) -> None:
     tmp.replace(path)
 
 
-def spreads(entries: dict[str, dict[str, object]], level: str) -> dict[str, Spread | None]:
-    """Each statistic's spread over the photos at one shape level."""
-    group = [e for e in entries.values() if e.get("level") == level]
+def spreads(
+    entries: dict[str, dict[str, object]], level: str | tuple[str, ...]
+) -> dict[str, Spread | None]:
+    """Each statistic's spread over the photos at one shape level (or several)."""
+    levels = (level,) if isinstance(level, str) else level
+    group = [e for e in entries.values() if e.get("level") in levels]
     out: dict[str, Spread | None] = {}
     for stat in STATISTICS:
         values = [float(v) for e in group if isinstance(v := e.get(stat), (int, float))]

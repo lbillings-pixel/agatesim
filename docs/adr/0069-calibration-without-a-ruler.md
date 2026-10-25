@@ -126,3 +126,78 @@ thresholds don't change here.
   numbers without shifting the spread. The trend's median is positive, as in
   [@goldbaum2019], but at least a tenth of the photos read negative. The core
   share counts patches the map scores at 0.5 or more, and reads low.
+
+## Amendment: step 3, simulations blurred like photos (2026-10-25)
+
+- **How.** `agatesim volume shape` (`cut_shapes.py`) takes each 3D preset, draws
+  12 settings from its Randomize ranges (`explore.vary_model`, full strength;
+  the H2 nodule has none, so one draw), and cuts each draw at 2 random planes
+  (`random_cuts`). Each cut is made to look like one fit or borderline library
+  photo picked at random (143 photos; `library shape` now stores each photo's
+  edge width, band spacing and noise):
+  - it is sized so its bands are as many pixels apart as the photo's (a probe
+    at 512 px, then 256-3072 px);
+  - it is blurred until its edge width over band spacing is the photo's
+    (photos: 0.23-0.49, median 0.38). Blur erases the finest bands and widens
+    the spacing left, so the blur is found in up to four rounds;
+  - grey noise of the photo's level is added.
+  A cut whose edge per spacing ends more than 15% from its photo's isn't
+  compared (cuts too coarse for a sharp photo). The face is the cavity; the
+  quartz core share is the quartz phase's share of it.
+- **Which settings move a statistic.** For each statistic, each setting's rank
+  correlation with it is taken over draws (a draw's cuts count once, by their
+  median). A setting is named only when its correlation beats the strongest
+  that any setting reaches with the results shuffled, in 95% of 500 shuffles:
+  models have 20-40 settings, and a fixed threshold named palette colours by
+  chance.
+- **Cost:** 4,832 s for all 23 presets (552 cuts) and 3.16 GB peak (the H2
+  nodule's lattice); cached in `references/models/cut-shapes.json`, after which
+  the report takes 2 s.
+
+Results (photos, fit and borderline pooled, 10th / median / 90th percentile:
+spread 0.54 / 0.63 / 0.74; trend -0.63 / 0.42 / 1.45; H 0.23 / 0.42 / 0.61;
+ratio 0.96 / 1.02 / 1.12; core 0 / 0.02 / 0.23). Per model: the median of its
+compared cuts and the share below / above the photos' 10-90% range.
+
+| preset | spread | trend | H | ratio | core |
+|---|---|---|---|---|---|
+| botryoidal-3d | 0.56 (39/11) | 0.67 | 0.30 | 1.01 | 0 |
+| botryoidal-mechanistic-3d | 0.65 | **3.38 (0/85)** | 0.52 | 1.11 (0/40) | 0 |
+| eye-3d | 0.55 (48/5) | 0.02 | 0.35 | 1.00 | 0 |
+| eye-mechanistic-3d | **0.54 (55/10)** | 0.31 | 0.34 | 1.01 | 0 |
+| fortification-3d | **0.55 (50/0)** | 0.39 | 0.30 | 1.02 | 0 |
+| fortification-mechanistic-3d | **0.45 (78/0)** | 0.55 | 0.34 | 1.02 | 0 |
+| fortification-waterline-mechanistic-3d | **0.53 (52/4)** | 0.09 | 0.43 | 1.01 | 0 |
+| liesegang-nodule-3d (2 cuts) | 0.50 | -0.79 | 0.33 | 0.94 | 0 |
+| plume-3d | **0.53 (60/0)** | 0.16 | 0.33 | 1.01 | 0 |
+| plume-mechanistic-3d | **0.54 (50/0)** | 0.22 | 0.36 | 1.02 | 0 |
+| quartz-geode-3d | **0.51 (61/0)** | 0.07 | 0.29 | 1.02 | 0.15 |
+| quartz-geode-mechanistic-3d | 0.63 | 0.03 (29/6) | 0.54 | **0.94 (59/0)** | 0.18 |
+| seam-mechanistic-3d | **0.48 (64/7)** | -0.02 (16/26) | 0.37 (38/0) | 0.99 | 0 |
+| stick-3d | **0.46 (86/0)** | 0.32 | 0.29 | 1.01 | 0.02 |
+| stick-mechanistic-3d | 0.56 (42/0) | 0.16 | 0.34 | 1.04 (8/25) | 0.02 |
+| tube-3d | **0.51 (67/0)** | 0.28 | 0.36 | 1.02 | 0 |
+| tube-mechanistic-3d | **0.48 (67/17)** | 0.17 | 0.37 | 1.02 | 0 |
+| waterline-3d | 0.60 (33/14) | 0.40 | 0.32 | 1.02 | 0 |
+| waterline-mechanistic-3d | 0.62 | 0.04 (27/18) | 0.55 | **0.96 (57/24)** | 0 |
+
+The four moss presets compare only 3-8 of 24 cuts each (few bands among the
+dendrites) and are left out of the table; none sits outside the photos' range.
+
+- **Bands are too even in most models.** In 11 of the 18 presets with more
+  than two cuts, half or more of the cuts' thickness spreads are below the
+  photos' 10th percentile (bold), and in three more 39-48% are. Photos and
+  simulations share the spread's low reading (step 2), so this is a real
+  difference. Only botryoidal-, quartz-geode- and waterline-mechanistic sit at
+  the photos' median.
+- **Botryoidal-mechanistic's bands thicken far too steeply inward** (trend 3.4
+  against the photos' 90th percentile of 1.45, in 85% of cuts).
+- **Quartz-geode- and waterline-mechanistic bands thin inward** (ratio 0.94-0.96,
+  more than half the cuts below the photos' range).
+- Roughness (H) and the quartz core share sit within the photos' range
+  throughout; procedural models lean smooth (H 0.29-0.36 against 0.42).
+- **Which settings:** only one setting beats chance: in stick-mechanistic, longer
+  sticks lower the trend (rho -0.95). Twelve draws are too few to name the
+  settings behind the rest; step 4 needs either a decision from these results
+  directly (e.g. widen the thickness-variability ranges), or more draws of the
+  models chosen (about 6 s per cut).

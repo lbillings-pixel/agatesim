@@ -159,6 +159,46 @@ def _cmd_volume_survey(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_volume_shape(args: argparse.Namespace) -> int:
+    from agatesim import cut_shapes, shapes
+    from agatesim.volume.config import volume_preset_names
+
+    entries = shapes.load_entries()
+    if not entries:
+        print("measure the library first: agatesim library shape")
+        return 1
+    looks = cut_shapes.looks(entries)
+    if not looks:
+        print("no library photo has its edges measured; rerun: agatesim library shape")
+        return 1
+    photos = shapes.spreads(entries, cut_shapes.LEVELS)
+    names = args.presets or volume_preset_names()
+    found = cut_shapes.survey_models(
+        names, looks, draws=args.draws, cuts=args.cuts, resolution=args.cut_resolution
+    )
+    print(f"photos (fit and borderline, {len(looks)} looks), 10% / median / 90%:")
+    for stat, s in photos.items():
+        if s is not None:
+            print(f"  {stat:7s} {s.low:7.3f} {s.median:7.3f} {s.high:7.3f}")
+    print(
+        f"{'preset':38s} {'stat':7s} {'cuts':>4s} {'median':>7s} {'below':>5s} {'in':>5s}"
+        f" {'above':>5s}  strongest setting"
+    )
+    for name, cuts in found.items():
+        banded = sum(1 for c in cuts if c.get("bands"))
+        print(f"{name} ({banded} of {len(cuts)} cuts show bands)")
+        for stat, c in cut_shapes.compare(cuts, photos).items():
+            if c is None:
+                continue
+            link = "" if c.setting is None else f"{c.setting} ({c.rho:+.2f})"
+            print(
+                f"  {'':36s} {stat:7s} {c.n:4d} {c.median:7.3f} {c.below:5.0%} {c.inside:5.0%}"
+                f" {c.above:5.0%}  {link}"
+            )
+    print(f"cached in {cut_shapes.CUT_SHAPES_PATH}")
+    return 0
+
+
 def _cmd_volume_presets(_: argparse.Namespace) -> int:
     from agatesim.volume.config import load_volume_preset, volume_preset_names
 
@@ -201,6 +241,15 @@ def _add_volume(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> Non
     p.add_argument("--seed", type=int, default=0, help="seed for the cut planes")
     p.add_argument("--json", type=Path, metavar="PATH", help="write every cut to a JSON file")
     p.set_defaults(func=_cmd_volume_survey)
+
+    p = vsub.add_parser(
+        "shape", help="band shape on blurred random cuts, against the library (ADR 0069)"
+    )
+    p.add_argument("presets", nargs="*", help="3D presets (default: all)")
+    p.add_argument("--draws", type=int, default=12, help="settings drawn per model")
+    p.add_argument("--cuts", type=int, default=2, help="random cuts per draw")
+    p.add_argument("--cut-resolution", type=int, default=3072, help="most pixels across a cut")
+    p.set_defaults(func=_cmd_volume_shape)
 
     p = vsub.add_parser("presets", help="list the shipped 3D presets")
     p.set_defaults(func=_cmd_volume_presets)

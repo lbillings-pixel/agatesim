@@ -153,6 +153,24 @@ def _vary_schedules(values: dict[str, Any], strength: float, rng: np.random.Gene
                 event["value"] = level(event["value"])
 
 
+def vary_model[M: BaseModel](
+    model: M,
+    strength: float,
+    rng: np.random.Generator,
+    extras: frozenset[Extra] = frozenset(),
+) -> M:
+    """A model's key settings moved toward random values in their ranges (and its
+    schedules or stage order, among `extras`)."""
+    schema = type(model).model_json_schema()
+    values = _vary(model.model_dump(mode="json"), schema["properties"], schema, strength, rng)
+    if "schedules" in extras:
+        _vary_schedules(values, strength, rng)
+    if "order" in extras and isinstance(model, Staged) and rng.random() < strength:
+        orders = get_args(Order)
+        values["order"] = orders[int(rng.integers(0, len(orders)))]
+    return type(model).model_validate(values)
+
+
 def vary(
     config: RunConfig,
     strength: float,
@@ -161,15 +179,7 @@ def vary(
 ) -> RunConfig:
     """One draw: the key settings moved toward random values in their ranges, a
     new seed, and any `extras` (cavity, schedules, stage order) varied too."""
-    model = config.model
-    schema = type(model).model_json_schema()
-    values = _vary(model.model_dump(mode="json"), schema["properties"], schema, strength, rng)
-    if "schedules" in extras:
-        _vary_schedules(values, strength, rng)
-    if "order" in extras and isinstance(model, Staged) and rng.random() < strength:
-        orders = get_args(Order)
-        values["order"] = orders[int(rng.integers(0, len(orders)))]
-    new_model = cast(BaseModel, type(model).model_validate(values))
+    new_model = vary_model(config.model, strength, rng, extras)
     drawn = config.model_copy(update={"model": new_model, "seed": int(rng.integers(0, 1_000_000))})
     if "cavity" in extras:
         drawn = _vary_cavity(drawn, strength, rng)
