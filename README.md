@@ -9,6 +9,8 @@ waterline, botryoidal, moss, shadow, iris and more) and to show which conditions
 and which proposed formation mechanisms, can produce them.
 
 > **Status.** All thirteen target forms are reproduced at the procedural tier and at the mechanistic tier ([ADR 0035](docs/adr/0035-what-the-mechanistic-tier-requires.md)), shadow agate on a stated, unsourced assumption ([ADR 0048](docs/adr/0048-shadow-agate-by-a-stated-milkiness-link.md)), and eleven run in 3D, judged on cuts (all eleven mechanistically too). See the [roadmap](docs/roadmap.md), the [gallery images](docs/images/) and the [glossary](docs/glossary.md).
+>
+> agatesim is now complete as a first project: which single mechanisms and conditions can produce which forms. How processes interact within one nodule will be explored in a separate follow-on project ([ADR 0072](docs/adr/0072-reframing-a-coupled-follow-on-project.md)).
 
 ![Verification presets of all thirteen forms](docs/images/archetypes.png)
 

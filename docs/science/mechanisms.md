@@ -77,13 +77,15 @@ What the reviews agree on:
 | H1 | Self-organized crystallization | Feedback between growth and composition at the crystallization front produces rhythmic bands without any external cycling. Bands alternate between straight-fibred, trace-element-poor layers and twisted-fibred, trace-element-rich layers. | [@wang1990], [@merino1995], [@heaney1995] | Coupled front growth with concentration feedback (oscillatory zoning) |
 | H2 | Liesegang-type precipitation–diffusion | Supersaturation builds up, nucleates, then depletes, giving periodic precipitation bands in a gel or porous medium, without sedimentation. | [@krug1994], [@jahnke2008], [@liu2025] | Reaction–diffusion with nucleation thresholds; phase-field (Cahn–Hilliard) separation of the precipitate |
 | H3 | Repeated fluid pulses | Each pulse of silica-bearing fluid deposits a layer, so bands record changes in external supply. | Debated in the literature; primary sources to add | Wall-inward deposition driven by a supply schedule |
-| H4 | Gravity settling | Particles too large to stay suspended settle to the cavity floor, forming horizontal (Uruguay, waterline) bands. One study finds these bands are made of euhedral quartz grains (0.5–4 µm) and/or spherulites (≤100 µm), deposited after the wall-lining bands and coarse quartz. | [@lu1994] | Particle sedimentation in a still pool |
+| H4 | Gravity settling | Particles too large to stay suspended settle to the cavity floor, forming horizontal (Uruguay, waterline) bands. One study finds these bands are made of euhedral quartz grains (0.5–4 µm, about 3 µm typically) and/or spherulites (tens of µm to 200 µm), deposited after the wall-lining bands and coarse quartz. | [@lu1994] | Particle sedimentation in a still pool |
 
 H1–H3 explain **wall-parallel (fortification)** banding. H4 explains **waterline**
-banding. Nature records both orders of the two stages. In a geode, horizontal
-Uruguay bands can also form a flat floor that later agate bands drape over
-([@lu1994]). The combined archetype therefore takes its stage order from the run's
-schedule. One review attributes horizontal layers to gravitational sedimentation
+banding. Within one fill the order is fixed: agate bands, then coarse quartz,
+then Uruguay bands, "never reversed, although it may repeat plural times in one
+geode" ([@lu1994] p.73). A later fill of fresh solution can lay agate bands on the
+flat floor the Uruguay bands left (p.67), so a nodule can show floor layers below
+wall bands. The combined archetype therefore takes its stage order from the run's
+schedule; a floor-first run stands for such a second fill. One review attributes horizontal layers to gravitational sedimentation
 of sols with flocculated silica particles, which needs a high silica
 concentration, so horizontally layered agates are typical of particular
 localities ([@goetze2020] §4.1.2).
@@ -231,8 +233,8 @@ amendment).
 3. **First procedural models (M1):** wall-offset banding with angular corners, and
    a horizontal fill confined to the cavity floor under gravity (an H4 analogue).
    **M3 adds formation history** (ADR 0007): scheduled silica supply, settling and
-   iron. Wall-lining and settling stages can come in either order, matching both
-   sequences in [@lu1994]. Below a silica-supply threshold, coarse quartz crystals
+   iron. Wall-lining and settling stages can come in either order: within one fill
+   settling comes last, and floor-first stands for a later fill ([@lu1994]). Below a silica-supply threshold, coarse quartz crystals
    grow inward. Both reviews support this: quartz crystallises from low silica
    concentrations, after chalcedony has used up the polymerised silica
    ([@goetze2020] §6, [@moxon2020] §2.4; see §5). The threshold itself has no

@@ -71,8 +71,9 @@ record which way was "up" at the time they formed (a geopetal indicator).
 <a id="fortification-waterline"></a>
 
 Wall-parallel and horizontal banding in one nodule, produced by changing
-conditions over time. The order of the two stages is set by the run's schedule,
-since nature records both sequences.
+conditions over time. The order of the two stages is set by the run's schedule:
+within one fill settling comes last, and a later fill can band over a settled
+floor (ADR 0072).
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|

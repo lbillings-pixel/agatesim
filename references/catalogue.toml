@@ -70,12 +70,26 @@ authors = ["Wang, Y.", "Merino, E."]
 year = 1990
 title = "Self-organizational origin of agates: banding, fiber twisting, composition, and dynamic crystallization model"
 venue = "Geochimica et Cosmochimica Acta 54, 1627–1638"
-url = "https://earth.indiana.edu/directory/emeriti-faculty/merino-enrique.html"
+doi = "10.1016/0016-7037(90)90396-3"
 access = "closed"
 licence = "publisher copyright; cite only"
-checked = "citation"
+checked = "full-text"
 topics = ["banding", "self-organization", "reaction-diffusion", "fiber-twisting"]
-notes = "Citation confirmed from the author's faculty publication list; DOI still to confirm."
+notes = """Read in full 2026-10-26 (PDF the owner supplied; ADR 0072). Rio Grande do Sul agates, optical microscopy and CL. Observed: broad layers of fine twisted fibres alternate with thin ribbons (tens of µm) of coarser untwisted fibres, both length-fast (p.1628); layers thicken inward from sub-mm to mm; brown belts are 'accumulations of micropores or fluid inclusions' beside the ribbons; bands become visible by 'the aggregate optical contrast' between coarse untwisted and fine twisted fibres (p.1628). Al not measured: the electron probe was at detection limits, and ribbons are only 'tentatively' Al-poor from their blue CL (p.1630). Model ('speculative', p.1631): 1D closed-system mass balance, growth G = α·u·(1+βv)^n with u silica and v Al at the front; limit cycle for 5<μ<20, 60<β<120, 1.7<n<2.5, 0.005<λ<0.015 (p.1634): steep but not a saturating switch. Needs initial silica ≳1 g SiO2/cm³, so a gel, not a solution (pp.1634–35). Al³⁺, Mg²⁺, Fe³⁺, Zn²⁺ cited as experimental catalysts of silica crystallisation (p.1630); only Al modelled. Inclusions trapped at the growth-rate maximum (p.1635). Twist from Al substitution (Eqn 17, p.1636), disputed by heaney1993."""
+
+[[references]]
+id = "wang1995"
+kind = "article"
+authors = ["Wang, Y.", "Merino, E."]
+year = 1995
+title = "Origin of fibrosity and banding in agates from flood basalts"
+venue = "American Journal of Science 295(1), 49–77"
+doi = "10.2475/ajs.295.1.49"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["banding", "self-organization", "fibers", "morphological-instability"]
+notes = """Read in full 2026-10-26 by OCR of the scan the owner supplied (equations partly reconstructed; ADR 0072). Corrects the 1990 model (p.52). Polymeric silica and a 'catalyst' diffuse through a boundary zone of imposed thickness L to the front; catalyst arrives attached to silica and is left behind (eq 4). Growth G = α′[1 + β′1 c_c + β′2 c_c²](c_s − c_e*), 'a truncated Taylor's expansion of a monotonic increasing function' (p.57), not a saturating switch; the mechanism of rate increase is unknown (p.52). The banding model actually solved is a two-point lumped ODE pair, 'formally identical' to the authors' calcite zoning model (pp.59–60). Sustained limit cycles need θ = D_s/D_c below about 0.2 (values used 0.05–0.06): 'the initial medium should be dense and polymerized' (pp.60–61). With D ~10⁻⁷ cm²/s and L = 0.1 cm, about 30 h and about 0.1 mm per band (p.61). The outer boundary is held at fixed concentrations, so the oscillation never ends in the model. Fibres from a morphological instability of the front, width 2πL/m_p ≈ 5 µm, varying about 4× along the cycle, finer and twisted at high catalyst (pp.64–71). Catalyst identity not given; experimental hints cited for Na, K, Mg, Al, Fe³⁺, Mn²⁺ and others (p.54, fn 2)."""
 
 [[references]]
 id = "merino1995"
@@ -83,13 +97,13 @@ kind = "article"
 authors = ["Merino, E.", "Wang, Y.", "Deloule, E."]
 year = 1995
 title = "Genesis of agates in flood basalts: twisting of chalcedony fibers and trace-element geochemistry"
-venue = "American Journal of Science"
+venue = "American Journal of Science 295, 1156–1176"
 url = "https://ajsonline.org/article/60699-genesis-of-agates-in-flood-basalts-twisting-of-chalcedony-fibers-and-trace-element-geochemistry"
 access = "closed"
 licence = "publisher copyright; cite only"
-checked = "citation"
+checked = "full-text"
 topics = ["banding", "self-organization", "fiber-twisting", "trace-elements"]
-notes = "Related 1994 abstract: low-trace-element bands of straight fibres alternate with high-trace-element bands of twisted fibres."
+notes = """Read in full 2026-10-26 by OCR of the scan the owner supplied (figure data not recoverable; ADR 0072). Two Rio Grande do Sul agates. Electron probe: Al 7–62 ppm (mean ~32) in untwisted bands, 33–210 ppm (mean ~62) in twisted ones; K 40–60 vs 60–80 ppm (pp.1162–63). Ion probe: 'K, Al, Fe, and Na contents oscillate and (mostly) oscillate together'; outward to inward Al decreases slightly and total Fe increases slightly (p.1166); at the drusy quartz Al, K, Na fall below 1 ppm, 'Fe and Ni do not decrease' (p.1167). Fe treated as charge-balancing (Fe²⁺), later substituting (Fe³⁺), not as a growth driver. No banding rate law in this paper (summarises Wang & Merino 1990, 1995). Twist model from Al-dilated fibre peripheries (pp.1158–61), with an unmeasured centre-to-periphery Al difference. Agates 'probably crystallize not from aqueous solutions but from lumps of polymeric silica' (p.1157, speculation); closed system."""
 
 [[references]]
 id = "heaney1993"
@@ -101,9 +115,9 @@ venue = "Contributions to Mineralogy and Petrology 115(1), 66–74"
 doi = "10.1007/BF00712979"
 access = "closed"
 licence = "publisher copyright; cite only"
-checked = "abstract"
+checked = "full-text"
 topics = ["chalcedony-growth", "fibers", "moganite", "low-temperature"]
-notes = "Fibres grow by spiral growth on a screw dislocation from short-chain silica polymers; explains [110] elongation, periodic fibre twisting, Brazil twins and moganite intergrowths. Supports precipitation from slightly saturated solutions below about 100 °C. As summarised by moxon2020 (§2.4): chalcedony forms from weakly polymerised silica, leaving dilute monomeric silicic acid from which prismatic quartz grows last."
+notes = "Read in full 2026-10-26 (PDF the owner supplied; ADR 0072): argues against a gel precursor (Liesegang banding 'extremely rare in agates'; opal-A and opal-CT 'not observed in radially fibrous chalcedony'; p.68) and for direct precipitation 'from a non-viscous mother fluid' of partly polymerised silica. Rapid crystallisation and impurities raise Brazil-twin density; moganite where twinning is continuous (pp.70–72). Rejects Al-induced twisting: 'no apparent structural foundation' (p.70). The quartz centre switch is 'nearly always extremely abrupt'; repeated chalcedony–quartz sequences mean 'successive infiltrations' (p.72). Horizontal onyx is equigranular microquartz from 'quiescent and highly concentrated' later fluids (p.72). Abstract:Fibres grow by spiral growth on a screw dislocation from short-chain silica polymers; explains [110] elongation, periodic fibre twisting, Brazil twins and moganite intergrowths. Supports precipitation from slightly saturated solutions below about 100 °C. As summarised by moxon2020 (§2.4): chalcedony forms from weakly polymerised silica, leaving dilute monomeric silicic acid from which prismatic quartz grows last."
 
 [[references]]
 id = "heaney1995"
@@ -112,12 +126,12 @@ authors = ["Heaney, P. J.", "Davis, A. M."]
 year = 1995
 title = "Observation and Origin of Self-Organized Textures in Agates"
 venue = "Science 269(5230), 1562–1565"
-url = "https://agatesofscotland.co.uk/references.html"
+doi = "10.1126/science.269.5230.1562"
 access = "closed"
 licence = "publisher copyright; cite only"
-checked = "citation"
-topics = ["banding", "self-organization", "oscillatory-zoning"]
-notes = "Cited elsewhere as proposing oscillating defect concentrations. Abstract not yet read; DOI still to confirm."
+checked = "full-text"
+topics = ["banding", "self-organization", "oscillatory-zoning", "iris"]
+notes = """Read in full 2026-10-26 (PDF the owner supplied; ADR 0072). Ion probe and TEM on four agates. Iris striations 0.1–5 µm apart, cycling '8000 times or more', 'present in virtually all agates' (p.1562). Al and Na co-vary, with slightly higher contents in the defect-rich bands; no H variation detected (pp.1562–63). TEM: ~200 nm banding of 'nearly perfect quartz' L bands (100–1000 nm) and H bands of 5–10 nm crystallites with Brazil twins and moganite, sharing one orientation (p.1563). Defect concentration oscillates at three scales about two orders apart: 0.2 µm, ~700 µm (defect-rich chalcedony vs defect-poor quartz), and cm (chalcedony to drusy quartz) (p.1564). Twist bands do not coincide with iris bands (note 11). Proposed: partly polymerised fluid rapidly precipitates defective chalcedony until silica depletion at fibre tips stops polymerisation; monomeric fluid then grows slow perfect quartz until diffusion restores silica activity (pp.1563–64). The feedback variable is silica polymerisation, with impurities as markers, not drivers."""
 
 [[references]]
 id = "krug1994"
@@ -144,9 +158,9 @@ doi = "10.2465/minerj.17.53"
 url = "https://www.jstage.jst.go.jp/article/minerj/17/2/17_2_53/_article"
 access = "open"
 licence = "unknown (free to read on J-STAGE); cite only until confirmed"
-checked = "abstract"
+checked = "full-text"
 topics = ["waterline", "uruguay-banding", "gravity-settling", "crystallites", "geode"]
-notes = "Fibres are aligned quartz crystallites 8–100 nm long. Uruguay (horizontal) bands are euhedral quartz grains (0.5–4 µm) and/or spherulites (≤100 µm), deposited by gravity after the agate bands and coarse quartz formed. Proposes growth from a hydrothermal solution carrying ~10 nm polymerized particles."
+notes = "Read in full 2026-10-26 by OCR of the scan the owner supplied (plates not recoverable; ADR 0072). Commercial geode agates from Uruguay, Brazil, Japan and China; only quartz with a little water, no moganite or opal-CT by X-ray (p.55). Optical fibres 1–50 µm wide, each of 10–50 finer fibres, length-fast; crystallites 8–100 nm long (p.56). Iris striations 1–3 µm, grain size and porosity rising within each layer then resetting (p.58). Twisting-like extinction bands read as textural (pores and Fe-rich inclusions), not optical (pp.60–63). Uruguay bands: euhedral grains about 3 µm and spherulites from a few tens to 200 µm, graded coarse at the bottom (pp.66–67, 70, 73). Sequence agate bands, coarse quartz, Uruguay bands 'is always maintained in any geode agates, and never reversed, although it may repeat plural times in one geode' (p.73); a later solution laid agate bands on a settled flat floor (p.67). 'Gravitational precipitation is the most reasonable mechanism' (p.73), of particles that grew in suspension during wall lining. Gel/Liesegang origin rejected. Abstract:Fibres are aligned quartz crystallites 8–100 nm long. Uruguay (horizontal) bands are euhedral quartz grains (0.5–4 µm) and/or spherulites (≤100 µm), deposited by gravity after the agate bands and coarse quartz formed. Proposes growth from a hydrothermal solution carrying ~10 nm polymerized particles."
 
 [[references]]
 id = "merino1994"
@@ -382,6 +396,136 @@ licence = "publisher copyright; cite only"
 checked = "citation"
 topics = ["silica-gel", "crystallization", "timescales"]
 notes = "Citation from the reference list of goetze2020 (ref. 184), which reports that Oehler crystallised silica gel to quartz in the laboratory in 12 h to 180 days under high-pressure/high-temperature conditions that may not apply to agate."
+
+# --- Fabric, silica phases and ageing ------------------------------------------
+
+[[references]]
+id = "heaney1992"
+kind = "article"
+authors = ["Heaney, P. J.", "Post, J. E."]
+year = 1992
+title = "The widespread distribution of a novel silica polymorph in microcrystalline quartz varieties"
+venue = "Science 255(5043), 441–443"
+doi = "10.1126/science.255.5043.441"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["moganite", "chalcedony", "fabric"]
+notes = """Read in full 2026-10-26 (PDF the owner supplied; ADR 0072). XRD on over 150 samples, 50 Rietveld-refined: moganite in every unaltered specimen but one; agate and chalcedony from over 20 wt% to under 5% (p.441). Richest samples from arid, evaporitic settings: 'High activities of alkalis, sulfates, or both may play a role' (p.441, a field association). Moganite is optically length-slow (p.441–42). Weathered or hydrothermally altered samples, including 'the weathered white rinds of agate nodules', refine as pure quartz (p.443)."""
+
+[[references]]
+id = "french2012"
+kind = "article"
+authors = ["French, M. W.", "Worden, R. H.", "Lee, D. R."]
+year = 2012
+title = "Electron backscatter diffraction investigation of length-fast chalcedony in agate: implications for agate genesis and growth mechanisms"
+venue = "Geofluids 13(1), 32–44"
+doi = "10.1111/gfl.12006"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["fabric", "fibers", "chalcedony-growth", "water"]
+notes = """Read in full 2026-10-26 (PDF the owner supplied; ADR 0072). Two Lake Superior agates; EBSD, CL, FT-IR. Bands about 0.2 mm apart, widening inward from ~0.05 to over 0.4 mm (p.35). Each band has three zones: unindexable 'chalcedony-A' (amorphous silica plus nanocrystals, 10–50 µm), fibrous chalcedony, then euhedral quartz 100–200 µm (p.35, Table 2). a-axes cluster along the growth direction; c-axes lie in the underlying surface with random rotation, each generation re-referenced to its substrate, 'observed in every case examined' (pp.37, 40–41). Water highest in chalcedony-A, lower in fibrous chalcedony, none detected in quartz (p.37). Interpreted: each band is 'a single fluid influx in which the solution gradually decreased its extent of silica supersaturation' (p.39)."""
+
+[[references]]
+id = "moxon2009"
+kind = "article"
+authors = ["Moxon, T.", "Carpenter, M. A."]
+year = 2009
+title = "Crystallite growth kinetics in nanocrystalline quartz (agate and chalcedony)"
+venue = "Mineralogical Magazine 73(4), 551–568"
+doi = "10.1180/minmag.2009.073.4.551"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["fabric", "moganite", "ageing", "crystallites"]
+notes = """Read in full 2026-10-26 (PDF the owner supplied; ADR 0072). XRD crystallite size and moganite in agates from 26 igneous hosts aged 13–3480 Ma, plus heating experiments at 350–550 °C, 100 MPa. Natural agates: crystallite size grows about 0.8 nm/Ma from ~31 nm over ~60 Ma, plateaus at 75(4) nm from ~50 to 270 Ma, then 99(10) nm (pp.556, 565–66); moganite falls with age (e.g. 19% at 23 Ma, 6% at 275 Ma, below XRD detection above ~300 Ma; p.556), though Raman finds some in every tested unheated agate (p.565). Opal-C only in agates from hosts under ~60 Ma (p.566). Water catalyses coarsening (p.564). The lab rate law gives growth 'too high' when extrapolated to low temperature (p.566), so the kinetics are qualitative."""
+
+[[references]]
+id = "goetze2018"
+kind = "article"
+authors = ["Götze, J.", "Berek, H.", "Schäfer, K."]
+year = 2019
+title = "Micro-structural phenomena in agate/chalcedony: spiral growth"
+venue = "Mineralogical Magazine 83(2), 281–291"
+doi = "10.1180/mgm.2018.156"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["fabric", "spiral-growth", "iron", "chalcedony-growth"]
+notes = """Read in full 2026-10-26 from the accepted preproof the owner supplied (pages cited are the preproof's; ADR 0072). Saar-Nahe agates (Permian basic volcanics); polarised light, CL, SEM-EDX, EBSD. Spirals of tens to hundreds of µm occur only 'in agate areas, which do not exhibit structural banding' (p.13); they are well-ordered α-quartz in a disordered, partly amorphous, more porous matrix (pp.8–9). Fe compounds are dispersed in the matrix and form an Fe-O rim on the spirals, read as 'a kind of self-purification mechanism' moving Fe with the growth front (pp.8, 10). Screw dislocations proposed by analogy to heaney1993, not imaged; 'an amorphous silica precursor is probably necessary' (p.12). Banding attributed to periodic changes in silica phase, crystal size and habit, and porosity (p.14)."""
+
+[[references]]
+id = "frondel1978"
+kind = "article"
+authors = ["Frondel, C."]
+year = 1978
+title = "Characters of quartz fibers"
+venue = "American Mineralogist 63, 17–27"
+url = "http://www.minsocam.org/ammin/AM63/AM63_17.pdf"
+access = "open"
+licence = "unknown (free to read from the Mineralogical Society of America); cite only"
+checked = "full-text"
+topics = ["fibers", "fiber-twisting", "iris", "fabric"]
+notes = """Read in full 2026-10-26 from the MSA web reprint the owner supplied (reprint pages, not journal pages; ADR 0072). Several hundred fibrous crusts, geodes and agates. Fibres elongate along one polar <11-20> direction (length-fast); [0001] (length-slow) fibres 'are rare and appear to be typical of particular geochemical environments'. Twist period 'ranges from about 20 to 700 microns', usually uniform along a fibre, rising near the nucleation point, sometimes interrupted by untwisted zones. Widths 0.05–1 µm in most aggregates. Growth starts as minute divergent spherulites, and fibres nearer perpendicular to the wall survive competition. Periodic striations usually 1–3 µm (one case over 8000 at about 2 µm), with 'no apparent relation' to the twist period, 'observed only in closed systems'; they scatter light and make iris agate. Elongation, polarity and twist attributed to screw dislocations along <11-20>."""
+
+[[references]]
+id = "frondel1985"
+kind = "article"
+authors = ["Frondel, C."]
+year = 1985
+title = "Systematic compositional zoning in the quartz fibers of agates"
+venue = "American Mineralogist 70, 975–979"
+url = "http://www.minsocam.org/ammin/AM70/AM70_975.pdf"
+access = "open"
+licence = "unknown (free to read from the Mineralogical Society of America); cite only"
+checked = "full-text"
+topics = ["fibers", "oscillatory-zoning", "iris", "water"]
+notes = """Read in full 2026-10-26 (PDF the owner supplied; ADR 0072). Etched sections of several hundred agates, best in Antelope, Oregon. Zoning in structural OH only (not calibrated; p.976). Two-unit LH sequences of constant unit length within a specimen, submicron to about 3 µm, running to thousands of units; three-unit sequences 'in all instances are palindromic' (pp.975–77); disordered zoning of µm to mm. 'Disordered sequencing tends to develop in the early stages of cavity filling and the orderly sequencing in the closing stages' (p.977). Ordered zoning needs 'containment of a solution in small volume', absent in chert, flint and veins (p.978). Proposed cause: 'a cyclic interplay between growth rate and diffusion rates at a crystal/solution interface' (p.975). Visible bands are read as 'relatively long-term chance variations in the deposition of pigmenting impurities' that do not 'bear on the origin of agates' (p.977), a view that conflicts with merino1995. Two-unit sequences give iris where the agate is translucent enough (p.976)."""
+
+[[references]]
+id = "goetze2009"
+kind = "article"
+authors = ["Götze, J.", "Möckel, R.", "Kempe, U.", "Kapitonov, I.", "Vennemann, T."]
+year = 2009
+title = "Characteristics and origin of agates in sedimentary rocks from the Dryhead area, Montana, USA"
+venue = "Mineralogical Magazine 73(4), 673–690"
+doi = "10.1180/minmag.2009.073.4.673"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["sedimentary", "iron", "trace-elements", "fortification"]
+notes = """Read in full 2026-10-26 (PDF the owner supplied; ADR 0072). Fortification agates in Permian red shale and siltstone (Phosphoria Formation). LA-ICP-MS: chalcedony Al 376 ppm (103–809), Fe 483 ppm (26–1580); quartz Al 6.5, Fe 7.2 ppm (Table 2). Fe sits in hematite: needles in the outermost layer, fine particles 'distributed… along the SiO2 crystallization front' giving the red colour, and large random particles in the inner chalcedony (pp.680–81). Interpreted: Fe 'rejected from the silica during crystallization, moved with the crystallization front' (p.686), inferred from the oxides' placement. Yet 'no correlation of trace elements with the agate banding is detectable' (p.688). Chalcedony grades smoothly into quartz by grain size; quartz back to chalcedony is abrupt (p.677). δ18O gives about 20–120 °C (pp.685–86). Crystallisation 'started rapidly from a non-crystalline medium such as silica gel or a direct deposit of amorphous silica' (p.688). Silica source (hydrothermal or host rock) unresolved."""
+
+# --- Forms beyond the first list: lace, fire -------------------------------------
+
+[[references]]
+id = "welman2024"
+kind = "article"
+authors = ["Welman-Purchase, M.", "Wicht, J.", "Miller, D.", "Roelofse, F."]
+year = 2024
+title = "Blue lace agate and chalcedony pseudomorphs from Ysterputs in southern Namibia"
+venue = "Journal of African Earth Sciences 212, 105211"
+doi = "10.1016/j.jafrearsci.2024.105211"
+access = "open"
+licence = "CC-BY-NC-ND-4.0"
+checked = "full-text"
+topics = ["lace", "vein", "seam", "pseudomorph"]
+notes = """Read in full 2026-10-26 (PDF the owner supplied; ADR 0072). A hydrothermal vein in a shear zone through a dolerite sill (183 Ma) intruding the gypsiferous Whitehill Formation (p.1). Sequence: laminated carbonate and chalcedony, coarse dolomite coating dolerite fragments, then banded blue agate (p.2). Bands symmetrical about a central plane; 47–49 bands in 30 mm sections (p.3); 'broad, undulating, layers of fibrous, spheroidal chalcedony alternating with bands of granular quartz', length-slow (p.4). 'Lace' is a trade name, not defined; the stone is called 'a typical hydrothermal vein agate' (p.2). Some banding is 'very contorted… around irregular voids, possibly formerly occupied by decomposed dolerite fragments' (p.4). Banding mechanism left open (p.7). Nothing on Mexican lace agates."""
+
+[[references]]
+id = "natkaniec2020"
+kind = "article"
+authors = ["Natkaniec-Nowak, L.", "Dumańska-Słowik, M.", "Gaweł, A.", "Łatkiewicz, A.", "Kowalczyk-Szpyt, J.", "Wolska, A.", "Milovská, S.", "Luptáková, J.", "Ładoń, K."]
+year = 2020
+title = "Fire agate from the Deer Creek deposit (Arizona, USA) – new insights into structure and mineralogy"
+venue = "Mineralogical Magazine 84(2), 343–354"
+doi = "10.1180/mgm.2020.8"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["fire", "optics", "botryoidal", "iron"]
+notes = """Read in full 2026-10-26 from the accepted preproof the owner supplied (pages cited are the preproof's; ADR 0072). Vein agates in Miocene volcanics. Fire seen 'only in these fragments of agates, where silica forms characteristic bubble-like, nodular and botryoidal forms typical of colloform texture' (p.9); length-fast and length-slow chalcedony and micro-quartz in rhythmic bands; crystallite size 44–52 nm, moganite 5.1–8.8%, trace opal-C (Table 1). Fe and Ti phases by Raman are magnetite, maghemite, anatase and rutile; 'No traces of any Fe hydroxides' (p.16), against the goethite/limonite explanation. The bubble forms 'seem to be the centres of diffraction and interference of white light' (p.14): assumed, with no layer thickness or optical measurement reported. Formation linked to boiling in an epithermal setting (pp.15–16)."""
 
 # --- Optics ------------------------------------------------------------------
 
@@ -703,9 +847,9 @@ venue = "Mineralogical Magazine 77(3), 227–248"
 doi = "10.1180/minmag.2013.077.3.02"
 access = "closed"
 licence = "publisher copyright; cite only"
-checked = "abstract"
-topics = ["waterline", "uruguay-banding", "combined-form", "dating", "stage-order"]
-notes = "Paraná basalt agates with a lower horizontally banded section and an upper chamber of wall-parallel bands. Horizontal bands formed first (about 43–63 Ma), wall-lining bands 7–27 Myr later; the host is 135 Ma. Horizontal bands have more Al and larger crystallites, less moganite and defect water. Proposes a three-stage process: the two band types form separately, then later silica seals the gap to the wall. Read via the Cambridge abstract page (M9)."
+checked = "full-text"
+topics = ["waterline", "uruguay-banding", "combined-form", "dating", "stage-order", "fabric", "ageing"]
+notes = "Read in full 2026-10-26 (PDF the owner supplied; ADR 0072). Survey of 73 agates (p.233): lower horizontal, upper wall-lining 41%; horizontal throughout 15%; wall-lining, macroquartz, then horizontal centre 8%; several wall-lining layers then a horizontal centre 33%; five had non-parallel horizontal stacks, 'indicating host-rock movement'. Young Brazilian agates (Tables 2–3): horizontal bands have larger crystallites (62–110 vs 52–65 nm), less moganite (2–9 vs 10–14%), less defect water, and 'up to 20 times more Al3+' (p.235); Fe and Ti below detection (115 ppm) throughout. Horizontal bands show 'much reduced… twisting petrographic fibrosity' and discrete development, with Al varying widely between bands and little within (pp.239–41). Wall bands on a flat floor grow as 'vertical reed-like fibrous growths' (pp.239–40). Settling of colloidal silica 'can only be part of the story'; bands are 'silica deposits of limited duration', wall-lining 'a continuous and greater input' (p.245). Outer bands follow the cavity, but 'as the centre is approached, the sharp edges in the banding are commonly lost' (p.228). The two band types are indistinguishable in 412 and 1100 Ma agates (pp.234–35). The 7–27 Myr age gap assumes both fabrics coarsen alike from the same start. Abstract:Paraná basalt agates with a lower horizontally banded section and an upper chamber of wall-parallel bands. Horizontal bands formed first (about 43–63 Ma), wall-lining bands 7–27 Myr later; the host is 135 Ma. Horizontal bands have more Al and larger crystallites, less moganite and defect water. Proposes a three-stage process: the two band types form separately, then later silica seals the gap to the wall. Read via the Cambridge abstract page (M9)."
 
 [[references]]
 id = "dumanska2013"
