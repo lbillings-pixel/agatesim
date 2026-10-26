@@ -33,15 +33,27 @@ TRAIN_TAPS_TOML = ROOT / "references" / "library-train-taps.toml"
 
 Kind = Literal["test", "train"]
 
-# Features that get a map: tags with enough photos (ADR 0068 section 1). Forms
-# and features share one namespace here; none of the names collide.
-MAP_FEATURES = ("quartz core", "open cavity", "host rock", "inclusions", "moss", "tube", "plume")
+# Tags that feed a map and get tapped (ADR 0068 section 1). Forms and features
+# share one namespace here; none of the names collide. Inclusions, a catch-all
+# for moss and plume, feeds none (ADR 0071).
+MAP_FEATURES = ("quartz core", "open cavity", "host rock", "moss", "tube", "plume")
+
+# Each map and the tags it learns from: moss and plume, hard to tell apart in
+# photos, share one (ADR 0071).
+MAP_GROUPS: dict[str, tuple[str, ...]] = {
+    "quartz core": ("quartz core",),
+    "open cavity": ("open cavity",),
+    "host rock": ("host rock",),
+    "moss or plume": ("moss", "plume"),
+    "tube": ("tube",),
+}
 
 # Maps that failed on image-level tags (ADR 0068); the training set favours them.
-FAILED_MAPS = ("open cavity", "inclusions", "tube", "plume")
+FAILED_MAPS = ("open cavity", "tube", "plume")
 FAILED_QUOTA = 6  # training photos each, where the library has them
 
-# A photo counts as tapped once every target has this many points of each kind.
+# A photo counts as tapped once every target has an inside point and this many
+# outside points: a small feature may fit only one or two taps (ADR 0071).
 ENOUGH = 3
 
 Point = tuple[float, float]
@@ -66,7 +78,8 @@ class Taps(BaseModel):
 
 
 def targets(label: Label) -> list[str]:
-    """The map features a photo is tagged with, in MAP_FEATURES order."""
+    """The map tags a photo is tagged with, in MAP_FEATURES order (tags it is
+    unsure of are not listed, so they are neither tapped nor trained on)."""
     if label.verdict != "forms":
         return []
     tags = set(label.features) | set(label.forms)
@@ -185,7 +198,8 @@ def save_taps(
     taps: dict[str, FeatureTaps],
     path: Path = TAPS_TOML,
 ) -> dict[str, FeatureTaps]:
-    """Replace one photo's taps in a tap set (empty features are dropped)."""
+    """Replace one photo's taps on its targets in a tap set (empty features are
+    dropped); taps kept from tags since removed stay in the file, unused."""
     old = load_taps(path)
     if image_id not in old.photos:
         name = "held-out test" if old.kind == "test" else "training"
@@ -202,8 +216,9 @@ def save_taps(
         for f, t in taps.items()
         if t.inside or t.outside
     }
-    if clean:
-        old.taps[image_id] = clean
+    kept = {f: t for f, t in old.taps.get(image_id, {}).items() if f not in allowed}
+    if kept | clean:
+        old.taps[image_id] = kept | clean
     else:
         old.taps.pop(image_id, None)
     _write(old, path)
@@ -211,8 +226,8 @@ def save_taps(
 
 
 def tapped(label: Label | None, taps: dict[str, FeatureTaps]) -> bool:
-    """Every target has at least ENOUGH inside and ENOUGH outside points."""
+    """Every target has an inside point and at least ENOUGH outside points."""
     goal = targets(label) if label else []
     return bool(goal) and all(
-        f in taps and len(taps[f].inside) >= ENOUGH and len(taps[f].outside) >= ENOUGH for f in goal
+        f in taps and len(taps[f].inside) >= 1 and len(taps[f].outside) >= ENOUGH for f in goal
     )

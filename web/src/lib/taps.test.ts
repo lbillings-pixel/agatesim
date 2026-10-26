@@ -12,12 +12,23 @@ const photo = (id: string, over: Partial<TapPhoto> = {}): TapPhoto => ({
 });
 
 describe("test taps", () => {
-  it("adds points of the chosen kind and removes one tapped again", () => {
+  it("adds points of the chosen kind, even close together", () => {
     let t = tap({}, "moss", "inside", 0.5, 0.5);
     t = tap(t, "moss", "outside", 0.1, 0.1);
     expect(t.moss).toEqual({ inside: [[0.5, 0.5]], outside: [[0.1, 0.1]] });
-    t = tap(t, "moss", "outside", 0.505, 0.5);
+    t = tap(t, "moss", "inside", 0.505, 0.5);
+    expect(t.moss?.inside).toEqual([
+      [0.5, 0.5],
+      [0.505, 0.5],
+    ]);
+  });
+
+  it("removes the nearest point only with the remove tool", () => {
+    let t = tap({}, "moss", "inside", 0.5, 0.5);
+    t = tap(t, "moss", "outside", 0.1, 0.1);
+    t = tap(t, "moss", "remove", 0.505, 0.5);
     expect(t.moss).toEqual({ inside: [], outside: [[0.1, 0.1]] });
+    expect(tap(t, "moss", "remove", 0.9, 0.9)).toBe(t);
   });
 
   it("keeps points on the photo and leaves other features alone", () => {
@@ -32,14 +43,20 @@ describe("test taps", () => {
     expect(t.tube?.inside).toEqual([[0.5, 0.5]]);
   });
 
-  it("counts a photo done only with enough points of both kinds", () => {
+  it("counts a photo done with one inside point and enough outside", () => {
     const pts = Array.from({ length: ENOUGH }, (): [number, number] => [
       0.2, 0.2,
     ]);
     expect(photoDone(photo("a"), { moss: { inside: pts, outside: pts } })).toBe(
       true,
     );
+    expect(
+      photoDone(photo("a"), { moss: { inside: [[0.5, 0.5]], outside: pts } }),
+    ).toBe(true);
     expect(photoDone(photo("a"), { moss: { inside: pts, outside: [] } })).toBe(
+      false,
+    );
+    expect(photoDone(photo("a"), { moss: { inside: [], outside: pts } })).toBe(
       false,
     );
     expect(photoDone(photo("a", { targets: [] }), {})).toBe(false);

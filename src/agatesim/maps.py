@@ -29,7 +29,7 @@ from agatesim import progress
 from agatesim.classify import MEAN, MODEL_PATH, MODEL_SHA256, MODELS_DIR, STD, specimen_group
 from agatesim.library import Label, LibraryImage, load_labels, load_library
 from agatesim.taps import (
-    MAP_FEATURES,
+    MAP_GROUPS,
     TRAIN_TAPS_TOML,
     FeatureTaps,
     Taps,
@@ -144,18 +144,48 @@ def library_patches(cache: PatchCache, image: LibraryImage) -> NDArray[np.float3
 @dataclass(frozen=True)
 class Bag:
     """One training photo: its patch features (patches x dims, float16 to halve
-    the memory), its tags, and any training taps as (feature, patch index,
-    1 inside or 0 outside) (ADR 0070)."""
+    the memory), the maps it is tagged for, any training taps as (map, patch
+    index, 1 inside or 0 outside) (ADR 0070), and the maps it sits out because
+    its tag is unsure (ADR 0071)."""
 
     key: str
     patches: NDArray[np.float16]
     tags: frozenset[str]
     points: tuple[tuple[str, int, float], ...] = ()
+    unsure: frozenset[str] = frozenset()
 
 
 def patch_index(rows: int, cols: int, x: float, y: float) -> int:
     """The flat index of the patch under (x, y), fractions of the photo."""
     return min(int(y * rows), rows - 1) * cols + min(int(x * cols), cols - 1)
+
+
+def map_of(tag: str) -> str | None:
+    """The map a tag feeds, if any (ADR 0071)."""
+    return next((m for m, tags in MAP_GROUPS.items() if tag in tags), None)
+
+
+def map_tags(label: Label) -> tuple[frozenset[str], frozenset[str]]:
+    """The maps a photo is tagged for, and those it sits out: a map whose only
+    tags on the photo are unsure is neither yes nor no (ADR 0071)."""
+    tagged = frozenset(m for t in targets(label) if (m := map_of(t)))
+    unsure = frozenset(m for t in label.unsure if (m := map_of(t))) - tagged
+    return tagged, unsure
+
+
+def merged(
+    taps: dict[str, FeatureTaps], tags: Iterable[str] | None = None
+) -> dict[str, FeatureTaps]:
+    """Taps by map: a map's taps are its tags' taps together. With `tags`,
+    only taps on those tags count."""
+    out: dict[str, FeatureTaps] = {}
+    for t, ft in sorted(taps.items()):
+        m = map_of(t)
+        if m is None or (tags is not None and t not in tags):
+            continue
+        old = out.get(m, FeatureTaps())
+        out[m] = FeatureTaps(inside=old.inside + ft.inside, outside=old.outside + ft.outside)
+    return out
 
 
 def tap_points(
@@ -180,7 +210,7 @@ class FeatureMaps:
     weights: NDArray[np.float64]  # (features, DIMS)
     bias: NDArray[np.float64]  # (features,)
     embedder_key: str
-    counts: tuple[int, ...]  # tagged training photos per feature
+    counts: tuple[int, ...]  # tagged training photos per map
     tested: tuple[Score, ...] = ()  # scores on the test taps, from `build`
 
     @property
@@ -319,10 +349,12 @@ def train(
     kept = [f for f, n in zip(features, counts, strict=True) if n >= MIN_TRAIN]
     weights: list[NDArray[np.float64]] = []
     bias: list[float] = []
-    for i, f in enumerate(kept):
-        progress.report(i / len(kept), f"training the {f} map")
-        points = [(i, j, t) for i, bag in enumerate(bags) for g, j, t in bag.points if g == f]
-        beta, b = _fit_one(xs, np.array([f in bag.tags for bag in bags], np.float64), points)
+    for n, f in enumerate(kept):
+        progress.report(n / len(kept), f"training the {f} map")
+        use = [i for i, bag in enumerate(bags) if f not in bag.unsure]
+        points = [(u, j, t) for u, i in enumerate(use) for g, j, t in bags[i].points if g == f]
+        y = np.array([f in bags[i].tags for i in use], np.float64)
+        beta, b = _fit_one([xs[i] for i in use], y, points)
         weights.append(beta)
         bias.append(b)
     return FeatureMaps(
@@ -362,8 +394,9 @@ def library_bags(
         progress.report(n / max(len(todo), 1), f"reading {images[k].title}")
         p = library_patches(cache, images[k])
         flat = p.reshape(-1, p.shape[-1]).astype(np.float16)
-        points = tap_points(p.shape[0], p.shape[1], taps.get(k, {}))
-        out.append(Bag(k, flat, frozenset(targets(labels[k])), points))
+        tagged, unsure = map_tags(labels[k])
+        mine = merged(taps.get(k, {}), targets(labels[k]))
+        out.append(Bag(k, flat, tagged, tap_points(p.shape[0], p.shape[1], mine), unsure))
     return out
 
 
@@ -374,7 +407,7 @@ def build(cache: PatchCache | None = None, path: Path = MAPS_PATH) -> FeatureMap
     labels = load_labels()
     train_taps = load_taps(TRAIN_TAPS_TOML, "train").taps
     bags = library_bags(cache, training_ids(labels, load_taps()), labels, train_taps)
-    maps = train(bags, MAP_FEATURES, cache.embedder.key)
+    maps = train(bags, tuple(MAP_GROUPS), cache.embedder.key)
     maps = replace(maps, tested=tuple(evaluate(maps, cache)))
     maps.save(path)
     return maps
@@ -453,14 +486,15 @@ def photo_rankings(
 
 
 def evaluate(maps: FeatureMaps, cache: PatchCache | None = None) -> list[Score]:
-    """Score every map on the owner's taps on the held-out photos."""
+    """Score every map on the owner's taps on the held-out photos (a map's
+    taps are those on all its tags)."""
     cache = cache or PatchCache(OnnxPatchEmbedder())
     held = load_taps()
     images = {i.id: i for i in load_library().images}
     per: dict[str, list[tuple[float, float]]] = {f: [] for f in maps.features}
     for n, k in enumerate(held.photos):
         progress.report(n / len(held.photos), "scoring the maps on the test taps")
-        taps = held.taps.get(k, {})
+        taps = merged(held.taps.get(k, {}))
         if not any(f in taps for f in maps.features) or not images[k].path.exists():
             continue
         p = library_patches(cache, images[k])

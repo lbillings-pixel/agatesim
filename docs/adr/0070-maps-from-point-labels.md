@@ -1,6 +1,6 @@
 # 70. Feature maps from point labels (M33 follow-up)
 
-- Status: accepted (2026-10-25)
+- Status: accepted (2026-10-25); results and tag fixes in [ADR 0071](0071-tag-quality-for-the-maps.md)
 - Date: 2026-10-25
 - Builds on: [ADR 0068](0068-feature-maps-from-tags.md)
 

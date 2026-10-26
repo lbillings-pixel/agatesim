@@ -3,6 +3,7 @@ needs no model download. The real model is checked only where its file exists.""
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -210,3 +211,41 @@ def test_the_app_shows_only_maps_that_passed_the_tap_test(tmp_path: Path) -> Non
     assert shown["feature"] == "inclusions"
     assert np.array(shown["grid"]).shape == (28, 37)
     assert [n["feature"] for n in body["not_shown"]] == ["moss"]
+
+
+def test_moss_and_plume_share_a_map_and_unsure_tags_sit_out() -> None:
+    both = Label(verdict="forms", forms=["moss", "plume"])
+    assert m.map_tags(both) == (frozenset({"moss or plume"}), frozenset())
+    unsure = Label(
+        verdict="forms", forms=["fortification"], features=["inclusions"], unsure=["plume"]
+    )
+    assert m.map_tags(unsure) == (frozenset(), frozenset({"moss or plume"}))
+    # A listed tag outweighs an unsure one feeding the same map.
+    half = Label(verdict="forms", forms=["moss"], unsure=["plume"])
+    assert m.map_tags(half) == (frozenset({"moss or plume"}), frozenset())
+    a, b = FeatureTaps(inside=[(0.1, 0.1)]), FeatureTaps(outside=[(0.9, 0.9)])
+    taps = {"moss": a, "plume": b, "inclusions": a}
+    assert m.merged(taps) == {
+        "moss or plume": FeatureTaps(inside=[(0.1, 0.1)], outside=[(0.9, 0.9)])
+    }
+    assert m.merged(taps, ["moss"]) == {"moss or plume": a}
+
+
+def test_photos_unsure_of_a_tag_sit_out_its_map(monkeypatch: pytest.MonkeyPatch) -> None:
+    bags = _bags()
+    tagged = [i for i, b in enumerate(bags) if "inclusions" in b.tags]
+    bags[tagged[0]] = replace(bags[tagged[0]], tags=frozenset(), unsure=frozenset({"inclusions"}))
+    seen: list[int] = []
+    fit = m._fit_one  # pyright: ignore[reportPrivateUsage]
+
+    def spy(
+        xs: list[NDArray[np.float32]],
+        y: NDArray[np.float64],
+        points: list[tuple[int, int, float]],
+    ) -> tuple[NDArray[np.float64], float]:
+        seen.append(len(xs))
+        return fit(xs, y, points)
+
+    monkeypatch.setattr(m, "_fit_one", spy)
+    m.train(bags, ["inclusions"], "patch-colour")
+    assert seen == [len(bags) - 1]

@@ -69,6 +69,7 @@ forms = [
 features = [
     "quartz core",
 ]
+reviewed = true
 
 [labels.achaty-zajecov-2]
 verdict = "forms"
@@ -168,9 +169,7 @@ forms = [
     "fortification-waterline",
     "eye",
 ]
-features = [
-    "quartz core",
-]
+reviewed = true
 
 [labels.agat-lake-superior-stan-minnesota-usa]
 verdict = "forms"
@@ -264,9 +263,10 @@ forms = [
     "quartz-geode",
     "fortification",
 ]
-features = [
+unsure = [
     "host rock",
 ]
+reviewed = true
 
 [labels.agat-ze-stalaktytami-agate-creek-queensland-australia-cropped]
 verdict = "forms"
@@ -310,6 +310,7 @@ forms = [
 features = [
     "rough",
 ]
+reviewed = true
 
 [labels.agate-14-30746154167]
 verdict = "forms"
@@ -342,11 +343,14 @@ features = [
 verdict = "forms"
 forms = [
     "fortification",
-    "plume",
 ]
 features = [
     "rough",
 ]
+unsure = [
+    "plume",
+]
+reviewed = true
 
 [labels.agate-2-31731816833]
 verdict = "forms"
@@ -359,6 +363,7 @@ forms = [
 features = [
     "quartz core",
 ]
+reviewed = true
 
 [labels.agate-21-30746156187]
 verdict = "forms"
@@ -393,6 +398,7 @@ features = [
     "quartz core",
     "polished",
 ]
+reviewed = true
 
 [labels.agate-7-32755748235]
 verdict = "forms"
@@ -403,6 +409,7 @@ forms = [
 features = [
     "quartz core",
 ]
+reviewed = true
 
 [labels.agate-9-32408237080]
 verdict = "forms"
@@ -410,6 +417,7 @@ forms = [
     "moss",
     "fortification",
 ]
+reviewed = true
 
 [labels.agate-adrasman-city-tajikistan-32755918215]
 verdict = "forms"
@@ -442,6 +450,7 @@ forms = [
 features = [
     "quartz core",
 ]
+reviewed = true
 
 [labels.agate-amethyste-quartz]
 verdict = "forms"
@@ -461,12 +470,12 @@ forms = [
     "moss",
     "eye",
     "plume",
-    "tube",
 ]
 features = [
     "quartz core",
     "inclusions",
 ]
+reviewed = true
 
 [labels.agate-borden-formation-lower-mississippian-eastern-kentucky-usa-6-32632652621]
 verdict = "forms"
@@ -481,12 +490,15 @@ verdict = "forms"
 forms = [
     "fortification",
     "moss",
-    "tube",
 ]
 features = [
     "open cavity",
     "inclusions",
 ]
+unsure = [
+    "tube",
+]
+reviewed = true
 
 [labels.agate-chalcedony-quartz-sio2-27632281789]
 verdict = "unusable"
@@ -515,9 +527,7 @@ forms = [
     "fortification-waterline",
     "fortification",
 ]
-features = [
-    "open cavity",
-]
+reviewed = true
 
 [labels.agate-detail-agat-lake-superior-usa-minnesota-cropped]
 verdict = "forms"
@@ -806,12 +816,13 @@ forms = [
 verdict = "forms"
 forms = [
     "fortification",
-    "tube",
-    "plume",
 ]
-features = [
+unsure = [
     "inclusions",
+    "plume",
+    "tube",
 ]
+reviewed = true
 
 [labels.agate-jiangsu]
 verdict = "unusable"
@@ -827,6 +838,7 @@ features = [
     "host rock",
     "open cavity",
 ]
+reviewed = true
 
 [labels.agate-luminescence-in-ultraviolet-rays]
 verdict = "unusable"
@@ -922,6 +934,7 @@ forms = [
     "fortification",
     "tube",
 ]
+reviewed = true
 
 [labels.agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-11-34783586145]
 verdict = "forms"
@@ -1004,6 +1017,7 @@ features = [
     "polished",
     "quartz core",
 ]
+reviewed = true
 
 [labels.agate-nodule-lake-superior-agate-jo-daviess-county-illinois-usa-5-34651181261]
 verdict = "forms"
@@ -1050,12 +1064,12 @@ features = [
 verdict = "forms"
 forms = [
     "fortification",
-    "tube",
 ]
 features = [
     "host rock",
     "open cavity",
 ]
+reviewed = true
 
 [labels.agate-panoramio-brandon-menth]
 verdict = "forms"
@@ -1115,6 +1129,7 @@ features = [
     "open cavity",
     "quartz core",
 ]
+reviewed = true
 
 [labels.agate-quartz-lined-geode-5-32375570960]
 verdict = "forms"
@@ -1126,6 +1141,7 @@ features = [
     "open cavity",
     "quartz core",
 ]
+reviewed = true
 
 [labels.agate-quartz-lined-geode-dryhead-montana-usa-1-32755917835]
 verdict = "forms"
@@ -1151,6 +1167,7 @@ features = [
     "open cavity",
     "host rock",
 ]
+reviewed = true
 
 [labels.agate-quartz-lined-geode-dryhead-montana-usa-3-31971016393]
 verdict = "forms"
@@ -1161,8 +1178,11 @@ forms = [
 features = [
     "open cavity",
     "quartz core",
+]
+unsure = [
     "host rock",
 ]
+reviewed = true
 
 [labels.agate-quartz-sio2-13403766363]
 verdict = "unusable"
@@ -1200,6 +1220,7 @@ forms = [
     "waterline",
     "moss",
 ]
+reviewed = true
 
 [labels.agate-rio-grande-do-sul-caillois-donation-mnhn-n25]
 verdict = "forms"
@@ -1209,9 +1230,10 @@ forms = [
     "fortification-waterline",
     "moss",
 ]
-features = [
+unsure = [
     "quartz core",
 ]
+reviewed = true
 
 [labels.agate-shoreline-of-lake-superior-upper-peninsula-of-michigan-usa-1]
 verdict = "unusable"
@@ -1262,12 +1284,15 @@ verdict = "unusable"
 verdict = "forms"
 forms = [
     "quartz-geode",
-    "tube",
-    "moss",
 ]
 features = [
     "open cavity",
 ]
+unsure = [
+    "moss",
+    "tube",
+]
+reviewed = true
 
 [labels.agate-tertiary-agate-bay-king-george-island-south-shetland-islands-1]
 verdict = "forms"
@@ -1314,10 +1339,11 @@ verdict = "forms"
 forms = [
     "fortification",
 ]
-features = [
+unsure = [
     "open cavity",
     "quartz core",
 ]
+reviewed = true
 
 [labels.agate3-hg-cropped]
 verdict = "forms"
@@ -1354,6 +1380,7 @@ forms = [
 features = [
     "quartz core",
 ]
+reviewed = true
 
 [labels.agate8-hg]
 verdict = "forms"
@@ -1463,6 +1490,7 @@ features = [
     "quartz core",
     "open cavity",
 ]
+reviewed = true
 
 [labels.brazilian-agate-section-detail]
 verdict = "forms"
@@ -1512,6 +1540,7 @@ features = [
     "open cavity",
     "quartz core",
 ]
+reviewed = true
 
 [labels.dendrite-in-stone-from-russia]
 verdict = "unusable"
@@ -1562,15 +1591,15 @@ features = [
 verdict = "forms"
 forms = [
     "fortification",
-    "plume",
 ]
+reviewed = true
 
 [labels.details-agat-lake-superior-stan-minnesota-usa-cropped]
 verdict = "forms"
 forms = [
     "fortification",
-    "plume",
 ]
+reviewed = true
 
 [labels.dugway-geode-juab-county-utah-usa-1-34540239846]
 verdict = "forms"
@@ -1595,6 +1624,7 @@ features = [
     "open cavity",
     "quartz core",
 ]
+reviewed = true
 
 [labels.earth-and-man-agate]
 verdict = "forms"
@@ -1606,6 +1636,7 @@ forms = [
 features = [
     "quartz core",
 ]
+reviewed = true
 
 [labels.edelsteine-im-museum]
 verdict = "unusable"
@@ -1651,8 +1682,11 @@ forms = [
 ]
 features = [
     "quartz core",
+]
+unsure = [
     "inclusions",
 ]
+reviewed = true
 
 [labels.estonian-museum-of-natural-history-specimen-no-178064-photo-g229-g229-427-jpg]
 verdict = "forms"
@@ -1731,10 +1765,10 @@ verdict = "forms"
 forms = [
     "fortification",
 ]
-features = [
-    "quartz core",
+unsure = [
     "inclusions",
 ]
+reviewed = true
 
 [labels.gdcn0024070-50192449478]
 verdict = "forms"
@@ -1803,6 +1837,7 @@ features = [
     "open cavity",
     "rough",
 ]
+reviewed = true
 
 [labels.image]
 verdict = "forms"
@@ -2085,6 +2120,7 @@ forms = [
 features = [
     "open cavity",
 ]
+reviewed = true
 
 [labels.museo-di-mineralogia-trasperenze-quarzo-agata-02]
 verdict = "forms"
@@ -2096,9 +2132,12 @@ forms = [
 [labels.museum-mineralogia-munchen-06]
 verdict = "forms"
 forms = [
-    "moss",
     "fortification",
 ]
+unsure = [
+    "moss",
+]
+reviewed = true
 
 [labels.museum-of-the-history-of-the-mirozdanie-agate-2026-03-p03]
 verdict = "forms"
@@ -2231,6 +2270,7 @@ features = [
     "host rock",
     "inclusions",
 ]
+reviewed = true
 
 [labels.quartz-agate-le-vaisseau-bresil-dation-caillois]
 verdict = "forms"
@@ -2362,6 +2402,7 @@ forms = [
     "fortification",
     "tube",
 ]
+reviewed = true
 
 [labels.unknown-polished-rock-macro-1]
 verdict = "forms"

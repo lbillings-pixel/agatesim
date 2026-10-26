@@ -9,7 +9,7 @@ import {
 } from "../api";
 import {
   ENOUGH,
-  type Kind,
+  type Tool,
   enough,
   featureTaps,
   nextUndone,
@@ -52,7 +52,7 @@ export function TapLabeler({
     taps: Record<string, FeatureTaps>;
   } | null>(null);
   const [feature, setFeature] = useState<string | null>(null);
-  const [kind, setKind] = useState<Kind>("inside");
+  const [kind, setKind] = useState<Tool>("inside");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -129,9 +129,10 @@ export function TapLabeler({
         {photo.done && !dirty && " · done"}
       </p>
       <p className="muted">
-        For each feature below, tap about 5 points inside it and 5 outside it.
-        Put the outside points on the stone, not the background. Tap a dot again
-        to remove it.
+        For each feature below, tap up to 5 points inside it (one is enough for
+        a small feature) and about 5 outside it. Put the outside points on the
+        stone, not the background. To take a dot away, choose “remove a dot”
+        and tap it.
       </p>
       <div className="tap-frame">
         <div className="tap-photo" onPointerUp={onTap}>
@@ -206,11 +207,19 @@ export function TapLabeler({
             >
               <span className="tap-key outside" /> outside it
             </button>
+            <button
+              type="button"
+              className="chip"
+              aria-pressed={kind === "remove"}
+              onClick={() => setKind("remove")}
+            >
+              remove a dot
+            </button>
           </fieldset>
           {current && (
             <p className="muted">
               {active}: {current.inside.length} inside, {current.outside.length}{" "}
-              outside (at least {ENOUGH} of each)
+              outside (at least 1 inside and {ENOUGH} outside)
             </p>
           )}
         </>

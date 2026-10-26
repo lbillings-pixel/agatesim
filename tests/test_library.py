@@ -76,14 +76,20 @@ def test_labels_round_trip_and_are_checked(tmp_path: Path) -> None:
     assert list(labels) == ["a", "b"]
     assert labels["b"].forms == ["moss", "eye"]
     assert not labels["b"].sure
+    save_label("d", Label(verdict="forms", forms=["eye"], unsure=["tube"], reviewed=True), path)
+    assert load_labels(path)["d"].unsure == ["tube"]
+    assert load_labels(path)["d"].reviewed
+    save_label("d", None, path)
     assert path.read_text("utf-8").index("[labels.a]") < path.read_text("utf-8").index("[labels.b]")
     for bad in (
         Label(verdict="forms", forms=["no-such-form"]),
         Label(verdict="forms"),
         Label(verdict="cant-tell", forms=["moss"]),
         Label(verdict="forms", forms=["moss"], features=["sparkly"]),
+        Label(verdict="forms", forms=["moss"], unsure=["sparkly"]),
+        Label(verdict="forms", forms=["moss"], unsure=["moss"]),
     ):
-        with pytest.raises(ValueError, match=r"forms|features"):
+        with pytest.raises(ValueError, match=r"forms|features|unsure|both"):
             save_label("c", bad, path)
     save_label("a", None, path)
     assert list(load_labels(path)) == ["b"]

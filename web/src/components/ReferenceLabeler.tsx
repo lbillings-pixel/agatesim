@@ -7,6 +7,7 @@ import {
   library,
 } from "../api";
 import { type Filter, draftFor, matches, nextIndex, toggle } from "../lib/labels";
+import { TagChecker } from "./TagChecker";
 import { TapLabeler } from "./TapLabeler";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -17,8 +18,9 @@ export function ReferenceLabeler() {
   const [index, setIndex] = useState<LibraryIndex | null>(null);
   const [at, setAt] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("unlabelled");
-  // Labelling tags, or tapping test points for the feature maps (ADR 0068).
-  const [mode, setMode] = useState<"label" | "tap">("label");
+  // Labelling tags, checking map tags (ADR 0071), or tapping points for the
+  // feature maps (ADR 0068).
+  const [mode, setMode] = useState<"label" | "check" | "tap">("label");
   const [tapSet, setTapSet] = useState<TapSet>("test");
   // Edits to the photo on screen; another photo opens with its own draft.
   const [edit, setEdit] = useState<{
@@ -80,6 +82,9 @@ export function ReferenceLabeler() {
         <button type="button" role="tab" aria-selected={mode === "label"} onClick={() => setMode("label")}>
           Label
         </button>
+        <button type="button" role="tab" aria-selected={mode === "check"} onClick={() => setMode("check")}>
+          Check tags
+        </button>
         <button type="button" role="tab" aria-selected={mode === "tap"} onClick={() => setMode("tap")}>
           Taps
         </button>
@@ -122,6 +127,14 @@ export function ReferenceLabeler() {
     </div>
   );
 
+  if (mode === "check")
+    return (
+      <div className="specimen-library labeler">
+        {head}
+        <TagChecker index={index} onSaved={setIndex} />
+      </div>
+    );
+
   if (mode === "tap")
     return (
       <div className="specimen-library labeler">
@@ -146,6 +159,8 @@ export function ReferenceLabeler() {
 
   const set = (patch: Partial<LibraryLabel>) =>
     setEdit({ id: image.id, label: { ...draft, ...patch }, guessed: false });
+  // Choosing a tag here settles it: it is no longer unsure.
+  const settled = (tag: string) => draft.unsure.filter((t) => t !== tag);
 
   return (
     <div className="specimen-library labeler">
@@ -174,7 +189,7 @@ export function ReferenceLabeler() {
             type="button"
             className={`chip${guessed && draft.forms.includes(f.id) ? " guess" : ""}`}
             aria-pressed={draft.forms.includes(f.id)}
-            onClick={() => set({ forms: toggle(draft.forms, f.id), verdict: "forms" })}
+            onClick={() => set({ forms: toggle(draft.forms, f.id), verdict: "forms", unsure: settled(f.id) })}
             title={f.name}
           >
             {f.id}
@@ -189,7 +204,7 @@ export function ReferenceLabeler() {
             type="button"
             className="chip"
             aria-pressed={draft.features.includes(f)}
-            onClick={() => set({ features: toggle(draft.features, f) })}
+            onClick={() => set({ features: toggle(draft.features, f), unsure: settled(f) })}
           >
             {f}
           </button>

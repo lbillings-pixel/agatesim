@@ -25,6 +25,7 @@ from agatesim.library import (
     save_label,
 )
 from agatesim.taps import (
+    MAP_FEATURES,
     TAPS_TOML,
     TRAIN_TAPS_TOML,
     FeatureTaps,
@@ -65,6 +66,7 @@ def library_router(
         return {
             "forms": [{"id": a.id, "name": a.name} for a in load_registry().archetypes],
             "features": list(FEATURES),
+            "map_tags": list(MAP_FEATURES),
             "images": [
                 {
                     "id": i.id,
@@ -93,11 +95,12 @@ def library_router(
         out: list[dict[str, object]] = []
         for image_id in held.photos:
             label = labels.get(image_id)
-            taps = held.taps.get(image_id, {})
+            goal = targets(label) if label else []
+            taps = {f: t for f, t in held.taps.get(image_id, {}).items() if f in goal}
             out.append(
                 {
                     "id": image_id,
-                    "targets": targets(label) if label else [],
+                    "targets": goal,
                     "taps": {f: t.model_dump() for f, t in taps.items()},
                     "done": tapped(label, taps),
                 }

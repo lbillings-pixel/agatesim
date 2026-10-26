@@ -455,6 +455,10 @@ export interface LibraryLabel {
   forms: string[];
   sure: boolean;
   features: string[];
+  /** Tags the owner could neither confirm nor rule out (ADR 0071). */
+  unsure: string[];
+  /** Its map tags have been checked (ADR 0071). */
+  reviewed: boolean;
   note: string;
 }
 
@@ -473,6 +477,8 @@ export interface LibraryImage {
 export interface LibraryIndex {
   forms: { id: string; name: string }[];
   features: string[];
+  /** Tags that feed the feature maps, forms and features alike (ADR 0071). */
+  map_tags: string[];
   images: LibraryImage[];
 }
 

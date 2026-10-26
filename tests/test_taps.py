@@ -33,12 +33,16 @@ def _label(*tags: str) -> Label:
 
 def test_targets_are_the_tagged_map_features() -> None:
     assert targets(_label("moss", "quartz core")) == ["quartz core", "moss"]
+    # Inclusions feeds no map, and unsure tags are neither tapped nor trained on (ADR 0071).
+    assert targets(_label("inclusions", "moss")) == ["moss"]
+    unsure = Label(verdict="forms", forms=["moss"], unsure=["tube"])
+    assert targets(unsure) == ["moss"]
     assert targets(_label()) == []
     assert targets(Label(verdict="unusable")) == []
 
 
 def test_the_test_set_covers_every_feature_and_ignores_file_order() -> None:
-    labels = {f"p{i}": _label(MAP_FEATURES[i % 7]) for i in range(140)}
+    labels = {f"p{i}": _label(MAP_FEATURES[i % len(MAP_FEATURES)]) for i in range(140)}
     labels |= {f"plain{i}": _label() for i in range(20)}
     test = choose_test_set(labels, n=28)
     assert len(test) == 28
@@ -49,7 +53,7 @@ def test_the_test_set_covers_every_feature_and_ignores_file_order() -> None:
 
 
 def test_the_training_set_favours_failed_maps_and_avoids_test_specimens() -> None:
-    labels = {f"p{i}": _label(MAP_FEATURES[i % 7]) for i in range(140)}
+    labels = {f"p{i}": _label(MAP_FEATURES[i % len(MAP_FEATURES)]) for i in range(140)}
     labels |= {"p0-2": _label("quartz core"), "detail-p0": _label("quartz core")}
     test = ["p0", "p7"]
     train = choose_training_set(labels, test, n=40)
@@ -97,11 +101,16 @@ def test_taps_are_checked_and_round_trip(tmp_path: Path) -> None:
         write_photo_set(["d"], train, "train")
 
 
-def test_a_photo_is_tapped_only_with_enough_of_both_kinds() -> None:
+def test_a_photo_is_tapped_with_an_inside_point_and_enough_outside() -> None:
     label = _label("quartz core", "moss")
     three = [(0.1, 0.1)] * 3
     full = FeatureTaps(inside=three, outside=three)
     assert tapped(label, {"quartz core": full, "moss": full})
+    # A small feature may fit only one inside tap (ADR 0071).
+    assert tapped(
+        label, {"quartz core": full, "moss": FeatureTaps(inside=[(0.5, 0.5)], outside=three)}
+    )
+    assert not tapped(label, {"quartz core": full, "moss": FeatureTaps(outside=three)})
     assert not tapped(label, {"quartz core": full})
     assert not tapped(label, {"quartz core": full, "moss": FeatureTaps(inside=three)})
     assert not tapped(Label(verdict="unusable"), {})
@@ -142,3 +151,14 @@ def test_tap_api(tmp_path: Path) -> None:
     assert client.get("/api/library/taps?kind=train").json()["photos"] == []
     train = client.put("/api/library/moss-agate-1/taps?kind=train", json={"moss": {"inside": pts}})
     assert train.status_code == 422
+
+
+def test_taps_on_a_removed_tag_stay_in_the_file_unused(tmp_path: Path) -> None:
+    path = tmp_path / "train.toml"
+    write_photo_set(["a"], path, "train")
+    pt = FeatureTaps(inside=[(0.5, 0.5)], outside=[(0.1, 0.9)])
+    save_taps("a", _label("quartz core", "moss"), {"quartz core": pt, "moss": pt}, path)
+    # The owner then finds no moss: its taps are kept but not handed back.
+    saved = save_taps("a", _label("quartz core"), {"quartz core": FeatureTaps()}, path)
+    assert saved == {}
+    assert set(load_taps(path, "train").taps["a"]) == {"moss"}

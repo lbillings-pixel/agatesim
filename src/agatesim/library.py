@@ -141,7 +141,9 @@ class Library(BaseModel):
 
 class Label(BaseModel):
     """One photo's labels. `verdict` "forms" lists what it shows; "cant-tell"
-    and "unusable" (not an agate specimen, or too poor to judge) list none."""
+    and "unusable" (not an agate specimen, or too poor to judge) list none.
+    `unsure` holds forms or features the owner could neither confirm nor rule
+    out, and `reviewed` marks a photo whose map tags were checked (ADR 0071)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -149,6 +151,8 @@ class Label(BaseModel):
     forms: list[Form] = []
     sure: bool = True
     features: list[str] = []
+    unsure: list[str] = []
+    reviewed: bool = False
     note: str = ""
 
 
@@ -170,6 +174,10 @@ def check_label(label: Label) -> None:
         raise ValueError(f"unknown forms: {', '.join(unknown)}")
     if [f for f in label.features if f not in FEATURES]:
         raise ValueError("unknown features")
+    if [t for t in label.unsure if t not in forms and t not in FEATURES]:
+        raise ValueError("unknown unsure tags")
+    if set(label.unsure) & (set(label.forms) | set(label.features)):
+        raise ValueError("a tag can't be both listed and unsure")
     if (label.verdict == "forms") != bool(label.forms):
         raise ValueError('forms are listed exactly when the verdict is "forms"')
 
