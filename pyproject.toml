@@ -1,6 +1,6 @@
 [project]
 name = "agatesim"
-version = "0.0.1"
+version = "0.1.0"
 description = "Simulation of natural agate formation in nodules and seams, from procedural models to physics."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
