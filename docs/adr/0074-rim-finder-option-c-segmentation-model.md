@@ -2,8 +2,8 @@
 
 - Status: accepted (2026-10-29; owner chose to pursue C, keeping ADR 0073's
   held-out run and a review of the bar in reserve, and approved the download);
-  held out, 86% of outlines follow the rim against a bar of 90% before the
-  owner's check (section 6)
+  held out, 85% of outlines follow the rim after the owner's check, against a
+  bar of 90% (section 6); outlines are used after a helper's yes, ADR 0075
 - Date: 2026-10-29
 - Builds on: [ADR 0073](0073-rim-finder-for-library-photos.md), [ADR 0067](0067-form-classifier-v1.md)
 
@@ -172,7 +172,9 @@ checks band labels and has no outline question. The owner's answers
 (`owner-held.json`) override the helpers' in `score`. If the bar is still
 missed after the check, the recommendation is not to tune further, but to use
 the finder in nodule as a proposal: an outline is measured only after a yes
-(owner or helper), recorded in a follow-up ADR.
+(owner or helper), recorded in a follow-up ADR. Result: the bar is still
+missed (75 of 88; cut-off 30 of 35), and the owner chose a helper's yes as
+enough ([ADR 0075](0075-rim-outlines-measured-after-a-helper-yes.md)).
 
 ## Consequences
 
