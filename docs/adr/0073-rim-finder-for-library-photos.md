@@ -59,9 +59,29 @@ is untouched.
   Likely best on clutter, but a new model download (tens to hundreds of MB)
   to vet, pin and measure, and slower on the processor.
 
-Recommended: B, with C held in reserve if B misses the bar in section 3. A
-literature pass on the chosen method comes before coding, and its sources go
-into the catalogue.
+Recommended: B, with C held in reserve if B misses the bar in section 3.
+
+**Literature (2026-10-29).** B follows TokenCut [@wang2022]: a graph over the
+patches, edges 1 where cosine similarity is at least τ and ε otherwise (τ =
+0.2, ε = 1e-5, results nearly flat over τ 0–0.3), the second eigenvector
+split at its mean, then the connected component holding the strongest
+patch. LOST [@simeoni2021] and Deep Spectral Methods [@melaskyriazi2022] are
+close relatives. What they don't support, so it is tested here, not assumed:
+
+- They use the last layer's attention *keys*; the installed ONNX model gives
+  only its final tokens. For DINO ViT-S, keys beat the other features by about 12
+  to 28 CorLoc points [@melaskyriazi2022, Supp. Table 6]; DINOv2's final
+  tokens are untested, so τ is tuned on the 80 tuning photos.
+- Which side is the object: the papers take the side with the strongest
+  patch or the smaller side, and both fail when the object fills most of
+  the frame [@simeoni2021, Sec. 4.4], as close crops do. Here the side that
+  holds most of the frame's border patches is the background, a rule of our
+  own; with no clear majority, no outline.
+- Frames and borders in a photo tend to be taken as the object
+  [@melaskyriazi2022, Supp. Sec. 4]; label cards are expected to be a
+  failure case.
+- High-norm artifact tokens appear in DINOv2 ViT-L and larger
+  [@darcet2023, Sec. 2.1]; ViT-S is likely, not certainly, free of them.
 
 ### 3. How it is judged
 

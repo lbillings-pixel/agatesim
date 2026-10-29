@@ -940,6 +940,63 @@ topics = ["image model", "self-supervised", "classification", "segmentation"]
 notes = "Linear-probe segmentation results read 2026-10-24 (M33): a linear layer on frozen, bilinearly upsampled patch tokens of ViT-S/14 gives mIoU 44.3 on ADE20k and 81.1 on VOC (47.2 and 82.6 with the last four layers, 640 px and multiscale); patches are 14 px. Abstract read 2026-10-24: self-supervised pretraining on a large curated image set gives general-purpose visual features; a 1B-parameter ViT is distilled into smaller models, reported to beat OpenCLIP on most image- and pixel-level benchmarks. The small distilled model (ViT-S/14) is the one used here (ADR 0067)."
 
 [[references]]
+id = "wang2022"
+kind = "article"
+authors = ["Wang, Y.", "Shen, X.", "Hu, S. X.", "Yuan, Y.", "Crowley, J. L.", "Vaufreydaz, D."]
+year = 2022
+title = "Self-Supervised Transformers for Unsupervised Object Discovery using Normalized Cut"
+venue = "CVPR 2022; arXiv:2202.11539"
+url = "https://arxiv.org/abs/2202.11539"
+access = "open"
+licence = "arXiv non-exclusive distribution 1.0; cite only"
+checked = "full-text"
+topics = ["image model", "segmentation", "object discovery"]
+notes = "Read in full 2026-10-29 by a helper agent (ar5iv; ADR 0073). TokenCut: a graph over the patches of a self-supervised ViT (keys of the last attention layer, DINO ViT-S/16), edges 1 where cosine similarity >= tau and eps otherwise (Eq. 4; tau = 0.2, eps = 1e-5; CorLoc moves only 67.4-68.8 over tau 0-0.3, Table 4); the second-smallest generalised eigenvector split at its mean (better than EM or k-means, Table 6); foreground the side holding the largest |value|, then the connected component containing that patch (Sec. 3.2). CorLoc VOC07/VOC12/COCO20K 68.8/72.1/58.8 (Table 1); ECSSD IoU 71.2, 77.2 with a bilateral solver (Table 3). Fails on several touching objects and occlusion (Sec. 4.4, App. G). Final-layer tokens instead of keys not reported."
+
+[[references]]
+id = "simeoni2021"
+kind = "article"
+authors = ["Siméoni, O.", "Puy, G.", "Vo, H. V.", "Roburin, S.", "Gidaris, S.", "Bursuc, A.", "Pérez, P.", "Marlet, R.", "Ponce, J."]
+year = 2021
+title = "Localizing Objects with Self-Supervised Transformers and no Labels"
+venue = "BMVC 2021; arXiv:2109.14279"
+url = "https://arxiv.org/abs/2109.14279"
+access = "open"
+licence = "arXiv non-exclusive distribution 1.0; cite only"
+checked = "full-text"
+topics = ["image model", "segmentation", "object discovery"]
+notes = "Read in full 2026-10-29 by a helper agent (ar5iv; ADR 0073). LOST: patches of DINO ViT-S/16 linked where the dot product of last-layer keys is >= 0; the lowest-degree patch seeds the object, expanded over the k = 100 lowest-degree patches (Eq. 3, Table 5). Keys 61.9 CorLoc, values 50.5, queries 30.8 (Table 5); output tokens not tested. Assumes the object covers less of the image than the background: when it fills most of the frame the seed can fall on background (Secs. 3.2, 4.4)."
+
+[[references]]
+id = "melaskyriazi2022"
+kind = "article"
+authors = ["Melas-Kyriazi, L.", "Rupprecht, C.", "Laina, I.", "Vedaldi, A."]
+year = 2022
+title = "Deep Spectral Methods: A Surprisingly Strong Baseline for Unsupervised Semantic Segmentation and Localization"
+venue = "CVPR 2022; arXiv:2205.07839"
+url = "https://arxiv.org/abs/2205.07839"
+access = "open"
+licence = "arXiv non-exclusive distribution 1.0; cite only"
+checked = "full-text"
+topics = ["image model", "segmentation", "object discovery"]
+notes = "Main paper read in full 2026-10-29 by a helper agent (ar5iv), and the relevant sections of the CVF supplement (ADR 0073). Affinity of L2-normalised last-layer keys thresholded at 0 (Eq. 2), plus a KNN colour affinity (Eqs. 1, 3); the Fiedler vector of the normalised Laplacian split at 0 (Sec. 3.3). DINO ViT-S, VOC07 CorLoc by feature (Supp. Table 6): key 61.6, value 49.9, attention output 37.3, query 33.1; by block (Supp. Table 8): 12: 61.6, 11: 61.4, 8: 50.5. Colour affinity lifts VOC12 CorLoc 58.0 to 61.9 (Supp. Table 7). Fails on images with borders or frames, small objects, and groups taken as one (Supp. Sec. 4)."
+
+[[references]]
+id = "darcet2023"
+kind = "preprint"
+authors = ["Darcet, T.", "Oquab, M.", "Mairal, J.", "Bojanowski, P."]
+year = 2023
+title = "Vision Transformers Need Registers"
+venue = "arXiv:2309.16588"
+url = "https://arxiv.org/abs/2309.16588"
+access = "open"
+licence = "arXiv preprint; cite only"
+checked = "sections"
+sections_read = ["2.1", "Appendix A", "Table 3"]
+topics = ["image model", "self-supervised"]
+notes = "Sections read 2026-10-29 by a helper agent (ADR 0073). High-norm artifact tokens (about 2% of tokens) sit in redundant background, often near the border (Sec. 2.1, App. A); in DINOv2 they appear in ViT-L and larger (Sec. 2.1, Fig. 4c), which suggests but does not state that ViT-S lacks them. They cut LOST on DINOv2-L keys from 55.4 to 35.3 VOC07 CorLoc (Table 3)."
+
+[[references]]
 id = "zhou2016"
 kind = "article"
 authors = ["Zhou, B.", "Khosla, A.", "Lapedriza, A.", "Oliva, A.", "Torralba, A."]
