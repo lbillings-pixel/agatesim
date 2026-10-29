@@ -40,12 +40,12 @@ FILES = {
         "e9874d900dd4134ed60eab1e97910327c2419e0b2954485d8fd6e7f1a1470f47"
     ),
 }
-ENCODER_PATH = SAM_DIR / "vision_encoder.onnx"
-DECODER_PATH = SAM_DIR / "prompt_encoder_mask_decoder.onnx"
+ENCODER = "vision_encoder.onnx"
+DECODER = "prompt_encoder_mask_decoder.onnx"
 
 
-def fetched() -> bool:
-    return all((SAM_DIR / name).exists() for name in FILES)
+def fetched(directory: Path = SAM_DIR) -> bool:
+    return all((directory / name).exists() for name in FILES)
 
 
 def fetch_sam() -> list[Path]:
@@ -93,13 +93,15 @@ class Sam:
     """The encoder and the prompt decoder on the processor (about 1.5 s and 0.9
     GB per photo for the encoder, 0.04 s per prompt for the decoder)."""
 
-    def __init__(self) -> None:
+    def __init__(self, directory: Path = SAM_DIR) -> None:
+        """`directory` holds the fetched files; give it where agatesim is
+        installed as a library away from its repository (nodule)."""
         from agatesim._onnx import Session
 
-        if not fetched():
-            raise FileNotFoundError(f"the segmentation model isn't in {SAM_DIR}")
-        self._encoder = Session(ENCODER_PATH, arena=False)
-        self._decoder = Session(DECODER_PATH, arena=False)
+        if not fetched(directory):
+            raise FileNotFoundError(f"the segmentation model isn't in {directory}")
+        self._encoder = Session(directory / ENCODER, arena=False)
+        self._decoder = Session(directory / DECODER, arena=False)
 
     def embed(self, rgb: NDArray[np.uint8]) -> list[NDArray[np.float32]]:
         return self._encoder.run_named({"pixel_values": prepare(rgb)})

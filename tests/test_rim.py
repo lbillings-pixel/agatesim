@@ -4,6 +4,7 @@ run everywhere; the real models' tests run only where they are fetched."""
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import cast
 
 import numpy as np
@@ -202,6 +203,16 @@ def test_model_mask_in_two_like_pieces_is_no_single_object():
     halves = squashed(p.mask).copy()
     halves[:, 126:130] = False
     assert model_case([halves] * 3, [0.99] * 3).reason == "no-object"
+
+
+def test_model_folder_can_be_given(tmp_path: Path):
+    """A caller with agatesim installed as a library (nodule) names the folder."""
+    assert not sam.fetched(tmp_path)
+    with pytest.raises(FileNotFoundError, match="isn't in"):
+        sam.Sam(tmp_path)
+    for name in sam.FILES:
+        (tmp_path / name).touch()
+    assert sam.fetched(tmp_path)
 
 
 needs_both = pytest.mark.skipif(
