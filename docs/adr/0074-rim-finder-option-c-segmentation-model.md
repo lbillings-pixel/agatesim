@@ -1,7 +1,9 @@
 # 74. The rim-finder, option C: a promptable segmentation model
 
 - Status: accepted (2026-10-29; owner chose to pursue C, keeping ADR 0073's
-  held-out run and a review of the bar in reserve, and approved the download)
+  held-out run and a review of the bar in reserve, and approved the download);
+  held out, 86% of outlines follow the rim against a bar of 90% before the
+  owner's check (section 6)
 - Date: 2026-10-29
 - Builds on: [ADR 0073](0073-rim-finder-for-library-photos.md), [ADR 0067](0067-form-classifier-v1.md)
 
@@ -134,6 +136,43 @@ cavity, a ragged loop into a dark backdrop. The held-out set is untouched.
 `find_rim(sam="auto")` uses the model wherever it is fetched and B
 otherwise, so results depend on what is fetched; callers measuring the
 library (nodule) should check `sam.fetched()` or pass the model explicitly.
+
+### 6. Held-out result (2026-10-29)
+
+`scripts/rim_check.py run held` with the settings of section 5, unchanged:
+outlines on 88 of 150 photos, 250 s. Five helper agents judged SAM's own
+outlines (30 photos each, the same two yes/no questions as on the 80),
+before the owner's check:
+
+- **Outlines that follow the rim: 76 of 88 (86%; bar 90%): missed** by four
+  outlines.
+- Outlines on 85 of 117 photos with the rim in frame (73%; bar 60%): met.
+- Cut-off photos declined: 30 of 33 (91%; bar 90%): met.
+
+The twelve misses: part of the stone left out (4: a patch of rind, a crystal
+pocket, grass across the stone, a thumb over a hand-held slice); ragged loops
+into the backdrop or shadow (3); close crops of the interior outlined anyway,
+tracing a dendrite, a plume and an inner cavity (3); both halves of a
+bookend pair in one outline (1); a loop into the stand (1). The helpers
+marked five of the twelve borderline.
+
+The friend's photos, reported separately: 15 of 21 outlines follow the rim
+(71%), outlines on 21 of 29 photos with the rim in frame, both cut-off photos
+declined. Five of the six misses are one failure: the two halves of a split
+stone photographed side by side, in one outline.
+
+No setting is changed in the light of these misses: the held-out set would
+stop being a test, and the library has no other unseen photos.
+
+**Owner's check.** As section 3, with one change agreed with the owner: all
+twelve "no" outlines plus 20 "yes" drawn with seed 73 (32 photos, list in
+`runs/rim-check/check-sample-held.json`), shown blind and shuffled on a page
+in `scripts/rim_check.py check held` rather than nodule's check page, which
+checks band labels and has no outline question. The owner's answers
+(`owner-held.json`) override the helpers' in `score`. If the bar is still
+missed after the check, the recommendation is not to tune further, but to use
+the finder in nodule as a proposal: an outline is measured only after a yes
+(owner or helper), recorded in a follow-up ADR.
 
 ## Consequences
 
