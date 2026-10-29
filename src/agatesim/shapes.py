@@ -20,7 +20,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from agatesim import progress
-from agatesim.library import load_labels, load_library
+from agatesim.library import Library, load_labels, load_library, never_tuned_ids
 from agatesim.maps import (
     MAPS_PATH,
     MODELS_DIR,
@@ -122,6 +122,15 @@ def load_entries(path: Path = SHAPES_PATH) -> dict[str, dict[str, object]]:
     if not path.exists():
         return {}
     return cast(dict[str, dict[str, object]], json.loads(path.read_text("utf-8")))
+
+
+def calibration_entries(
+    entries: dict[str, dict[str, object]], library: Library | None = None
+) -> dict[str, dict[str, object]]:
+    """The entries calibration may compare against: the hard test set's are
+    measured (for tagging) but left out here (ADR 0073 s.4)."""
+    held = never_tuned_ids(library)
+    return {k: v for k, v in entries.items() if k not in held}
 
 
 def _write(path: Path, entries: dict[str, dict[str, object]]) -> None:

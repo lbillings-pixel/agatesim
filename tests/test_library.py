@@ -18,9 +18,11 @@ from agatesim.library import (
     guess_forms,
     load_labels,
     load_library,
+    never_tuned_ids,
     open_licence,
     save_label,
     slug,
+    tuning_labels,
 )
 from agatesim.server.library import library_router
 
@@ -79,6 +81,23 @@ def test_tier_two_is_by_permission_and_local() -> None:
         with pytest.raises(ValidationError):
             Library.model_validate({"images": [bad]})
     assert fetch(Library.model_validate({"images": [local]})) == (0, 0)
+
+
+def test_labelled_tier_two_photos_never_train_or_tune(tmp_path: Path) -> None:
+    """A tier-2 photo labelled for tagging stays out of training, tuning and
+    calibration: it is a hard test set (ADR 0073 s.4)."""
+    from agatesim.shapes import calibration_entries
+
+    friend = _entry(id="friend-1", url=None, tier=2, licence=f"{PERMISSION}: local use", stone="s")
+    lib = Library.model_validate({"images": [_entry(), friend]})
+    labels = tmp_path / "labels.toml"
+    for image_id in ("moss-agate-1", "friend-1"):
+        save_label(image_id, Label(verdict="forms", forms=["moss"]), labels)
+    assert set(load_labels(labels)) == {"moss-agate-1", "friend-1"}
+    assert never_tuned_ids(lib) == {"friend-1"}
+    assert set(tuning_labels(labels, lib)) == {"moss-agate-1"}
+    entries: dict[str, dict[str, object]] = {"moss-agate-1": {}, "friend-1": {}}
+    assert set(calibration_entries(entries, lib)) == {"moss-agate-1"}
 
 
 def test_guesses_and_slugs() -> None:

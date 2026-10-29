@@ -27,7 +27,7 @@ from PIL import Image
 
 from agatesim import progress
 from agatesim.classify import MEAN, MODEL_PATH, MODEL_SHA256, MODELS_DIR, STD, specimen_group
-from agatesim.library import Label, LibraryImage, load_labels, load_library
+from agatesim.library import Label, LibraryImage, load_library, tuning_labels
 from agatesim.taps import (
     MAP_GROUPS,
     TRAIN_TAPS_TOML,
@@ -404,7 +404,7 @@ def build(cache: PatchCache | None = None, path: Path = MAPS_PATH) -> FeatureMap
     """Train the maps on the library's usable photos minus the held-out ones,
     with the training taps, score them on the test taps, and save both."""
     cache = cache or PatchCache(OnnxPatchEmbedder())
-    labels = load_labels()
+    labels = tuning_labels()
     train_taps = load_taps(TRAIN_TAPS_TOML, "train").taps
     bags = library_bags(cache, training_ids(labels, load_taps()), labels, train_taps)
     maps = train(bags, tuple(MAP_GROUPS), cache.embedder.key)

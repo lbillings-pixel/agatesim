@@ -201,6 +201,20 @@ def load_labels(path: Path = LABELS_TOML) -> dict[str, Label]:
     return {k: Label.model_validate(v) for k, v in raw.items()}
 
 
+def never_tuned_ids(library: Library | None = None) -> frozenset[str]:
+    """Photos never trained or tuned on: the tier-2 photos are a hard test set
+    (ADR 0073 s.4). Labelling them (for tagging and band shape) must not pull
+    them into the classifier, the maps, the tap sets or the band-shape survey."""
+    library = load_library() if library is None else library
+    return frozenset(i.id for i in library.images if i.tier == 2)
+
+
+def tuning_labels(path: Path = LABELS_TOML, library: Library | None = None) -> dict[str, Label]:
+    """The labels that may train or tune anything: `never_tuned_ids` left out."""
+    held = never_tuned_ids(library)
+    return {k: v for k, v in load_labels(path).items() if k not in held}
+
+
 def check_label(label: Label) -> None:
     forms = {a.id for a in load_registry().archetypes}
     unknown = [f for f in label.forms if f not in forms]

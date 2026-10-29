@@ -163,7 +163,7 @@ def _cmd_volume_shape(args: argparse.Namespace) -> int:
     from agatesim import cut_shapes, shapes
     from agatesim.volume.config import volume_preset_names
 
-    entries = shapes.load_entries()
+    entries = shapes.calibration_entries(shapes.load_entries())
     if not entries:
         print("measure the library first: agatesim library shape")
         return 1
@@ -264,7 +264,7 @@ def _cmd_library(args: argparse.Namespace) -> int:
     if args.library_command == "hold-out":
         from agatesim import taps
 
-        test = taps.choose_test_set(library.load_labels(), n=args.n)
+        test = taps.choose_test_set(library.tuning_labels(), n=args.n)
         taps.write_test_set(test)
         print(f"held out {len(test)} photos for tap testing in {taps.TAPS_TOML}")
         return 0
@@ -272,7 +272,7 @@ def _cmd_library(args: argparse.Namespace) -> int:
         from agatesim import taps
 
         test = taps.load_taps().photos
-        train = taps.choose_training_set(library.load_labels(), test, n=args.n)
+        train = taps.choose_training_set(library.tuning_labels(), test, n=args.n)
         taps.write_photo_set(train, taps.TRAIN_TAPS_TOML, "train")
         print(f"chose {len(train)} photos to tap for training in {taps.TRAIN_TAPS_TOML}")
         return 0
@@ -284,8 +284,9 @@ def _cmd_library(args: argparse.Namespace) -> int:
         print(
             f"{'level':10s} {'statistic':9s} {'photos':>6s} {'10%':>7s} {'median':>7s} {'90%':>7s}"
         )
+        calibration = shapes.calibration_entries(entries)
         for level in ("fit", "borderline"):
-            for stat, s in shapes.spreads(entries, level).items():
+            for stat, s in shapes.spreads(calibration, level).items():
                 if s is not None:
                     print(
                         f"{level:10s} {stat:9s} {s.n:6d} {s.low:7.3f} {s.median:7.3f} {s.high:7.3f}"

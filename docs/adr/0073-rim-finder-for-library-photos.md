@@ -116,6 +116,10 @@ close relatives. What they don't support, so it is tested here, not assumed:
   nodule sawn into a slab series, no scale; repeat shots of two faces give a
   small repeatability check). Batch 1's video stays out. Both are held out
   of tuning.
+- Enforced in code (2026-10-29, before labelling them for Nodule's tags):
+  `library.never_tuned_ids` (every tier-2 photo) is left out of classifier
+  training, map training, tap-set choice and the band-shape calibration
+  (`shapes.calibration_entries`); labels and `shapes.json` still cover them.
 - Entries go into `references/library.toml` with `tier = 2`, the author
   as a private alias (`collector-1`), the permission ("used by permission:
   local use and AI viewing") as the licence text, and a `stone` field

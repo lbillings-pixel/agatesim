@@ -27,7 +27,15 @@ from numpy.typing import NDArray
 from PIL import Image
 
 from agatesim import progress
-from agatesim.library import AGENT, ROOT, Label, load_labels, load_library
+from agatesim.library import (
+    AGENT,
+    ROOT,
+    Label,
+    load_labels,
+    load_library,
+    never_tuned_ids,
+    tuning_labels,
+)
 
 if TYPE_CHECKING:
     from agatesim.config import RunConfig
@@ -194,7 +202,13 @@ def library_examples(
 
     labels = load_labels() if labels is None else labels
     out: list[Example] = []
-    todo = [i for i in load_library().images if i.id in labels and labels[i.id].verdict == "forms"]
+    library = load_library()
+    held = never_tuned_ids(library)
+    todo = [
+        i
+        for i in library.images
+        if i.id in labels and i.id not in held and labels[i.id].verdict == "forms"
+    ]
     for n, image in enumerate(todo):
         progress.report(n / max(len(todo), 1), f"reading {image.title}")
         if not image.path.exists():
@@ -252,7 +266,7 @@ def own_examples(cache: EmbeddingCache, folder: Path) -> list[Example]:
 
 def missing_embeddings(cache: EmbeddingCache, specimens: Path | None = None) -> tuple[int, int]:
     """Photos and simulated slabs that training would still have to embed."""
-    labels = load_labels()
+    labels = tuning_labels()
     photos = sum(
         1
         for i in load_library().images
