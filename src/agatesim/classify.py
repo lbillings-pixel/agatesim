@@ -100,19 +100,24 @@ class OnnxEmbedder:
         return _unit(np.concatenate([h[0], h[1:].mean(axis=0)]).astype(np.float32))
 
 
-def fetch_model(url: str = MODEL_URL, sha256: str = MODEL_SHA256, path: Path = MODEL_PATH) -> bool:
-    """Download the model file once, checked against its pinned hash. Returns
+def fetch_model(
+    url: str = MODEL_URL,
+    sha256: str = MODEL_SHA256,
+    path: Path = MODEL_PATH,
+    what: str = "the image model (84 MB)",
+) -> bool:
+    """Download a model file once, checked against its pinned hash. Returns
     whether it was downloaded (False: already there)."""
     if path.exists() and _sha256(path) == sha256:
         return False
     path.parent.mkdir(parents=True, exist_ok=True)
-    progress.report(None, "fetching the image model (84 MB)")
+    progress.report(None, f"fetching {what}")
     request = urllib.request.Request(url, headers={"User-Agent": AGENT})
     with urllib.request.urlopen(request, timeout=600) as response:
         data = response.read()
     if hashlib.sha256(data).hexdigest() != sha256:
         raise ValueError("the downloaded model file does not match its pinned hash")
-    tmp = path.with_suffix(".part")
+    tmp = path.with_name(path.name + ".part")
     tmp.write_bytes(data)
     tmp.replace(path)
     return True

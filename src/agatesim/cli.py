@@ -357,6 +357,10 @@ def _cmd_classify(args: argparse.Namespace) -> int:
     if args.classify_command == "fetch":
         got = classify.fetch_model()
         print(f"{'fetched' if got else 'already have'} {classify.MODEL_PATH}")
+        if args.segmenter:
+            from agatesim.specimen import sam
+
+            print(f"{'fetched' if sam.fetch_sam() else 'already have'} {sam.SAM_DIR}")
         return 0
     embedder = classify.OnnxEmbedder()
     if args.classify_command == "photo":
@@ -390,6 +394,11 @@ def _add_classify(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> N
     cls = sub.add_parser("classify", help="the learned form classifier (ADR 0067)")
     csub = cls.add_subparsers(dest="classify_command", required=True)
     p = csub.add_parser("fetch", help="download the image model (84 MB, once)")
+    p.add_argument(
+        "--segmenter",
+        action="store_true",
+        help="also the rim-finder's segmentation model (155 MB, once; ADR 0074)",
+    )
     p.set_defaults(func=_cmd_classify)
     for name, text in (
         ("train", "train on the labels and simulated slabs"),

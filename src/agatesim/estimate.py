@@ -324,3 +324,18 @@ def train_classifier(photos: int, sims: int) -> Estimate:
         BASE_GB + TRAIN_GB,
         tuple(reasons),
     )
+
+
+# The rim-finder (ADRs 0073, 0074), measured on 10 library photos (2026-10-29):
+# about 0.6 s per photo for the patch features and graph, plus 1.5 s for the
+# segmentation model where it runs (photos declined at the patch stage skip it);
+# 1.2 GB peak, mostly the model's encoder.
+RIM_PATCH_SECONDS = 0.6
+RIM_MODEL_SECONDS = 1.5
+RIM_GB = 0.8  # above BASE_GB
+
+
+def find_rims(photos: int, *, model: bool = True) -> Estimate:
+    """Finding the rim on `photos` photos, with or without the segmentation model."""
+    per = RIM_PATCH_SECONDS + (RIM_MODEL_SECONDS if model else 0.0)
+    return Estimate(photos * per, BASE_GB + (RIM_GB if model else 0.0), (f"{photos} photos",))

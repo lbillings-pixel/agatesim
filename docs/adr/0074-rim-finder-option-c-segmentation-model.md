@@ -1,7 +1,7 @@
 # 74. The rim-finder, option C: a promptable segmentation model
 
-- Status: proposed (2026-10-29; owner chose to pursue C, keeping ADR 0073's
-  held-out run and a review of the bar in reserve; the download awaits approval)
+- Status: accepted (2026-10-29; owner chose to pursue C, keeping ADR 0073's
+  held-out run and a review of the bar in reserve, and approved the download)
 - Date: 2026-10-29
 - Builds on: [ADR 0073](0073-rim-finder-for-library-photos.md), [ADR 0067](0067-form-classifier-v1.md)
 
@@ -90,6 +90,50 @@ fetched (CI).
 Back to the owner, with the options kept in reserve: ADR 0073's held-out
 run for the better of B and C, or a review of the bar (for instance
 reporting the error rate alongside nodule's measures).
+
+### 5. Tuning record (2026-10-29)
+
+Built as `agatesim.specimen.sam` (fetch: `agatesim classify fetch
+--segmenter`) and used by `find_rim` where the model is fetched. The export
+takes points and boxes but no mask, as expected. Measured on 10 library
+photos: about 2.1 s per photo where the model runs (0.6 s where the patch
+stage declines first), 1.2 GB peak; without ONNX Runtime's memory arena the
+encoder peaks at 0.9 GB instead of 1.7 GB, for about 0.1 s more.
+`agatesim.estimate.find_rims` carries these figures. Synthetic stones pass
+(SAM's chosen mask overlaps the true outline at 0.97-0.99; the controls give
+no outline).
+
+On the 80, with the confidence declines first switched off so that every
+outline could be judged (by Claude and one helper agent, on SAM's own
+outlines: judgments inherited from B's outlines by overlap proved unreliable,
+since a loop into the backdrop moves the overlap by under 5%):
+
+- SAM's outlines followed the rim on 33 of 38 photos (87%; B 78%). A small
+  opening of its mask removes thin spurs along stands.
+- Neither SAM's scores nor agreement across prompt variants (box only,
+  grown or shrunk box, no negative points) separate the remaining misses:
+  they are confident and stable (a geode's inner cavity, two halves in one
+  outline, a loop into a label card). Stability below 0.89 marked all five
+  misses but also 13 of the 33 good outlines.
+- Coverage was the binding limit: 16 photos with the rim in frame were
+  declined at the patch stage because under 0.8 of the border fell on the
+  backdrop's side (shadows, graded backdrops). With the model the patch mask
+  only prompts it, and its mask still meets the frame test, so 0.6 is used
+  with the model (B keeps 0.8).
+- Settings: border majority 0.6, predicted IoU at least 0.88 (SAM's own
+  default, untuned), stability at least 0.5 (a loose guard: no setting up to
+  0.62 changed an outcome), object score at least 0 (every photo scored above
+  17, so it never decides), negative points as in section 2.
+
+Result on the 80: outlines on 39 of 59 photos with the rim in frame (66%;
+bar 60%), 20 of 21 cut-off photos declined (95%; bar 90%), and 36 of 40
+outlines follow the rim (**90%; bar 90%**, no margin). The four misses: a
+close crop whose rim is cut off, a loop into a label card, a geode's inner
+cavity, a ragged loop into a dark backdrop. The held-out set is untouched.
+
+`find_rim(sam="auto")` uses the model wherever it is fetched and B
+otherwise, so results depend on what is fetched; callers measuring the
+library (nodule) should check `sam.fetched()` or pass the model explicitly.
 
 ## Consequences
 

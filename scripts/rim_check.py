@@ -1,13 +1,14 @@
 # pyright: basic
-"""The rim-finder on the library (ADR 0073 section 3).
+"""The rim-finder on the library (ADR 0073 section 3, ADR 0074).
 
 uv run --no-sync python scripts/rim_check.py split
     fix the seeded split once: 80 tuning, 150 held out (nodule's 30
     owner-checked photos among them), the tier-2 photos as a hard set;
     written to references/rim-split.toml
-uv run --no-sync python scripts/rim_check.py run tune|held|friend [--tau T]
-    find the rim on one set; outlines drawn on each photo (no metadata),
-    results.json and masks.npz written to runs/rim-check/<set>[-<tag>]/
+uv run --no-sync python scripts/rim_check.py run tune|held|friend [--tau T] [--b]
+    find the rim on one set (with the segmentation model where fetched; --b
+    keeps to method B); outlines drawn on each photo (no metadata), results.json
+    (with the model's scores) and masks.npz written to runs/rim-check/<set>[-<tag>]/
 uv run --no-sync python scripts/rim_check.py score tune [--tag T]
     score a run against the helpers' judgments (runs/rim-check/judge-*.json):
     an outline matching a judged one (IoU >= 0.95) inherits its answer
@@ -30,6 +31,7 @@ from agatesim.maps import OnnxPatchEmbedder, PatchCache, library_patches
 from agatesim.specimen import rim as rim_module
 from agatesim.specimen.photo import load_photo
 from agatesim.specimen.rim import TAU, find_rim
+from agatesim.specimen.sam import Sam
 
 ROOT = Path(__file__).resolve().parents[1]
 SPLIT = ROOT / "references" / "rim-split.toml"
@@ -98,10 +100,11 @@ MASK_PX = 256  # long side of the saved masks
 SAME = 0.95  # IoU at which two outlines of a photo count as the same
 
 
-def run(name: str, tau: float, tag: str) -> None:
+def run(name: str, tau: float, tag: str, method_b: bool) -> None:
     ids = tomllib.loads(SPLIT.read_text("utf-8"))[name]
     library = load_library()
     cache = PatchCache(OnnxPatchEmbedder())
+    model = None if method_b else Sam()
     out = OUT / (f"{name}-{tag}" if tag else name)
     out.mkdir(parents=True, exist_ok=True)
     results: dict[str, dict[str, object]] = {}
@@ -110,8 +113,12 @@ def run(name: str, tau: float, tag: str) -> None:
     for k, image_id in enumerate(ids, 1):
         image = library.get(image_id)
         rgb = load_photo(image.path.read_bytes(), 1024).rgb
-        rim = find_rim(rgb, patches=library_patches(cache, image), tau=tau)
-        results[image_id] = {"reason": rim.reason, "area": float(rim.mask.mean())}
+        rim = find_rim(rgb, patches=library_patches(cache, image), tau=tau, sam=model)
+        results[image_id] = {
+            "reason": rim.reason,
+            "area": float(rim.mask.mean()),
+            "scores": rim.scores,
+        }
         small = Image.fromarray(rim.mask)
         small.thumbnail((MASK_PX, MASK_PX), Image.Resampling.NEAREST)
         masks[image_id] = np.asarray(small, dtype=bool)
@@ -119,7 +126,8 @@ def run(name: str, tau: float, tag: str) -> None:
         draw(rgb, rim.outline, caption).save(out / f"{image_id}.png")
         if k % 20 == 0:
             print(f"{k}/{len(ids)}", flush=True)
-    (out / "results.json").write_text(json.dumps({"tau": tau, "results": results}, indent=1))
+    settings = {"tau": tau, "method": "B" if method_b else "C"}
+    (out / "results.json").write_text(json.dumps({**settings, "results": results}, indent=1))
     np.savez_compressed(out / "masks.npz", **masks)  # pyright: ignore[reportArgumentType]
     found = sum(r["reason"] is None for r in results.values())
     took = time.perf_counter() - start
@@ -147,10 +155,12 @@ def score(name: str, tag: str) -> None:
         if r["reason"] is not None:
             continue
         m = masks[image_id]
-        verdict = next(
-            (f for i, o, f in judged if i == image_id and (m & o).sum() >= SAME * (m | o).sum()),
-            None,
-        )
+        # The closest judged outline, so a judgment of this very outline wins.
+        overlaps = [
+            ((m & o).sum() / max((m | o).sum(), 1), f) for i, o, f in judged if i == image_id
+        ]
+        best = max(overlaps, default=(0.0, None), key=lambda t: t[0])
+        verdict = best[1] if best[0] >= SAME else None
         if verdict is None:
             unknown.append(image_id)
         else:
@@ -181,6 +191,7 @@ def main() -> None:
     r.add_argument("set", choices=("tune", "held", "friend"))
     r.add_argument("--tau", type=float, default=TAU)
     r.add_argument("--tag", default="")
+    r.add_argument("--b", action="store_true", help="method B only, without the model")
     r.add_argument("--param", action="append", default=[], help="NAME=VALUE, a rim setting")
     c = sub.add_parser("score")
     c.add_argument("set", choices=("tune", "held", "friend"))
@@ -192,7 +203,7 @@ def main() -> None:
         for item in a.param:
             key, value = item.split("=")
             setattr(rim_module, key, type(getattr(rim_module, key))(value))
-        run(a.set, a.tau, a.tag)
+        run(a.set, a.tau, a.tag, a.b)
     else:
         score(a.set, a.tag)
 
