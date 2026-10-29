@@ -133,6 +133,37 @@ close relatives. What they don't support, so it is tested here, not assumed:
   sits a few mm proud of the face, so a scale from it is approximate; it is
   recorded but not used in this ADR.
 
+### 5. Tuning record (2026-10-29)
+
+Built as `agatesim.specimen.rim.find_rim`; the split is fixed in
+`references/rim-split.toml` (seed 73) and run with `scripts/rim_check.py`.
+About 0.2 s per photo with cached patch features (0.6 s with the model),
+about 90 MB peak. Changes from the literature, each tested on the 80 only:
+
+- **Otsu split, not the mean.** With a large backdrop the eigenvector's
+  mean lies near the backdrop's values, so patches next to the stone fell
+  on its side (masks 1.7 times too large on synthetic stones).
+- **τ = 0.6.** At 0.2 DINOv2's final tokens barely separate stone and
+  backdrop; 0.4–0.6 give nearly the same results on the 80.
+- **Backdrop colour near the edge.** Pixels within 1.5 patches of the
+  patch mask's edge that match the frame's backdrop colours, and join it,
+  are marked backdrop before the watershed. Deeper, it carved stone of the
+  backdrop's colour (dark agate on black).
+- **One piece.** A mask in pieces keeps its largest; a second piece nearly
+  as large, or a neck that a small erosion cuts into two like pieces, means
+  no single object.
+
+Synthetic stones pass (IoU at least 0.97 plain, 0.91 on the others; the
+background-only and frame-crossing controls give no outline). On the 80,
+judged by helper agents: outlines on 43 of 59 photos with the rim in
+frame (73%; bar 60%), 20 of 21 cut-off photos declined (95%; bar 90%), but
+of the outlines judged, 28 of 36 follow the rim (**78%; bar 90%**). The
+misses are mostly what colour and patch features can't settle: two halves
+side by side read as one object, loops into the backdrop by stand clips,
+a geode's inner cavity taken for its rim. A score from how much the pixels
+inside and outside the outline look like the backdrop does not separate
+good outlines from bad. The held-out set is untouched.
+
 ## Consequences
 
 - Nodule can move its pin once the rim-finder passes, and recompute C1–C3

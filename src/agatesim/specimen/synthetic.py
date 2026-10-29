@@ -10,6 +10,7 @@ from __future__ import annotations
 import io
 import math
 from dataclasses import dataclass
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -127,3 +128,64 @@ def degrade(
         ruler_points=((x1 * shrink, y1 * shrink), (x2 * shrink, y2 * shrink)),
         centre=(cx, cy),
     )
+
+
+# --- stones on varied backdrops, for the rim-finder (ADR 0073) ---------------
+
+Backdrop = Literal["plain", "graded", "textured", "shadowed", "close", "finger"]
+BACKDROPS: tuple[Backdrop, ...] = ("plain", "graded", "textured", "shadowed", "close", "finger")
+BAND_COLOURS = np.array([[196.0, 112.0, 70.0], [236.0, 226.0, 210.0]])  # carnelian, milky
+SKIN = np.array([222.0, 172.0, 140.0])
+
+
+@dataclass(frozen=True)
+class StonePhoto:
+    rgb: NDArray[np.uint8]
+    mask: NDArray[np.bool_]  # the stone, the right answer (may be empty)
+
+
+def stone_photo(
+    backdrop: Backdrop = "plain",
+    *,
+    size: tuple[int, int] = (800, 600),
+    centre: tuple[float, float] = (0.5, 0.5),
+    radius: float = 0.3,
+    stone: bool = True,
+    seed: int = 0,
+) -> StonePhoto:
+    """A banded stone of known outline (a lumpy disc, `radius` a share of the
+    short side, `centre` shares of the frame) photographed on a backdrop."""
+    rng = np.random.default_rng(seed)
+    w, h = size
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float64)
+    if backdrop == "graded":
+        photo = (110.0 + 120.0 * (xx / w + yy / h) / 2)[..., None] * np.ones(3)
+    elif backdrop == "textured":
+        weave = np.sin(xx / 3.0) * np.sin(yy / 3.0) + 0.5 * np.sin((xx + 2 * yy) / 17.0)
+        photo = np.array([150.0, 140.0, 120.0]) + 25.0 * weave[..., None]
+    elif backdrop == "close":
+        photo = np.broadcast_to(BAND_COLOURS.mean(axis=0) * 0.9, (h, w, 3)).copy()
+    else:
+        photo = np.full((h, w, 3), 205.0)
+    photo = photo + rng.normal(0, 3, (h, w, 3))
+    r0 = radius * min(w, h)
+    cx, cy = centre[0] * w, centre[1] * h
+    theta = np.arctan2(yy - cy, xx - cx)
+    edge = np.ones_like(theta)
+    lumps = zip(rng.uniform(0.02, 0.06, 4), rng.uniform(0, 6.3, 4), strict=True)
+    for k, (a, phase) in enumerate(lumps, 2):
+        edge += a * np.cos(k * theta + phase)
+    rho = np.hypot(xx - cx, yy - cy) / (r0 * edge)  # 1 on the rim
+    mask = (rho < 1.0) & stone
+    if backdrop == "shadowed":
+        shift = np.hypot(xx - cx - 0.08 * r0, yy - cy - 0.05 * r0) / (r0 * edge) < 1.0
+        photo[shift & stone] *= 0.4
+    if backdrop == "finger":
+        # A finger-like bar from the right edge, touching the stone's rim.
+        tip = cx + r0 * float(edge[int(cy), min(w - 1, int(cx + r0))]) - 2
+        finger = (xx > tip) & (np.abs(yy - cy) < 0.18 * r0) & ~mask
+        photo[finger] = SKIN + rng.normal(0, 3, (int(finger.sum()), 3))
+    bands = 0.5 + 0.5 * np.sin(2 * np.pi * 7 * rho**1.3)
+    face = BAND_COLOURS[0] + bands[..., None] * (BAND_COLOURS[1] - BAND_COLOURS[0])
+    photo[mask] = face[mask] + rng.normal(0, 4, (int(mask.sum()), 3))
+    return StonePhoto(rgb=np.clip(photo, 0, 255).astype(np.uint8), mask=mask)
