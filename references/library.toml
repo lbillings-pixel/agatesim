@@ -1,7 +1,9 @@
-# Reference library (ADR 0063 tier 1, ADR 0066): openly licensed photos on
-# Wikimedia Commons, fetched on demand into references/library/ (gitignored)
-# by `agatesim library fetch`. Written by scripts/build_library.py; `guesses`
-# come from titles and categories and are not labels.
+# Reference library (ADR 0063, ADR 0066): openly licensed photos on Wikimedia
+# Commons (tier 1), fetched on demand into references/library/ (gitignored) by
+# `agatesim library fetch`, and photos used by permission under a private
+# alias (tier 2, ADR 0073), copied in by hand by scripts/add_local_photos.py.
+# Written by scripts/build_library.py; `guesses` come from titles and
+# categories and are not labels.
 
 [[images]]
 id = "beach-agate-with-sagenite-from-central-oregon-coast-near-newport-and-yachats-ore"
@@ -5080,3 +5082,396 @@ categories = [
     "Agate/quartz from Dolní Olešnice",
 ]
 guesses = []
+
+[[images]]
+id = "collector-1-b2-a1"
+title = "Hebei agate (batch 2), a1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-a"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-a2"
+title = "Hebei agate (batch 2), a2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-a"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-a3"
+title = "Hebei agate (batch 2), a3"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-a"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-b1"
+title = "Hebei agate (batch 2), b1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-b"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-b2"
+title = "Hebei agate (batch 2), b2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-b"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-b3"
+title = "Hebei agate (batch 2), b3"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-b"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-c1"
+title = "Hebei agate (batch 2), c1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-c"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-c2"
+title = "Hebei agate (batch 2), c2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-c"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-c3"
+title = "Hebei agate (batch 2), c3"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-c"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-d1"
+title = "Hebei agate (batch 2), d1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-d"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-d2"
+title = "Hebei agate (batch 2), d2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-d"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-e1"
+title = "Hebei agate (batch 2), e1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-e"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-e2"
+title = "Hebei agate (batch 2), e2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-e"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-e3"
+title = "Hebei agate (batch 2), e3"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-e"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-f1"
+title = "Hebei agate (batch 2), f1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-f"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-f2"
+title = "Hebei agate (batch 2), f2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-f"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-f3"
+title = "Hebei agate (batch 2), f3"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-f"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-g1"
+title = "Hebei agate (batch 2), g1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-g"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-g2"
+title = "Hebei agate (batch 2), g2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-g"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-g3"
+title = "Hebei agate (batch 2), g3"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-g"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-h1"
+title = "Hebei agate (batch 2), h1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-h"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-h2"
+title = "Hebei agate (batch 2), h2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-h"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-h3"
+title = "Hebei agate (batch 2), h3"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-h"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-i1"
+title = "Hebei agate (batch 2), i1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-i"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-i2"
+title = "Hebei agate (batch 2), i2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-i"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b2-i3"
+title = "Hebei agate (batch 2), i3"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b2-i"
+categories = []
+guesses = []
+
+[[images]]
+id = "collector-1-b1-1"
+title = "Hebei agate slab series (batch 1), 1"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b1"
+
+[[images]]
+id = "collector-1-b1-2"
+title = "Hebei agate slab series (batch 1), 2"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b1"
+
+[[images]]
+id = "collector-1-b1-3"
+title = "Hebei agate slab series (batch 1), 3"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b1"
+
+[[images]]
+id = "collector-1-b1-4"
+title = "Hebei agate slab series (batch 1), 4"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b1"
+
+[[images]]
+id = "collector-1-b1-5"
+title = "Hebei agate slab series (batch 1), 5"
+source = "private (tier 2, ADR 0073)"
+author = "collector-1"
+licence = "used by permission: local use and AI viewing (ADR 0073)"
+licence_url = ""
+tier = 2
+retrieved = "2026-10-29"
+stone = "collector-1-b1"

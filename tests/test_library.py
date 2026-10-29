@@ -11,8 +11,10 @@ from pydantic import ValidationError
 from agatesim.archetypes.registry import load_registry
 from agatesim.library import (
     LIBRARY_TOML,
+    PERMISSION,
     Label,
     Library,
+    fetch,
     guess_forms,
     load_labels,
     load_library,
@@ -39,13 +41,17 @@ def _entry(**over: object) -> dict[str, object]:
     }
 
 
-def test_the_committed_list_is_tier_one_and_its_guesses_are_forms() -> None:
+def test_the_committed_list_is_open_or_by_permission_and_its_guesses_are_forms() -> None:
     lib = load_library()
     assert len(lib.images) >= 100
     forms = {a.id for a in load_registry().archetypes}
     for image in lib.images:
-        assert image.tier == 1
-        assert open_licence(image.licence), image.licence
+        if image.tier == 1:
+            assert open_licence(image.licence), image.licence
+        else:  # used by permission, under a private alias, never fetched (ADR 0073)
+            assert image.tier == 2, image.id
+            assert image.url is None, image.id
+            assert image.licence.startswith(PERMISSION), image.id
         assert set(image.guesses) <= forms, image.id
     assert LIBRARY_TOML.read_text("utf-8").startswith("# Reference library")
 
@@ -59,6 +65,20 @@ def test_only_open_licences_are_tier_one() -> None:
         Library.model_validate({"images": [_entry(licence="CC BY-NC 4.0")]})
     with pytest.raises(ValidationError):
         Library.model_validate({"images": [_entry(), _entry()]})
+
+
+def test_tier_two_is_by_permission_and_local() -> None:
+    local = _entry(url=None, tier=2, licence=f"{PERMISSION}: local use", stone="s")
+    image = Library.model_validate({"images": [local]}).images[0]
+    assert image.path.suffix == ".jpg"
+    for bad in (
+        _entry(tier=2, url=None),  # an open licence is not a permission
+        _entry(url=None),  # tier 1 is fetched, so needs a url
+        _entry(tier=3, licence="All rights reserved"),
+    ):
+        with pytest.raises(ValidationError):
+            Library.model_validate({"images": [bad]})
+    assert fetch(Library.model_validate({"images": [local]})) == (0, 0)
 
 
 def test_guesses_and_slugs() -> None:

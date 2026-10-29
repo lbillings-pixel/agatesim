@@ -1,0 +1,123 @@
+# 73. A rim-finder for library photos, and the friend's photos as tier 2
+
+- Status: accepted (2026-10-29; owner chose B, the proposed bar, and both batches)
+- Date: 2026-10-29
+- Builds on: [ADR 0063](0063-specimen-work-restarted-in-stages.md), [ADR 0066](0066-reference-library-and-labelling.md), [ADR 0067](0067-form-classifier-v1.md), [ADR 0072](0072-reframing-a-coupled-follow-on-project.md)
+
+## Context
+
+Nodule (ADR 0072) measures outline shape (its C1–C3) and band count (C6) on
+the library's 230 usable photos. It takes the outline from agatesim's
+`segment()`, and in nodule's labelling the outline followed the stone's rim
+on only 11 of 230 photos (nodule ADR 0004, section 8). The rest cut inside
+the face, took in stand clips, or picked a small patch of a close-up whose
+rim is not in the frame. The owner decided (2026-10-28) to improve the
+outline-finding here, with its own tests and ADR, then move nodule's pin.
+
+`segment()` was built for the owner's specimen photos: a blue cloth, a
+ruler, an optional click. It feeds the specimen server, shape statistics and
+the reference regression, so it stays as it is. Commons photos differ: white,
+black or patterned backdrops, hands, stands and labels, and many close crops.
+
+The owner checked 30 of Claude's yes/no outline judgments and agreed with all
+30 (28 no, 2 yes; nodule fd66ebf). Claude's yes/no may therefore stand in on
+held-out photos, but the "yes" side rests on two cases.
+
+The owner's friend gave permission (2026-10-27) for local use and AI viewing
+of photos he posts online (tier 2, ADR 0063), credited by a private alias.
+Batch 2 (26 photos, 9 stones from Hebei, each cut once, wet and unpolished)
+was saved by hand to the owner's Downloads folder on 2026-10-28.
+
+## Decision
+
+### 1. What a right answer is
+
+The rim-finder returns either one outline that follows the rim of the whole
+view (stone, slab or cut face, holes filled), or **no outline**, with a
+reason: rim cut off by the frame, no single object found, or region
+implausible. A wrong outline is worse than none, since C1–C3 measure
+whatever outline they are given; so the finder declines when unsure.
+
+A new module `agatesim.specimen.rim` (`find_rim(rgb) -> Rim`). `segment()`
+is untouched.
+
+### 2. Method (owner chose B, 2026-10-29)
+
+- **A. Colour and edges only.** Learn the backdrop's colours from the frame
+  border, grow the stone from the centre, refine the boundary with the
+  existing colour-gradient watershed, then decline on frame contact. No new
+  software or download; fast. Weak where the stone's colour matches the
+  backdrop, on hands and on busy backgrounds.
+- **B. DINOv2 patch features, then edges** *(recommended)*. The classifier's
+  DINOv2-small model (ADR 0067) is already installed. Its patch features
+  separate "stone" from "background" by what things look like, not just
+  colour; the border patches seed the background. The coarse patch mask
+  (14-pixel patches) is then refined to the pixel with A's watershed. No new
+  software or download.
+- **C. A dedicated segmentation model** (a "segment anything"-type model
+  through ONNX Runtime, prompted by the image centre or by B's coarse mask).
+  Likely best on clutter, but a new model download (tens to hundreds of MB)
+  to vet, pin and measure, and slower on the processor.
+
+Recommended: B, with C held in reserve if B misses the bar in section 3. A
+literature pass on the chosen method comes before coding, and its sources go
+into the catalogue.
+
+### 3. How it is judged
+
+- **Split, fixed before tuning.** The 230 usable photos are split by a seeded
+  draw into 80 for tuning and 150 held out. Nodule's 30 owner-checked photos
+  go in the held-out set. Settings are chosen on the 80 only.
+- **Held-out check.** Helper agents view each held-out photo with its new
+  outline drawn on, and record two yes/no answers: is the whole rim in the
+  frame, and does the outline follow it. Because the "yes" side is thinly
+  tested, the owner checks a random 20 of the outlines judged "yes" (plus 10
+  "no"), on nodule's check page. The owner's answer overrides Claude's.
+- **Bar (owner accepted, 2026-10-29).** On the held-out set:
+  - of the outlines returned, at least 90% follow the rim;
+  - an outline on at least 60% of photos whose rim is in the frame;
+  - at least 90% of photos whose rim is cut off get no outline.
+- **Synthetic stones of known outline** (`agatesim.specimen.synthetic`): on
+  plain, graded, textured and shadowed backdrops, one close in colour to the
+  stone, and with a finger- or clip-like object touching it. Overlap (IoU)
+  with the true outline at least 0.95 on plain backdrops and 0.90 on the
+  others. Negative controls: a background-only image and a stone crossing
+  the frame both give no outline.
+- **The friend's photos are a hard test set** (section 4), never used for
+  tuning, reported separately. In batch 2 fingers cover rims, three photos
+  have text in the background and one an overlay, and the x1 photos show both halves of a stone; the right answer
+  there is one half's outline or none.
+- Time and memory are measured on 10 photos first. The estimate is a few
+  seconds per photo on the processor, minutes for the library.
+
+### 4. The friend's photos in the library (tier 2)
+
+- Both batches are added: batch 2, and batch 1 (5 copies of one Hebei
+  nodule sawn into a slab series, no scale; repeat shots of two faces give a
+  small repeatability check). Batch 1's video stays out. Both are held out
+  of tuning.
+- Entries go into `references/library.toml` with `tier = 2`, the author
+  as a private alias (`collector-1`), the permission ("used by permission:
+  local use and AI viewing") as the licence text, and a `stone` field
+  grouping photos of one stone (`a1`–`a3` are stone a), so no stone is split
+  across tuning and test. The handle and the permission note go in a
+  gitignored file.
+- The photos have no EXIF, but each carries a Photoshop metadata block. They
+  are copied into `references/library/` (gitignored) with all metadata
+  stripped (`strip_metadata`); they never enter a commit, an artifact or an
+  external service beyond the AI viewing the permission covers.
+- Code changes: the open-licence check applies to tier 1 only; tier 2 needs a
+  permission text; `library fetch` skips local entries; any future published
+  weights or committed images use tier 1 only.
+- Calipers give a mm scale on stones b, c and e (b3, e3 readable). The scale
+  sits a few mm proud of the face, so a scale from it is approximate; it is
+  recorded but not used in this ADR.
+
+## Consequences
+
+- Nodule can move its pin once the rim-finder passes, and recompute C1–C3
+  and C6 on the photos where an outline is returned.
+- The owner's time: one check of about 30 outlines.
+- If B misses the bar, a follow-up ADR proposes C with its download and cost.
+- `segment()`, the specimen server and the reference regression are
+  unchanged.

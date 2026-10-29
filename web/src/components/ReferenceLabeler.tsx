@@ -168,13 +168,22 @@ export function ReferenceLabeler() {
       <figure className="labeler-photo">
         <img src={library.imageUrl(image.id)} alt={image.title} />
         <figcaption className="muted">
-          <a href={image.source} target="_blank" rel="noreferrer">
-            {image.title}
-          </a>{" "}
+          {/* Photos used by permission (tier 2) have no public page or licence link. */}
+          {image.source.startsWith("http") ? (
+            <a href={image.source} target="_blank" rel="noreferrer">
+              {image.title}
+            </a>
+          ) : (
+            image.title
+          )}{" "}
           · {image.author} ·{" "}
-          <a href={image.licence_url} target="_blank" rel="noreferrer">
-            {image.licence}
-          </a>
+          {image.licence_url ? (
+            <a href={image.licence_url} target="_blank" rel="noreferrer">
+              {image.licence}
+            </a>
+          ) : (
+            image.licence
+          )}
           {image.label && ` · labelled ${image.label.verdict === "forms" ? "" : image.label.verdict}`}
         </figcaption>
       </figure>

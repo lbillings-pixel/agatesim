@@ -61,3 +61,5 @@ HANDOFF.md
 references/library/
 # Image model, its embeddings and the trained classifier, made on demand (ADR 0067)
 references/models/
+# Who the tier-2 library aliases are, and their permissions (ADR 0073)
+references/library-private.toml

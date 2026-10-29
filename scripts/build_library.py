@@ -26,14 +26,13 @@ import urllib.request
 from collections import Counter
 from typing import Any
 
-import tomli_w
-
 from agatesim.library import (
     LIBRARY_TOML,
     guess_forms,
     load_library,
     open_licence,
     slug,
+    write_library,
 )
 
 API = "https://commons.wikimedia.org/w/api.php"
@@ -216,7 +215,7 @@ def main() -> int:
     ids = {e.id for e in existing}
     candidates = [c for c in candidates if c["id"] not in ids]
     print(f"{len(candidates)} open-licence photos qualify", file=sys.stderr)
-    chosen = _pick(candidates, max(0, args.limit - len(existing)))
+    chosen = _pick(candidates, max(0, args.limit - sum(e.tier == 1 for e in existing)))
     for c in chosen:  # titles that differ only in case or punctuation share a slug
         base, n = c["id"], 2
         while c["id"] in ids:
@@ -227,13 +226,7 @@ def main() -> int:
     if args.dry_run:
         return 0
     entries = [e.model_dump(exclude_none=True) for e in existing] + chosen
-    header = (
-        "# Reference library (ADR 0063 tier 1, ADR 0066): openly licensed photos on\n"
-        "# Wikimedia Commons, fetched on demand into references/library/ (gitignored)\n"
-        "# by `agatesim library fetch`. Written by scripts/build_library.py; `guesses`\n"
-        "# come from titles and categories and are not labels.\n\n"
-    )
-    LIBRARY_TOML.write_text(header + tomli_w.dumps({"images": entries}), "utf-8", newline="\n")
+    write_library(entries)
     print(f"wrote {len(entries)} entries to {LIBRARY_TOML}", file=sys.stderr)
     return 0
 

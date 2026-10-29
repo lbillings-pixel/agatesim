@@ -1,7 +1,9 @@
 """The reference library (ADR 0063 stage 2, ADR 0066): openly licensed agate
 photos recorded in references/library.toml, fetched on demand into
 references/library/ (gitignored), and their labels in
-references/library-labels.toml.
+references/library-labels.toml. Photos used by permission (tier 2, ADR 0073)
+are listed there too under a private alias, and copied in by hand,
+metadata stripped (scripts/add_local_photos.py).
 
 A label set says which forms (archetype ids) a photo shows, how sure the
 labeller is, and which features it has. "Can't tell" and "not usable" are
@@ -22,7 +24,14 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 import tomli_w
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 
 from agatesim import progress
 from agatesim.archetypes.registry import load_registry
@@ -34,6 +43,7 @@ LABELS_TOML = ROOT / "references" / "library-labels.toml"
 IMAGES_DIR = ROOT / "references" / "library"
 AGENT = "agatesim-library/0.1 (https://github.com/lbillings-pixel/agatesim)"
 FETCH_PAUSE_S = 0.5
+PERMISSION = "used by permission"  # how a tier-2 licence text starts (ADR 0073)
 
 # Features a photo can show besides its forms (ADR 0063 section 3).
 FEATURES = (
@@ -97,25 +107,33 @@ class LibraryImage(BaseModel):
     id: Annotated[str, StringConstraints(pattern=r"^[a-z0-9][a-z0-9-]*$")]
     title: str
     source: str
-    url: str
+    url: str | None = None  # None: a local photo, copied in by hand, never fetched
     author: str = Field(min_length=1)
     licence: str
     licence_url: str
     tier: Literal[1, 2, 3]
     retrieved: str
+    stone: str | None = None  # photos of one stone share it, so splits keep them together
     categories: tuple[str, ...] = ()
     guesses: tuple[Form, ...] = ()
 
-    @field_validator("licence")
-    @classmethod
-    def _tier_one(cls, v: str) -> str:
-        if not open_licence(v):
-            raise ValueError(f"not an open licence: {v}")
-        return v
+    @model_validator(mode="after")
+    def _licence_fits_tier(self) -> LibraryImage:
+        """Tier 1 is openly licensed and fetched; tier 2 is used by permission
+        (ADR 0063), recorded as the licence text. Tier 3 is not yet admitted."""
+        if self.tier == 1 and not open_licence(self.licence):
+            raise ValueError(f"not an open licence: {self.licence}")
+        if self.tier == 1 and not self.url:
+            raise ValueError("a tier-1 photo needs a url")
+        if self.tier == 2 and not self.licence.startswith(PERMISSION):
+            raise ValueError(f'a tier-2 licence starts "{PERMISSION}"')
+        if self.tier == 3:
+            raise ValueError("tier 3 needs the owner's approval of a source first")
+        return self
 
     @property
     def path(self) -> Path:
-        suffix = ".png" if self.url.lower().endswith(".png") else ".jpg"
+        suffix = ".png" if (self.url or "").lower().endswith(".png") else ".jpg"
         return IMAGES_DIR / f"{self.id}{suffix}"
 
 
@@ -158,6 +176,22 @@ class Label(BaseModel):
 
 def load_library(path: Path = LIBRARY_TOML) -> Library:
     return Library.model_validate(tomllib.loads(path.read_text("utf-8")))
+
+
+LIBRARY_HEADER = (
+    "# Reference library (ADR 0063, ADR 0066): openly licensed photos on Wikimedia\n"
+    "# Commons (tier 1), fetched on demand into references/library/ (gitignored) by\n"
+    "# `agatesim library fetch`, and photos used by permission under a private\n"
+    "# alias (tier 2, ADR 0073), copied in by hand by scripts/add_local_photos.py.\n"
+    "# Written by scripts/build_library.py; `guesses` come from titles and\n"
+    "# categories and are not labels.\n\n"
+)
+
+
+def write_library(entries: list[dict[str, object]], path: Path = LIBRARY_TOML) -> None:
+    """Write the sources list, after checking every entry."""
+    Library.model_validate({"images": entries})
+    path.write_text(LIBRARY_HEADER + tomli_w.dumps({"images": entries}), "utf-8", newline="\n")
 
 
 def load_labels(path: Path = LABELS_TOML) -> dict[str, Label]:
@@ -222,10 +256,11 @@ def _download(url: str) -> bytes:
 def fetch(library: Library, *, limit: int | None = None) -> tuple[int, int]:
     """Fetch images not yet on disk (resumable). Returns (fetched, bytes)."""
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-    todo = [i for i in library.images if not i.path.exists()][:limit]
+    todo = [i for i in library.images if i.url and not i.path.exists()][:limit]
     total = 0
     for n, image in enumerate(todo):
         progress.report(n / max(len(todo), 1), f"fetching {image.title}")
+        assert image.url
         data = _download(image.url)
         tmp = image.path.with_suffix(".part")
         tmp.write_bytes(data)
