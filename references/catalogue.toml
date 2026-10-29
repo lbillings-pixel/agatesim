@@ -1055,3 +1055,63 @@ licence = "cite only"
 checked = "abstract"
 topics = ["boundaries", "evaluation"]
 notes = "Abstract read 2026-10-24 (M33). The BSDS500 benchmark: detected boundaries scored by precision and recall after one-to-one matching to human boundaries within a distance tolerance. The tolerance value (0.0075 of the image diagonal) is as quoted by later papers, not read here. Basis of mm-tolerance boundary scoring in ADR 0068."
+
+[[references]]
+id = "kirillov2023"
+kind = "article"
+authors = ["Kirillov, A.", "Mintun, E.", "Ravi, N.", "Mao, H.", "Rolland, C.", "Gustafson, L.", "Xiao, T.", "Whitehead, S.", "Berg, A. C.", "Lo, W.-Y.", "Dollár, P.", "Girshick, R."]
+year = 2023
+title = "Segment Anything"
+venue = "ICCV 2023; arXiv:2304.02643"
+url = "https://arxiv.org/abs/2304.02643"
+access = "open"
+licence = "arXiv non-exclusive distribution 1.0; cite only (model: Apache-2.0)"
+checked = "sections"
+sections_read = ["3", "4", "5", "8", "Appendix A", "Appendix B"]
+topics = ["image model", "segmentation"]
+notes = "Sections read 2026-10-29 by a helper agent (ADR 0074). Promptable segmentation: points, boxes or a low-resolution mask in, three masks out for ambiguous prompts, each with a predicted IoU (Sec. 3, App. A). The data engine kept masks with predicted IoU at least 0.88 and stability at least 0.95, stability being the IoU of the masks thresholded at logits -1 and +1 (Sec. 4, App. B). No calibration study of predicted against true IoU; in aggregate 94% of filtered automatic masks had IoU above 90% with corrected versions (Sec. 5). Limitations: misses fine structures, hallucinates small disconnected pieces, boundaries less crisp than zoom-in methods (Sec. 8). The mask prompt expects SAM's own 256 x 256 logits (predictor docstring)."
+
+[[references]]
+id = "ravi2025"
+kind = "article"
+authors = ["Ravi, N.", "Gabeur, V.", "Hu, Y.-T.", "Hu, R.", "Ryali, C.", "Ma, T.", "Khedr, H.", "Rädle, R.", "Rolland, C.", "Gustafson, L.", "Mintun, E.", "Pan, J.", "Alwala, K. V.", "Carion, N.", "Wu, C.-Y.", "Girshick, R.", "Dollár, P.", "Feichtenhofer, C."]
+year = 2025
+title = "SAM 2: Segment Anything in Images and Videos"
+venue = "ICLR 2025; arXiv:2408.00714"
+url = "https://arxiv.org/abs/2408.00714"
+access = "open"
+licence = "arXiv non-exclusive distribution 1.0; cite only (model: Apache-2.0)"
+checked = "sections"
+sections_read = ["Table 5", "Table 9", "Appendix C", "Appendix D.1"]
+topics = ["image model", "segmentation"]
+notes = "Sections read 2026-10-29 by a helper agent (ADR 0074). On single images SAM 2 matches or beats SAM (SA-23 1-click mIoU 61.9 vs 58.1, Table 5) and is about 6 times faster. Heads: predicted IoU and an object-presence score (App. D.1). Failure modes: very thin details, crowded scenes, nearby objects of similar appearance (App. C). Tiny model (38.9 M parameters) has no separate image-task numbers."
+
+[[references]]
+id = "kaiser2025"
+kind = "article"
+authors = ["Kaiser, T.", "Norrenbrock, T.", "Rosenhahn, B."]
+year = 2025
+title = "UncertainSAM: Fast and Efficient Uncertainty Quantification of the Segment Anything Model"
+venue = "ICML 2025; arXiv:2505.05049"
+url = "https://arxiv.org/abs/2505.05049"
+access = "open"
+licence = "arXiv non-exclusive distribution 1.0; cite only"
+checked = "sections"
+sections_read = ["4.2", "Table 5"]
+topics = ["image model", "segmentation", "uncertainty"]
+notes = "Sections read 2026-10-29 by a helper agent (ADR 0074). SAM 2's own score correlates with true IoU at Pearson r = 0.49 on COCO (Large model, Table 5), against 0.71 for their trained estimator; the default score is outperformed by nearly all alternatives (Sec. 4.2). Rejection of bad masks is not tested directly."
+
+[[references]]
+id = "sun2024"
+kind = "preprint"
+authors = ["Sun, X.", "Liu, J.", "Shen, H. T.", "Zhu, X.", "Hu, P."]
+year = 2024
+title = "On Efficient Variants of Segment Anything Model: A Survey"
+venue = "IJCV (per the arXiv comments field); arXiv:2410.04960"
+url = "https://arxiv.org/abs/2410.04960"
+access = "open"
+licence = "arXiv preprint; cite only"
+checked = "sections"
+sections_read = ["Table 2", "Table 3", "Table 4", "Table 6"]
+topics = ["image model", "segmentation", "evaluation"]
+notes = "Tables read 2026-10-29 by a helper agent (ADR 0074); authors and venue checked on the arXiv page. One image with one box on a 14-vCPU CPU (runtime unstated): EfficientViT-SAM-L0 194 ms, MobileSAM 424 ms, SAM 2 B+ 1221 ms, SAM ViT-B 3294 ms, ViT-H 9470 ms (Table 4). COCO box-prompt mIoU: SAM-H 77.4, SAM 2 B+ 75.7 (Table 6)."
