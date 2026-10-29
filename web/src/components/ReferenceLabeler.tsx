@@ -190,7 +190,7 @@ export function ReferenceLabeler() {
       <fieldset className="chips">
         <legend>
           Forms it shows
-          {guessed && <span className="muted"> (guessed from its title: check them)</span>}
+          {guessed && <span className="muted"> (guesses: check them)</span>}
         </legend>
         {index.forms.map((f) => (
           <button
@@ -211,7 +211,7 @@ export function ReferenceLabeler() {
           <button
             key={f}
             type="button"
-            className="chip"
+            className={`chip${guessed && draft.features.includes(f) ? " guess" : ""}`}
             aria-pressed={draft.features.includes(f)}
             onClick={() => set({ features: toggle(draft.features, f), unsure: settled(f) })}
           >

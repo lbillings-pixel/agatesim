@@ -1,7 +1,7 @@
 import type { LibraryImage, LibraryLabel } from "../api";
 
-/** The labels a photo opens with: its saved labels, or else its guesses
- * pre-selected (marked as guesses until saved). */
+/** The labels a photo opens with: its saved labels, or else its guessed
+ * forms and features pre-selected (marked as guesses until saved). */
 export function draftFor(image: LibraryImage): {
   label: LibraryLabel;
   guessed: boolean;
@@ -12,12 +12,12 @@ export function draftFor(image: LibraryImage): {
       verdict: "forms",
       forms: [...image.guesses],
       sure: true,
-      features: [],
+      features: [...image.guessed_features],
       unsure: [],
       reviewed: false,
       note: "",
     },
-    guessed: image.guesses.length > 0,
+    guessed: image.guesses.length > 0 || image.guessed_features.length > 0,
   };
 }
 

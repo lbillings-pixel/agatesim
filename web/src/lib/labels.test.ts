@@ -19,6 +19,7 @@ const image = (id: string, over: Partial<LibraryImage> = {}): LibraryImage => ({
   licence: "CC BY 4.0",
   licence_url: "",
   guesses: [],
+  guessed_features: [],
   fetched: true,
   label: null,
   ...over,
@@ -28,6 +29,10 @@ describe("labelling", () => {
   it("pre-selects guesses only until a label is saved", () => {
     expect(draftFor(image("a", { guesses: ["moss"] }))).toMatchObject({
       label: { forms: ["moss"] },
+      guessed: true,
+    });
+    expect(draftFor(image("a", { guessed_features: ["host rock"] }))).toMatchObject({
+      label: { forms: [], features: ["host rock"] },
       guessed: true,
     });
     const saved = {

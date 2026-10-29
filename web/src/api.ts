@@ -470,6 +470,7 @@ export interface LibraryImage {
   licence: string;
   licence_url: string;
   guesses: string[];
+  guessed_features: string[];
   fetched: boolean;
   label: LibraryLabel | null;
 }

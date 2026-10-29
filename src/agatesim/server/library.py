@@ -76,6 +76,7 @@ def library_router(
                     "licence": i.licence,
                     "licence_url": i.licence_url,
                     "guesses": list(i.guesses),
+                    "guessed_features": list(i.guessed_features),
                     "fetched": local(i).exists(),
                     "label": labels[i.id].model_dump() if i.id in labels else None,
                 }

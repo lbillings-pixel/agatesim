@@ -116,6 +116,14 @@ class LibraryImage(BaseModel):
     stone: str | None = None  # photos of one stone share it, so splits keep them together
     categories: tuple[str, ...] = ()
     guesses: tuple[Form, ...] = ()
+    guessed_features: tuple[str, ...] = ()  # helpers' proposals; the owner checks each
+
+    @field_validator("guessed_features")
+    @classmethod
+    def _known_features(cls, v: tuple[str, ...]) -> tuple[str, ...]:
+        if unknown := [f for f in v if f not in FEATURES]:
+            raise ValueError(f"unknown features: {', '.join(unknown)}")
+        return v
 
     @model_validator(mode="after")
     def _licence_fits_tier(self) -> LibraryImage:

@@ -81,6 +81,10 @@ def test_tier_two_is_by_permission_and_local() -> None:
         with pytest.raises(ValidationError):
             Library.model_validate({"images": [bad]})
     assert fetch(Library.model_validate({"images": [local]})) == (0, 0)
+    guessed = _entry(guessed_features=["host rock", "polished"])
+    assert Library.model_validate({"images": [guessed]}).images[0].guessed_features
+    with pytest.raises(ValidationError):  # only the labelling screen's features
+        Library.model_validate({"images": [_entry(guessed_features=["sparkly"])]})
 
 
 def test_labelled_tier_two_photos_never_train_or_tune(tmp_path: Path) -> None:
