@@ -1511,6 +1511,327 @@ forms = [
 [labels.collections-of-the-ural-geological-museum-235]
 verdict = "unusable"
 
+[labels.collector-1-b1-1]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "open cavity",
+    "quartz core",
+]
+
+[labels.collector-1-b1-2]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "open cavity",
+]
+
+[labels.collector-1-b1-3]
+verdict = "forms"
+forms = [
+    "quartz-geode",
+    "fortification",
+]
+features = [
+    "quartz core",
+    "open cavity",
+]
+
+[labels.collector-1-b1-4]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "open cavity",
+]
+
+[labels.collector-1-b1-5]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "open cavity",
+]
+
+[labels.collector-1-b2-a1]
+verdict = "forms"
+forms = [
+    "fortification",
+]
+features = [
+    "open cavity",
+]
+
+[labels.collector-1-b2-a2]
+verdict = "forms"
+forms = [
+    "fortification",
+]
+features = [
+    "open cavity",
+]
+
+[labels.collector-1-b2-a3]
+verdict = "forms"
+forms = [
+    "fortification",
+]
+features = [
+    "polished",
+]
+
+[labels.collector-1-b2-b1]
+verdict = "forms"
+forms = [
+    "fortification",
+]
+features = [
+    "open cavity",
+]
+
+[labels.collector-1-b2-b2]
+verdict = "forms"
+forms = [
+    "fortification",
+]
+features = [
+    "open cavity",
+]
+
+[labels.collector-1-b2-b3]
+verdict = "forms"
+forms = [
+    "fortification",
+]
+features = [
+    "open cavity",
+]
+
+[labels.collector-1-b2-c1]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+]
+
+[labels.collector-1-b2-c2]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+]
+
+[labels.collector-1-b2-c3]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+]
+
+[labels.collector-1-b2-d1]
+verdict = "forms"
+forms = [
+    "fortification",
+    "eye",
+    "moss",
+]
+features = [
+    "open cavity",
+    "inclusions",
+    "host rock",
+]
+
+[labels.collector-1-b2-d2]
+verdict = "forms"
+forms = [
+    "fortification",
+    "moss",
+]
+features = [
+    "open cavity",
+    "inclusions",
+    "host rock",
+]
+
+[labels.collector-1-b2-e1]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "host rock",
+    "open cavity",
+]
+
+[labels.collector-1-b2-e2]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "host rock",
+    "open cavity",
+]
+
+[labels.collector-1-b2-e3]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "open cavity",
+    "host rock",
+]
+
+[labels.collector-1-b2-f1]
+verdict = "forms"
+forms = [
+    "fortification",
+    "eye",
+]
+features = [
+    "open cavity",
+    "quartz core",
+]
+
+[labels.collector-1-b2-f2]
+verdict = "forms"
+forms = [
+    "fortification",
+    "eye",
+]
+features = [
+    "open cavity",
+    "polished",
+    "quartz core",
+]
+
+[labels.collector-1-b2-f3]
+verdict = "forms"
+forms = [
+    "fortification",
+    "eye",
+]
+features = [
+    "open cavity",
+    "quartz core",
+]
+
+[labels.collector-1-b2-g1]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "open cavity",
+]
+
+[labels.collector-1-b2-g2]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "open cavity",
+]
+
+[labels.collector-1-b2-g3]
+verdict = "forms"
+forms = [
+    "fortification",
+    "quartz-geode",
+]
+features = [
+    "quartz core",
+    "open cavity",
+]
+
+[labels.collector-1-b2-h1]
+verdict = "forms"
+forms = [
+    "fortification",
+    "eye",
+]
+features = [
+    "quartz core",
+]
+
+[labels.collector-1-b2-h2]
+verdict = "forms"
+forms = [
+    "fortification",
+    "eye",
+]
+features = [
+    "quartz core",
+]
+
+[labels.collector-1-b2-h3]
+verdict = "forms"
+forms = [
+    "fortification",
+    "eye",
+]
+
+[labels.collector-1-b2-i1]
+verdict = "forms"
+forms = [
+    "fortification",
+]
+features = [
+    "open cavity",
+]
+
+[labels.collector-1-b2-i2]
+verdict = "forms"
+forms = [
+    "fortification",
+]
+features = [
+    "open cavity",
+]
+
+[labels.collector-1-b2-i3]
+verdict = "forms"
+forms = [
+    "fortification",
+]
+features = [
+    "open cavity",
+]
+
 [labels.crazy-lace-agate-11-cropped]
 verdict = "forms"
 forms = [
