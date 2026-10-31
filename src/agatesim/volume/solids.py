@@ -30,6 +30,19 @@ CHUNK = 1 << 20  # points per batch in the heavier distance calculations
 NEWTON_STEPS = 60  # at most, for the ellipsoid distance (about 5 are needed)
 
 
+@dataclass(frozen=True)
+class LevelBound:
+    """How fast a solid's `level` can change, for sphere tracing (ADR 0076).
+
+    level is within error_mm of a function whose slope is at most `lipschitz`,
+    so |level(p) − level(q)| ≤ lipschitz·|p − q| + 2·error_mm, and a ray may
+    step (|level| − error_mm) / lipschitz without crossing the wall.
+    """
+
+    lipschitz: float
+    error_mm: float = 0.0
+
+
 def _rows(points: FloatArray) -> FloatArray:
     return np.asarray(points, dtype=np.float64).reshape(-1, 3)
 
@@ -54,6 +67,10 @@ class Solid(ABC):
     @abstractmethod
     def support(self, direction: FloatArray) -> float:
         """The largest p·direction over the solid."""
+
+    @abstractmethod
+    def level_bound(self) -> LevelBound:
+        """A bound on how fast `level` changes (for sphere tracing)."""
 
     def section(self, origin: FloatArray, u: FloatArray, v: FloatArray) -> FloatArray | None:
         """The exact outline (n, 2) of the cut by the plane origin + s u + t v, in
@@ -102,6 +119,10 @@ class Ellipsoid(Solid):
 
     def support(self, direction: FloatArray) -> float:
         return float(np.sqrt(np.sum((self.axes * direction) ** 2)))
+
+    def level_bound(self) -> LevelBound:
+        # ∇level = −a_min · (p / a²) / |p / a|, and |p / a²| ≤ |p / a| / a_min.
+        return LevelBound(lipschitz=1.0)
 
 
 def _ellipsoid_distance(p: FloatArray, a: FloatArray) -> FloatArray:
@@ -164,6 +185,9 @@ class Polyhedron(Solid):
 
     def support(self, direction: FloatArray) -> float:
         return float(np.max(self.vertices @ direction))
+
+    def level_bound(self) -> LevelBound:
+        return LevelBound(lipschitz=1.0)  # the least of plane distances
 
     def section(self, origin: FloatArray, u: FloatArray, v: FloatArray) -> FloatArray | None:
         """Clip a square larger than the solid by each face's half-plane."""
@@ -257,6 +281,9 @@ class SphereUnion(Solid):
     def support(self, direction: FloatArray) -> float:
         return float(np.max(self.centres @ direction + self.radii * np.linalg.norm(direction)))
 
+    def level_bound(self) -> LevelBound:
+        return LevelBound(lipschitz=1.0)  # the greatest of r − |p − c|
+
 
 def _fibonacci_sphere(n: int) -> FloatArray:
     """n near-evenly spread unit vectors."""
@@ -278,6 +305,9 @@ class _Outline:
         lo, hi = self.vertices.min(axis=0), self.vertices.max(axis=0)
         extent = float(np.max(hi - lo))
         self._samples = densify(self.vertices, extent / 4000)
+        # Every boundary point is within half a spacing of a sample, so the
+        # distance to the samples is within this of the distance to the outline.
+        self.error_mm = extent / 8000
         self._lo = lo - 0.01 * extent
         self._step = 1.02 * extent / self.RASTER
         image = Image.new("1", (self.RASTER, self.RASTER), 0)
@@ -324,6 +354,9 @@ class Prism(Solid):
     def support(self, direction: FloatArray) -> float:
         return float(np.max(self.outline @ direction[:2]) + self.half_height * abs(direction[2]))
 
+    def level_bound(self) -> LevelBound:
+        return LevelBound(lipschitz=1.0, error_mm=self._shape.error_mm)
+
 
 @dataclass(frozen=True, eq=False)
 class Revolution(Solid):
@@ -356,6 +389,10 @@ class Revolution(Solid):
         s, r = self.profile[:, 0], np.abs(self.profile[:, 1])
         return float(np.max(s * direction[0] + r * across))
 
+    def level_bound(self) -> LevelBound:
+        # (x, y, z) → (x, √(y² + z²)) moves points no farther apart.
+        return LevelBound(lipschitz=1.0, error_mm=self._shape.error_mm)
+
 
 @dataclass(frozen=True, eq=False)
 class Rotated(Solid):
@@ -382,6 +419,9 @@ class Rotated(Solid):
 
     def support(self, direction: FloatArray) -> float:
         return self.inner.support(self.rotation.T @ direction)
+
+    def level_bound(self) -> LevelBound:
+        return self.inner.level_bound()  # a rotation keeps distances
 
     def section(self, origin: FloatArray, u: FloatArray, v: FloatArray) -> FloatArray | None:
         r = self.rotation.T

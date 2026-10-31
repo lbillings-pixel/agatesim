@@ -1,6 +1,6 @@
 # 76. Changes for Nodule's first slice: capped wobble, fold check, and what follows
 
-- Status: accepted in part (2026-10-31): section 1 done; sections 2–5 planned
+- Status: accepted in part (2026-10-31): sections 1–2 done; 3–5 planned
 - Date: 2026-10-31
 - Builds on: [ADR 0072](0072-reframing-a-coupled-follow-on-project.md) (formation work moves to Nodule)
 - Spec: Nodule's ADR 0005 (`docs/adr/0005-representation-implicit-hybrid.md`,
@@ -75,7 +75,31 @@ A cap also refuses that steep wobble outright. Cost: bounds take one pass over
 the noise lattice (milliseconds); the 3D check takes 0.2–0.3 s for 20,000
 points.
 
-### 2. Lipschitz bound per Solid (planned)
+### 2. Lipschitz bound per Solid (done)
+
+Sphere tracing marches a ray by the value of `level` (signed, positive
+inside) divided by a bound on its slope, so it never steps across the wall.
+Every `Solid` now reports `level_bound()`: a `LevelBound(lipschitz,
+error_mm)` meaning |level(p) − level(q)| ≤ lipschitz·|p − q| + 2·error_mm. A
+ray may then step (|level| − error_mm) / lipschitz. The method is abstract, so
+a new solid must state its own.
+
+| Solid | lipschitz | error_mm | Why |
+|---|---|---|---|
+| Ellipsoid | 1 | 0 | level = a_min(1 − \|p/a\|); \|p/a²\| ≤ \|p/a\| / a_min |
+| Polyhedron | 1 | 0 | the least of plane distances |
+| SphereUnion | 1 | 0 | the greatest of r − \|p − c\| |
+| Prism, drawn shapes | 1 | extent / 8000 | outline sampled at most extent/4000 apart |
+| Revolution | 1 | extent / 8000 | as Prism; (x, y, z) → (x, √(y² + z²)) moves no point pair farther apart |
+| Rotated | inner's | inner's | a rotation keeps distances |
+
+For a 50 mm stone the outline error is about 6 µm, below any useful tracing
+tolerance. Fractures narrower than the tolerance would vanish, so Nodule
+checks its fracture field separately (its ADR 0005). Tests
+(`tests/test_level_bound.py`): every preset solid, turned, and a drawn one,
+over 40,000 point pairs from 1 µm to the whole solid apart, inside and out;
+negative control: a level 1.5× steeper than its reported bound is caught.
+Cost: none at run time (constants).
 
 ### 3. Fracture events (planned)
 
