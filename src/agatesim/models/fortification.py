@@ -20,7 +20,8 @@ from agatesim.models.base import (
     fields_from_bands,
     make_bands,
     micro_band_spacing,
-    smooth_noise,
+    smooth_noise_bounded,
+    wobble_taper_mm,
 )
 from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
@@ -117,6 +118,17 @@ class ProceduralFortification(BaseModel):
         nature=Nature.EFFECTIVE,
         description="Length scale of band irregularity.",
     )
+    wobble_max_slope: float = param(
+        0.0,
+        ge=0,
+        lt=1,
+        units="mm/mm",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Cap on the slope of band irregularity, so bands cannot fold; the wobble "
+            "then fades in from the wall over a wider zone. 0 = no cap."
+        ),
+    )
     corner_rounding_mm: float = param(
         0.0,
         ge=0,
@@ -190,9 +202,13 @@ def run_fortification(
     coord = d
     if params.corner_rounding_mm > 0:
         coord = _scipy.gaussian(coord, sigma=params.corner_rounding_mm / domain.grid.dx)
-    noise = smooth_noise(domain, params.wobble_scale_mm, rng_noise)
+    noise, bounds = smooth_noise_bounded(domain, params.wobble_scale_mm, rng_noise)
     # Taper the wobble to zero at the wall so the outermost band hugs it.
-    taper = np.clip(d / (2 * params.wobble_mm), 0, 1) if params.wobble_mm > 0 else 0.0
+    taper = (
+        np.clip(d / wobble_taper_mm(params.wobble_mm, bounds, params.wobble_max_slope), 0, 1)
+        if params.wobble_mm > 0
+        else 0.0
+    )
     coord = coord + params.wobble_mm * noise * taper
     filled = domain.mask & (coord < depth)
     t_dep = np.clip(coord / depth, 0, 1)

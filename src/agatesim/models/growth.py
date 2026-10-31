@@ -62,8 +62,9 @@ from agatesim.models.base import (
     Domain,
     make_bands,
     micro_band_spacing,
-    smooth_noise,
+    smooth_noise_bounded,
     tube_distance,
+    wobble_taper_mm,
 )
 from agatesim.models.palette import Palette
 from agatesim.params import KEY, Nature, param
@@ -491,6 +492,17 @@ class ProceduralGrowth(BaseModel):
         units="mm",
         nature=Nature.EFFECTIVE,
         description="Length scale of band irregularity.",
+    )
+    wobble_max_slope: float = param(
+        0.0,
+        ge=0,
+        lt=1,
+        units="mm/mm",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Cap on the slope of band irregularity, so bands cannot fold; the wobble "
+            "then fades in from the wall over a wider zone. 0 = no cap."
+        ),
     )
     palette: Palette = Field(
         default_factory=Palette,
@@ -975,6 +987,7 @@ def _fill(
     supply: FloatArray,
     mode: NDArray[np.int64],
     noise: FloatArray,
+    fade_mm: float,
     rng_sites: np.random.Generator,
     rng_crystals: np.random.Generator,
     rng_dendrites: np.random.Generator,
@@ -1067,7 +1080,7 @@ def _fill(
                 pts = np.stack([xx[rows, cols], yy[rows, cols]], axis=1)
                 d, owner = _assign(metric, pts, len(sites.points), dx)
             if m is not Mode.CRYSTAL and params.wobble_mm > 0:
-                taper = np.clip(d / (2 * params.wobble_mm), 0, 1)
+                taper = np.clip(d / fade_mm, 0, 1)
                 d = d + params.wobble_mm * noise[rows, cols] * taper
             k = np.searchsorted(cumulative, d, side="left")
         new = k < (b - a)
@@ -1102,8 +1115,15 @@ def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generato
     supply = np.clip(s.silica.sample(tau), 0.0, 1.0)
     mode = growth_modes(params, tau)
 
-    noise = smooth_noise(domain, params.wobble_scale_mm, rng_noise)
-    fill = _fill(params, domain, supply, mode, noise, rng_sites, rng_crystals, rng_dendrites)
+    noise, bounds = smooth_noise_bounded(domain, params.wobble_scale_mm, rng_noise)
+    fade_mm = (
+        wobble_taper_mm(params.wobble_mm, bounds, params.wobble_max_slope)
+        if params.wobble_mm > 0
+        else 0.0
+    )
+    fill = _fill(
+        params, domain, supply, mode, noise, fade_mm, rng_sites, rng_crystals, rng_dendrites
+    )
     return growth_fields(
         params, fill, mode, domain.mask, rng_bands, rng_iron, rng_micro, streams[7]
     )

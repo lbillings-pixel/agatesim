@@ -36,6 +36,7 @@ from numpy.typing import NDArray
 from agatesim import _scipy, progress
 from agatesim.fields import Fields
 from agatesim.grid import FloatArray
+from agatesim.models.base import wobble_taper_mm
 from agatesim.models.growth import (
     CANDIDATE_DENSITY,
     SITE_SEPARATION,
@@ -450,6 +451,11 @@ def prepare_growth(
     mode = growth_modes(params, tau)
     step_mm = params.growth_mm * supply / TIME_STEPS
     noise = SmoothNoise3(setting.solid, params.wobble_scale_mm, rng_noise)
+    fade = (
+        wobble_taper_mm(params.wobble_mm, noise.bounds, params.wobble_max_slope)
+        if params.wobble_mm > 0
+        else 0.0
+    )
     ref = setting.reference
     s = ref.spacing
     ref_h = setting.height(ref.points)
@@ -571,7 +577,7 @@ def prepare_growth(
                     assert st.metric is not None
                     d, owner = st.metric.assign(p)
                 if st.mode is not Mode.CRYSTAL and params.wobble_mm > 0:
-                    taper = np.clip(d / (2 * params.wobble_mm), 0, 1)
+                    taper = np.clip(d / fade, 0, 1)
                     d = d + wobble[open_idx] * taper
                 k = np.searchsorted(st.reach, d, side="left")
             new = k < (st.end - st.start)

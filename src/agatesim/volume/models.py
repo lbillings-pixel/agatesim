@@ -34,7 +34,13 @@ from agatesim.models import (
     Settling,
     Staged,
 )
-from agatesim.models.base import banded_fields, make_bands, micro_band_spacing
+from agatesim.models.base import (
+    banded_fields,
+    lattice_bounds,
+    make_bands,
+    micro_band_spacing,
+    wobble_taper_mm,
+)
 from agatesim.models.settling import HEIGHT_CELLS, SettledColumn, settle_column
 from agatesim.volume.solids import BoolArray, Solid
 
@@ -121,6 +127,7 @@ class SmoothNoise3:
             rng.standard_normal((int(n[0]), int(n[1]), int(n[2]))), 4.0, wrap=True
         )
         self._lattice = lattice / (float(lattice.std()) or 1.0)
+        self.bounds = lattice_bounds(self._lattice, h)
 
     def __call__(self, points: FloatArray) -> FloatArray:
         idx = (points - self._lo) / self._h
@@ -206,10 +213,15 @@ def _fortification(
         ),
     )
     noise = SmoothNoise3(setting.solid, params.wobble_scale_mm, rng_noise)
+    fade = (
+        wobble_taper_mm(params.wobble_mm, noise.bounds, params.wobble_max_slope)
+        if params.wobble_mm > 0
+        else 0.0
+    )
 
     def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
         d = wall_distance_at(setting, points, inside)
-        taper = np.clip(d / (2 * params.wobble_mm), 0, 1) if params.wobble_mm > 0 else 0.0
+        taper = np.clip(d / fade, 0, 1) if params.wobble_mm > 0 else 0.0
         coord = d + params.wobble_mm * noise(points) * taper
         filled = inside & (coord < depth)
         return banded_fields(inside, coord, filled, bands, np.clip(coord / depth, 0, 1))

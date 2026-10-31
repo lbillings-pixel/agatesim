@@ -139,12 +139,58 @@ def micro_band_spacing(
     return np.where(regular, spacing, np.nan)
 
 
+@dataclass(frozen=True)
+class NoiseBounds:
+    """Exact bounds on noise read from a lattice by (bi/tri)linear interpolation."""
+
+    peak: float  # largest |n|: interpolation never leaves the lattice's range
+    slope: float  # largest |∇n|, per mm
+
+
+def lattice_bounds(lattice: FloatArray, spacing_mm: float) -> NoiseBounds:
+    """Within a cell, each component of a multilinear interpolant's gradient is a
+    weighted mean of that axis's edge differences, so it is at most the largest
+    of them; the gradient's length is at most the root sum of those squares."""
+    largest = [float(np.abs(np.diff(lattice, axis=a)).max()) for a in range(lattice.ndim)]
+    return NoiseBounds(
+        peak=float(np.abs(lattice).max()),
+        slope=math.sqrt(sum(g * g for g in largest)) / spacing_mm,
+    )
+
+
+def wobble_taper_mm(wobble_mm: float, bounds: NoiseBounds, max_slope: float) -> float:
+    """Distance from the wall over which the wobble fades in (ADR 0076).
+
+    The added term is wobble · n(x) · min(d / D, 1). Its slope is at most
+    wobble · (|∇n| + |n| / D), so D = wobble·peak / (cap − wobble·slope) keeps it
+    at most the cap. Below 1, a coordinate d + that term cannot fold wherever
+    |∇d| = 1 (away from the medial surface). max_slope 0 keeps the old,
+    uncapped fade-in over twice the amplitude.
+    """
+    if max_slope <= 0:
+        return 2 * wobble_mm
+    own = wobble_mm * bounds.slope
+    if own >= max_slope:
+        raise ValueError(
+            f"the band wobble's own slope reaches {own:.2f} mm/mm, above its cap "
+            f"{max_slope:g}: lower wobble_mm or raise wobble_scale_mm"
+        )
+    return wobble_mm * bounds.peak / (max_slope - own)
+
+
 def smooth_noise(domain: Domain, scale_mm: float, rng: np.random.Generator) -> FloatArray:
     """Smooth unit-variance noise defined in world coordinates.
 
     The noise lives on a lattice tied to the cavity, not the pixel grid, so a
     low-resolution preview and a full run see the same pattern.
     """
+    return smooth_noise_bounded(domain, scale_mm, rng)[0]
+
+
+def smooth_noise_bounded(
+    domain: Domain, scale_mm: float, rng: np.random.Generator
+) -> tuple[FloatArray, NoiseBounds]:
+    """smooth_noise, with bounds on its size and slope."""
     h = scale_mm / 4  # lattice spacing
     xmin, ymin, xmax, ymax = domain.cavity.bounds()
     pad = 0.5 * max(xmax - xmin, ymax - ymin) + 8 * h
@@ -154,7 +200,8 @@ def smooth_noise(domain: Domain, scale_mm: float, rng: np.random.Generator) -> F
     lattice = _scipy.gaussian(rng.standard_normal((n_rows, n_cols)), sigma=4.0, wrap=True)
     lattice /= float(lattice.std()) or 1.0
     xx, yy = domain.grid.coords()
-    return _scipy.bilinear(lattice, (y_hi - yy) / h, (xx - x_lo) / h)
+    values = _scipy.bilinear(lattice, (y_hi - yy) / h, (xx - x_lo) / h)
+    return values, lattice_bounds(lattice, h)
 
 
 def fields_from_bands(
