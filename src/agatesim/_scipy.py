@@ -89,6 +89,19 @@ def linear_at(field: FloatArray, coords: list[FloatArray]) -> NDArray[np.float64
     return cast(NDArray[np.float64], out)
 
 
+def periodic_spline(field: FloatArray) -> NDArray[np.float64]:
+    """Cubic B-spline coefficients of a periodic `field`, so `periodic_spline_at`
+    passes through its values."""
+    out = ndimage.spline_filter(field, order=3, mode="grid-wrap", output=np.float64)
+    return cast(NDArray[np.float64], out)
+
+
+def periodic_spline_at(coeffs: FloatArray, coords: FloatArray) -> NDArray[np.float64]:
+    """Evaluate a periodic cubic spline at fractional indices (one row per axis)."""
+    out = ndimage.map_coordinates(coeffs, coords, order=3, mode="grid-wrap", prefilter=False)
+    return cast(NDArray[np.float64], out)
+
+
 def hull_planes(points: FloatArray) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """The convex hull of 3D points as planes n·x ≤ b with unit outward normals n,
     one per face (coplanar triangles merged)."""

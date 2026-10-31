@@ -1,6 +1,6 @@
 # 76. Changes for Nodule's first slice: capped wobble, fold check, and what follows
 
-- Status: accepted in part (2026-10-31): sections 1–3 done; 4–5 planned
+- Status: accepted in part (2026-10-31): sections 1–4 done; 5 planned
 - Date: 2026-10-31
 - Builds on: [ADR 0072](0072-reframing-a-coupled-follow-on-project.md) (formation work moves to Nodule)
 - Spec: Nodule's ADR 0005 (`docs/adr/0005-representation-implicit-hybrid.md`,
@@ -150,7 +150,57 @@ about 93 MB extra per 10⁶ points (4 steps), against 0.29 s for fortification-3
 own evaluation of the same points. Not in run configs or the app yet; add them
 when Nodule needs them there.
 
-### 4. Band-limited noise (planned)
+### 4. Band-limited noise (done)
+
+`agatesim.noise.BandNoise`: a sum of octaves of band-pass noise in world
+coordinates, in 2D or 3D. Octave k has centre wavelength scale_mm / 2^k and
+weight gain^k; the full sum has unit variance. scale_mm, octaves and gain are
+*effective*. Existing models keep `SmoothNoise3` and `smooth_noise`, so no preset
+changes.
+
+- **Why band-pass** [@lagae2010]: a preview can only drop detail cleanly if
+  each octave's power lies in a known band. Frequency clamping "works best if
+  the noise is narrowly band-pass", and Perlin noise is only weakly band-pass
+  (ms p. 13). Thresholded bands defeat noise filtering in general (ms pp. 13,
+  17), so antialiasing of band edges stays with the renderer (Nodule ADR 0005).
+- **Construction: a stored tile** (the owner's choice, 2026-10-31, over Gabor
+  noise). This is the explicit, wavelet-noise kind in [@lagae2010] (ms pp. 5–6).
+  One periodic tile of white noise (128³ cells in 3D, 256² in 2D) is filtered
+  in Fourier space to one band: full power within a quarter octave of a centre
+  wavelength of 8 cells, cos² edges over the next half octave, none beyond.
+  Neighbouring octaves' powers then add to exactly one. Each octave reads the
+  same tile at its own scale, through its own random rotation and offset, by
+  the tile's cubic B-spline (smooth, no kinks at cell edges). Gabor noise would
+  not repeat and needs no storage, but is far slower and its bounds looser.
+  **Cost of the choice:** in each octave the pattern repeats every 16
+  wavelengths (3D default).
+- **Previews:** `noise(points, spacing_mm)` drops the octaves wholly finer than
+  the grid's Nyquist frequency, 1 / (2 · spacing). It reads the one or two
+  octaves that straddle it from a copy of the tile low-passed (radially, sharp
+  cut) to that frequency. A preview is then the full noise low-passed to its
+  pixels, with nothing aliased. Simply dropping the straddling octaves was
+  tried first and was no better than aliasing (error 0.32 against 0.30 at
+  0.4 mm pixels), because their resolvable part is lost.
+- **Bounds** (`bounds(spacing_mm)` → `NoiseBounds`, for `wobble_taper_mm` and
+  sphere tracing): exact. B-spline weights are non-negative and sum to one, so
+  |n| is at most the largest coefficient and the slope along an axis at most
+  the largest neighbouring difference over the cell size; rotation keeps
+  gradient length; octaves add. They are loose, about 2.2–2.8× the largest
+  value and slope found by sampling, because each octave's worst case is
+  added.
+
+| Check | Result | Negative control (rejected) |
+|---|---|---|
+| Tile power outside its band | < 10⁻²⁰ of the total | — (exact by construction) |
+| Preview against the full noise low-passed to its pixels (2D, 5 octaves, gain 0.8) | RMS error 2% of the signal at 0.4 mm pixels, 10% at 1.6 mm; an upper bound, since the reference's own FFT leaks near its cut over a finite square | every octave read on the same coarse grid: 34% and 87% |
+| Value and slope within the reported bounds (2D and 3D, full and preview) | never exceeded over 20,000 point pairs 1 µm to 5 mm apart | the same noise made 3× steeper: breaks its bound |
+
+Tests: `tests/test_noise.py` (12), also covering position-only evaluation (same
+values in any batch order), unit variance and refusal of bad inputs. Cost in 3D
+(4 octaves, 10⁶ points, CPU): building 0.43 s and 42 MB held; evaluating 1.6 s
+and 80 MB at full detail, 0.65 s with 2 octaves at 2 mm spacing; a new preview
+spacing adds about 0.3 s once (its low-passed tiles are cached). Not in run
+configs or the app yet; add it when Nodule needs it there.
 
 ### 5. Wall-distance cache (only if Nodule's slice cuts are slow)
 
@@ -160,3 +210,5 @@ when Nodule needs them there.
   fold check on its own composite.
 - Existing presets, the gallery and verified archetypes are unchanged.
 - The new parameter appears in the app automatically (from the schema).
+- Nodule can build its band wobble from `BandNoise` and read previews with
+  `spacing_mm`; the bounds feed the slope cap of section 1.

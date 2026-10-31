@@ -704,6 +704,20 @@ topics = ["implicit-modelling", "discrete-interpolation", "finite-difference", "
 notes = """Read in full 2026-10-31 (open-access PDF; in-text figure numbers run one ahead of captions). Implicit functions queried anywhere for value or gradient (p.3915); evaluate_model/evaluate_feature_value/gradient at arbitrary xyz (pp.3924–3925); features may be analytical functions (pp.3923–3924). Signed-distance vs potential-field framing; conformable horizons as isovalues of one field (pp.3917, 3919). PLI on 5-tet split of Cartesian cubes, FDI trilinear with second-derivative regularisation; sparse least squares A·x=b solved by CG, iterative for memory (pp.3918–3919, 3932–3934). SurfE RBF/co-kriging (p.3919). Defaults nelements 100 000, buffer 0.2, weights 1 (Table 1, p.3925); regularisation weight dominates geometry, no rule for choosing it (p.3926). Angular unconformity = two fields, mask (pp.3919, 3923). Fault frame of three orthogonal fields; displacement δ = D0·D1·D2 of frame coordinates (Eq.6); faults added backwards in time, data restored before interpolating faulted field; co-kriging drifts give only a global best-fit displacement (pp.3920–3921, 3928–3930); profiles conceptual, not fitted (p.3931). Fold frames with Fourier-fitted rotation angles (p.3922). Flinders: faults 50 000 and stratigraphy 500 000 FDI elements, pyamg; i7 laptop, 32 GB RAM; map2loop ~1 min, model ~8 min, rendering on 200×200×100 grid 3 min (p.3928); total ~10 min; complexity set by support resolution, not data count (p.3931). No GPU, no probabilistic interface (p.3931). For Nodule: displacement-operator model for fractures cutting bands; discrete supports cost like grids at fine resolution."""
 
 [[references]]
+id = "lagae2010"
+kind = "article"
+authors = ["Lagae, A.", "Lefebvre, S.", "Cook, R.", "DeRose, T.", "Drettakis, G.", "Ebert, D. S.", "Lewis, J. P.", "Perlin, K.", "Zwicker, M."]
+year = 2010
+title = "A survey of procedural noise functions"
+venue = "Computer Graphics Forum 29(8), 2579–2600"
+doi = "10.1111/j.1467-8659.2010.01827.x"
+access = "open"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["procedural-noise", "perlin-noise", "gabor-noise", "wavelet-noise", "sparse-convolution", "anti-aliasing", "spectral-control", "solid-texture", "resolution-independence"]
+notes = """Copy used: authors' version on co-author J.P. Lewis's site (scribblethink.org); 20-page layout, header 'pp. 1–20'. Read in full 2026-10-31; pages are manuscript pages (ms pp. 1–20) of the authors' layout, not journal pages. Noise = stationary Gaussian process controlled by its power spectrum; phase random (ms pp. 2–3). Procedural advantages (compact, multi-resolution, non-periodic, constant-time random access) are 'only potential' (ms pp. 3–4). Classes: lattice gradient (Perlin: permutation hashing, 12 gradients, quintic; ms p. 4), explicit (wavelet, anisotropic; stored tiles; ms pp. 5–6), sparse convolution (Poisson impulses, per-cell RNG seeded from cell coordinates; Gabor kernel; ms pp. 6–8). Octave sum Σ wᵢN(2ⁱx) (ms p. 10); marble C(x+N(x)) (ms p. 9). Slicing band-pass solid noise on a surface is not band-pass (slice-projection; ms pp. 5, 12). Frequency clamping needs narrowly band-pass noise; Perlin only weakly band-pass; Gabor allows analytic anisotropic filtering (ms p. 13). Filtering after non-linear maps (thresholds, colour ramps) unsolved in general (ms pp. 13, 17). Table 1 (ms p. 17): storage Perlin O(N), sparse conv. O(1), wavelet/anisotropic O(N^d), better gradient O(dN), Gabor O(1); non-periodic only sparse conv. and Gabor; speed ordinal and 'subjective', no benchmark (ms pp. 16–17). Open: non-stationary and non-Gaussian noise, phase, filtering (ms pp. 16–17). For Nodule: world-coordinate band-pass noise with octave clamping for previews; no measured costs."""
+
+[[references]]
 id = "laurent2013"
 kind = "article"
 authors = ["Laurent, G.", "Caumon, G.", "Bouziat, A.", "Jessell, M."]
