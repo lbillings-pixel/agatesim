@@ -1,6 +1,6 @@
 # 76. Changes for Nodule's first slice: capped wobble, fold check, and what follows
 
-- Status: accepted in part (2026-10-31): sections 1–2 done; 3–5 planned
+- Status: accepted in part (2026-10-31): sections 1–3 done; 4–5 planned
 - Date: 2026-10-31
 - Builds on: [ADR 0072](0072-reframing-a-coupled-follow-on-project.md) (formation work moves to Nodule)
 - Spec: Nodule's ADR 0005 (`docs/adr/0005-representation-implicit-hybrid.md`,
@@ -101,7 +101,54 @@ over 40,000 point pairs from 1 µm to the whole solid apart, inside and out;
 negative control: a level 1.5× steeper than its reported bound is caught.
 Cost: none at run time (constants).
 
-### 3. Fracture events (planned)
+### 3. Fracture events (done)
+
+`agatesim.volume.fractures.Fracture`: one flat sheet with slip, applied
+backward. Nodule composes it with any 3D evaluator.
+
+- **The sheet** [@moes2002]: φ is the signed distance to the plane, positive on
+  the side that moves (Nodule's convention; the paper's printed sign is the
+  reverse). ψ is the distance within the plane to the tip line, negative
+  inside. The tip line is an ellipse with radii along and across the slip.
+  ψ is exact for a circle. For an ellipse it has the right sign, and its size
+  is a lower bound: min radius · |r − 1|, in the normalised radius r.
+- **The offset** [@laurent2013]: in the fault frame (g0 = φ, g1 along the slip,
+  g2 across it), the slip is v = slip_mm · along(r) · across(|g0| / drag_mm),
+  with r = √((g1/a₁)² + (g2/a₂)²). Only the + side moves; the paper's share γ
+  is 1 there and 0 on the other side. The paper draws its profiles as splines
+  with no formula. Both default to the bell (1 − s²)², which is 1 at the
+  centre and 0 with zero slope at the tip (*effective*). `drag_mm = inf` moves
+  the whole side as a block. slip_mm, the radii and drag_mm are *effective*
+  until calibrated on measured offsets.
+- **Backward** [@grose2021]: a point is restored by N steps of −τv, with
+  τ = 1/N, and the unfractured model is then evaluated there. Noise and wall
+  distance are read at the restored point, so the bands move with the rock.
+  The motion is parallel to the plane, so φ is kept exactly and only g1
+  changes. Fractures listed oldest first are undone youngest first.
+- **One-to-one.** A step is one-to-one when τ·‖∇v‖ < 1 (sufficient condition;
+  *plausible*, [inference]). The bound comes from the profiles:
+  ‖∇v‖ ≤ slip · √((across′/drag · along_peak)² + (across_peak · along′ / a_min)²).
+  By default N = max(4, ⌈2·bound⌉), so τ·‖∇v‖ ≤ ½.
+- **Sheet field.** `sheet_distance` is √(φ² + max(ψ, 0)²): exact for a circle,
+  a lower bound for an ellipse, so a tracer marching by it never steps past
+  the sheet. Aperture is zero (assumption, as in Nodule's ADR 0005).
+- **Assumption: the rim moves too.** The whole specimen, host included, moves
+  with the fracture. `evaluate_fractured` tests `inside` at the restored
+  points, so a fracture that reaches the rim offsets the rim. One that stays
+  inside the stone leaves the rim alone, because the slip is zero at its tip.
+
+| Check | Result | Negative control (rejected) |
+|---|---|---|
+| Offset at the tip line (`tip_offset_mm`) | < 10⁻⁹ mm | constant `along` profile: about the full slip |
+| Restored order along slip lines (`overlaps`) | 0 (slip 6 mm, radii 4 and 3 mm, drag 2 mm; bound > 1, default N) | the same fracture in one step: overlaps found; τ·‖∇v‖ ≥ 1 |
+| fortification-3d, flat fracture with a 0.3 · size radius | bands agree across the plane at all 400 tip points | they differ at > 20% of points near the centre |
+
+Tests: `tests/test_fractures.py` (17). They also cover the frame, φ being kept,
+the circle's exact distances, the ellipse's lower bound against a dense
+sampling, the order of events, and refusal of bad inputs. Cost: 0.14 s and
+about 93 MB extra per 10⁶ points (4 steps), against 0.29 s for fortification-3d's
+own evaluation of the same points. Not in run configs or the app yet; add them
+when Nodule needs them there.
 
 ### 4. Band-limited noise (planned)
 

@@ -689,6 +689,48 @@ checked = "citation"
 topics = ["level-set", "numerical-methods", "curvature"]
 notes = "The level-set method, used by the 2D H1 front solver (ADR 0017, ADR 0028). Cited for the method only."
 
+[[references]]
+id = "grose2021"
+kind = "article"
+authors = ["Grose, L.", "Ailleres, L.", "Laurent, G.", "Jessell, M."]
+year = 2021
+title = "LoopStructural 1.0: time-aware geological modelling"
+venue = "Geoscientific Model Development 14, 3915–3937"
+doi = "10.5194/gmd-14-3915-2021"
+access = "open"
+licence = "CC-BY-4.0"
+checked = "full-text"
+topics = ["implicit-modelling", "discrete-interpolation", "finite-difference", "rbf", "structural-frames", "faults", "folds", "unconformity", "time-aware", "representation"]
+notes = """Read in full 2026-10-31 (open-access PDF; in-text figure numbers run one ahead of captions). Implicit functions queried anywhere for value or gradient (p.3915); evaluate_model/evaluate_feature_value/gradient at arbitrary xyz (pp.3924–3925); features may be analytical functions (pp.3923–3924). Signed-distance vs potential-field framing; conformable horizons as isovalues of one field (pp.3917, 3919). PLI on 5-tet split of Cartesian cubes, FDI trilinear with second-derivative regularisation; sparse least squares A·x=b solved by CG, iterative for memory (pp.3918–3919, 3932–3934). SurfE RBF/co-kriging (p.3919). Defaults nelements 100 000, buffer 0.2, weights 1 (Table 1, p.3925); regularisation weight dominates geometry, no rule for choosing it (p.3926). Angular unconformity = two fields, mask (pp.3919, 3923). Fault frame of three orthogonal fields; displacement δ = D0·D1·D2 of frame coordinates (Eq.6); faults added backwards in time, data restored before interpolating faulted field; co-kriging drifts give only a global best-fit displacement (pp.3920–3921, 3928–3930); profiles conceptual, not fitted (p.3931). Fold frames with Fourier-fitted rotation angles (p.3922). Flinders: faults 50 000 and stratigraphy 500 000 FDI elements, pyamg; i7 laptop, 32 GB RAM; map2loop ~1 min, model ~8 min, rendering on 200×200×100 grid 3 min (p.3928); total ~10 min; complexity set by support resolution, not data count (p.3931). No GPU, no probabilistic interface (p.3931). For Nodule: displacement-operator model for fractures cutting bands; discrete supports cost like grids at fine resolution."""
+
+[[references]]
+id = "laurent2013"
+kind = "article"
+authors = ["Laurent, G.", "Caumon, G.", "Bouziat, A.", "Jessell, M."]
+year = 2013
+title = "A parametric method to model 3D displacements around faults with volumetric vector fields"
+venue = "Tectonophysics 590, 83–93"
+doi = "10.1016/j.tecto.2013.01.015"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["faults", "fault-operator", "displacement-field", "structural-frames", "kinematics", "time-integration", "fault-drag", "tip-line", "reverse-time-restoration", "representation"]
+notes = """Read in full 2026-10-31 from the publisher PDF supplied by the owner (11 pages = journal pp.83–93; all figures and equations viewed; no supplement). Near-field fault displacement as a volumetric vector field; far-field out of scope; simple patterns only (single max, elliptical isolines, slip on an axis); volume compensation assumed, not enforced (pp.84–86). Fault frame g0 (signed distance), g1 (striae isolines), g2 (orthogonal), normalised so D=sqrt(g0^2+g1^2+g2^2)=1 at near-field boundary; tip line g0=0, D=1 (Eq.1, p.86). Direction u=k grad g0 x grad g1/(|grad g0||grad g1|), k=sign g0; on-fault points use neighbours (Eq.2, pp.86–87). Partition gamma_h=1-gamma_f (Eqs.3–4, p.87). |v|=vmax gamma rho; rho=p0(g0)[p1(r)g1^2+p2(r)g2^2]/(g1^2+g2^2), r=sqrt(g1^2+g2^2) (Eqs.5–10, p.87); spline profiles, bell p1,p2 zero at +-1, p0 zero at |g0|=1 (Fig.4, p.88). Forward Euler on object points X<-X+tau|v|u; claims no self-intersection 'with appropriate fields and time steps', no proof (p.87; text cites Eq.4 for Eq.5). Planar frame analytic; curved frames interpolated with orthogonality constraints (pp.87–88, Fig.7). Data-driven vs process-oriented far-field (pp.88–89). Listric: integrate until (x-x0).V/|V|=|v| (Eq.11, Fig.9, pp.90–91). Reverse-time: youngest fault first, restore older fault sticks (Fig.11, p.92). Independent faults only (pp.92–93). No timings or memory. Text inconsistency: g1 called slip direction (pp.84,87) but grad g1 orthogonal to slip (p.88, Eq.2). For Nodule: analytic fracture frame allows a mesh-free inverse map (backward flow) before band evaluation; tip zero via profiles; opening not modelled. Likely precursor of LoopStructural fault operator (grose2021)."""
+
+[[references]]
+id = "moes2002"
+kind = "article"
+authors = ["Moës, N.", "Gravouil, A.", "Belytschko, T."]
+year = 2002
+title = "Non-planar 3D crack growth by the extended finite element and level sets—Part I: Mechanical model"
+venue = "International Journal for Numerical Methods in Engineering 53(11), 2549–2568"
+doi = "10.1002/nme.429"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["x-fem", "level-sets", "signed-distance", "fracture", "crack-representation", "discontinuity", "enrichment", "mesh-independent", "implicit-modelling", "representation"]
+notes = """Read in full 2026-10-31 from the publisher PDF supplied by the owner (20 pages = journal pp.2549–2568; all figure and equation pages viewed rendered; pypdf text garbles Greek/maths). X-FEM for arbitrary non-planar 3D cracks, mesh-independent (pp.2549–2550). Crack = two signed distance functions: phi = signed distance to a smooth extension of the crack sheet (Eq.1, p.2551–2552; as printed phi<0 on the side n+ points to); psi approximately orthogonal (grad phi . grad psi ~ 0); crack = {phi=0, psi<0}, front = {phi=0, psi=0} (p.2552, Fig.1). Needed only near the crack (p.2551). Nodal interpolation with FE shape functions is 'not necessary nor always most convenient'; functions may be used directly (p.2552); C0 tets give piecewise-linear crack (p.2552). Enrichment: H(phi) for fully cut supports, branch functions in r=sqrt(phi^2+psi^2), theta=atan(phi/psi) at the front, so the jump sits exactly on phi=0, psi<0 (Eqs.7–9, p.2553). Near-aligned cuts ill-condition; snap level set to zero at node, tol 1e-2 (pp.2554–2555, Fig.3). Local frame e1=grad psi, e2=grad phi, e3=e1 x e2, nodal-smoothed (Eq.17, p.2556). SIFs by interaction integral (pp.2557–2559, App. A). Front extracted as psi=0 on the triangulated phi=0 set in the narrow band (p.2560, Fig.8). Examples: lens crack 145000 dof, R/20, errors 2%/10% vs 0.3%/5% conforming at R/500 (p.2561); elliptical 130000 dof, a/10 (p.2562); part with 161925 tets (p.2565). No times or memory. Linear elastic, small displacement, smooth fronts only (p.2553). For Nodule: analogue only; static fracture as on-demand (phi, psi) with sign/distance/tip mask needs no mesh; complements reverse-time offset operators (supplies side, frame, tip distance) but models mechanics, not displacement of pre-existing layers."""
+
 # --- Image analysis ----------------------------------------------------------
 
 [[references]]
