@@ -1,6 +1,6 @@
 # 76. Changes for Nodule's first slice: capped wobble, fold check, and what follows
 
-- Status: accepted in part (2026-10-31): sections 1–4 done; 5 planned
+- Status: accepted (2026-10-31): sections 1–5 done (5 by exact distance, not a cache)
 - Date: 2026-10-31
 - Builds on: [ADR 0072](0072-reframing-a-coupled-follow-on-project.md) (formation work moves to Nodule)
 - Spec: Nodule's ADR 0005 (`docs/adr/0005-representation-implicit-hybrid.md`,
@@ -202,7 +202,42 @@ and 80 MB at full detail, 0.65 s with 2 octaves at 2 mm spacing; a new preview
 spacing adds about 0.3 s once (its low-passed tiles are cached). Not in run
 configs or the app yet; add it when Nodule needs it there.
 
-### 5. Wall-distance cache (only if Nodule's slice cuts are slow)
+### 5. Wall-distance cache (only if Nodule's slice cuts are slow): exact distance instead (done)
+
+Nodule's slice cuts were slow: 73 s per 10⁶ stone points, almost all of it
+spent in `SphereUnion.wall_distance` (its `nodule-irregular` exterior). That
+method searched a tree of surface samples spaced size/400 apart for every
+point, and it rebuilt the tree on every call. Its answers were exact only
+where its refinement applied. Elsewhere they came from the nearest sample,
+up to 0.02–0.03 mm too far (measured), which is enough to kink bands about
+0.5 mm thick. Instead of a cache, the distance is now exact and needs no
+search. This is mathematics, not a modelling choice:
+
+- **Shortcut.** Let i be the dominant sphere, the one with the largest
+  r_i − |q − c_i| (the level). Every wall point lies outside or on every
+  sphere, so its distance from q is at least the level. Where q's radial
+  foot on sphere i is exposed (inside no other sphere), that foot is a
+  wall point at exactly that distance. This covers 73–81% of interior
+  points in the lobed presets.
+- **Seams (the rest).** The wall is the spheres' exposed patches, bounded
+  by arcs of the circles where two spheres meet, and the arcs end where
+  three meet. The nearest wall point lies inside a patch (a radial foot),
+  inside an arc (the nearest point of that circle) or at an arc's end (a
+  corner). The least distance over the exposed candidates of those three
+  kinds is therefore exact.
+
+Measured on this PC (CPU, `nodule-irregular`): 39 s per 10⁶ interior points
+before, 1.5 s after, about 26× faster. A dense-surface test bounds the error
+by that surface's own spacing (`tests/test_volume.py`). At the seams, using
+the level alone would be wrong by up to 1.0–1.6 mm, and the test rejects
+that. A two-sphere case is checked against the exact circle distance.
+Results of presets on these solids change only where the old samples were
+off.
+
+A cache on a coarse grid (Nodule ADR 0005 section 5) is still the plan for
+coordinates that are slow to evaluate, such as a growth-time field, and
+perhaps for the renderer's many samples. It is not needed for wall distance
+now.
 
 ## Consequences
 

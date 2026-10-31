@@ -7,6 +7,7 @@ import math
 import numpy as np
 import pytest
 
+from agatesim._scipy import NearestIndex
 from agatesim.archetypes import Host
 from agatesim.criteria import evaluate
 from agatesim.fields import Phase
@@ -25,6 +26,7 @@ from agatesim.volume.simulate import prepare_volume
 from agatesim.volume.slicing import Plane, section
 from agatesim.volume.solids import (
     SOLID_PRESETS,
+    BoolArray,
     Ellipsoid,
     Polyhedron,
     Prism,
@@ -68,6 +70,57 @@ def test_sphere_distances_are_exact_for_every_representation() -> None:
     for s in solids:
         assert s.contains(pts).all()
         assert np.allclose(s.wall_distance(pts), exact, atol=2e-3), type(s).__name__
+
+
+@pytest.mark.parametrize("preset", ["nodule-irregular", "vesicle-lobate"])
+def test_sphere_union_wall_distance_matches_a_dense_surface(preset: str) -> None:
+    """The exact shortcut (dominant sphere's foot exposed) and the seam
+    candidates, against the distance to a densely sampled surface (ADR 0076 s. 5)."""
+    s = make_solid(preset, 20.0)
+    assert isinstance(s, SphereUnion)
+    gap = s.size_mm / 800  # dense sample spacing, mm
+    dense: list[FloatArray] = []
+    for i in range(len(s.radii)):
+        c, r = s.centres[i], float(s.radii[i])
+        g = np.arange(math.ceil(4 * math.pi * r * r / gap**2)) + 0.5
+        z = 1 - 2 * g / len(g)  # a Fibonacci sphere
+        phi = math.pi * (1 + 5**0.5) * g
+        rho = np.sqrt(1 - z * z)
+        pts: FloatArray = c + r * np.stack([rho * np.cos(phi), rho * np.sin(phi), z], axis=1)
+        others = SphereUnion(
+            host=s.host, centres=np.delete(s.centres, i, axis=0), radii=np.delete(s.radii, i)
+        )
+        hidden: BoolArray = others.contains(pts)
+        dense.append(pts[~hidden])
+    surface = np.concatenate(dense)
+
+    q = _inside_points(s, 3000)
+    truth, _ = NearestIndex(surface).query(q)
+    d = s.wall_distance(q)
+    level, exact = s._dominant(q)  # pyright: ignore[reportPrivateUsage]
+    assert 0.5 < exact.mean() < 1  # most points take the shortcut, some don't
+    assert np.array_equal(d[exact], level[exact])
+    assert np.all(d >= level - 1e-12)  # the level is a lower bound everywhere
+    # Dense points are wall points, so the true distance is at most theirs, and
+    # below it by less than their spacing. Using the level at the seams instead
+    # would be off by up to 1-1.6 mm here (measured), so this rejects that.
+    assert np.all(d <= truth + 1e-9)
+    assert np.all(truth - d < gap)
+
+
+def test_sphere_union_seam_distance_is_the_circle_where_two_spheres_meet() -> None:
+    r, a = 10.0, 6.0  # two spheres centred at x = -a, +a; they meet on a circle of radius 8
+    s = SphereUnion(
+        host=Host.VOLCANIC,
+        centres=np.array([[-a, 0.0, 0.0], [a, 0.0, 0.0]]),
+        radii=np.array([r, r]),
+    )
+    rho = math.sqrt(r * r - a * a)
+    y = np.array([0.0, 1.0, 3.0, 5.0])
+    on_seam_plane = np.stack([np.zeros_like(y), y, np.zeros_like(y)], axis=1)
+    assert np.allclose(s.wall_distance(on_seam_plane), rho - y, atol=1e-12)
+    _, exact = s._dominant(on_seam_plane)  # pyright: ignore[reportPrivateUsage]
+    assert not exact.any()  # all of these need the seam candidates
 
 
 def test_ellipsoid_nearest_point_is_on_the_surface_and_normal() -> None:

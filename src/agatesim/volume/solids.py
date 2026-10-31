@@ -10,6 +10,7 @@ full runs and slices at any resolution agree.
 
 from __future__ import annotations
 
+import itertools
 import math
 from abc import ABC, abstractmethod
 from collections.abc import Callable
@@ -27,6 +28,7 @@ from agatesim.grid import FloatArray
 
 BoolArray = NDArray[np.bool_]
 CHUNK = 1 << 20  # points per batch in the heavier distance calculations
+EXPOSED_TOLERANCE = 1e-9  # relative: a point this close to a sphere's surface counts as on it
 NEWTON_STEPS = 60  # at most, for the ellipsoid distance (about 5 are needed)
 
 
@@ -235,63 +237,147 @@ class SphereUnion(Solid):
     def contains(self, points: FloatArray) -> BoolArray:
         return self.level(points) > 0
 
-    def _samples(self) -> tuple[FloatArray, NDArray[np.int64]]:
-        """Points on the exposed parts of the spheres (not inside another), about
-        size/400 apart, and the sphere each lies on."""
-        spacing = self.size_mm / 400
+    def _exposed(self, points: FloatArray, skip: tuple[int, ...]) -> BoolArray:
+        """Points inside none of the spheres, except those in `skip` (the ones
+        the points lie on); a wall point is exactly such a point."""
+        ok: BoolArray = np.ones(len(points), dtype=bool)
+        for j, (c, r) in enumerate(self._spheres()):
+            if j not in skip:
+                ok &= np.linalg.norm(points - c, axis=1) >= r * (1 - EXPOSED_TOLERANCE)
+        return ok
+
+    @cached_property
+    def _circles(self) -> list[tuple[int, int, FloatArray, FloatArray, float]]:
+        """Where pairs of spheres meet: (i, k, centre, unit axis, radius)."""
+        out: list[tuple[int, int, FloatArray, FloatArray, float]] = []
+        spheres = self._spheres()
+        for i, k in itertools.combinations(range(len(spheres)), 2):
+            (ci, ri), (ck, rk) = spheres[i], spheres[k]
+            d = float(np.linalg.norm(ck - ci))
+            if not abs(ri - rk) < d < ri + rk:
+                continue
+            u = (ck - ci) / d
+            a = (d * d + ri * ri - rk * rk) / (2 * d)
+            out.append((i, k, ci + a * u, u, math.sqrt(ri * ri - a * a)))
+        return out
+
+    @cached_property
+    def _corners(self) -> FloatArray:
+        """Exposed points where three spheres meet (trilateration), (n, 3)."""
         pts: list[FloatArray] = []
-        owner: list[NDArray[np.int64]] = []
+        spheres = self._spheres()
+        for i, j, k in itertools.combinations(range(len(spheres)), 3):
+            (c1, r1), (c2, r2), (c3, r3) = spheres[i], spheres[j], spheres[k]
+            d = float(np.linalg.norm(c2 - c1))
+            ex = (c2 - c1) / d
+            a = float(ex @ (c3 - c1))
+            ey = c3 - c1 - a * ex
+            ny = float(np.linalg.norm(ey))
+            if d < 1e-12 or ny < 1e-12:  # coincident or collinear centres
+                continue
+            ey = ey / ny
+            b = float(ey @ (c3 - c1))
+            x = (r1 * r1 - r2 * r2 + d * d) / (2 * d)
+            y = (r1 * r1 - r3 * r3 + a * a + b * b) / (2 * b) - a / b * x
+            z2 = r1 * r1 - x * x - y * y
+            if z2 < 0:
+                continue
+            for sign in (1.0, -1.0):
+                pts.append(c1 + x * ex + y * ey + sign * math.sqrt(z2) * np.cross(ex, ey))
+        if not pts:
+            return np.zeros((0, 3))
+        corners = np.array(pts)
+        return corners[self._exposed(corners, ())]
+
+    def _dominant(self, q: FloatArray) -> tuple[FloatArray, BoolArray]:
+        """The level max_i (r_i − |q − c_i|), and where it is the exact wall distance.
+
+        Every wall point lies outside or on every sphere, so for the dominant
+        sphere i its distance from q is at least |b − c_i| − |q − c_i| ≥ the level.
+        Where q's radial foot on sphere i is exposed (inside no other sphere), that
+        foot is a wall point at exactly the level, so the bound is reached."""
+        best = np.full(len(q), -np.inf)
+        which = np.zeros(len(q), dtype=np.int64)
         for i, (c, r) in enumerate(self._spheres()):
-            s = c + r * _fibonacci_sphere(math.ceil(4 * math.pi * r * r / spacing**2))
-            exposed: BoolArray = np.ones(len(s), dtype=bool)
-            for j, (c2, r2) in enumerate(self._spheres()):
-                if j != i:
-                    exposed &= np.linalg.norm(s - c2, axis=1) >= r2
-            pts.append(s[exposed])
-            owner.append(np.full(int(exposed.sum()), i, dtype=np.int64))
-        return np.concatenate(pts), np.concatenate(owner)
+            level = r - np.linalg.norm(q - c, axis=1)
+            better = level > best
+            best[better] = level[better]
+            which[better] = i
+        c, r = self.centres[which], self.radii[which]
+        offset = q - c
+        length = np.linalg.norm(offset, axis=1)
+        foot = c + offset * (r / np.maximum(length, 1e-12))[:, None]
+        exposed: BoolArray = length > 1e-9
+        for j, (c2, r2) in enumerate(self._spheres()):
+            exposed &= (which == j) | (
+                np.linalg.norm(foot - c2, axis=1) >= r2 * (1 - EXPOSED_TOLERANCE)
+            )
+        return best, exposed
 
     def wall_distance(self, points: FloatArray) -> FloatArray:
+        """Exact everywhere, without sampling or search (agatesim ADR 0076 s. 5).
+
+        Most points take the shortcut of `_dominant`; the rest, near the seams
+        between spheres, are handled by `_seam_distance`."""
         p = _rows(points)
         out = np.zeros(len(p))
         idx = np.flatnonzero(self.contains(p))
         if not len(idx):
             return out
-        samples, owner = self._samples()
-        tree = _scipy.NearestIndex(samples)
         for start in range(0, len(idx), CHUNK):
             part = idx[start : start + CHUNK]
-            q = p[part]
-            sampled, which = tree.query(q)
-            nearest = owner[which]
-            # Exact where the radial projection onto the nearest sample's sphere is
-            # exposed: the nearest wall point is then on that sphere.
-            c, r = self.centres[nearest], self.radii[nearest]
-            offset = q - c
-            length = np.maximum(np.linalg.norm(offset, axis=1), 1e-12)
-            foot = c + offset * (r / length)[:, None]
-            exposed: BoolArray = np.ones(len(q), dtype=bool)
-            for j, (c2, r2) in enumerate(self._spheres()):
-                exposed &= (nearest == j) | (np.linalg.norm(foot - c2, axis=1) >= r2 * (1 - 1e-9))
-            exposed &= length < r
-            exact = r - length
-            out[part] = np.where(exposed, np.minimum(exact, sampled), sampled)
+            level, exact = self._dominant(p[part])
+            out[part[exact]] = level[exact]
+            rest = part[~exact]
+            if len(rest):
+                out[rest] = self._seam_distance(p[rest])
         return out
+
+    def _seam_distance(self, q: FloatArray) -> FloatArray:
+        """Distance to the nearest exposed wall point, from its candidates.
+
+        The wall is the spheres' exposed patches, each bounded by arcs of the
+        circles where two spheres meet, the arcs ending where three meet. The
+        nearest wall point lies inside a patch (then it is the radial foot on
+        that sphere), inside an arc (the nearest point of that circle), or at an
+        arc's end (a corner). So the least distance over the exposed candidates
+        of those three kinds is exact. Where q sits on a sphere's centre or a
+        circle's axis, every point of it is equally near; any one stands in, and
+        if it is hidden, an exposed arc end at the same distance is a candidate."""
+        best = np.full(len(q), np.inf)
+        for j, (c, r) in enumerate(self._spheres()):
+            offset = q - c
+            length = np.linalg.norm(offset, axis=1)
+            direction = np.where(
+                (length > 1e-12)[:, None],
+                offset / np.maximum(length, 1e-12)[:, None],
+                np.array([0.0, 0.0, 1.0]),
+            )
+            d = np.abs(r - length)
+            ok = self._exposed(c + r * direction, (j,))
+            best = np.where(ok & (d < best), d, best)
+        for i, k, m, u, rho in self._circles:
+            w = q - m
+            w = w - (w @ u)[:, None] * u
+            wn = np.linalg.norm(w, axis=1)
+            fallback = np.cross(u, [1.0, 0.0, 0.0] if abs(u[0]) < 0.9 else [0.0, 1.0, 0.0])
+            fallback = fallback / np.linalg.norm(fallback)
+            w = np.where((wn > 1e-12)[:, None], w / np.maximum(wn, 1e-12)[:, None], fallback)
+            nearest = m + rho * w
+            d = np.linalg.norm(q - nearest, axis=1)
+            ok = self._exposed(nearest, (i, k))
+            best = np.where(ok & (d < best), d, best)
+        corners = self._corners
+        for n in range(len(corners)):
+            corner: FloatArray = corners[n]
+            best = np.minimum(best, np.linalg.norm(q - corner, axis=1))
+        return best
 
     def support(self, direction: FloatArray) -> float:
         return float(np.max(self.centres @ direction + self.radii * np.linalg.norm(direction)))
 
     def level_bound(self) -> LevelBound:
         return LevelBound(lipschitz=1.0)  # the greatest of r − |p − c|
-
-
-def _fibonacci_sphere(n: int) -> FloatArray:
-    """n near-evenly spread unit vectors."""
-    k = np.arange(n) + 0.5
-    z = 1 - 2 * k / n
-    phi = math.pi * (3 - math.sqrt(5)) * k
-    r = np.sqrt(1 - z * z)
-    return np.stack([r * np.cos(phi), r * np.sin(phi), z], axis=1)
 
 
 class _Outline:
