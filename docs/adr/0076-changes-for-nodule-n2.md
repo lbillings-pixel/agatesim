@@ -1,6 +1,7 @@
 # 76. Changes for Nodule's first slice: capped wobble, fold check, and what follows
 
-- Status: accepted (2026-10-31): sections 1–5 done (5 by exact distance, not a cache)
+- Status: accepted (2026-10-31): sections 1–5 done (5 by exact distance, not a cache);
+  section 6 added 2026-11-01 (done)
 - Date: 2026-10-31
 - Builds on: [ADR 0072](0072-reframing-a-coupled-follow-on-project.md) (formation work moves to Nodule)
 - Spec: Nodule's ADR 0005 (`docs/adr/0005-representation-implicit-hybrid.md`,
@@ -239,6 +240,55 @@ coordinates that are slow to evaluate, such as a growth-time field, and
 perhaps for the renderer's many samples. It is not needed for wall distance
 now.
 
+### 6. Smooth growth time (added 2026-11-01, done)
+
+Nodule's renderer fills a grid of growth time under the cut face and
+interpolates it (its cached t-grid). The 3D growth model's `t_dep` cannot be
+interpolated: it is rounded to the time step that fills each point
+(400 steps; about 0.075 mm of growth each in the presets), so a 1M-point
+sample of a slice holds only about 135 distinct values. The owner chose to add
+a smooth field here rather than smooth it in Nodule.
+
+`Fields.t_smooth` is a new, optional field; `t_dep` is unchanged, so every
+preset, run, criterion and gallery image is too. In a stage that grows by
+distance (lining, spherulites, quartz crystals), a point at growth distance d
+fills in step k, where reach[k−1] < d ≤ reach[k] (reach[−1] = 0 at the
+stage's start). The front is taken to move at a steady rate within each step,
+so
+
+  t_smooth = (start + k + (d − reach[k−1]) / (reach[k] − reach[k−1])) / n,
+
+with n = 400 steps. Settled layers do the same with the settled volume in place
+of d, so time rises smoothly with height. Dendrites and sticks use their own
+growth order: (start + order × span) / n. That order is a ranking along the
+aggregate, not a front. Its values are not smooth across an inclusion's edge,
+which Nodule handles separately. `t_smooth` is NaN wherever `t_dep` is
+(filament cores, hollow sticks, open space).
+
+Properties, each tested in `tests/test_smooth_time.py` on lining with
+filaments, spherulites, settling with crystals, dendrites and sticks:
+
+- **Within the step.** k/n ≤ t_smooth ≤ (k+1)/n wherever t_dep = (k+½)/n. So
+  the stepped bands are its level sets at step boundaries, and a band looked
+  up from `t_smooth` snapped to its step is the band `t_dep` gives.
+- **Smooth.** Linear interpolation from samples 0.2 mm apart along lines
+  through the stone misses by a median of 0.003 (tube-3d) and 0.014
+  (botryoidal-3d) of a step, and by under 0.1 step at the 90th percentile. The
+  rare larger errors are kinks at the medial surface and at spherule seams.
+  The negative control is `t_dep` interpolated the same way: its median miss
+  is 0.2 step, and the test rejects it.
+- **Increases inward.** With the capped wobble (section 1), the fold check
+  finds no point where it falls along the wall-distance gradient. This holds
+  with steps of 0.1 mm and also of 0.01 mm, finer than a time step.
+- **Pointwise.** A point's value doesn't depend on what else is evaluated with
+  it, so previews and full runs agree.
+
+It is not stored with runs (`Fields.arrays()` leaves it out), and the volume
+grid (`VolumeSimulation.volume`) does not keep it. It exists for code that
+evaluates points, as Nodule does. Measured on this PC (CPU, 10⁶ points): no
+change in evaluation time within noise (tube-3d 1.0 s, botryoidal-3d 1.2 s),
+and peak memory up by 8 MB (one array).
+
 ## Consequences
 
 - Nodule turns the cap on (its ADR 0005 suggests s = 0.5) and can run the
@@ -247,3 +297,5 @@ now.
 - The new parameter appears in the app automatically (from the schema).
 - Nodule can build its band wobble from `BandNoise` and read previews with
   `spacing_mm`; the bounds feed the slope cap of section 1.
+- Nodule can fill its growth-time grid from `t_smooth` and interpolate it;
+  `t_dep` and all stored results are unchanged.

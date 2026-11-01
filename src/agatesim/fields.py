@@ -51,6 +51,11 @@ class Fields:
     # Pigment values: what `impurity` measures the strength of in chalcedony.
     # None means iron throughout (the colour every model had before ADR 0050).
     pigment: NDArray[np.uint8] | None = None
+    # Growth time without steps, for renderers that interpolate it (ADR 0076
+    # s. 6): same scale as t_dep and NaN where it is; within one time step of
+    # n, k/n <= t_smooth <= (k+1)/n where t_dep = (k+0.5)/n. Only the 3D growth
+    # model gives it; it is not stored with runs (arrays() leaves it out).
+    t_smooth: NDArray[np.float32] | None = None
 
     def arrays(self) -> dict[str, NDArray[np.generic]]:
         out: dict[str, NDArray[np.generic]] = {

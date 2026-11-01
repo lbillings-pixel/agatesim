@@ -532,6 +532,7 @@ def prepare_growth(
         h = setting.height(points)
         wobble = params.wobble_mm * noise(points) if params.wobble_mm > 0 else np.zeros(n)
         filled_at = np.full(n, -1, dtype=np.int64)
+        smooth = np.full(n, np.nan)  # filling time in steps, without rounding (ADR 0076 s. 6)
         grain = np.full(n, -1, dtype=np.int32)
         # Filaments (tubes) are seeds that later growth lines, like the wall.
         tube = np.zeros(n, dtype=bool)
@@ -552,6 +553,7 @@ def prepare_growth(
                 span = st.end - st.start
                 steps = st.start + np.minimum(np.floor(order * span), span - 1)
                 filled_at[open_idx[hit]] = steps.astype(np.int64)
+                smooth[open_idx[hit]] = st.start + np.clip(order * span, 0, span)
                 grain[open_idx[hit]] = (st.crystal_offset + owner[hit]).astype(np.int32)
                 continue
             if st.mode is Mode.DENDRITE:
@@ -561,6 +563,7 @@ def prepare_growth(
                 span = st.end - st.start
                 steps = st.start + np.minimum(np.floor(order[hit] * span), span - 1)
                 filled_at[open_idx[hit]] = steps.astype(np.int64)
+                smooth[open_idx[hit]] = st.start + np.clip(order[hit] * span, 0, span)
                 dendrite[open_idx[hit]] = True
                 continue
             if st.mode is Mode.SETTLING:
@@ -569,7 +572,8 @@ def prepare_growth(
                 ranks = np.interp(
                     level, st.settled_heights, np.arange(len(st.settled_heights)) + 0.5
                 )
-                k = np.searchsorted(st.reach, ranks * s**3, side="left")
+                d = ranks * s**3  # settled volume (mm³) that reaches the level
+                k = np.searchsorted(st.reach, d, side="left")
             else:
                 if st.mode is Mode.LINING:
                     d = np.maximum(st.solid.distance(p, d_wall[open_idx], h[open_idx]), 0.0)
@@ -582,6 +586,7 @@ def prepare_growth(
                 k = np.searchsorted(st.reach, d, side="left")
             new = k < (st.end - st.start)
             filled_at[open_idx[new]] = st.start + k[new]
+            smooth[open_idx[new]] = st.start + k[new] + _within_step(st.reach, d[new], k[new])
             if owner is not None and st.mode is Mode.CRYSTAL:
                 grain[open_idx[new]] = (st.crystal_offset + owner[new]).astype(np.int32)
         fill = Fill(filled_at=filled_at, grain=grain, inclusion=tube | dendrite)
@@ -603,9 +608,20 @@ def prepare_growth(
                 translucency=np.where(tube, 0.0, fields.translucency).astype(np.float32),
                 t_dep=np.where(tube, np.nan, fields.t_dep).astype(np.float32),
             )
+        t_smooth = np.where(np.isnan(fields.t_dep), np.nan, smooth / TIME_STEPS)
+        fields = replace(fields, t_smooth=t_smooth.astype(np.float32))
         return fields
 
     return evaluate
+
+
+def _within_step(reach: FloatArray, d: FloatArray, k: NDArray[np.intp]) -> FloatArray:
+    """How far (0..1) through step k the front is when it reaches d: the
+    reach of each step interpolated linearly, so time runs smoothly with d."""
+    before = np.where(k > 0, reach[np.maximum(k - 1, 0)], 0.0)
+    gain = reach[k] - before
+    safe = np.where(gain > 0, gain, 1.0)
+    return np.where(gain > 0, np.clip((d - before) / safe, 0.0, 1.0), 1.0)
 
 
 def _same(rng: np.random.Generator) -> np.random.Generator:
