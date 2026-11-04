@@ -52,6 +52,7 @@ from agatesim.models.growth import (
     mode_stages,
 )
 from agatesim.volume.dendrites import Aggregate3, Lattice3, grow
+from agatesim.volume.features import wall_features
 from agatesim.volume.models import Evaluator, Setting, SmoothNoise3
 from agatesim.volume.solids import BoolArray
 
@@ -446,6 +447,7 @@ def prepare_growth(
     streams = rng.spawn(8)
     rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = streams[:7]
     rng_palette = streams[7]
+    features = wall_features(params, setting, rng)
     tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
     supply = np.clip(params.schedules.silica.sample(tau), 0.0, 1.0)
     mode = growth_modes(params, tau)
@@ -580,9 +582,15 @@ def prepare_growth(
                 else:
                     assert st.metric is not None
                     d, owner = st.metric.assign(p)
+                shift = np.zeros(len(d))
                 if st.mode is not Mode.CRYSTAL and params.wobble_mm > 0:
                     taper = np.clip(d / fade, 0, 1)
-                    d = d + wobble[open_idx] * taper
+                    shift = wobble[open_idx] * taper
+                    d = d + shift
+                if st.mode is Mode.LINING and features.channels:
+                    # After the wobble, so that the wobble's no-fold cap still holds.
+                    wall = d_wall[open_idx]
+                    d = d + features.delay(p, wall + shift, wall)
                 k = np.searchsorted(st.reach, d, side="left")
             new = k < (st.end - st.start)
             filled_at[open_idx[new]] = st.start + k[new]

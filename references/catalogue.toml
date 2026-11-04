@@ -1171,3 +1171,31 @@ checked = "sections"
 sections_read = ["Table 2", "Table 3", "Table 4", "Table 6"]
 topics = ["image model", "segmentation", "evaluation"]
 notes = "Tables read 2026-10-29 by a helper agent (ADR 0074); authors and venue checked on the arXiv page. One image with one box on a 14-vCPU CPU (runtime unstated): EfficientViT-SAM-L0 194 ms, MobileSAM 424 ms, SAM 2 B+ 1221 ms, SAM ViT-B 3294 ms, ViT-H 9470 ms (Table 4). COCO box-prompt mIoU: SAM-H 77.4, SAM 2 B+ 75.7 (Table 6)."
+
+[[references]]
+id = "howard2018"
+kind = "article"
+authors = ["Howard, C. B.", "Rabinovitch, A."]
+year = 2018
+title = "A new model of agate geode formation based on a combination of morphological features and silica sol–gel experiments"
+venue = "European Journal of Mineralogy 30(1), 97-106 (printed '2017, 30, 97–106'; online 31 Aug 2017)"
+doi = "10.1127/ejm/2017/0029-2685"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["agate", "band-geometry", "escape-tubes", "sectors", "inclusions"]
+notes = """Owner-supplied PDF, read in full 2026-11-03 by a helper agent (figures viewed as page images). Qualitative only (agates from 6 regions, count not stated): bands thinner at indentation apices (p. 98) and narrowing at escape tubes "until … the banded structure is lost" (p. 99); band widths vary within sectors and inclusions vary along bands (pp. 99, 104); a 1-2 mm clear unbanded outer layer (p. 99); band fragments in the quartz centre (p. 100); bands keep "the same width, consistency and colour" across sector boundaries, "no mismatching" (p. 104); "fractures through the bands are never seen" (p. 102); rejects regular inward thickening (p. 101), against wang1990. Formation model is context only."""
+
+[[references]]
+id = "walger2009"
+kind = "article"
+authors = ["Walger, E.", "Mattheß, G.", "von Seckendorff, V.", "Liebau, F."]
+year = 2009
+title = "The formation of agate structures: models for silica transport, agate layer accretion, and for flow patterns and flow regimes in infiltration channels"
+venue = "Neues Jahrbuch für Mineralogie, Abhandlungen 186(2), 113-152"
+doi = "10.1127/0077-7757/2009/0141"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["agate", "infiltration-channels", "layer-thickness", "band-geometry"]
+notes = """Owner-supplied PDF, read in full 2026-11-03 by a helper agent (figures viewed as page images). Posthumous: E. Walger, compiled by Mattheß, von Seckendorff and Liebau. Wall layers thin "from the normal thickness to zero" toward a focus where an infiltration channel enters (pp. 116, 136); elsewhere they grow "in relatively uniform thickness" (p. 128). Channels: never in amygdules below cherry size, "often one, rarely more" in fist-size, "frequently several" above 1 dm3 (p. 128); depth a few mm to 2-2.5 cm (p. 125); often missed by random sections (p. 127); single layers extend "cm to dm" (p. 115). No sample size, no counts per area. Hydrodynamic model is context only."""

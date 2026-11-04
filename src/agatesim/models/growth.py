@@ -71,6 +71,7 @@ from agatesim.params import KEY, Nature, param
 from agatesim.schedules import Schedule
 
 TIME_STEPS = 400
+CLEAR_TRANSLUCENCY = 0.9  # the clear first layer: as clear as this model's quartz
 SWITCH_ON = 0.5  # settling and spherulitic switch on at this value
 # Crystal growth form: termination faces make this angle with the long axis
 # (the half-angle of the pointed tip).
@@ -503,6 +504,50 @@ class ProceduralGrowth(BaseModel):
             "Cap on the slope of band irregularity, so bands cannot fold; the wobble "
             "then fades in from the wall over a wider zone. 0 = no cap."
         ),
+    )
+    clear_layer_mm: float = param(
+        0.0,
+        ge=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Thickness of a clear, unbanded first layer against the wall, with no "
+            "pigment, in runs that open with lining (ADR 0077). 0 = none."
+        ),
+    )
+    channel_count: int = param(
+        0,
+        ge=0,
+        le=16,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Wall channels, where bands thin to nothing toward a line on the wall "
+            "(ADR 0077). 3D runs only. 0 = none."
+        ),
+    )
+    channel_length_mm: float = param(
+        10.0,
+        ge=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Length of each channel's line along the wall.",
+    )
+    channel_lateral_mm: float = param(
+        8.0,
+        ge=5,
+        le=20,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="How far along the wall, on each side of a channel, its bands thin.",
+    )
+    channel_depth_mm: float = param(
+        5.0,
+        gt=0,
+        le=25,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Thickness of the stack of bands that thin to nothing at a channel.",
     )
     palette: Palette = Field(
         default_factory=Palette,
@@ -1108,6 +1153,8 @@ def growth_modes(params: ProceduralGrowth, tau: FloatArray) -> NDArray[np.int64]
 
 
 def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generator) -> Fields:
+    if params.channel_count > 0:
+        raise ValueError("wall channels work in 3D runs only (ADR 0077): set channel_count to 0")
     streams = rng.spawn(8)
     rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = streams[:7]
     tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
@@ -1127,6 +1174,17 @@ def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generato
     return growth_fields(
         params, fill, mode, domain.mask, rng_bands, rng_iron, rng_micro, streams[7]
     )
+
+
+def clear_layer_steps(params: ProceduralGrowth, mode: NDArray[np.int64], silica: FloatArray) -> int:
+    """How many time steps from the start lay the clear first layer: the opening
+    lining steps that fit within its thickness (ADR 0077)."""
+    if params.clear_layer_mm <= 0:
+        return 0
+    not_lining = np.flatnonzero(mode != Mode.LINING)
+    opening = int(not_lining[0]) if len(not_lining) else TIME_STEPS
+    step_mm = params.growth_mm * np.clip(silica[:opening], 0.0, 1.0) / TIME_STEPS
+    return int(np.count_nonzero(np.cumsum(step_mm) <= params.clear_layer_mm + 1e-9))
 
 
 def growth_fields(
@@ -1199,6 +1257,15 @@ def growth_fields(
         if band_pigment is None
         else np.where(chalcedony, band_pigment[safe], 0).astype(np.uint8)
     )
+    clear_steps = clear_layer_steps(params, mode, s.silica.sample(tau))
+    if clear_steps > 0:
+        # Every band's draws stay as they were, so the bands beyond the layer don't change.
+        clear = chalcedony & (fill.filled_at < clear_steps)
+        band = np.where(clear, -1, band).astype(np.int32)
+        impurity = np.where(clear, 0.0, impurity)
+        translucency = np.where(clear, CLEAR_TRANSLUCENCY, translucency)
+        micro = np.where(clear, np.nan, micro)
+        pigment = None if pigment is None else np.where(clear, 0, pigment).astype(np.uint8)
     return Fields(
         phase=phase,
         band=band,
