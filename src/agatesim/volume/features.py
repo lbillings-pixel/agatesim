@@ -1,35 +1,50 @@
-"""World-fixed features of a stone's wall (ADR 0077): where bands thin to nothing.
+"""World-fixed features of a stone (ADRs 0077, 0078): where bands thin to nothing,
+and how their material varies along them.
 
 Bands are the level sets of one arrival depth: wall distance plus a wobble. So
 they keep their thickness all around the wall, and they cannot end. Agate's wall
 bands do end at infiltration channels, by thinning smoothly to zero toward a
 vanishing line [@walger2009, pp. 116, 118]. Each channel here is such a line on
 the inner face of the clear outer layer, and it delays the arrival depth near
-that line. The bands are still contours of one function, so they never cross,
-and what a band is made of still depends on growth time alone.
+that line. The bands are still contours of one function, so they never cross.
+
+What a band holds also varies along it [@howard2018, pp. 99, 104], and hematite
+gathers in lenses along the banding [@goetze2020, §4.3]. `MaterialVariation` adds
+this as pigment lenses and a translucency drift, read at each point's own growth
+time, so they lie along the bands wherever those run. They change no arrival time.
 
 Everything here follows from the seed and the cavity, and is evaluated at any
-point, so every resolution and every cut sees the same channels. A channel's
-draws come from its own stream, which leaves the model's other streams alone.
+point, so every resolution and every cut sees the same features. Their draws come
+from their own streams, which leave the model's other streams alone.
 
 Every number and coupling is `effective`: the sources describe the form, not a
-rate, and nothing rendered from this is evidence for how channels form.
+rate, and nothing rendered from this is evidence for how these features form.
 """
 
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from statistics import NormalDist
 from typing import cast
 
 import numpy as np
 
 from agatesim.grid import FloatArray
-from agatesim.models.growth import ProceduralGrowth
+from agatesim.models.growth import TIME_STEPS, ProceduralGrowth
+from agatesim.noise import BandNoise
 from agatesim.volume.models import Setting
 from agatesim.volume.solids import Solid
 
 FEATURE_STREAM = 0x0F3A  # spawn key, far above any count of spawned streams
+MATERIAL_STREAM = 0x0F3B  # the same for materials, so they leave the channels alone
+# A lens's median length as a cut shows it, per wavelength of the noise: measured
+# on 1,800 lines through fields at cover 0.2 (ADR 0078 section 3).
+CHORD_PER_WAVELENGTH = 0.383
+LENS_EDGE = 0.5  # noise standard deviations over which a lens fades in at its edge
+DRIFT_RANGE = 2.0  # noise standard deviations that reach the drift's full size
+SHEET_SPREAD = 0.5  # sheets lie this share of their mean spacing from regular
+SHEET_OFFSET_MM = 5000.0  # how far apart in the noise the sheets' patterns are drawn
 FADE_DEPTHS = 3.0  # a channel's effect ends at this many of its depths from the surface
 LINE_PIECES = 4  # straight pieces of a vanishing line, which follows the curved wall
 SURFACE_MIN_MM = 0.05  # with no clear layer the line sits this close to the wall
@@ -46,6 +61,70 @@ def feature_stream(rng: np.random.Generator) -> np.random.Generator:
     seq = cast(np.random.SeedSequence, rng.bit_generator.seed_seq)
     key = (*seq.spawn_key, FEATURE_STREAM)
     return np.random.default_rng(np.random.SeedSequence(seq.entropy, spawn_key=key))
+
+
+def material_stream(rng: np.random.Generator) -> np.random.Generator:
+    """The stream of a run's material fields, on the same terms as `feature_stream`."""
+    seq = cast(np.random.SeedSequence, rng.bit_generator.seed_seq)
+    key = (*seq.spawn_key, MATERIAL_STREAM)
+    return np.random.default_rng(np.random.SeedSequence(seq.entropy, spawn_key=key))
+
+
+class SheetNoise:
+    """Noise with unit variance that is `wavelength_mm` across along a band and about
+    `spacing_mm` thin through the bands. Growth depth runs through unevenly spaced
+    sheets, each with its own independent pattern, and blends from one to the next
+    keeping the variance. So what lies above a threshold is flat along the bands and
+    tapers at its ends, and no cut's direction shows a pattern repeating with depth."""
+
+    def __init__(
+        self, wavelength_mm: float, spacing_mm: float, depth_mm: float, rng: np.random.Generator
+    ) -> None:
+        r_noise, r_sheets = rng.spawn(2)
+        self._noise = BandNoise(3, wavelength_mm, 1, 1.0, r_noise)
+        count = math.ceil(depth_mm / ((1 - SHEET_SPREAD) * spacing_mm)) + 3
+        gaps = spacing_mm * r_sheets.uniform(1 - SHEET_SPREAD, 1 + SHEET_SPREAD, count)
+        self._sheets: FloatArray = np.cumsum(gaps) - float(gaps[0]) - spacing_mm
+        self._offsets: FloatArray = SHEET_OFFSET_MM * r_sheets.random((count, 3))
+
+    def __call__(self, points: FloatArray, depth_mm: FloatArray) -> FloatArray:
+        if not len(points):
+            return np.zeros(0)
+        last = len(self._sheets) - 2
+        j = np.clip(np.searchsorted(self._sheets, depth_mm, side="right") - 1, 0, last)
+        u = np.clip((depth_mm - self._sheets[j]) / (self._sheets[j + 1] - self._sheets[j]), 0, 1)
+        angle = 0.5 * np.pi * u * u * (3 - 2 * u)
+        here = self._noise(points + self._offsets[j])
+        there = self._noise(points + self._offsets[j + 1])
+        return np.cos(angle) * here + np.sin(angle) * there
+
+
+@dataclass(frozen=True, eq=False)
+class MaterialVariation:
+    """Pigment lenses and a translucency drift along the bands. Each reads a point's
+    place and growth time alone, so a renderer can evaluate it at any point it samples,
+    however thin the lenses are."""
+
+    depth_mm: FloatArray  # growth depth at each of TIME_STEPS + 1 step edges
+    lens: SheetNoise | None
+    lens_strength: float
+    lens_threshold: float
+    drift: SheetNoise | None
+    drift_size: float
+
+    def shift(self, points: FloatArray, t: FloatArray) -> tuple[FloatArray, FloatArray]:
+        """What pigment is multiplied by at each point, and what translucency gains,
+        from places and growth times on the scale of `Fields.t_smooth`."""
+        depth = np.interp(t * TIME_STEPS, np.arange(TIME_STEPS + 1), self.depth_mm)
+        gain = np.ones(len(points))
+        if self.lens is not None:
+            u = (self.lens(points, depth) - self.lens_threshold) / LENS_EDGE + 0.5
+            u = np.clip(u, 0.0, 1.0)
+            gain += self.lens_strength * u * u * (3 - 2 * u)
+        change = np.zeros(len(points))
+        if self.drift is not None:
+            change = self.drift_size * np.clip(self.drift(points, depth) / DRIFT_RANGE, -1.0, 1.0)
+        return gain, change
 
 
 def _length(v: FloatArray) -> float:
@@ -163,6 +242,14 @@ class FeatureLayer:
     """The features of one stone. With none, every delay is zero."""
 
     channels: tuple[WallChannel, ...] = ()
+    variation: MaterialVariation | None = None
+
+    def material_shift(self, points: FloatArray, t: FloatArray) -> tuple[FloatArray, FloatArray]:
+        """What pigment is multiplied by and what translucency gains at each point
+        (ADR 0078), given growth times on the scale of `Fields.t_smooth`."""
+        if self.variation is None:
+            return np.ones(len(points)), np.zeros(len(points))
+        return self.variation.shift(points, t)
 
     def influence(self, points: FloatArray, d_wall: FloatArray) -> FloatArray:
         """Per channel, (n, channels): how strongly each acts at each point, 0 to 1.
@@ -280,14 +367,44 @@ def _place_channel(
     raise ValueError("no place on this cavity's wall can hold a channel of this length")
 
 
+def _material_variation(
+    params: ProceduralGrowth, rng: np.random.Generator
+) -> MaterialVariation | None:
+    """Lenses and drift, each on its own stream, so turning one on leaves the other."""
+    if params.lens_strength == 0 and params.translucency_drift == 0:
+        return None
+    r_lens, r_drift = material_stream(rng).spawn(2)
+    tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
+    supply = np.clip(params.schedules.silica.sample(tau), 0.0, 1.0)
+    depth: FloatArray = np.r_[0.0, np.cumsum(params.growth_mm * supply / TIME_STEPS)]
+    total = max(float(depth[-1]), 1e-9)
+    lens = drift = None
+    if params.lens_strength > 0:
+        wave = params.lens_length_mm / CHORD_PER_WAVELENGTH
+        lens = SheetNoise(wave, params.lens_thickness_mm, total, r_lens)
+    if params.translucency_drift > 0:
+        drift = SheetNoise(
+            params.translucency_drift_length_mm,
+            params.translucency_drift_thickness_mm,
+            total,
+            r_drift,
+        )
+    threshold = NormalDist().inv_cdf(1 - params.lens_cover)
+    return MaterialVariation(
+        depth, lens, params.lens_strength, threshold, drift, params.translucency_drift
+    )
+
+
 def wall_features(
     params: ProceduralGrowth, setting: Setting, rng: np.random.Generator
 ) -> FeatureLayer:
     """The stone's features, from the run's generator (which stays untouched), so
     a caller can find them again: `wall_features(model, setting, default_rng(seed))`.
     Each channel has its own stream, so adding one leaves the others in place."""
+    variation = _material_variation(params, rng)
     if params.channel_count == 0:
-        return FeatureLayer()
+        return FeatureLayer(variation=variation)
     surface_mm = max(params.clear_layer_mm, SURFACE_MIN_MM)
     streams = feature_stream(rng).spawn(params.channel_count)
-    return FeatureLayer(tuple(_place_channel(params, setting, surface_mm, r) for r in streams))
+    channels = tuple(_place_channel(params, setting, surface_mm, r) for r in streams)
+    return FeatureLayer(channels, variation)

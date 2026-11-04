@@ -56,6 +56,12 @@ class Fields:
     # n, k/n <= t_smooth <= (k+1)/n where t_dep = (k+0.5)/n. Only the 3D growth
     # model gives it; it is not stored with runs (arrays() leaves it out).
     t_smooth: NDArray[np.float32] | None = None
+    # What each growth step deposited, before materials vary along the band (ADR
+    # 0078): `impurity` and `translucency` hold what lies at each point, and these
+    # hold the step's own values, so they remain a function of the step alone. None
+    # when nothing varies, where the two are the same. Not stored with runs.
+    band_impurity: NDArray[np.float32] | None = None
+    band_translucency: NDArray[np.float32] | None = None
 
     def arrays(self) -> dict[str, NDArray[np.generic]]:
         out: dict[str, NDArray[np.generic]] = {

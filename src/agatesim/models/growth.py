@@ -561,6 +561,63 @@ class ProceduralGrowth(BaseModel):
             "close on the line."
         ),
     )
+    lens_strength: float = param(
+        0.0,
+        ge=0,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "How much pigment gathers in lenses along the bands: a lens's heart holds "
+            "1 + this many times its band's pigment (ADR 0078). 3D runs only. 0 = no lenses."
+        ),
+    )
+    lens_length_mm: float = param(
+        4.0,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Median length of a pigment lens, as a cut through a band shows it.",
+    )
+    lens_thickness_mm: float = param(
+        0.5,
+        ge=0.02,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Median thickness of a pigment lens, across the bands.",
+    )
+    lens_cover: float = param(
+        0.2,
+        gt=0,
+        lt=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="Share of the stone's banded chalcedony that lies in lenses.",
+    )
+    translucency_drift: float = param(
+        0.0,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "How far translucency drifts up and down along a band, independently of the "
+            "lenses (ADR 0078). 3D runs only. 0 = no drift."
+        ),
+    )
+    translucency_drift_length_mm: float = param(
+        20.0,
+        gt=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Typical distance along a band from one swing of the drift to the next.",
+    )
+    translucency_drift_thickness_mm: float = param(
+        0.5,
+        ge=0.02,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description="Depth across the bands over which the drift changes to a new pattern.",
+    )
     palette: Palette = Field(
         default_factory=Palette,
         description="Which pigments colour the bands, as relative shares (ADR 0050).",
@@ -1167,6 +1224,11 @@ def growth_modes(params: ProceduralGrowth, tau: FloatArray) -> NDArray[np.int64]
 def run_growth(params: ProceduralGrowth, domain: Domain, rng: np.random.Generator) -> Fields:
     if params.channel_count > 0:
         raise ValueError("wall channels work in 3D runs only (ADR 0077): set channel_count to 0")
+    if params.lens_strength > 0 or params.translucency_drift > 0:
+        raise ValueError(
+            "materials that vary along a band work in 3D runs only (ADR 0078): "
+            "set lens_strength and translucency_drift to 0"
+        )
     streams = rng.spawn(8)
     rng_bands, rng_iron, rng_noise, rng_crystals, rng_sites, rng_dendrites, rng_micro = streams[:7]
     tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS

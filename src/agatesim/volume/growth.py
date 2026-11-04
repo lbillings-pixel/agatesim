@@ -34,7 +34,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from agatesim import _scipy, progress
-from agatesim.fields import Fields
+from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models.base import wobble_taper_mm
 from agatesim.models.growth import (
@@ -52,7 +52,7 @@ from agatesim.models.growth import (
     mode_stages,
 )
 from agatesim.volume.dendrites import Aggregate3, Lattice3, grow
-from agatesim.volume.features import wall_features
+from agatesim.volume.features import FeatureLayer, wall_features
 from agatesim.volume.models import Evaluator, Setting, SmoothNoise3
 from agatesim.volume.solids import BoolArray
 
@@ -618,9 +618,34 @@ def prepare_growth(
             )
         t_smooth = np.where(np.isnan(fields.t_dep), np.nan, smooth / TIME_STEPS)
         fields = replace(fields, t_smooth=t_smooth.astype(np.float32))
+        if features.variation is not None:
+            fields = _vary_along_bands(fields, features, points, smooth / TIME_STEPS)
         return fields
 
     return evaluate
+
+
+def _vary_along_bands(
+    fields: Fields, features: FeatureLayer, points: FloatArray, t: FloatArray
+) -> Fields:
+    """What lies at each point (ADR 0078): banded chalcedony's pigment and translucency
+    change along its band. Nothing else does, and no arrival time moves. The clear
+    first layer has no band, so it stays clear."""
+    banded = np.flatnonzero(
+        (fields.phase == Phase.CHALCEDONY) & (fields.band >= 0) & np.isfinite(t)
+    )
+    impurity = fields.impurity.copy()
+    translucency = fields.translucency.copy()
+    gain, change = features.material_shift(points[banded], t[banded])
+    impurity[banded] = np.clip(impurity[banded] * gain, 0.0, 1.0)
+    translucency[banded] = np.clip(translucency[banded] + change, 0.0, 1.0)
+    return replace(
+        fields,
+        impurity=impurity,
+        translucency=translucency,
+        band_impurity=fields.impurity,
+        band_translucency=fields.translucency,
+    )
 
 
 def _within_step(reach: FloatArray, d: FloatArray, k: NDArray[np.intp]) -> FloatArray:

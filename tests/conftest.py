@@ -10,6 +10,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # tests/test_slow_list.py checks every entry still names a test.
 SLOW = frozenset(
     {
+        "tests/test_materials_along_bands.py::test_lenses_drift_and_channels_keep_to_their_own_streams",
+        "tests/test_materials_along_bands.py::test_no_arrival_time_moves",
         "tests/test_specimen.py::test_photo_passes_are_never_false_positives[botryoidal]",
         "tests/test_specimen.py::test_photo_passes_are_never_false_positives[fortification]",
         "tests/test_specimen.py::test_segmentation_finds_the_slab[fortification]",
