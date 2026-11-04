@@ -549,6 +549,18 @@ class ProceduralGrowth(BaseModel):
         nature=Nature.EFFECTIVE,
         description="Thickness of the stack of bands that thin to nothing at a channel.",
     )
+    channel_opening_mm: float = param(
+        0.0,
+        ge=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "How far short of a channel's line its bands may end on the wall: at most this "
+            "for the stack's middle band, with outer bands ending farther off and inner "
+            "bands nearer. Varies along the line and between its sides. 0 = all bands "
+            "close on the line."
+        ),
+    )
     palette: Palette = Field(
         default_factory=Palette,
         description="Which pigments colour the bands, as relative shares (ADR 0050).",

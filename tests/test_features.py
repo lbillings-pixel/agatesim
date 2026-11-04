@@ -96,13 +96,75 @@ def _thickness_across(sim: VolumeSimulation, channel: WallChannel, off_mm: float
 
 
 def test_a_cut_through_a_channel_shows_bands_converging() -> None:
-    sim = _sim(**CHANNEL, wobble_mm=0.0)
+    sim = _sim(**CHANNEL, wobble_mm=0.0, channel_opening_mm=0.0)
     depths = _thickness_across(sim, _channel(sim), 0.0)
     # Depth is measured from the wall, and the clear layer of 1.5 mm stays whole.
     stack = [d - 1.5 for d in depths]
     assert stack[0] < 0.1  # thinned almost to nothing beside the line
     assert stack == sorted(stack)  # thicker with distance from the line
     assert stack[-1] == pytest.approx(2.5, abs=2 * STEP_MM)  # untouched past its reach
+
+
+def _arrival_beside_line(
+    sim: VolumeSimulation, channel: WallChannel, at: int, sign: float
+) -> float:
+    """Arrival depth (mm of growth) right on the surface, 0.3 mm beside the line."""
+    piece = min(at, len(channel.line) - 2)
+    centre: FloatArray = channel.line[at]
+    across: FloatArray = channel.sides[piece]
+    start = centre + sign * 0.3 * across
+    surface = channel.surface_mm + 1e-4
+    point, _ = features._on_surface(sim.setting.solid, start[None, :], surface)  # pyright: ignore[reportPrivateUsage]
+    fields = sim.evaluate(point, np.array([True]))
+    assert fields.t_smooth is not None
+    return float(fields.t_smooth[0]) * 30.0
+
+
+def test_with_an_opening_the_outer_bands_end_short_of_the_line() -> None:
+    """Where the opening is widest, the surface beside the line is reached late: the
+    bands laid before then ended farther off. The negative control has no opening."""
+    sim = _sim(channel_count=1, wobble_mm=0.0, channel_opening_mm=1.0)
+    closed = _sim(channel_count=1, wobble_mm=0.0, channel_opening_mm=0.0)
+    channel, control = _channel(sim), _channel(closed)
+    side, at = np.unravel_index(int(np.argmax(channel.gaps_mm)), channel.gaps_mm.shape)
+    sign = 1.0 if int(side) == 1 else -1.0
+    assert _arrival_beside_line(sim, channel, int(at), sign) > 1.0
+    assert _arrival_beside_line(closed, control, int(at), sign) < 0.3
+
+
+def test_the_opening_varies_along_the_line_and_between_sides() -> None:
+    channel = _channel(_sim(channel_count=1, channel_opening_mm=1.0))
+    gaps = channel.gaps_mm
+    assert gaps.shape == (2, len(channel.line))
+    assert gaps.min() >= 0
+    assert gaps.max() <= 1.0
+    assert gaps.std(axis=1).min() > 0.05  # along the line
+    assert np.abs(gaps[0] - gaps[1]).max() > 0.1  # between sides
+
+
+def test_channels_close_on_the_line_by_default() -> None:
+    assert np.all(_channel(_sim(channel_count=1)).gaps_mm == 0)
+
+
+def test_zero_opening_is_the_perfect_fan() -> None:
+    channel = _channel(_sim(channel_count=1, channel_opening_mm=0.0))
+    assert np.all(channel.gaps_mm == 0)
+    z = np.array([0.0, 0.5, 2.0])
+    s = np.array([0.3, 0.3, 0.3])
+    h = channel.depth_mm
+    fade = features._fade(z / channel.fade_mm)  # pyright: ignore[reportPrivateUsage]
+    expected = h * (1 - s * s) ** 2 * fade * z / (z + h * s * s)
+    level = channel.surface_mm + z
+    np.testing.assert_allclose(channel.delay(level, s, np.zeros(3)), expected)
+
+
+def test_the_opening_and_the_clear_layer_do_not_move_the_channel() -> None:
+    base = _channel(_sim(channel_count=1, channel_opening_mm=0.0))
+    opened = _channel(_sim(channel_count=1, channel_opening_mm=2.0))
+    layered = _channel(_sim(channel_count=1, clear_layer_mm=1.5))
+    np.testing.assert_array_equal(base.line, opened.line)
+    # Only moved inward, onto the face of the layer.
+    assert np.linalg.norm(base.line[2] - layered.line[2]) < 3.0
 
 
 def test_a_cut_past_the_channel_shows_no_convergence() -> None:
@@ -121,9 +183,10 @@ def test_a_stone_with_no_channel_shows_no_convergence() -> None:
     assert depths == pytest.approx([4.0] * len(depths), abs=2 * STEP_MM)
 
 
-def test_the_clear_layer_is_not_thinned_at_a_channel() -> None:
+@pytest.mark.parametrize("opening", [0.0, 1.0])
+def test_the_clear_layer_is_not_thinned_at_a_channel(opening: float) -> None:
     """The layer the channel sits on keeps its thickness [@walger2009, p. 116]."""
-    sim = _sim(**CHANNEL, wobble_mm=0.0)
+    sim = _sim(**CHANNEL, wobble_mm=0.0, channel_opening_mm=opening)
     plain = _sim(clear_layer_mm=1.5, wobble_mm=0.0)
     p = _random_points(sim)
     inside = sim.setting.solid.contains(p)
@@ -182,8 +245,15 @@ def test_the_line_lies_on_the_inner_face_of_the_clear_layer() -> None:
     assert pieces.sum() == pytest.approx(10.0, rel=0.05)
 
 
-def test_channels_cannot_fold_the_bands() -> None:
-    sim = _sim(**CHANNEL, wobble_mm=0.2, wobble_scale_mm=4.0, wobble_max_slope=0.5)
+@pytest.mark.parametrize("opening", [0.0, 1.0])
+def test_channels_cannot_fold_the_bands(opening: float) -> None:
+    sim = _sim(
+        **CHANNEL,
+        wobble_mm=0.2,
+        wobble_scale_mm=4.0,
+        wobble_max_slope=0.5,
+        channel_opening_mm=opening,
+    )
     channel = _channel(sim)
     near = channel.line[2] + np.random.default_rng(1).uniform(-14, 14, (20_000, 3))
     solid = sim.setting.solid
@@ -192,11 +262,18 @@ def test_channels_cannot_fold_the_bands() -> None:
     assert check.folds == 0
 
 
-def test_bands_around_a_filament_near_a_channel_do_not_fold() -> None:
+@pytest.mark.parametrize("opening", [0.0, 1.0])
+def test_bands_around_a_filament_near_a_channel_do_not_fold(opening: float) -> None:
     """Seeds 5 and 8 folded when the delay read the nearest surface, not the wall.
     The stone is also fully filled, which a renderer needs."""
     for seed in (5, 8):
-        base = _config(**CHANNEL, wobble_mm=0.2, wobble_scale_mm=4.0, wobble_max_slope=0.5)
+        base = _config(
+            **CHANNEL,
+            wobble_mm=0.2,
+            wobble_scale_mm=4.0,
+            wobble_max_slope=0.5,
+            channel_opening_mm=opening,
+        )
         data = base.model_dump()
         data["seed"] = seed
         data["solid"]["filaments"] = [

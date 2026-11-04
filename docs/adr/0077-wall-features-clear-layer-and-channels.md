@@ -1,7 +1,8 @@
 # 77. Wall features: a clear first layer, and channels where bands thin to nothing
 
 - Status: accepted (owner, 2026-11-03: the plan in Nodule's ADR 0015 section 5, a
-  short line for the focus, and channels in 3D only). Look judged later, in Nodule.
+  short line for the focus, and channels in 3D only). Amended 2026-11-04 after the
+  owner judged the look in Nodule (sections 7 and 8).
 - Date: 2026-11-03
 - Builds on: [ADR 0003](0003-model-architecture.md) (labels),
   [ADR 0072](0072-reframing-a-coupled-follow-on-project.md) (changes Nodule needs),
@@ -107,7 +108,7 @@ where `fade` falls smoothly from 1 to 0 with steepest slope 1.5. Then:
 **Starting values.** Line 10 mm, lateral 8 mm, depth 5 mm: roughly the scale of Walger's
 5 cm specimen (Fig. 1; onion ~4.5 mm wide, thinning over ≥ 4 mm each side). Limits:
 lateral 5–20 mm, depth ≤ 25 mm, from the sources above. Nodule's stone uses one channel
-and a 1.5 mm layer, judged by eye there.
+and no clear layer (section 8).
 
 ### 4. What is left out
 
@@ -160,6 +161,64 @@ Measured on Nodule's `n2-slice` stone (this PC, CPU), with a 1.5 mm layer and on
 - **Hashes, features off:** 200,000 points of the `n2-slice` stone and all 2D presets
   identical to before the change.
 
+### 7. Bands that end short of the line (`channel_opening_mm`, off by default)
+
+**Owner's choice.** Channels close neatly on the line: the default is 0, and the setting
+stays for later. Walger describes closure (section 3). Whether bands should ever end
+open or fade out rests on the owner's eye plus the "thinning and narrowing of the bands
+around the indentations and the escape tubes" [@howard2018]. Escape tubes are a separate
+feature for later (section 4), and fading needs option C's position-dependent materials.
+
+**The form.** With `g` the opening at the nearest place on the line and `o = H (g / L)²`,
+on the surface and inward:
+
+    delay = H · (1 − s²)² · fade(z / Z) · (z + o) / (z + o + H s²)
+
+- `o = 0` gives section 3's formula exactly. Depths short of the surface stay undelayed,
+  so a clear layer keeps its thickness.
+- Above zero, the delay on the surface is above zero too, so each band ends on it: the
+  stack's middle band at `g` from the line, outer bands farther off and inner ones nearer.
+- `g` is drawn for each side at each point of the line, from 0 to `channel_opening_mm`,
+  and blends smoothly along the line and between sides (`SIDE_BLEND_MM` = 0.5).
+- The last factor only rises with `z`, so the fall inward is still at most 1/2 per mm,
+  and section 3's guarantee against folds holds.
+
+**The look (owner, in Nodule).** 1 mm is invisible and 3 mm is subtle, because bands meet
+the wall nearly tangent: moving where they end changes little of what a cut shows.
+
+**Placement.** Anchor points no longer depend on the clear layer's thickness, so a thicker
+layer moves a line only inward, onto the layer's face. With no layer, lines are exactly
+where they were. Stones with both a channel and a clear layer differ from 77f34ad.
+
+**Checks.** In `tests/test_features.py`: the outer bands end short of the line, with a
+closed channel as the negative control; the opening varies along the line and between
+sides; 0 gives section 3's formula; the opening doesn't move the line; and the fold and
+clear-layer tests run at both 0 and 1 mm. Fold check near the line with 1 mm, seeds 1–24:
+zero folds.
+
+**Measured** on Nodule's `n2-slice` stone (this PC, CPU; 1 million points, best of 3):
+
+| Setting | Time (s) | Peak Python-tracked memory (MiB) |
+|---|---|---|
+| No features | 1.25 | 140.6 |
+| One channel, 77f34ad | 1.32 | 143.7 |
+| One channel, opening 0 | 1.31 | 143.7 |
+| One channel, opening 1 mm | 1.32 | 143.7 |
+
+So the opening's cost is too small to measure, on or off. A channel costs about 5% and
+3 MiB against no features.
+
+**Hashes against 77f34ad.** 200,000 points of that stone are identical with no features
+and with one channel and no layer, so the look the owner approved doesn't change. All 29
+2D presets are identical too. A stone with a channel and a 1.5 mm layer differs, as above.
+
+### 8. The clear layer stays off on Nodule's stone (owner, 2026-11-04)
+
+Rendered in Nodule, the clear layer shows as a dark grey ring, which the owner finds an
+obvious fake tell. It stays off on Nodule's stone until that is solved. The setting
+remains here, and sections 2 and 6 still describe what it does. This is a verdict on how
+it looks, not on the sources' description of an unbanded first layer.
+
 ## Alternatives considered
 
 - **A single-point focus.** Simpler, but the source is explicit that it's a line, and a
@@ -175,8 +234,8 @@ Measured on Nodule's `n2-slice` stone (this PC, CPU), with a 1.5 mm layer and on
 
 ## Consequences
 
-- Nodule moves its pin here, turns both features on in `n2-slice`, and shows the owner
-  about 4 look cuts beside the current renders before any statistics (its ADR 0015).
+- Nodule moves its pin here, turns the channel on in `n2-slice` with the clear layer
+  off (section 8), and records the owner's verdict in its ADR 0015.
 - Near a line, bands get thinner than Nodule's 0.2 mm time grid, so they blur together
   there. Walger's Fig. 17b also shows them unresolved in a grey wedge near the focus,
   but that match is not evidence for this form.

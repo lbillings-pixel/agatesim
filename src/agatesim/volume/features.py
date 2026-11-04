@@ -37,6 +37,7 @@ GRADIENT_STEP_MM = 0.02
 PLACEMENT_TRIES = 64
 WALK_ROUNDS = 3
 STRAIGHT_WALL = 0.9  # the wall distance's slope must reach this where a line is placed
+SIDE_BLEND_MM = 0.5  # how quickly the opening changes from one side of a line to the other
 
 
 def feature_stream(rng: np.random.Generator) -> np.random.Generator:
@@ -51,14 +52,6 @@ def _length(v: FloatArray) -> float:
     return math.sqrt(float(v @ v))
 
 
-def _segment_distance_sq(p: FloatArray, a: FloatArray, b: FloatArray) -> FloatArray:
-    ab = b - a
-    denominator = float(ab @ ab)
-    u = np.clip((p - a) @ ab / denominator, 0, 1) if denominator > 0 else np.zeros(len(p))
-    off = p - (a + u[:, None] * ab)
-    return np.sum(off * off, axis=1)
-
-
 def _fade(x: FloatArray) -> FloatArray:
     """Falls smoothly from 1 at x = 0 to 0 at x = 1; its steepest slope is 1.5."""
     u = np.clip(x, 0.0, 1.0)
@@ -69,37 +62,71 @@ def _fade(x: FloatArray) -> FloatArray:
 class WallChannel:
     """A vanishing line on the surface at `surface_mm` from the wall, and how far
     around it the bands are disturbed: `lateral_mm` along the wall on each side
-    and `depth_mm`, the thickness of the stack of bands that thin to zero."""
+    and `depth_mm`, the thickness of the stack of bands that thin to zero.
+
+    `gaps_mm` holds how far from the line the stack's middle band ends on the
+    surface, on each side at each point of the line: bands need not all close on
+    the line (ADR 0077 section 7). `sides` gives each piece's sideways direction."""
 
     line: FloatArray  # (LINE_PIECES + 1, 3) points on the surface
     lateral_mm: float
     depth_mm: float
     surface_mm: float
+    sides: FloatArray  # (LINE_PIECES, 3) unit vectors in the wall's plane, across the line
+    gaps_mm: FloatArray  # (2, LINE_PIECES + 1): the negative and the positive side
 
     @property
     def fade_mm(self) -> float:
         return FADE_DEPTHS * self.depth_mm
 
-    def lateral(self, points: FloatArray, d_wall: FloatArray, slack_mm: float = 0.0) -> FloatArray:
-        """Distance along the wall from the line, as a share of `lateral_mm`,
-        capped at 1 (no effect). `slack_mm` widens the search for callers whose
-        depth differs from d_wall by up to that much."""
+    def locate(
+        self, points: FloatArray, d_wall: FloatArray, slack_mm: float = 0.0
+    ) -> tuple[FloatArray, FloatArray]:
+        """Each point's distance along the wall from the line, as a share of
+        `lateral_mm` capped at 1 (no effect), and its opening: the amount that
+        `delay` adds to depth so that bands end short of the line. `slack_mm` widens
+        the search for callers whose depth differs from d_wall by up to that much."""
         s = np.ones(len(points))
+        opening = np.zeros(len(points))
         centre: FloatArray = self.line[len(self.line) // 2]
         half = float(np.sqrt(np.sum((self.line - centre) ** 2, axis=1)).max())
         reach = half + math.hypot(self.lateral_mm, self.fade_mm + slack_mm)
         off = points - centre
         near = np.flatnonzero(np.sum(off * off, axis=1) < reach * reach)
         if not len(near):
-            return s
+            return s, opening
         p = points[near]
         to_line = np.full(len(near), np.inf)
+        position = np.zeros(len(near))  # along the line, in pieces
+        side = np.zeros(len(near))  # mm to the line's positive side
         for i in range(len(self.line) - 1):
-            to_line = np.minimum(to_line, _segment_distance_sq(p, self.line[i], self.line[i + 1]))
+            a: FloatArray = self.line[i]
+            ab: FloatArray = self.line[i + 1] - a
+            u = np.clip((p - a) @ ab / max(float(ab @ ab), 1e-12), 0, 1)
+            from_line = p - (a + u[:, None] * ab)
+            distance = np.sum(from_line * from_line, axis=1)
+            closer = distance < to_line
+            to_line = np.where(closer, distance, to_line)
+            position = np.where(closer, i + u, position)
+            side = np.where(closer, from_line @ self.sides[i], side)
         z = np.maximum(d_wall[near] - self.surface_mm, 0.0)
         along = np.sqrt(np.maximum(to_line - z * z, 0.0))
         s[near] = np.minimum(along / self.lateral_mm, 1.0)
-        return s
+        gap = self._gap(position, side)
+        opening[near] = self.depth_mm * (gap / self.lateral_mm) ** 2
+        return s, opening
+
+    def _gap(self, position: FloatArray, side: FloatArray) -> FloatArray:
+        """`gaps_mm` at a place along the line, smoothly along it and between sides."""
+        j = np.minimum(position.astype(np.intp), self.gaps_mm.shape[1] - 2)
+        w = (1 - np.cos(np.pi * (position - j))) / 2
+        ends = self.gaps_mm[:, j] * (1 - w) + self.gaps_mm[:, j + 1] * w
+        positive = (1 + side / np.sqrt(side * side + SIDE_BLEND_MM**2)) / 2
+        return ends[0] * (1 - positive) + ends[1] * positive
+
+    def lateral(self, points: FloatArray, d_wall: FloatArray, slack_mm: float = 0.0) -> FloatArray:
+        """The first of `locate`'s answers."""
+        return self.locate(points, d_wall, slack_mm)[0]
 
     def influence(self, points: FloatArray, d_wall: FloatArray) -> FloatArray:
         """How strongly the channel acts at each point, 0 to 1: 1 on the line and
@@ -109,22 +136,26 @@ class WallChannel:
         out = (1 - s * s) ** 2 * _fade(np.maximum(z, 0.0) / self.fade_mm)
         return np.where(z >= 0, out, 0.0)
 
-    def delay(self, level: FloatArray, s: FloatArray) -> FloatArray:
+    def delay(self, level: FloatArray, s: FloatArray, opening: FloatArray) -> FloatArray:
         """How much later (mm of arrival depth) the front reaches each point, given
-        its arrival depth `level` and its share `s` from `lateral`.
+        its arrival depth `level` and `locate`'s answers.
 
-        On the wall side, a band at depth D lies at z = D s² u / (1 - D u / H) to
-        first order: a parabola with the wall as its tangent at the line, so all
-        bands in the stack share a tangent there [@walger2009, p. 116] and thin
-        to zero. Their thickness relative to normal is s² / (s² + u). Going inward
-        the delay's slope stays above -1/2 (FADE_DEPTHS), so arrival depth keeps
-        rising and bands cannot fold; bands beyond the stack pass over the line.
+        With no opening, each band of the stack lies on a parabola with the wall as
+        its tangent at the line, so they share a tangent there [@walger2009, p. 116]
+        and thin to zero. Their thickness relative to normal is s² / (s² + u). Going
+        inward the delay's slope stays above -1/2 (FADE_DEPTHS), so arrival depth
+        keeps rising and bands cannot fold; bands beyond the stack pass over the line.
+
+        An opening starts the same curve part-way along. The delay on the surface is
+        then above zero, so each band ends on it: the outermost far from the line and
+        the innermost at it. Depths short of the surface stay undelayed, so a clear
+        layer keeps its thickness.
         """
         h = self.depth_mm
         z = np.maximum(level - self.surface_mm, 0.0)
         wide = (1 - s * s) ** 2 * _fade(z / self.fade_mm)
-        safe = np.maximum(z + h * s * s, 1e-12)
-        return h * wide * z / safe
+        safe = np.maximum(z + opening + h * s * s, 1e-12)
+        return np.where(level > self.surface_mm, h * wide * (z + opening) / safe, 0.0)
 
 
 @dataclass(frozen=True, eq=False)
@@ -152,8 +183,8 @@ class FeatureLayer:
             return out
         slack = float(np.abs(wall_level - d_wall).max())
         for channel in self.channels:
-            s = channel.lateral(points, d_wall, slack)
-            out = np.maximum(out, channel.delay(wall_level, s))
+            s, opening = channel.locate(points, d_wall, slack)
+            out = np.maximum(out, channel.delay(wall_level, s, opening))
         return out
 
 
@@ -216,7 +247,8 @@ def _place_channel(
     cavity, and walked along the surface away from kinks in the wall distance."""
     solid = setting.solid
     ref = setting.reference
-    anchors = ref.points[ref.distance < surface_mm + 2 * ref.spacing]
+    # Not by surface_mm: a thicker clear layer must not move the channel elsewhere.
+    anchors = ref.points[ref.distance < SURFACE_MIN_MM + 2 * ref.spacing]
     step = params.channel_length_mm / LINE_PIECES
     for _ in range(PLACEMENT_TRIES):
         anchor = anchors[int(rng.integers(len(anchors)))]
@@ -238,7 +270,13 @@ def _place_channel(
         behind = _walk(solid, centre, -along, step, surface_mm, pieces)
         if ahead is not None and behind is not None:
             line = np.vstack([behind[::-1], centre, ahead])
-            return WallChannel(line, params.channel_lateral_mm, params.channel_depth_mm, surface_mm)
+            mids = (line[:-1] + line[1:]) / 2
+            sides = cast(FloatArray, np.cross(_gradient(solid, mids), line[1:] - line[:-1]))
+            sides = sides / np.sqrt(np.sum(sides * sides, axis=1, keepdims=True))
+            gaps = params.channel_opening_mm * rng.spawn(1)[0].random((2, len(line)))
+            return WallChannel(
+                line, params.channel_lateral_mm, params.channel_depth_mm, surface_mm, sides, gaps
+            )
     raise ValueError("no place on this cavity's wall can hold a channel of this length")
 
 
