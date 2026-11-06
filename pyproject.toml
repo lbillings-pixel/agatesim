@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "lbillings-pixel" }]
+authors = [{ name = "Lee Billings" }]
 dependencies = [
     "fastapi>=0.143.1",
     "numba>=0.68",
