@@ -1213,3 +1213,17 @@ licence = "publisher copyright; cite only"
 checked = "full-text"
 topics = ["iris", "diffraction", "fibres", "polarisation", "tilt", "lighting", "sectors", "translucency", "x-ray"]
 notes = """Read in full 2026-10-29 (owner's scanned PDF, publisher OCR layer; all plates viewed). Two iridescent agate plates, 3 and 2 mm thick, no locality (p. 200). Iris strata 'some 10,000 times in a centimetre' (~1 µm), stated as long known, not measured (p. 199). Iris area a ~1 cm strip parallel to the bands of 'six different gratings' with gaps, colours differing 'when it is viewed obliquely' (p. 202); no angles or spacings measured. Conclusions (p. 203): fibres normal to the bands, c-axis in the band plane, periodic c-axis orientation along each fibre makes the grating; tentative polysynthetic twins (pp. 205-206). Transmitted and diffracted images complementary over all banded areas (p. 200); thinner plate much more transparent; iris areas less transparent and redden light (p. 200). Transmission strongly depends on the angle between rays and band planes, maximal parallel, much weaker for tilt within the band plane (p. 201); polarisation direction turns with the bands (p. 201). Fig. 1: sectors of one strip 'perfectly dark', 'faintly banded', 'quite bright' (p. 200), bounded by radial lines through band corners; lighting not stated, no cause given. X-ray: visible banding goes with preferred orientation, unbanded tip has almost none (p. 204). Moiré patterns in iris strips seen with a magnifier, vanish with polaroid across the bands (p. 205). No reference list."""
+
+[[references]]
+id = "kile2002"
+kind = "article"
+authors = ["Kile, D. E."]
+year = 2002
+title = "Occurrence and genesis of thunder eggs containing plume and moss agate"
+venue = "Rocks & Minerals 77(4), 252-268"
+doi = "10.1080/00357529.2002.9925643"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "full-text"
+topics = ["plume", "moss", "thunder-egg", "halo"]
+notes = "Del Norte, Colorado thunder eggs. Full text read 2026-11-09 for Nodule (owner supplied; Nodule's notes/n1-reading/kile2002-reading.md). Magazine with editorial review, not strictly refereed: claims plausible at most. One plume often variegated orange-to-black (pp. 259-260); clear chalcedony halos commonly enclose plumes and moss (pp. 259, 263), reported after Staples (1965) to erase earlier bands (p. 263); no halo widths."

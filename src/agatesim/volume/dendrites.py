@@ -83,6 +83,16 @@ class Aggregate3:
     lattice: Lattice3
     cells: NDArray[np.int64]  # flat lattice indices, in order of attachment
     order: FloatArray  # attachment order in [0, 1] for each cell (seeds are 0)
+    # Which plume (seed) each cell grew from, and how far along its branch it lies:
+    # branch steps from the seed over the plume's longest, 0 at the base, 1 at the
+    # farthest tip (`trace_plumes`). None when not traced.
+    plume: NDArray[np.int64] | None = None
+    along: FloatArray | None = None
+
+    @property
+    def plumes(self) -> int:
+        """How many plumes (seeds) the aggregate grew from."""
+        return 0 if self.plume is None or not len(self.plume) else int(self.plume.max()) + 1
 
     @property
     def radius(self) -> float:
@@ -106,6 +116,31 @@ class Aggregate3:
             return np.full(len(points), np.inf)
         d, idx = self._nearest(points)
         return np.where(d <= self.radius, self.order[idx], np.inf)
+
+    def traced_at(self, points: FloatArray) -> tuple[FloatArray, NDArray[np.int64], FloatArray]:
+        """At each point, from one nearest-ball query: the attachment order (inf
+        outside the aggregate), the plume (-1 outside) and the position along its
+        branch (NaN outside). Needs a traced aggregate."""
+        assert self.plume is not None
+        assert self.along is not None
+        n = len(points)
+        if not len(self.cells):
+            return np.full(n, np.inf), np.full(n, -1, dtype=np.int64), np.full(n, np.nan)
+        d, idx = self._nearest(points)
+        hit = d <= self.radius
+        order = np.where(hit, self.order[idx], np.inf)
+        plume = np.where(hit, self.plume[idx], -1)
+        along = np.where(hit, self.along[idx], np.nan)
+        return order, plume, along
+
+    def nearest_plume(self, points: FloatArray) -> tuple[FloatArray, NDArray[np.int64]]:
+        """Distance from points to the aggregate's surface (negative inside), and
+        the plume of the nearest ball. Needs a traced aggregate."""
+        assert self.plume is not None
+        if not len(self.cells):
+            return np.full(len(points), np.inf), np.full(len(points), -1, dtype=np.int64)
+        d, idx = self._nearest(points)
+        return d - self.radius, self.plume[idx]
 
     def centres(self) -> FloatArray:
         """Ball centres: cell centres moved by a fixed pseudo-random offset per
@@ -169,4 +204,52 @@ def grow(
     _rd.release_gpu_memory()
     cells = np.concatenate(order)
     rank = np.concatenate([np.full(len(c), k, dtype=np.float64) for k, c in enumerate(order)])
-    return Aggregate3(lattice=lattice, cells=cells, order=rank / max(len(order) - 1, 1))
+    plume, along = trace_plumes(order, offsets, lattice.size)
+    return Aggregate3(
+        lattice=lattice,
+        cells=cells,
+        order=rank / max(len(order) - 1, 1),
+        plume=plume,
+        along=along,
+    )
+
+
+def trace_plumes(
+    order: list[NDArray[np.int64]], offsets: NDArray[np.int64], size: int
+) -> tuple[NDArray[np.int64], FloatArray]:
+    """Which plume each attached cell belongs to, and how far along its branch.
+
+    `order` is the aggregation's output (seeds first, then each sweep's new
+    cells). A particle sticks only next to a cell attached in an earlier sweep
+    (whether it touches the aggregate is decided before the sweep's attachments),
+    so every new cell has a parent among its six neighbours from earlier sweeps:
+    the one fewest branch steps from its seed (ties: the first in `offsets`). The
+    cell joins the parent's plume one step further out. Plumes are numbered by
+    their seed's place in `order[0]`; `along` is the step count over the plume's
+    largest, so 0 at the seed and 1 at its farthest tip. Done after the
+    aggregation, so the GPU, compiled and NumPy loops need no change."""
+    seeds = order[0]
+    total = sum(len(c) for c in order)
+    slot = np.full(size, -1, dtype=np.int32)  # lattice cell -> place in the output
+    plume = np.empty(total, dtype=np.int64)
+    depth = np.empty(total, dtype=np.int64)
+    slot[seeds] = np.arange(len(seeds), dtype=np.int32)
+    plume[: len(seeds)] = np.arange(len(seeds))
+    depth[: len(seeds)] = 0
+    start = len(seeds)
+    for cells in order[1:]:
+        nb = slot[cells[:, None] + offsets[None, :]]  # (k, 6): earlier cells or -1
+        known = nb >= 0
+        if not known.any(axis=1).all():
+            raise AssertionError("an attached cell has no earlier neighbour")
+        key = np.where(known, depth[np.maximum(nb, 0)], np.iinfo(np.int64).max)
+        parent = nb[np.arange(len(cells)), np.argmin(key, axis=1)]
+        end = start + len(cells)
+        plume[start:end] = plume[parent]
+        depth[start:end] = depth[parent] + 1
+        slot[cells] = np.arange(start, end, dtype=np.int32)
+        start = end
+    longest = np.zeros(len(seeds), dtype=np.int64)
+    np.maximum.at(longest, plume, depth)
+    along = depth / np.maximum(longest[plume], 1)
+    return plume, along.astype(np.float64)

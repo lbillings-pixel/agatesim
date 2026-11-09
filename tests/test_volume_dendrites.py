@@ -6,13 +6,22 @@ import numpy as np
 import pytest
 
 from agatesim import _dla, _rd
+from agatesim._scipy import NearestIndex
 from agatesim.criteria import evaluate
+from agatesim.fields import Fields, Phase
+from agatesim.models.growth import InclusionGrowth, ProceduralGrowth
 from agatesim.volume.config import SliceConfig, load_volume_preset
-from agatesim.volume.dendrites import Lattice3, grow
+from agatesim.volume.dendrites import Aggregate3, Lattice3, grow
+from agatesim.volume.growth import PlumeLook, plume_direction
 from agatesim.volume.simulate import prepare_volume
 
 
 def _box(upward: float = 0.0, seed: int = 0) -> tuple[Lattice3, np.ndarray]:
+    lattice, agg = _box_aggregate(upward, seed)
+    return lattice, agg.centres()
+
+
+def _box_aggregate(upward: float = 0.0, seed: int = 0) -> tuple[Lattice3, Aggregate3]:
     lattice = Lattice3.around(np.zeros(3), np.full(3, 8.0), 0.25)
     nx, ny, _nz = lattice.shape
     free = np.ones(lattice.size, dtype=bool)
@@ -30,7 +39,7 @@ def _box(upward: float = 0.0, seed: int = 0) -> tuple[Lattice3, np.ndarray]:
         gravity=np.array([0.0, 0.0, -1.0]),
         rng=np.random.default_rng(seed),
     )
-    return lattice, agg.centres()
+    return lattice, agg
 
 
 def test_aggregation_is_deterministic() -> None:
@@ -178,3 +187,130 @@ def test_numba_can_be_declined(monkeypatch: pytest.MonkeyPatch) -> None:
     assert _dla.compiled_engine() is None
     _, reference = _box(0.5, seed=2)
     assert np.array_equal(fast, reference)
+
+
+# ADR 0079: each plume traced, tilted plumes, colour per plume and halos.
+
+
+def test_tracing_gives_each_cell_a_plume_and_a_branch_back_to_its_seed() -> None:
+    lattice, agg = _box_aggregate(0.5, seed=3)
+    assert agg.plume is not None
+    assert agg.along is not None
+    nx, ny, _ = lattice.shape
+    n_seeds = int(np.count_nonzero(agg.order == 0))
+    assert agg.plumes == n_seeds
+    assert np.array_equal(agg.plume[:n_seeds], np.arange(n_seeds))
+    assert np.all(agg.along[:n_seeds] == 0)
+    assert np.all((agg.along >= 0) & (agg.along <= 1))
+    # Each cell beyond the seeds touches a cell of its own plume one step nearer the
+    # seed, so a plume is a connected branch, not cells claimed at a distance.
+    where = {int(c): k for k, c in enumerate(agg.cells)}
+    longest = np.zeros(agg.plumes)
+    np.maximum.at(longest, agg.plume, agg.along)
+    steps = np.rint(agg.along * 1e6).astype(np.int64)  # along is depth / plume's longest
+    for k in range(n_seeds, len(agg.cells)):
+        nbs = [where.get(int(agg.cells[k] + o)) for o in (1, -1, nx, -nx, nx * ny, -nx * ny)]
+        assert any(
+            j is not None and agg.plume[j] == agg.plume[k] and steps[j] < steps[k] for j in nbs
+        )
+    grown = np.bincount(agg.plume, minlength=agg.plumes) > 1
+    assert np.all(longest[grown] == 1)
+
+
+def test_tilt_snaps_to_the_nearest_lattice_axis() -> None:
+    gravity = np.array([0.0, 0.0, -1.0])
+
+    def direction(tilt: float, azimuth: float = 0.0) -> list[float]:
+        how = InclusionGrowth(1.0, 0.1, 0.1, 0.5, 0.1, 90.0, tilt_deg=tilt, azimuth_deg=azimuth)
+        return plume_direction(gravity, how).tolist()
+
+    assert direction(30) == [0, 0, 1]
+    assert direction(90) == [1, 0, 0]
+    assert direction(90, 90) == [0, 1, 0]
+    assert direction(90, 200) == [-1, 0, 0]
+    assert direction(180) == [0, 0, -1]
+
+
+def test_each_plume_draws_its_own_tints_and_halo() -> None:
+    model = load_volume_preset("plume-3d").model
+    assert isinstance(model, ProceduralGrowth)
+    rng = np.random.default_rng(0)
+    alike = PlumeLook.draw(model.model_copy(update={"dendrite_tint_change": 0.4}), 50, rng)
+    assert np.allclose(alike.tip - alike.base, 0.4)
+    assert np.allclose(alike.tint(np.array([3, 3]), np.array([0.0, 1.0])), [0.5, 0.9])
+    assert alike.halo.all()  # the default share is every plume
+    varied = PlumeLook.draw(
+        model.model_copy(update={"dendrite_tint_spread": 0.2, "dendrite_halo_share": 0.5}), 50, rng
+    )
+    assert varied.base.std() > 0.05
+    assert 10 < int(varied.halo.sum()) < 40
+    none = PlumeLook.draw(model.model_copy(update={"dendrite_halo_share": 0.0}), 50, rng)
+    assert not none.halo.any()
+
+
+Grids = dict[str, tuple[Fields, np.ndarray, tuple[int, int, int]]]
+STYLED = {
+    "dendrite_tilt_deg": 90.0,
+    "dendrite_tint_change": 0.5,
+    "dendrite_tint_spread": 0.1,
+    "dendrite_halo_mm": 1.0,
+}
+
+
+@pytest.fixture(scope="module")
+def plume_grids() -> Grids:
+    """plume-3d's plumes (coarse lattice) on a 3D grid of points, plain (rising,
+    one tint, no halo) and styled (sideways, varied tints, halos)."""
+    out: Grids = {}
+    for name, update in (("plain", {}), ("styled", STYLED)):
+        config = load_volume_preset("plume-3d")
+        model = config.model.model_copy(update={"dendrite_cells_3d": 1.0, **update})
+        sim = prepare_volume(config.model_copy(update={"model": model}))
+        lo, hi = sim.solid.bounds()
+        xx, yy, zz = np.meshgrid(*[np.arange(lo[i], hi[i], 0.3) for i in range(3)], indexing="ij")
+        points = np.stack([xx.ravel(), yy.ravel(), zz.ravel()], axis=1)
+        out[name] = (sim.evaluate(points, sim.solid.contains(points)), points, xx.shape)
+    return out
+
+
+def _leans_along_x(fields: Fields, shape: tuple[int, int, int]) -> bool:
+    """Neighbouring inclusion voxels pair up more often along x than along z
+    (gravity's axis): the branches run sideways."""
+    inc = (fields.phase == Phase.INCLUSION).reshape(shape)
+    pairs = [int((inc & np.roll(inc, -1, axis=a)).sum()) for a in (0, 2)]
+    return pairs[0] > 1.05 * pairs[1]
+
+
+def test_tilted_plumes_grow_sideways(plume_grids: Grids) -> None:
+    fields, _, shape = plume_grids["styled"]
+    assert _leans_along_x(fields, shape)
+    fields, _, shape = plume_grids["plain"]  # negative control: rising plumes
+    assert not _leans_along_x(fields, shape)
+
+
+def _tint_varies(fields: Fields) -> bool:
+    tint = fields.impurity[fields.phase == Phase.INCLUSION]
+    return float(np.ptp(tint)) > 0.3
+
+
+def test_plumes_vary_in_tint_within_one_stone(plume_grids: Grids) -> None:
+    assert _tint_varies(plume_grids["styled"][0])
+    assert not _tint_varies(plume_grids["plain"][0])  # negative control: one tint
+
+
+def _clear_round_plumes(fields: Fields, points: np.ndarray) -> bool:
+    """Chalcedony within 0.6 mm of an inclusion is nearly all clear and colourless."""
+    inc = fields.phase == Phase.INCLUSION
+    ch = np.flatnonzero(fields.phase == Phase.CHALCEDONY)
+    d, _ = NearestIndex(points[inc]).query(points[ch])
+    near = ch[d <= 0.6]
+    clear = (fields.translucency[near] >= 0.85) & (fields.impurity[near] < 0.01)
+    return float(clear.mean()) > 0.9
+
+
+def test_halos_clear_the_chalcedony_round_plumes(plume_grids: Grids) -> None:
+    fields, points, _ = plume_grids["styled"]
+    assert _clear_round_plumes(fields, points)
+    assert fields.band_impurity is not None  # the steps' own values are kept (ADR 0078)
+    fields, points, _ = plume_grids["plain"]  # negative control: no halo
+    assert not _clear_round_plumes(fields, points)

@@ -383,8 +383,10 @@ def grow_aggregate(
     sites = place_sites(setting, solid, how.spacing_mm, rng_sites)
     progress.report(0.75)
     points, normals = sites.points, sites.normals
+    # The biased direction: up (against gravity) unless tilted (ADR 0079).
+    toward = None if how.tilt_deg == 0 else plume_direction(setting.gravity, how)
     if how.start_height < 1 and len(points):
-        height = setting.height(points)
+        height = setting.height(points) if toward is None else points @ toward
         low = height <= float(height.min()) + how.start_height * float(np.ptp(height))
         points, normals = points[low], normals[low]
     seeds = lattice.index(points + normals * lattice.h)
@@ -397,9 +399,51 @@ def grow_aggregate(
             amount=how.amount,
             sticking=how.sticking,
             upward=how.upward,
-            gravity=setting.gravity,
+            gravity=setting.gravity if toward is None else -toward,
             rng=rng_grow,
         )
+
+
+def plume_direction(gravity: FloatArray, how: InclusionGrowth) -> FloatArray:
+    """The lattice axis (unit vector) nearest the tilted direction: tilt from up
+    (against gravity) towards the horizontal axis `azimuth_deg` round from the
+    world axis most across gravity. The aggregation biases one lattice axis only,
+    so the direction snaps to one of six."""
+    up: FloatArray = -np.asarray(gravity, dtype=np.float64)
+    up /= np.linalg.norm(up)
+    first: FloatArray = np.eye(3)[int(np.argmin(np.abs(up)))]
+    e1: FloatArray = first - float(first @ up) * up
+    e1 /= np.linalg.norm(e1)
+    e2: FloatArray = np.cross(up, e1)
+    tilt, az = math.radians(how.tilt_deg), math.radians(how.azimuth_deg)
+    d = math.cos(tilt) * up + math.sin(tilt) * (math.cos(az) * e1 + math.sin(az) * e2)
+    axis = int(np.argmax(np.abs(d)))
+    out = np.zeros(3)
+    out[axis] = np.sign(d[axis])
+    return out
+
+
+@dataclass(frozen=True)
+class PlumeLook:
+    """Each plume's own tints at its base and tips, and whether it has a halo
+    (ADR 0079); drawn once per dendrite stage."""
+
+    base: FloatArray
+    tip: FloatArray
+    halo: NDArray[np.bool_]
+
+    @classmethod
+    def draw(cls, params: ProceduralGrowth, plumes: int, rng: np.random.Generator) -> PlumeLook:
+        rng_base, rng_tip, rng_halo = rng.spawn(3)
+        spread = params.dendrite_tint_spread
+        base = params.dendrite_tint + spread * rng_base.uniform(-1, 1, plumes)
+        tip = params.dendrite_tint + params.dendrite_tint_change
+        tip = tip + spread * rng_tip.uniform(-1, 1, plumes)
+        halo = rng_halo.random(plumes) < params.dendrite_halo_share
+        return cls(base=np.clip(base, 0, 1), tip=np.clip(tip, 0, 1), halo=halo)
+
+    def tint(self, plume: NDArray[np.int64], along: FloatArray) -> FloatArray:
+        return self.base[plume] + (self.tip[plume] - self.base[plume]) * along
 
 
 # For the app's progress bar: a rough share of the time each kind of stage takes,
@@ -434,6 +478,7 @@ class _Stage:
     crystal_offset: int = 0
     settled_heights: FloatArray | None = None  # sorted heights of the open reference points
     aggregate: Inclusion | None = None  # dendrite and stick stages
+    plumes: PlumeLook | None = None  # dendrite stages: each plume's tints and halo
 
 
 def prepare_growth(
@@ -486,11 +531,12 @@ def prepare_growth(
             stages.append(_Stage(m, a, b, cumulative, solid, metric=metric))
             solid = solid.with_balls(sites.points, metric.rate * total)
         elif m is Mode.DENDRITE:
+            rng_stage = rng_dendrites.spawn(1)[0]
             with progress.span(lo, hi):
-                aggregate = grow_aggregate(
-                    inclusion_growth(params), setting, solid, rng_dendrites.spawn(1)[0]
-                )
-            stages.append(_Stage(m, a, b, cumulative, solid, aggregate=aggregate))
+                aggregate = grow_aggregate(inclusion_growth(params), setting, solid, rng_stage)
+            # Spawned after the aggregate's own streams, so they are unchanged.
+            plumes = PlumeLook.draw(params, aggregate.plumes, rng_stage.spawn(1)[0])
+            stages.append(_Stage(m, a, b, cumulative, solid, aggregate=aggregate, plumes=plumes))
             solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0)))
         elif m is Mode.STICK:
             sticks = grow_sticks3(
@@ -541,6 +587,7 @@ def prepare_growth(
         for t in setting.tubes:
             tube |= inside & (segment_distance(points, t[:3], t[3:6]) <= t[6])
         dendrite = np.zeros(n, dtype=bool)
+        tint = np.full(n, np.nan)  # each dendrite point's own tint (ADR 0079)
         for st in stages:
             open_idx = np.flatnonzero(inside & ~tube & (filled_at < 0))
             if not len(open_idx):
@@ -559,9 +606,11 @@ def prepare_growth(
                 grain[open_idx[hit]] = (st.crystal_offset + owner[hit]).astype(np.int32)
                 continue
             if st.mode is Mode.DENDRITE:
-                assert st.aggregate is not None
-                order = st.aggregate.order_at(p)
+                assert isinstance(st.aggregate, Aggregate3)
+                assert st.plumes is not None
+                order, plume, along = st.aggregate.traced_at(p)
                 hit = np.isfinite(order)
+                tint[open_idx[hit]] = st.plumes.tint(plume[hit], along[hit])
                 span = st.end - st.start
                 steps = st.start + np.minimum(np.floor(order[hit] * span), span - 1)
                 filled_at[open_idx[hit]] = steps.astype(np.int64)
@@ -620,9 +669,55 @@ def prepare_growth(
         fields = replace(fields, t_smooth=t_smooth.astype(np.float32))
         if features.variation is not None:
             fields = _vary_along_bands(fields, features, points, smooth / TIME_STEPS)
+        if dendrite.any() and (params.dendrite_tint_change != 0 or params.dendrite_tint_spread > 0):
+            impurity = np.where(dendrite, tint, fields.impurity).astype(np.float32)
+            fields = replace(fields, impurity=impurity)
+        if params.dendrite_halo_mm > 0:
+            fields = _halos(fields, points, stages, params.dendrite_halo_mm)
         return fields
 
     return evaluate
+
+
+HALO_TRANSLUCENCY = 0.9  # clear chalcedony (effective; quartz's value in growth_fields)
+HALO_EDGE = 0.3  # share of the halo's width over which it fades out (assumption)
+
+
+def _halos(fields: Fields, points: FloatArray, stages: list[_Stage], width: float) -> Fields:
+    """Clear halos round plumes (ADR 0079): chalcedony within `width` of a plume
+    that has one is clear, its band colour erased, fading out over the outer
+    HALO_EDGE of the width. Whatever the bands were there, halos are reported to
+    erase them [@kile2002, p. 263]. The steps' own values stay in band_impurity
+    and band_translucency (ADR 0078), since a halo depends on place, not step."""
+    idx = np.flatnonzero(fields.phase == Phase.CHALCEDONY)
+    weight = np.zeros(len(idx))
+    for st in stages:
+        if st.mode is not Mode.DENDRITE or st.plumes is None or not st.plumes.halo.any():
+            continue
+        assert isinstance(st.aggregate, Aggregate3)
+        if not len(idx):
+            break
+        d, plume = st.aggregate.nearest_plume(points[idx])
+        has = (plume >= 0) & st.plumes.halo[np.maximum(plume, 0)]
+        w = np.clip((width - d) / (HALO_EDGE * width), 0.0, 1.0)
+        weight = np.maximum(weight, np.where(has, w, 0.0))
+    if not weight.any():
+        return fields
+    impurity = fields.impurity.copy()
+    translucency = fields.translucency.copy()
+    impurity[idx] *= (1 - weight).astype(np.float32)
+    translucency[idx] = np.maximum(
+        translucency[idx], translucency[idx] + weight * (HALO_TRANSLUCENCY - translucency[idx])
+    ).astype(np.float32)
+    return replace(
+        fields,
+        impurity=impurity,
+        translucency=translucency,
+        band_impurity=fields.impurity if fields.band_impurity is None else fields.band_impurity,
+        band_translucency=(
+            fields.translucency if fields.band_translucency is None else fields.band_translucency
+        ),
+    )
 
 
 def _vary_along_bands(

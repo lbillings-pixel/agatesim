@@ -406,6 +406,74 @@ class ProceduralGrowth(BaseModel):
             "0.5 = red-brown Fe oxide, 1 = black Mn oxide."
         ),
     )
+    dendrite_tint_change: float = param(
+        0.0,
+        ge=-1,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, how the mineral tint changes from each plume's base to its farthest "
+            "tips (added to the base tint, in proportion to the distance along the branch; "
+            "0 = one tint throughout). Plumes are often orange at the base and black at "
+            "the tips (ADR 0079)."
+        ),
+    )
+    dendrite_tint_spread: float = param(
+        0.0,
+        ge=0,
+        le=0.5,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, how much the tint differs from plume to plume: each plume's base and "
+            "tip tints move by up to this much either way, independently (0 = every "
+            "plume alike)."
+        ),
+    )
+    dendrite_tilt_deg: float = param(
+        0.0,
+        ge=0,
+        le=180,
+        units="°",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, the direction the upward bias favours, from straight up (0) through "
+            "sideways (90) to down (180); inclusions start from the opposite side of the "
+            "cavity (see start height). The lattice gives six directions, so this snaps "
+            "to the nearest one."
+        ),
+    )
+    dendrite_azimuth_deg: float = param(
+        0.0,
+        ge=0,
+        lt=360,
+        units="°",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, which way round a tilted direction leans, measured about the vertical "
+            "(snaps to the nearest of four)."
+        ),
+    )
+    dendrite_halo_mm: float = param(
+        0.0,
+        ge=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, chalcedony within this distance of a branched inclusion is clear, with "
+            "the band colour erased: the clear halos that often enclose plumes and moss "
+            "(0 = none; the width is an assumption, ADR 0079)."
+        ),
+    )
+    dendrite_halo_share: float = param(
+        1.0,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description="In 3D, the share of plumes that have a halo, drawn plume by plume.",
+    )
     stick_spacing_mm: float = param(
         5.0,
         gt=0,
@@ -886,6 +954,8 @@ class InclusionGrowth:
     upward: float = 0.0
     start_height: float = 1.0
     max_cells: int = 4_000_000  # in 3D: the lattice's cell budget
+    tilt_deg: float = 0.0  # in 3D: the biased direction, from up (0) to down (180)
+    azimuth_deg: float = 0.0  # in 3D: which way a tilted direction leans
 
     def gravity(self) -> FloatArray:
         th = math.radians(self.gravity_deg)
@@ -903,6 +973,8 @@ def inclusion_growth(params: ProceduralGrowth) -> InclusionGrowth:
         upward=params.dendrite_upward,
         start_height=params.dendrite_start_height,
         max_cells=round(params.dendrite_cells_3d * 1e6),
+        tilt_deg=params.dendrite_tilt_deg,
+        azimuth_deg=params.dendrite_azimuth_deg,
     )
 
 
