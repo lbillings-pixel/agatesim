@@ -248,12 +248,12 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
                 scatter_deg=s.axis_scatter_deg,
             )
             stages.append(_Stage("stick", solid, None, aggregate=sticks))
-            solid = replace(solid, aggregates=(*solid.aggregates, (sticks, 0.0)))
+            solid = replace(solid, aggregates=(*solid.aggregates, (sticks, 0.0, 1.0)))
         elif stage == "garden":
             with progress.span(lo, hi):
                 garden = grow_garden(params.garden, setting, solid, stage_rng)
             stages.append(_Stage("garden", solid, None, aggregate=garden, tint=params.garden.tint))
-            solid = replace(solid, aggregates=(*solid.aggregates, (garden, 0.0)))
+            solid = replace(solid, aggregates=(*solid.aggregates, (garden, 0.0, 1.0)))
         else:
             d = params.dendrite
             how = InclusionGrowth(
@@ -268,7 +268,7 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
             with progress.span(lo, hi):
                 aggregate = grow_aggregate(how, setting, solid, stage_rng)
             stages.append(_Stage("dendrite", solid, None, aggregate=aggregate, tint=d.tint))
-            solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0)))
+            solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0, 1.0)))
 
     def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
         n = len(points)

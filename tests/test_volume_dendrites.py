@@ -314,3 +314,35 @@ def test_halos_clear_the_chalcedony_round_plumes(plume_grids: Grids) -> None:
     assert fields.band_impurity is not None  # the steps' own values are kept (ADR 0078)
     fields, points, _ = plume_grids["plain"]  # negative control: no halo
     assert not _clear_round_plumes(fields, points)
+
+
+def _coat_rate(fields: Fields, points: np.ndarray, wall: np.ndarray, start: float) -> float:
+    """How fast chalcedony grew round the plumes, against its growth from the wall:
+    the median of each point's distance to the nearest plume over the wall growth
+    (plume-3d: 26 mm at an even rate after the plume stage) when it filled. Points
+    0.5-1.5 mm from a plume and over 8 mm from the wall, so the wall's bands reach
+    them later than any coat could."""
+    inc = fields.phase == Phase.INCLUSION
+    ch = np.flatnonzero(fields.phase == Phase.CHALCEDONY)
+    d, _ = NearestIndex(points[inc]).query(points[ch])
+    sel = (d >= 0.5) & (d <= 1.5) & (wall[ch] > 8.0)
+    grown = 26.0 * (fields.t_dep[ch[sel]] - start)
+    return float(np.median(d[sel] / grown))
+
+
+@pytest.mark.parametrize(("rate", "thin"), [(0.15, True), (1.0, False)])
+def test_slow_wrap_gives_thin_coats_round_plumes(rate: float, thin: bool) -> None:
+    """ADR 0080: at a wrap rate below 1, bands grow round plumes more slowly than from
+    the wall. Negative control: the default rate, where the coats grow as fast."""
+    config = load_volume_preset("plume-3d")
+    model = config.model.model_copy(update={"dendrite_cells_3d": 1.0, "dendrite_wrap_rate": rate})
+    sim = prepare_volume(config.model_copy(update={"model": model}))
+    lo, hi = sim.solid.bounds()
+    xx, yy, zz = np.meshgrid(*[np.arange(lo[i], hi[i], 0.3) for i in range(3)], indexing="ij")
+    points = np.stack([xx.ravel(), yy.ravel(), zz.ravel()], axis=1)
+    inside = sim.solid.contains(points)
+    fields = sim.evaluate(points, inside)
+    wall = np.full(len(points), np.nan)
+    wall[inside] = sim.solid.wall_distance(points[inside])
+    start = 0.25  # plume-3d: the plume stage ends here (its dendrite schedule)
+    assert (_coat_rate(fields, points, wall, start) < 0.5) is thin

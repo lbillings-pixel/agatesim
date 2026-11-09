@@ -474,6 +474,19 @@ class ProceduralGrowth(BaseModel):
         nature=Nature.EFFECTIVE,
         description="In 3D, the share of plumes that have a halo, drawn plume by plume.",
     )
+    dendrite_wrap_rate: float = param(
+        1.0,
+        gt=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, how fast later bands grow round branched inclusions, as a share of "
+            "their growth from the wall (1 = as fast). Lower values give thin coats round "
+            "each plume, so plumes reaching into the cavity no longer fill it with their "
+            "own rings (an assumption, ADR 0080)."
+        ),
+    )
     stick_spacing_mm: float = param(
         5.0,
         gt=0,

@@ -88,7 +88,9 @@ class GrowthSolid:
     radii: FloatArray | None = None  # (m,)
     bed: float = -math.inf  # height of the settled bed's top
     tubes: FloatArray | None = None  # (k, 7): filament ends a, b and radius, grown so far
-    aggregates: tuple[tuple[Inclusion, float], ...] = ()  # inclusions, offsets
+    # inclusions, each with the growth since it formed (mm, at the wall's rate) and
+    # the rate at which bands grow round it, as a share of the wall's (ADR 0080)
+    aggregates: tuple[tuple[Inclusion, float, float], ...] = ()
 
     def distance(self, p: FloatArray, d_wall: FloatArray, h: FloatArray) -> FloatArray:
         """Distance from points to the solid: positive in the open space, zero or
@@ -97,8 +99,9 @@ class GrowthSolid:
         if self.tubes is not None:
             for tube in self.tubes:
                 d = np.minimum(d, segment_distance(p, tube[:3], tube[3:6]) - tube[6])
-        for aggregate, offset in self.aggregates:
-            d = np.minimum(d, aggregate.distance(p) - offset)
+        for aggregate, offset, rate in self.aggregates:
+            # in growth at the wall's rate: a coat of rate x offset mm round it
+            d = np.minimum(d, aggregate.distance(p) / rate - offset)
         if self.centres is None or self.radii is None or not len(self.radii):
             return d
         centres, radii = self.centres, self.radii
@@ -120,7 +123,7 @@ class GrowthSolid:
             radii=None if self.radii is None else self.radii + thickness,
             bed=self.bed + thickness,
             tubes=None if self.tubes is None else self.tubes + np.r_[np.zeros(6), thickness],
-            aggregates=tuple((a, offset + thickness) for a, offset in self.aggregates),
+            aggregates=tuple((a, off + thickness, rate) for a, off, rate in self.aggregates),
         )
 
     def with_balls(self, centres: FloatArray, radii: FloatArray) -> GrowthSolid:
@@ -537,7 +540,8 @@ def prepare_growth(
             # Spawned after the aggregate's own streams, so they are unchanged.
             plumes = PlumeLook.draw(params, aggregate.plumes, rng_stage.spawn(1)[0])
             stages.append(_Stage(m, a, b, cumulative, solid, aggregate=aggregate, plumes=plumes))
-            solid = replace(solid, aggregates=(*solid.aggregates, (aggregate, 0.0)))
+            wrap = (aggregate, 0.0, params.dendrite_wrap_rate)
+            solid = replace(solid, aggregates=(*solid.aggregates, wrap))
         elif m is Mode.STICK:
             sticks = grow_sticks3(
                 setting,
@@ -551,7 +555,7 @@ def prepare_growth(
             stages.append(
                 _Stage(m, a, b, cumulative, solid, aggregate=sticks, crystal_offset=crystals)
             )
-            solid = replace(solid, aggregates=(*solid.aggregates, (sticks, 0.0)))
+            solid = replace(solid, aggregates=(*solid.aggregates, (sticks, 0.0, 1.0)))
             crystals += len(sticks.a)
         elif m is Mode.CRYSTAL:
             sites = place_sites(setting, solid, params.quartz_grain_mm, rng_crystals.spawn(1)[0])
