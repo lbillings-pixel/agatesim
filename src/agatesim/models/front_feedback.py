@@ -745,9 +745,12 @@ def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]
     chal = grown & ~quartz
     edges = band_edges(history)
     band = np.where(chal, np.searchsorted(edges, d, side="right"), -1).astype(np.int32)
-    # Iron stand-in: the incorporated impurity, on a log scale over the run.
+    # Iron stand-in: the incorporated impurity, on a log scale over the run's
+    # chalcedony (ADR 0082): the run's range, not that of the points evaluated
+    # together, so a point's value doesn't depend on its batch or the resolution.
     log_c = np.log(np.maximum(incorporated, 1e-12))
-    lo, hi = (float(log_c[chal].min()), float(log_c[chal].max())) if chal.any() else (0.0, 1.0)
+    run_c = np.log(np.maximum(history.incorporated, 1e-12))[~history.quartz]
+    lo, hi = (float(run_c.min()), float(run_c.max())) if run_c.size else (0.0, 1.0)
     stain = np.clip((log_c - lo) / max(hi - lo, 1e-9), 0, 1)
     # Milky or clear (ADR 0048, an assumption): the impurity-rich, fast half of
     # each cycle is milky, the rest clear, switching where the bands are drawn,

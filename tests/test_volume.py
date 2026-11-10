@@ -14,6 +14,7 @@ from agatesim.criteria import evaluate
 from agatesim.fields import Phase
 from agatesim.grid import FloatArray
 from agatesim.models import ProceduralFortification, Settling
+from agatesim.volume import slicing
 from agatesim.volume.config import (
     GravityConfig,
     SliceConfig,
@@ -296,6 +297,37 @@ def test_front_feedback_bands_follow_the_3d_wall_distance() -> None:
     banded = bands >= 0
     # Band index never decreases with depth.
     assert np.all(np.diff(bands[banded]) >= 0)
+
+
+def test_front_feedback_points_take_the_same_values_alone_or_together() -> None:
+    """A point's fields depend on its wall distance and the run alone, not on the
+    other points evaluated with it (ADR 0082), so cuts and volumes can be
+    evaluated in chunks. One point alone once got no stain at all."""
+    sim = prepare_volume(load_volume_preset("fortification-mechanistic-3d"))
+    pts = _inside_points(sim.solid, 4000)
+    inside = np.ones(len(pts), dtype=bool)
+    whole = sim.evaluate(pts, inside).arrays()
+    impurity = whole["impurity"].astype(np.float64)
+    assert impurity.max() - impurity.min() > 0.1
+    for part in (slice(0, 1), slice(1, 50), slice(50, None)):
+        alone = sim.evaluate(pts[part], inside[part]).arrays()
+        assert alone.keys() == whole.keys()
+        for name, array in alone.items():
+            np.testing.assert_array_equal(array, whole[name][part], err_msg=name)
+
+
+def test_a_cut_evaluated_in_chunks_equals_one_evaluated_whole(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sim = prepare_volume(load_volume_preset("fortification-mechanistic-3d"))
+    config = SliceConfig(resolution=96)
+    monkeypatch.setattr(slicing, "CUT_CHUNK", 1 << 30)
+    whole = sim.cut(config).result.fields.arrays()
+    monkeypatch.setattr(slicing, "CUT_CHUNK", 1000)  # about ten rows at a time
+    chunked = sim.cut(config).result.fields.arrays()
+    assert chunked.keys() == whole.keys()
+    for name, array in chunked.items():
+        np.testing.assert_array_equal(array, whole[name], err_msg=name)
 
 
 def test_settled_layers_are_horizontal_in_3d() -> None:
