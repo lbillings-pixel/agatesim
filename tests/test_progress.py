@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import threading
 import time
+from collections.abc import Iterator
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -13,9 +15,14 @@ from fastapi.testclient import TestClient
 
 from agatesim import _rd, progress
 from agatesim.config import RunConfig, load_preset
+from agatesim.grid import FloatArray
+from agatesim.models import growth
 from agatesim.server.app import create_app
+from agatesim.server.jobs import JobManager
 from agatesim.simulate import simulate
 from agatesim.volume.config import load_volume_preset
+from agatesim.volume.grid import Grid3
+from agatesim.volume.runs import write_volume_run
 from agatesim.volume.simulate import prepare_volume
 
 
@@ -274,3 +281,102 @@ def test_a_stiff_h1_run_reports_progress_and_stops_when_cancelled() -> None:
     assert time.perf_counter() - t0 < 10
     assert tracker.fraction is not None
     assert 0 < tracker.fraction < 1
+
+
+# --- audit 2026-11 (part B1): loops that did not report, and trackers that were forgotten
+
+
+def _recorded(tracker: progress.Tracker) -> list[float]:
+    """The fractions `tracker` is given from now on."""
+    seen: list[float] = []
+    original = tracker.set
+
+    def record(fraction: float | None, label: str | None = None) -> None:
+        if fraction is not None:
+            seen.append(fraction)
+        original(fraction, label)
+
+    tracker.set = record  # type: ignore[method-assign]
+    return seen
+
+
+def test_a_3d_volume_reports_its_layers_and_stops_when_cancelled(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    chunks = Grid3.chunks
+
+    def small(self: Grid3) -> Iterator[tuple[slice, FloatArray]]:
+        return chunks(self, 1 << 13)  # several chunks
+
+    monkeypatch.setattr(Grid3, "chunks", small)
+    sim = prepare_volume(load_volume_preset("fortification-3d"))
+    tracker = progress.Tracker()
+    seen = _recorded(tracker)
+    with progress.using(tracker):
+        sim.volume(40)
+    assert any(0.0 < f < 1.0 for f in seen)
+    assert seen == sorted(seen)
+    assert seen[-1] == pytest.approx(1.0)
+
+    tracker = progress.Tracker()
+    tracker.cancel()
+    with progress.using(tracker), pytest.raises(progress.CancelledError):
+        sim.volume(40)
+    # A cancelled write leaves no half-written run behind.
+    with progress.using(tracker), pytest.raises(progress.CancelledError):
+        write_volume_run(sim, tmp_path, started=datetime.now().astimezone(), elapsed_s=0.0)
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("preset", ["moss", "waterline-mechanistic"])
+def test_dendrites_and_settling_report_and_stop_when_cancelled(preset: str) -> None:
+    growth._AGGREGATES.clear()  # pyright: ignore[reportPrivateUsage]  (moss keeps what it grew)
+    config = load_preset(preset).with_resolution(96)
+    tracker = progress.Tracker()
+    seen = _recorded(tracker)
+    with progress.using(tracker):
+        simulate(config)
+    assert any(0.0 < f < 1.0 for f in seen)
+    tracker = progress.Tracker()
+    tracker.cancel()
+    with progress.using(tracker), pytest.raises(progress.CancelledError):
+        simulate(config.model_copy(update={"seed": config.seed + 1}))  # moss keeps grown aggregates
+
+
+def test_a_cancel_of_queued_work_and_a_quiet_running_task_are_not_forgotten(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = [1000.0]
+    monkeypatch.setattr(time, "monotonic", lambda: now[0])
+    tasks = progress.Registry()
+    tasks.cancel("queued")
+    with tasks.track("quiet") as quiet:
+        now[0] += 11 * 60  # no report for eleven minutes
+        tasks.obtain("another")  # anything that makes the registry tidy up
+        assert tasks.get("quiet") is quiet  # still there to read and to cancel
+        with tasks.track("queued"), pytest.raises(progress.CancelledError):
+            progress.report(0.1)
+    now[0] += 11 * 60  # both have ended: they are forgotten after the usual wait
+    tasks.obtain("another")
+    assert tasks.get("quiet") is None
+    assert tasks.get("queued") is None
+
+
+def test_stopping_the_server_stops_the_running_job(tmp_path: Path) -> None:
+    config = load_preset("fortification-mechanistic").with_resolution(64)
+    model = config.model.model_copy(update={"rejection": 5.0})  # stiff: about a minute
+    jobs = JobManager(tmp_path)
+    job = jobs.submit(config.model_copy(update={"model": model}))
+    queued = jobs.submit(config)
+    time.sleep(1.5)
+    t0 = time.perf_counter()
+    jobs.shutdown()
+    while (found := jobs.get(job.id)) is not None and found.status == "running":
+        assert time.perf_counter() - t0 < 10
+        time.sleep(0.05)
+    assert found is not None
+    assert (found.status, found.error) == ("failed", "cancelled")
+    waiting = jobs.get(queued.id)
+    assert waiting is not None
+    assert waiting.status == "queued"  # never started
+    assert list(tmp_path.iterdir()) == []

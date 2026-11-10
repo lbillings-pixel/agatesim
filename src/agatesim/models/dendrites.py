@@ -24,10 +24,12 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
+from agatesim import progress
 from agatesim.grid import FloatArray, Grid
 
 MAX_CELLS = 1_500_000
 MAX_SWEEPS = 40_000
+REPORT = 64  # sweeps between progress reports (and chances to cancel)
 
 
 def lattice_around(bounds: tuple[float, float, float, float], h: float) -> Grid:
@@ -106,6 +108,8 @@ def grow(
     sweeps = 0
     while len(pos) and sweeps < MAX_SWEEPS:
         sweeps += 1
+        if sweeps % REPORT == 0:  # particles that have stuck or left, of all to release
+            progress.report((released - len(pos)) / budget)
         target = pos + offsets[rng_walk.integers(0, 4, len(pos))]
         pos = np.where(flat[target], target, pos)
         touching = near[pos]

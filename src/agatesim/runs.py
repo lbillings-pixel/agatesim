@@ -150,7 +150,17 @@ def write_run(
     run_id = f"{started:%Y%m%d-%H%M%S}-{config.name}-{config.digest()[:6]}"
     path = out_dir / run_id
     path.mkdir(parents=True, exist_ok=False)
+    try:
+        return _write(result, path, run_id, started, elapsed_s)
+    except BaseException:  # a failed write leaves no half-written run behind
+        shutil.rmtree(path, ignore_errors=True)
+        raise
 
+
+def _write(
+    result: SimulationResult, path: Path, run_id: str, started: datetime, elapsed_s: float
+) -> RunRecord:
+    config = result.config
     (path / "config.toml").write_text(config.to_toml(), encoding="utf-8", newline="\n")
 
     grid = result.grid

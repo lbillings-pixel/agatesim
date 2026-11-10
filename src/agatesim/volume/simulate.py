@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from agatesim import progress
 from agatesim.fields import Fields, Phase
 from agatesim.volume.config import SliceConfig, VolumeConfig
 from agatesim.volume.grid import Grid3
@@ -67,6 +68,7 @@ class VolumeSimulation:
                 pigment[layers] = f.pigment.reshape(part)
                 pigmented = True
             inside[layers] = ins.reshape(part)
+            progress.report(layers.stop / grid.nz)
         fields = Fields(
             phase=phase,
             band=band,
