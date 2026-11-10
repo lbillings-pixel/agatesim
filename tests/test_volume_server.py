@@ -2,20 +2,12 @@
 
 import json
 import time
-from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-from agatesim.server.app import create_app
 from agatesim.volume.config import load_volume_preset
-
-
-@pytest.fixture
-def client(tmp_path: Path) -> Iterator[TestClient]:
-    with TestClient(create_app(tmp_path, static_dir=None)) as c:
-        yield c
 
 
 def _config(name: str = "fortification-3d") -> dict[str, object]:

@@ -4,6 +4,8 @@ crystals."""
 
 from __future__ import annotations
 
+import functools
+
 import numpy as np
 import pytest
 
@@ -11,7 +13,7 @@ from agatesim.criteria import evaluate
 from agatesim.fields import Phase
 from agatesim.models import Staged
 from agatesim.volume.config import SliceConfig, load_volume_preset
-from agatesim.volume.simulate import prepare_volume
+from agatesim.volume.simulate import VolumeSimulation, prepare_volume
 from agatesim.volume.survey import MIN_CUT_RESOLUTION, cut_resolution
 
 PRESETS = [
@@ -24,17 +26,23 @@ PRESETS = [
 ]
 
 
+@functools.cache
+def _preset(name: str) -> VolumeSimulation:
+    """Each preset prepared once: the tests only cut and voxelise it."""
+    return prepare_volume(load_volume_preset(name))
+
+
 @pytest.mark.parametrize("name", PRESETS)
 def test_mechanistic_3d_presets_pass_on_their_configured_cut(name: str) -> None:
     config = load_volume_preset(name)
     config = config.with_slice(config.slice.model_copy(update={"resolution": 512}))
     assert config.archetype is not None
-    ev = evaluate(config.archetype, prepare_volume(config).cut().result)
+    ev = evaluate(config.archetype, _preset(name).cut(config.slice).result)
     assert ev.passed, ev.to_json()
 
 
 def test_the_spherulite_stage_fills_its_share_then_lining_fills_the_rest() -> None:
-    vol = prepare_volume(load_volume_preset("eye-mechanistic-3d")).volume(48)
+    vol = _preset("eye-mechanistic-3d").volume(48)
     f, inside = vol.fields, vol.inside
     first = inside & (np.nan_to_num(f.t_dep, nan=1.0) < 0.5)
     assert abs(first.sum() / inside.sum() - 0.1) < 0.03
@@ -42,7 +50,7 @@ def test_the_spherulite_stage_fills_its_share_then_lining_fills_the_rest() -> No
 
 
 def test_h1_encloses_3d_dendrites() -> None:
-    vol = prepare_volume(load_volume_preset("moss-mechanistic-3d")).volume(48)
+    vol = _preset("moss-mechanistic-3d").volume(48)
     f, inside = vol.fields, vol.inside
     inclusion = f.phase == Phase.INCLUSION
     chalcedony = f.phase == Phase.CHALCEDONY
@@ -72,7 +80,7 @@ def test_filaments_get_the_first_h1_bands_in_3d() -> None:
 def test_garden_tubes_rise_in_3d_and_h1_encloses_them() -> None:
     """Plume agate in 3D (ADR 0047): chemical-garden tubes rise from the floor,
     and H1 chalcedony grows after them and fills the rest."""
-    vol = prepare_volume(load_volume_preset("plume-mechanistic-3d")).volume(64)
+    vol = _preset("plume-mechanistic-3d").volume(64)
     f, inside = vol.fields, vol.inside
     tube = f.phase == Phase.INCLUSION
     chalcedony = f.phase == Phase.CHALCEDONY
@@ -86,7 +94,7 @@ def test_garden_tubes_grow_upward_only_with_buoyancy() -> None:
     from agatesim.volume.gardens import grow_garden
     from agatesim.volume.growth import GrowthSolid
 
-    sim = prepare_volume(load_volume_preset("plume-mechanistic-3d"))
+    sim = _preset("plume-mechanistic-3d")
     up = -sim.setting.gravity
 
     def upward(**changes: float) -> float:
@@ -103,7 +111,7 @@ def test_garden_tubes_grow_upward_only_with_buoyancy() -> None:
 def test_3d_geode_crystals_fill_only_the_quartz_and_coarsen_inward() -> None:
     """The mechanistic geode in 3D (ADR 0047): crystals fill H1's quartz, and
     crystals that reach deeper are bigger, counted by volume from random points."""
-    sim = prepare_volume(load_volume_preset("quartz-geode-mechanistic-3d"))
+    sim = _preset("quartz-geode-mechanistic-3d")
     lo, hi = sim.solid.bounds()
     p = lo + (hi - lo) * np.random.default_rng(0).random((1_500_000, 3))
     p = p[sim.solid.contains(p)]
@@ -128,7 +136,7 @@ def test_3d_geode_crystals_fill_only_the_quartz_and_coarsen_inward() -> None:
 def test_3d_sticks_are_lined_by_h1_and_replaced_by_quartz() -> None:
     """Stick agate in 3D (ADR 0053): rods from the walls, ending as quartz with
     a crystal id each, grown before H1 lines them."""
-    vol = prepare_volume(load_volume_preset("stick-mechanistic-3d")).volume(64)
+    vol = _preset("stick-mechanistic-3d").volume(64)
     f, inside = vol.fields, vol.inside
     quartz = f.phase == Phase.QUARTZ
     chalcedony = f.phase == Phase.CHALCEDONY
@@ -155,7 +163,7 @@ def test_3d_sticks_can_dissolve_into_moulds() -> None:
 
 
 def test_procedural_3d_sticks_become_quartz() -> None:
-    vol = prepare_volume(load_volume_preset("stick-3d")).volume(64)
+    vol = _preset("stick-3d").volume(64)
     f = vol.fields
     quartz = f.phase == Phase.QUARTZ
     assert quartz[vol.inside].mean() > 0.005
@@ -182,7 +190,7 @@ def test_stick_distances_match_brute_force() -> None:
 def test_an_oblique_cut_through_3d_sticks_passes_as_stick_agate() -> None:
     """ADR 0055: a cut at 60 degrees to the vein crosses most rods at an angle,
     showing stubs as well as bars, and still passes all four stick tests."""
-    sim = prepare_volume(load_volume_preset("stick-mechanistic-3d"))
+    sim = _preset("stick-mechanistic-3d")
     cut = sim.cut(SliceConfig(tilt_deg=60, azimuth_deg=30, offset_mm=0, resolution=768))
     ev = evaluate("stick", cut.result)
     assert ev.passed, ev.to_json()

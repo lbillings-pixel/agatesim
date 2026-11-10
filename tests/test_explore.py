@@ -3,8 +3,6 @@ draws are checked so they still band."""
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
@@ -16,14 +14,7 @@ from agatesim.config import load_preset
 from agatesim.explore import MIN_BANDS, randomize, vary
 from agatesim.fields import Phase
 from agatesim.models import FrontFeedback, Staged
-from agatesim.server.app import create_app
 from agatesim.simulate import simulate
-
-
-@pytest.fixture
-def client(tmp_path: Path) -> Iterator[TestClient]:
-    with TestClient(create_app(tmp_path, static_dir=None)) as c:
-        yield c
 
 
 def _ranges(model: BaseModel) -> list[tuple[list[str], dict[str, Any], dict[str, Any]]]:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import functools
+
 import numpy as np
 import pytest
 
@@ -13,7 +15,7 @@ from agatesim.models.growth import InclusionGrowth, ProceduralGrowth
 from agatesim.volume.config import SliceConfig, load_volume_preset
 from agatesim.volume.dendrites import Aggregate3, Lattice3, grow
 from agatesim.volume.growth import PlumeLook, plume_direction
-from agatesim.volume.simulate import prepare_volume
+from agatesim.volume.simulate import VolumeSimulation, prepare_volume
 
 
 def _box(upward: float = 0.0, seed: int = 0) -> tuple[Lattice3, np.ndarray]:
@@ -257,20 +259,40 @@ STYLED = {
 }
 
 
+@functools.cache
+def _plume_grid(
+    update: tuple[tuple[str, float], ...],
+) -> tuple[VolumeSimulation, Fields, np.ndarray, tuple[int, int, int]]:
+    """plume-3d's plumes (coarse lattice) with these model changes, on a 3D grid of
+    points 0.3 mm apart. Made once per change: several tests share each."""
+    config = load_volume_preset("plume-3d")
+    model = config.model.model_copy(update={"dendrite_cells_3d": 1.0, **dict(update)})
+    sim = prepare_volume(config.model_copy(update={"model": model}))
+    lo, hi = sim.solid.bounds()
+    xx, yy, zz = np.meshgrid(*[np.arange(lo[i], hi[i], 0.3) for i in range(3)], indexing="ij")
+    points = np.stack([xx.ravel(), yy.ravel(), zz.ravel()], axis=1)
+    fields = sim.evaluate(points, sim.solid.contains(points))
+    return sim, fields, points, (xx.shape[0], xx.shape[1], xx.shape[2])
+
+
+def _plume(**update: float) -> tuple[VolumeSimulation, Fields, np.ndarray, tuple[int, int, int]]:
+    """Changes equal to plume-3d's own values are dropped, so a negative control at
+    the default shares the plain grid."""
+    model = load_volume_preset("plume-3d").model
+    return _plume_grid(tuple(sorted((k, v) for k, v in update.items() if getattr(model, k) != v)))
+
+
+def _wall(sim: VolumeSimulation, points: np.ndarray) -> np.ndarray:
+    inside = sim.solid.contains(points)
+    wall = np.full(len(points), np.nan)
+    wall[inside] = sim.solid.wall_distance(points[inside])
+    return wall
+
+
 @pytest.fixture(scope="module")
 def plume_grids() -> Grids:
-    """plume-3d's plumes (coarse lattice) on a 3D grid of points, plain (rising,
-    one tint, no halo) and styled (sideways, varied tints, halos)."""
-    out: Grids = {}
-    for name, update in (("plain", {}), ("styled", STYLED)):
-        config = load_volume_preset("plume-3d")
-        model = config.model.model_copy(update={"dendrite_cells_3d": 1.0, **update})
-        sim = prepare_volume(config.model_copy(update={"model": model}))
-        lo, hi = sim.solid.bounds()
-        xx, yy, zz = np.meshgrid(*[np.arange(lo[i], hi[i], 0.3) for i in range(3)], indexing="ij")
-        points = np.stack([xx.ravel(), yy.ravel(), zz.ravel()], axis=1)
-        out[name] = (sim.evaluate(points, sim.solid.contains(points)), points, xx.shape)
-    return out
+    """Plain (rising, one tint, no halo) and styled (sideways, varied tints, halos)."""
+    return {name: _plume(**update)[1:] for name, update in (("plain", {}), ("styled", STYLED))}
 
 
 def _leans_along_x(fields: Fields, shape: tuple[int, int, int]) -> bool:
@@ -334,16 +356,8 @@ def _coat_rate(fields: Fields, points: np.ndarray, wall: np.ndarray, start: floa
 def test_slow_wrap_gives_thin_coats_round_plumes(rate: float, thin: bool) -> None:
     """ADR 0080: at a wrap rate below 1, bands grow round plumes more slowly than from
     the wall. Negative control: the default rate, where the coats grow as fast."""
-    config = load_volume_preset("plume-3d")
-    model = config.model.model_copy(update={"dendrite_cells_3d": 1.0, "dendrite_wrap_rate": rate})
-    sim = prepare_volume(config.model_copy(update={"model": model}))
-    lo, hi = sim.solid.bounds()
-    xx, yy, zz = np.meshgrid(*[np.arange(lo[i], hi[i], 0.3) for i in range(3)], indexing="ij")
-    points = np.stack([xx.ravel(), yy.ravel(), zz.ravel()], axis=1)
-    inside = sim.solid.contains(points)
-    fields = sim.evaluate(points, inside)
-    wall = np.full(len(points), np.nan)
-    wall[inside] = sim.solid.wall_distance(points[inside])
+    sim, fields, points, _ = _plume(dendrite_wrap_rate=rate)
+    wall = _wall(sim, points)
     start = 0.25  # plume-3d: the plume stage ends here (its dendrite schedule)
     assert (_coat_rate(fields, points, wall, start) < 0.5) is thin
 
@@ -359,14 +373,6 @@ def _within_reach(fields: Fields, wall: np.ndarray, reach_mm: float) -> bool:
 def test_plumes_stay_within_their_reach_of_the_wall(reach: float, kept: bool) -> None:
     """ADR 0081: plumes grow only within reach of the wall. Negative control: without a
     reach (0), plume-3d's plumes rise farther than 4 mm."""
-    config = load_volume_preset("plume-3d")
-    model = config.model.model_copy(update={"dendrite_cells_3d": 1.0, "dendrite_reach_mm": reach})
-    sim = prepare_volume(config.model_copy(update={"model": model}))
-    lo, hi = sim.solid.bounds()
-    xx, yy, zz = np.meshgrid(*[np.arange(lo[i], hi[i], 0.3) for i in range(3)], indexing="ij")
-    points = np.stack([xx.ravel(), yy.ravel(), zz.ravel()], axis=1)
-    inside = sim.solid.contains(points)
-    fields = sim.evaluate(points, inside)
-    wall = np.full(len(points), np.nan)
-    wall[inside] = sim.solid.wall_distance(points[inside])
+    sim, fields, points, _ = _plume(dendrite_reach_mm=reach)
+    wall = _wall(sim, points)
     assert _within_reach(fields, wall, 4.0) is kept

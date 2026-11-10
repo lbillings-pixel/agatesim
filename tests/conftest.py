@@ -1,11 +1,16 @@
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
+
+from agatesim.server.app import create_app
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# Tests taking 5 s or more (measured 2026-10-25, full suite 14 min): marked `slow`, so
-# `pytest -m "not slow"` is a quick tier of about 6.5 min. CI runs everything. Refresh
+# Tests taking 5 s or more (measured 2026-10-25, refreshed 2026-11-10, full suite
+# 17 min): marked `slow`, so `pytest -m "not slow"` is a quick tier of about 8 min.
+# CI runs everything. Refresh
 # from `pytest --durations=50`; a whole test is named without its [case].
 # tests/test_slow_list.py checks every entry still names a test.
 SLOW = frozenset(
@@ -52,6 +57,15 @@ SLOW = frozenset(
         "tests/test_sequence.py::test_band_thickness_records_the_supply",
         "tests/test_front_feedback.py::test_a_cavity_that_closes_late_bands_while_open",
         "tests/test_settling.py::test_verification_preset_passes_and_matches_its_preview",
+        # Added 2026-11-10 (5 s or more since the list was made):
+        "tests/test_features.py::test_bands_around_a_filament_near_a_channel_do_not_fold",
+        "tests/test_features.py::test_channel_works_with_a_later_lining_stage",
+        "tests/test_features.py::test_the_opening_and_the_clear_layer_do_not_move_the_channel",
+        "tests/test_features.py::test_adding_a_channel_leaves_the_others_in_place",
+        "tests/test_features.py::test_influence_runs_from_0_to_1_and_ignores_the_bands",
+        "tests/test_features.py::test_with_an_opening_the_outer_bands_end_short_of_the_line",
+        "tests/test_rim.py::test_real_model_declines_backdrop_only_and_frame_crossing",
+        "tests/test_rim.py::test_real_model_finds_synthetic_stones",
     }
 )
 
@@ -65,3 +79,10 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 @pytest.fixture
 def repo_root() -> Path:
     return REPO_ROOT
+
+
+@pytest.fixture
+def client(tmp_path: Path) -> Iterator[TestClient]:
+    """The app's server on a fresh runs folder, without the built web UI."""
+    with TestClient(create_app(tmp_path, static_dir=None)) as c:
+        yield c

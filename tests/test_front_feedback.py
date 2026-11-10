@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+import functools
+
 import numpy as np
 import pytest
 
+from _shared import preset_run
 from agatesim.config import RunConfig, load_preset
 from agatesim.criteria import evaluate
 from agatesim.fields import Phase
 from agatesim.models import FrontFeedback
 from agatesim.models.front_feedback import band_edges, front_history
-from agatesim.simulate import simulate
+from agatesim.simulate import SimulationResult, simulate
 
 RESOLUTION = 384
 
@@ -20,8 +23,14 @@ def _config(**changes: float) -> RunConfig:
     return config.model_copy(update={"model": config.model.model_copy(update=changes)})
 
 
+@functools.cache
+def _plain() -> SimulationResult:
+    """The plain run, made once: several tests only read it."""
+    return simulate(_config())
+
+
 def test_bands_self_organise_with_a_regular_rhythm() -> None:
-    result = simulate(_config())
+    result = _plain()
     assert isinstance(result.config.model, FrontFeedback)
     edges = band_edges(front_history(result.config.model, result.domain))
     assert len(edges) >= 30
@@ -32,7 +41,7 @@ def test_bands_self_organise_with_a_regular_rhythm() -> None:
 
 
 def test_nothing_is_random() -> None:
-    a = simulate(_config()).fields
+    a = _plain().fields
     b = simulate(_config().model_copy(update={"seed": 99})).fields
     assert np.array_equal(a.band, b.band)
 
@@ -54,7 +63,7 @@ def test_without_the_feedback_there_is_no_banding(changes: dict[str, float]) -> 
 
 
 def test_preview_matches_full_run() -> None:
-    full = simulate(load_preset("fortification-mechanistic"))
+    full = preset_run("fortification-mechanistic")
     preview = simulate(load_preset("fortification-mechanistic").with_resolution(256))
     rows, cols = np.nonzero(preview.fields.phase == Phase.CHALCEDONY)
     g = preview.grid
@@ -83,7 +92,7 @@ def test_a_cavity_that_closes_late_bands_while_open() -> None:
     quartz still comes last, from the trapped fluid running out of silica."""
     closed = _config(silica_inventory=0.8, quartz_below=0.8)
     late = _config(silica_inventory=0.8, quartz_below=0.8, closes_at=0.6)
-    open_ = simulate(_config())
+    open_ = _plain()
     result = simulate(late)
     assert isinstance(late.model, FrontFeedback)
     assert isinstance(closed.model, FrontFeedback)
@@ -136,7 +145,7 @@ def test_quartz_crystals_fill_only_the_quartz_and_coarsen_inward() -> None:
 
 
 def test_without_quartz_there_are_no_crystals() -> None:
-    result = simulate(_config())
+    result = _plain()
     assert not (result.fields.phase == Phase.QUARTZ).any()
     assert (result.fields.grain == -1).all()
 
@@ -144,7 +153,7 @@ def test_without_quartz_there_are_no_crystals() -> None:
 def test_growth_stops_where_the_supply_ends() -> None:
     """supply_ends_at stops growth at that share of the cavity, leaving the
     rest open, without changing the bands grown before (ADR 0038)."""
-    full = simulate(_config())
+    full = _plain()
     half = simulate(_config(supply_ends_at=0.5))
     mask = half.domain.mask
     open_ = half.fields.phase == Phase.VOID
@@ -215,7 +224,7 @@ def test_micro_spacing_scales_with_the_square_of_the_thin_layer() -> None:
 def test_mechanistic_iris_passes_the_iris_tests() -> None:
     """ADR 0043; iris no longer depends on shadow (ADR 0045), so this preset
     verifies iris at the mechanistic tier."""
-    ev = evaluate("iris", simulate(load_preset("iris-mechanistic")))
+    ev = evaluate("iris", preset_run("iris-mechanistic"))
     assert ev.passed, ev.to_json()
 
 
@@ -223,7 +232,7 @@ def test_milky_and_clear_switch_where_the_bands_are_drawn() -> None:
     """ADR 0048: chalcedony is either milky or clear, milky on the impurity-rich
     side of the level where H1 draws its band edges, so neighbouring bands
     alternate."""
-    result = simulate(_config())
+    result = _plain()
     f = result.fields
     chal = f.phase == Phase.CHALCEDONY
     assert np.allclose(np.unique(f.translucency[chal]), [0.15, 0.9])

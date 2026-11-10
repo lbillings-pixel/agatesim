@@ -5,14 +5,9 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
+from _shared import preset_photo
 from agatesim.config import load_preset, preset_names
 from agatesim.server.app import create_app, encode_tdep
-
-
-@pytest.fixture
-def client(tmp_path: Path):
-    with TestClient(create_app(tmp_path, static_dir=None)) as c:
-        yield c
 
 
 def _config(name: str = "seam", resolution: int = 128) -> dict[str, object]:
@@ -195,9 +190,8 @@ def test_specimen_workflow(tmp_path: Path) -> None:
     from PIL import Image
 
     from agatesim.config import RunConfig
-    from agatesim.specimen.synthetic import photograph
 
-    syn = photograph(load_preset("waterline").with_resolution(760))  # validated size
+    syn = preset_photo("waterline")  # validated size
     exif = Image.Exif()
     exif[0x8825] = {1: "N", 2: (51.0, 30.0, 0.0)}
     buffer = io.BytesIO()

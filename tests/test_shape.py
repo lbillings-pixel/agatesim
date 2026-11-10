@@ -9,8 +9,8 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
+from _shared import preset_photo
 from agatesim import shapes
-from agatesim.config import load_preset
 from agatesim.specimen.photo import load_photo
 from agatesim.specimen.quality import assess, badge, luminance
 from agatesim.specimen.segment import segment
@@ -23,7 +23,7 @@ from agatesim.specimen.shape import (
     roughness_length,
     window_lengths,
 )
-from agatesim.specimen.synthetic import array, photograph
+from agatesim.specimen.synthetic import array
 
 SIZE = 900
 RADIUS = 420.0
@@ -195,7 +195,7 @@ def test_core_share_counts_face_patches_only() -> None:
 def test_shape_on_a_synthetic_photo() -> None:
     """The same code reads a photographed simulation, at the gate's spacing,
     and the shape badge doesn't ask for a ruler."""
-    syn = photograph(load_preset("fortification").with_resolution(760))
+    syn = preset_photo("fortification")
     work = load_photo(syn.jpeg, 1600)
     k = work.scale_factor
     seg = segment(work.rgb, (syn.centre[0] * k, syn.centre[1] * k))
@@ -218,7 +218,7 @@ def test_shape_on_a_synthetic_photo() -> None:
 
 
 def test_library_entry_and_spreads_on_a_synthetic_photo() -> None:
-    syn = photograph(load_preset("fortification").with_resolution(760))
+    syn = preset_photo("fortification")
     entry = shapes.measure_photo(syn.jpeg, None, None)
     assert entry["segmented"] is True
     assert entry["level"] in ("fit", "borderline")

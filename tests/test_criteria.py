@@ -9,6 +9,7 @@ from typing import cast
 import numpy as np
 import pytest
 
+from _shared import preset_run
 from agatesim import _scipy
 from agatesim.archetypes import Status, Tier, load_registry
 from agatesim.config import RunConfig, load_preset, preset_names
@@ -25,12 +26,19 @@ NEGATIVE_RESOLUTION = 384
 
 
 _CACHE: dict[tuple[str, str], Evaluation] = {}
+# One small run per config, however many forms judge it (fortification alone is
+# judged as eight): only `_evaluate` reads these, and judging doesn't change a
+# result. Full-size runs aren't kept (tens of MB each).
+_RUNS: dict[str, SimulationResult] = {}
 
 
 def _evaluate(archetype: str, config: RunConfig) -> Evaluation:
     key = (archetype, config.digest())
     if key not in _CACHE:
-        _CACHE[key] = evaluate(archetype, simulate(config))
+        result = _RUNS.get(key[1]) or simulate(config)
+        if config.grid.resolution <= NEGATIVE_RESOLUTION:
+            _RUNS[key[1]] = result
+        _CACHE[key] = evaluate(archetype, result)
     return _CACHE[key]
 
 
@@ -44,7 +52,7 @@ def _with_model(config: RunConfig, **changes: float) -> RunConfig:
 
 @pytest.mark.parametrize("archetype", sorted(implemented()))
 def test_verification_preset_passes(archetype: str) -> None:
-    ev = _evaluate(archetype, load_preset(archetype))
+    ev = evaluate(archetype, preset_run(archetype))
     assert ev.passed, [r for r in ev.results if not r.passed]
 
 
@@ -69,7 +77,7 @@ MECHANISTIC = [
 
 @pytest.mark.parametrize("archetype", MECHANISTIC)
 def test_mechanistic_verification_preset_passes(archetype: str) -> None:
-    ev = _evaluate(archetype, load_preset(f"{archetype}-mechanistic"))
+    ev = evaluate(archetype, preset_run(f"{archetype}-mechanistic"))
     assert ev.passed, [r for r in ev.results if not r.passed]
 
 

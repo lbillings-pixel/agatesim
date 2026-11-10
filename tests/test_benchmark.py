@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from agatesim.config import load_preset
+from _shared import preset_photo
 from agatesim.specimen.benchmark import (
     Transect,
     compare,
@@ -18,7 +18,6 @@ from agatesim.specimen.edges import boundary_edges, edge_crossings
 from agatesim.specimen.observe import observe
 from agatesim.specimen.photo import load_photo
 from agatesim.specimen.segment import segment
-from agatesim.specimen.synthetic import photograph
 
 
 def test_score_matches_one_to_one_within_tolerance() -> None:
@@ -36,7 +35,7 @@ def test_true_boundaries_marked_on_a_synthetic_photo_are_found() -> None:
     """Marks placed exactly where the simulated bands change, along a line from
     the centre toward the wall, as the owner would click them. The analysis
     should find most of them, and few that aren't there."""
-    syn = photograph(load_preset("fortification").with_resolution(760))
+    syn = preset_photo("fortification")
     photo = load_photo(syn.jpeg)
     assert photo.scale_factor == 1.0  # working photo = synthetic photo pixels
     seg = segment(photo.rgb, syn.centre)

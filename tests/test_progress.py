@@ -17,7 +17,6 @@ from agatesim import _rd, progress
 from agatesim.config import RunConfig, load_preset
 from agatesim.grid import FloatArray
 from agatesim.models import growth
-from agatesim.server.app import create_app
 from agatesim.server.jobs import JobManager
 from agatesim.simulate import simulate
 from agatesim.volume.config import load_volume_preset
@@ -170,12 +169,6 @@ def test_gpu_is_used_unless_declined(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 # --- the server
-
-
-@pytest.fixture
-def client(tmp_path: Path):
-    with TestClient(create_app(tmp_path, static_dir=None)) as c:
-        yield c
 
 
 def test_a_request_reports_progress_while_it_runs(

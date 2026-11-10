@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from _shared import preset_run
 from agatesim import _scipy
 from agatesim.config import RunConfig, load_preset
 from agatesim.criteria.radial import near_phase
@@ -66,7 +67,7 @@ def test_preview_matches_full_run(preset: str) -> None:
     """Previews must show the same agate as full runs, only coarser (ADR 0002).
     Deposition times agree pixel for pixel to within a couple of time steps, so
     nucleation sites, crystals and noise don't depend on resolution."""
-    full = simulate(load_preset(preset))
+    full = preset_run(preset)
     preview = simulate(load_preset(preset).with_resolution(256))
     # Compare at the preview's pixel centres.
     rows, cols = np.nonzero(preview.fields.phase == Phase.CHALCEDONY)
@@ -146,7 +147,7 @@ def test_dendrite_cache_never_changes_a_result() -> None:
 def test_inclusions_match_between_preview_and_full_run(preset: str) -> None:
     """Dendrites grow on a lattice in world coordinates, so a preview shows the
     same inclusions as a full run."""
-    full = simulate(load_preset(preset))
+    full = preset_run(preset)
     preview = simulate(load_preset(preset).with_resolution(256))
     rows, cols = np.nonzero(preview.fields.phase == Phase.INCLUSION)
     g = preview.grid

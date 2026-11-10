@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from agatesim.config import load_preset
+from _shared import preset_photo
 from agatesim.specimen.photo import load_photo
 from agatesim.specimen.quality import (
     Quality,
@@ -22,7 +22,7 @@ from agatesim.specimen.quality import (
     vertex,
 )
 from agatesim.specimen.segment import segment
-from agatesim.specimen.synthetic import SyntheticPhoto, degrade, photograph
+from agatesim.specimen.synthetic import SyntheticPhoto, degrade
 from agatesim.stats import band_statistics
 
 VIEW = 1600  # the app's working size
@@ -30,7 +30,7 @@ VIEW = 1600  # the app's working size
 
 @cache
 def _clean() -> SyntheticPhoto:
-    return photograph(load_preset("fortification").with_resolution(760))
+    return preset_photo("fortification")
 
 
 def _assess(syn: SyntheticPhoto, *, scale: bool = True) -> Quality:
