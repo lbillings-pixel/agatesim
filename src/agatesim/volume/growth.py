@@ -381,7 +381,10 @@ def grow_aggregate(
         if inside.any():
             c = c[inside]
             d_wall = setting.solid.wall_distance(c)
-            free[idx[inside]] = solid.distance(c, d_wall, setting.height(c)) > 0
+            open_ = solid.distance(c, d_wall, setting.height(c)) > 0
+            if how.reach_mm > 0:  # only near the wall (ADR 0081)
+                open_ &= d_wall <= how.reach_mm
+            free[idx[inside]] = open_
         progress.report(0.55 * (k + PROGRESS_CHUNK) / lattice.size)
     sites = place_sites(setting, solid, how.spacing_mm, rng_sites)
     progress.report(0.75)

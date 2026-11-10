@@ -41,6 +41,7 @@ SLOW = frozenset(
         "tests/test_volume_growth.py::test_eyes_become_circles_on_a_cut_near_the_wall",
         "tests/test_volume_dendrites.py::test_upward_bias_turns_branches_vertical",
         "tests/test_volume_dendrites.py::test_slow_wrap_gives_thin_coats_round_plumes",
+        "tests/test_volume_dendrites.py::test_plumes_stay_within_their_reach_of_the_wall",
         "tests/test_volume_dendrites.py::test_inclusion_presets_pass_on_their_configured_cut[moss-dense-3d]",
         "tests/test_volume.py::test_staged_cut_shows_wall_floor_wall",
         "tests/test_discriminants.py::test_liesegang_rounds_corners_and_breaks_rings",

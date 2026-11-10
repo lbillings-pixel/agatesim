@@ -346,3 +346,27 @@ def test_slow_wrap_gives_thin_coats_round_plumes(rate: float, thin: bool) -> Non
     wall[inside] = sim.solid.wall_distance(points[inside])
     start = 0.25  # plume-3d: the plume stage ends here (its dendrite schedule)
     assert (_coat_rate(fields, points, wall, start) < 0.5) is thin
+
+
+def _within_reach(fields: Fields, wall: np.ndarray, reach_mm: float) -> bool:
+    """Every inclusion point lies within reach of the wall (plus a lattice cell and a
+    grid step of slack)."""
+    inc = fields.phase == Phase.INCLUSION
+    return bool(inc.any()) and float(wall[inc].max()) <= reach_mm + 0.6
+
+
+@pytest.mark.parametrize(("reach", "kept"), [(4.0, True), (0.0, False)])
+def test_plumes_stay_within_their_reach_of_the_wall(reach: float, kept: bool) -> None:
+    """ADR 0081: plumes grow only within reach of the wall. Negative control: without a
+    reach (0), plume-3d's plumes rise farther than 4 mm."""
+    config = load_volume_preset("plume-3d")
+    model = config.model.model_copy(update={"dendrite_cells_3d": 1.0, "dendrite_reach_mm": reach})
+    sim = prepare_volume(config.model_copy(update={"model": model}))
+    lo, hi = sim.solid.bounds()
+    xx, yy, zz = np.meshgrid(*[np.arange(lo[i], hi[i], 0.3) for i in range(3)], indexing="ij")
+    points = np.stack([xx.ravel(), yy.ravel(), zz.ravel()], axis=1)
+    inside = sim.solid.contains(points)
+    fields = sim.evaluate(points, inside)
+    wall = np.full(len(points), np.nan)
+    wall[inside] = sim.solid.wall_distance(points[inside])
+    assert _within_reach(fields, wall, 4.0) is kept

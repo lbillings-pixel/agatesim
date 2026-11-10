@@ -474,6 +474,17 @@ class ProceduralGrowth(BaseModel):
         nature=Nature.EFFECTIVE,
         description="In 3D, the share of plumes that have a halo, drawn plume by plume.",
     )
+    dendrite_reach_mm: float = param(
+        0.0,
+        ge=0,
+        units="mm",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, branched inclusions grow only within this distance of the cavity wall "
+            "(0 = anywhere), so they can stop short of a centre that later bands leave "
+            "open or fill with quartz (ADR 0081)."
+        ),
+    )
     dendrite_wrap_rate: float = param(
         1.0,
         gt=0,
@@ -969,6 +980,7 @@ class InclusionGrowth:
     max_cells: int = 4_000_000  # in 3D: the lattice's cell budget
     tilt_deg: float = 0.0  # in 3D: the biased direction, from up (0) to down (180)
     azimuth_deg: float = 0.0  # in 3D: which way a tilted direction leans
+    reach_mm: float = 0.0  # in 3D: grow only this close to the wall (0 = anywhere)
 
     def gravity(self) -> FloatArray:
         th = math.radians(self.gravity_deg)
@@ -988,6 +1000,7 @@ def inclusion_growth(params: ProceduralGrowth) -> InclusionGrowth:
         max_cells=round(params.dendrite_cells_3d * 1e6),
         tilt_deg=params.dendrite_tilt_deg,
         azimuth_deg=params.dendrite_azimuth_deg,
+        reach_mm=params.dendrite_reach_mm,
     )
 
 
