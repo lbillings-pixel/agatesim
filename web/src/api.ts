@@ -549,6 +549,8 @@ export interface SolidConfig {
   size_mm: number;
   yaw_deg: number;
   pitch_deg: number;
+  /** Tube filaments, in mm from the cavity's centre. */
+  filaments?: { start_mm: [number, number, number]; end_mm: [number, number, number]; radius_mm?: number }[];
 }
 
 export interface SliceConfig {
@@ -606,6 +608,8 @@ export interface VoxelVolume {
 export interface SurveySummary {
   archetype: string | null;
   cuts: number;
+  /** Pixels per cut. */
+  resolution: number;
   judged: number;
   pass_rate: number | null;
   criteria: Record<string, number | null>;
@@ -623,6 +627,9 @@ export interface SurveyCut {
   gravity_in_plane: number | null;
   passed: boolean | null;
   criteria: Record<string, boolean>;
+  /** Each criterion's measured value (null where it couldn't be measured). */
+  values: Record<string, number | null>;
+  apparent_thickness_mm: number | null;
   error: string | null;
   thumbnail?: string | null;
 }

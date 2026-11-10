@@ -6,11 +6,6 @@ import { formPairs, type Preset } from "../lib/forms";
 import type { CostEstimate } from "../lib/caution";
 import { HeldBuild } from "./HeldBuild";
 
-export { formPairs, type FormPair } from "../lib/forms";
-
-/** Why a form has no mechanistic version yet (every form has one now, ADR 0049). */
-const PENDING: Record<string, string> = {};
-
 const TIERS = [
   {
     key: "procedural",
@@ -127,7 +122,7 @@ export function TwoWays({ meta, resolution, onOpen }: Props) {
                   />
                 ) : (
                   <p className="twoways-pending">
-                    <strong>Not yet.</strong> {PENDING[pair.archetype.id] ?? "No mechanistic version yet."}
+                    <strong>Not yet.</strong> No mechanistic version yet.
                   </p>
                 )}
               </article>

@@ -38,7 +38,7 @@ export function Glossary() {
 
   return (
     <>
-      <button type="button" className="glossary-button" onClick={open}>
+      <button type="button" onClick={open}>
         Glossary
       </button>
       <dialog ref={dialog} className="glossary" aria-labelledby="glossary-title">

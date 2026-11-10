@@ -93,7 +93,6 @@ function sideBySide(view: Volume3DHandle | null, cut: FrameSource): FrameSource 
   };
 }
 
-/** A request the server stopped because it was cancelled, in words. */
 /** Start building the view or cut now, or hold it when preparing its formation is
  * heavy and the owner hasn't pressed Build for it (ADR 0062). */
 function startUnlessHeavy(
@@ -750,7 +749,7 @@ function SurveyTable({ result }: { result: SurveyResult }) {
         <strong>{pct(s.pass_rate)}</strong> of {s.judged} cuts pass as {s.archetype}{" "}
         {result.elapsed_ms > 0 && <span className="muted small">({(result.elapsed_ms / 1000).toFixed(1)} s)</span>}
       </p>
-      <table className="stats-table">
+      <table>
         <thead>
           <tr>
             <th>Criterion</th>

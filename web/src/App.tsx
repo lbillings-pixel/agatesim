@@ -287,6 +287,14 @@ export function App() {
   const cavity = meta?.cavities.find((c) => c.name === config?.cavity.preset);
   const host = cavity?.host ?? config?.cavity.host ?? undefined;
   const drawn = config ? (drawnOf(config) ?? lastDrawn) : null;
+  // Derived once per change, not on every render (the app re-renders often during runs).
+  const randomizable = useMemo(
+    () => fields.length > 0 && JSON.stringify(model?.schema ?? {}).includes('"explore"'),
+    [fields, model],
+  );
+  const changed = useMemo(() => (base && config ? settingDiffs(base.config, config) : []), [base, config]);
+  const forms = useMemo(() => (meta ? formPresets(meta) : []), [meta]);
+  const others = useMemo(() => (meta ? otherPresets(meta) : []), [meta]);
 
   if (loadError) {
     return (
@@ -406,7 +414,6 @@ export function App() {
     setConfig(next);
   };
 
-  const randomizable = fields.length > 0 && JSON.stringify(model?.schema ?? {}).includes('"explore"');
   // Extras Randomize may vary, where they apply to this model.
   const extraOptions: [RandomizeExtra, string, string][] = [
     ["cavity", "cavity", "Another shape of the same host, size within ±30%, any rotation (not with tubes placed)"],
@@ -417,7 +424,6 @@ export function App() {
       ? ([["order", "stage order", "A random stage order from the allowed list"]] as [RandomizeExtra, string, string][])
       : []),
   ];
-  const changed = base ? settingDiffs(base.config, config) : [];
   const randomize = () => {
     const task = newTaskId();
     const controller = new AbortController();
@@ -445,8 +451,6 @@ export function App() {
 
   // Choosing a form loads its preset for the current tier (or the other tier's, if
   // this one has none) and judges the result as that form.
-  const forms = formPresets(meta);
-  const others = otherPresets(meta);
   const tier = tierOf(config.model.kind);
   const chooseForm = (id: string, wanted = tier) => {
     if (!id) {

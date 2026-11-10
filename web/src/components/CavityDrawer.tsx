@@ -132,7 +132,7 @@ export function CavityDrawer({ initial, onUse, onCancel }: Props) {
 
   return (
     <div className="dialog-backdrop" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="dialog drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
         <header className="dialog-head">
           <h3 id="drawer-title">Draw a cavity</h3>
           <p className="muted small">
@@ -188,7 +188,7 @@ export function CavityDrawer({ initial, onUse, onCancel }: Props) {
 
         <svg
           ref={svgRef}
-          className={`drawer-canvas mode-${mode}`}
+          className="drawer-canvas"
           viewBox={`0 0 ${VIEW} ${VIEW}`}
           role="img"
           aria-label="Drawing area"

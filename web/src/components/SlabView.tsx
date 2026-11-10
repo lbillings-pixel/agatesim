@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { captioned, type FrameSource, type Stage } from "../lib/animation";
 import { applyGrowth } from "../lib/growth";
@@ -118,17 +118,22 @@ export function SlabView({
     setView({ zoom: 1, x: 0, y: 0 });
   }
 
+  // One frame buffer per slab, reused while the growth slider moves.
+  const buffer = useMemo(
+    () => (pixels ? new ImageData(pixels.slab.width, pixels.slab.height) : null),
+    [pixels],
+  );
+
   // Draw the slab at the chosen point in its growth.
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !pixels) return;
+    if (!canvas || !pixels || !buffer) return;
     const { slab, tdep } = pixels;
-    canvas.width = slab.width;
-    canvas.height = slab.height;
-    const out = new ImageData(slab.width, slab.height);
-    applyGrowth(slab.data, tdep.data, growth, VOID_COLOUR, out.data);
-    canvas.getContext("2d")?.putImageData(out, 0, 0);
-  }, [pixels, growth]);
+    if (canvas.width !== slab.width) canvas.width = slab.width;
+    if (canvas.height !== slab.height) canvas.height = slab.height;
+    applyGrowth(slab.data, tdep.data, growth, VOID_COLOUR, buffer.data);
+    canvas.getContext("2d")?.putImageData(buffer, 0, 0);
+  }, [pixels, buffer, growth]);
 
   // Fit the slab to its frame, centred.
   useEffect(() => {

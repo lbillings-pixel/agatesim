@@ -41,7 +41,7 @@ export function CavityMenu({ cavities, selected, drawn, onSelect, onUseDrawn, on
                   type="button"
                   role="radio"
                   aria-checked={c.name === selected}
-                  className={`cavity-option host-${c.host}`}
+                  className="cavity-option"
                   title={`${c.name}: ${c.description}`}
                   onClick={() => onSelect(c.name)}
                 >
