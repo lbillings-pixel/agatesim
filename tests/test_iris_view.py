@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from agatesim.config import load_preset
 from agatesim.fields import Phase
+from agatesim.models.base import micro_band_spacing
 from agatesim.optics import render_iris
 from agatesim.simulate import SimulationResult, simulate
 
@@ -19,6 +20,14 @@ def _coloured(result: SimulationResult, view_deg: float, azimuth_deg: float) -> 
     rgb = render_iris(result, view_deg, azimuth_deg).astype(float) / 255
     agate = rgb[result.fields.phase == Phase.CHALCEDONY]
     return float(((agate.max(axis=1) - agate.min(axis=1)) > 0.15).mean())
+
+
+def test_a_bands_grating_does_not_depend_on_the_band_count() -> None:
+    """A preview and its full run can have a different number of bands; band k's
+    grating must be the same in both (audit C1, ADR 0084)."""
+    few = micro_band_spacing(20, 0.5, 2.0, 0.3, np.random.default_rng(7))
+    many = micro_band_spacing(23, 0.5, 2.0, 0.3, np.random.default_rng(7))
+    np.testing.assert_array_equal(few, many[:20])
 
 
 def test_the_default_form_shows_iris_colours() -> None:

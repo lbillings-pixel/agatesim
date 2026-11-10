@@ -85,6 +85,20 @@ def test_a_preview_already_simulated_costs_nothing_again(tmp_path: Path) -> None
         assert not after["heavy"]
 
 
+def test_dendrites_count_as_on_only_where_the_model_grows_them() -> None:
+    """At 0.5 or above, as the model switches (audit C17, ADR 0084)."""
+    from agatesim.models import ProceduralGrowth
+    from agatesim.schedules import Schedule
+
+    def growth(level: float) -> ProceduralGrowth:
+        model = ProceduralGrowth()
+        schedules = model.schedules.model_copy(update={"dendrite": Schedule(base=level)})
+        return model.model_copy(update={"schedules": schedules})
+
+    assert not estimate._dendrites_on(growth(0.3))  # pyright: ignore[reportPrivateUsage]
+    assert estimate._dendrites_on(growth(0.5))  # pyright: ignore[reportPrivateUsage]
+
+
 def test_fine_dendrites_are_light_on_the_cpu_with_numba(monkeypatch: pytest.MonkeyPatch) -> None:
     """ADR 0061: compiled, moss-fine-3d builds in about 19 s without a GPU (it
     took about 2 minutes); the NumPy loop alone is still heavy."""

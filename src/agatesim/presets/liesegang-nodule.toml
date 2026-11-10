@@ -15,4 +15,7 @@ size_mm = 50
 
 [model]
 kind = "mechanistic-liesegang"
-lattice_mm = 0.05
+# The spacing this preset was tuned on (it asked 0.05, which was 4% coarser until
+# ADR 0084). At 0.049-0.051 its outer bands fall under 5 px apart at 768 px, too
+# close for the corner measure to judge.
+lattice_mm = 0.052

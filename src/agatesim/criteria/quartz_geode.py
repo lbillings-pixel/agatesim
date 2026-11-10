@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import numpy as np
-from numpy.typing import NDArray
 
+from agatesim.criteria.common import spearman
 from agatesim.criteria.types import Measurement
 from agatesim.fields import Phase
 from agatesim.simulate import SimulationResult
@@ -12,12 +12,6 @@ from agatesim.simulate import SimulationResult
 MIN_GRAINS = 8
 COARSENING_LEVELS = 10  # curves of equal depth through the quartz
 COARSENING_REACH = 0.8  # share of the quartz layer's depth they span
-
-
-def _ranks(x: NDArray[np.floating]) -> NDArray[np.float64]:
-    r = np.empty(len(x))
-    r[np.argsort(x, kind="stable")] = np.arange(len(x))
-    return r
 
 
 def phase_transition(result: SimulationResult) -> Measurement:
@@ -64,7 +58,9 @@ def inward_coarsening(result: SimulationResult) -> Measurement:
             widths.append(float(curve.sum()) * dx / crossed)
     if len(depths) < 3:
         return None, "quartz layer too thin to judge"
-    rho = float(np.corrcoef(_ranks(np.array(depths)), _ranks(np.array(widths)))[0, 1])
+    rho = spearman(np.array(depths), np.array(widths))  # tied widths share a rank (ADR 0084)
+    if rho is None:
+        return None, f"every curve shows the same mean width ({widths[0]:.2f} mm)"
     return rho, (f"{len(ids)} crystals; mean width {widths[0]:.2f} → {widths[-1]:.2f} mm inward")
 
 

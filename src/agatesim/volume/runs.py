@@ -80,9 +80,7 @@ def _write(
     grid = volume.grid
     group = zarr.open_group(store=str(path / "fields.zarr"), mode="w")  # pyright: ignore[reportUnknownMemberType]
     group.attrs.update({"dx_mm": grid.dx, "origin_mm": list(grid.origin), "axes": ["z", "y", "x"]})
-    for name, array in volume.fields.arrays().items():
-        if name in ("grain", "micro_spacing_um"):
-            continue  # not saved with 3D runs (the 3D models do produce them)
+    for name, array in volume.fields.arrays().items():  # every field (ADR 0084: 2-19% more)
         group.create_array(name, data=array, chunks=(32, 64, 64))
     group.create_array("cavity_mask", data=volume.inside, chunks=(32, 64, 64))
 

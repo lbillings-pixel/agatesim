@@ -9,7 +9,8 @@ import pytest
 
 from agatesim import cut_shapes
 from agatesim.config import load_preset
-from agatesim.cut_shapes import Look, compare, edge_of_blur, looks, sigma_for_edge, spearman
+from agatesim.criteria.common import spearman
+from agatesim.cut_shapes import Look, compare, edge_of_blur, looks, sigma_for_edge
 from agatesim.fields import Phase
 from agatesim.render import render_slab
 from agatesim.shapes import Spread
@@ -86,6 +87,10 @@ def test_spearman() -> None:
     assert spearman(x, x**3) == pytest.approx(1.0)
     assert spearman(x, -x) == pytest.approx(-1.0)
     assert spearman(x, np.ones(10)) is None
+    # ties share their mean rank: not a perfect 1 (audit C6, ADR 0084)
+    assert spearman(np.arange(4.0), np.array([0.0, 0.0, 1.0, 1.0])) == pytest.approx(
+        0.8944, abs=1e-4
+    )
 
 
 def test_compare_places_cuts_against_the_photos_range() -> None:

@@ -35,6 +35,7 @@ from numpy.typing import NDArray
 from pydantic import ValidationError
 
 from agatesim import _rd, _scipy, progress
+from agatesim.criteria.common import ranks
 from agatesim.explore import UNCHECKED, vary_model
 from agatesim.fields import Phase
 from agatesim.maps import MODELS_DIR
@@ -337,24 +338,6 @@ class Comparison:
     rho: float | None
 
 
-def _ranks(x: NDArray[np.float64]) -> NDArray[np.float64]:
-    order = np.argsort(x, kind="stable")
-    r = np.empty(x.size)
-    r[order] = np.arange(x.size, dtype=np.float64)
-    for v in np.unique(x):  # ties share their mean rank
-        tied = x == v
-        r[tied] = r[tied].mean()
-    return r
-
-
-def spearman(x: NDArray[np.float64], y: NDArray[np.float64]) -> float | None:
-    """Spearman's rank correlation; None when either side doesn't vary."""
-    rx, ry = _ranks(x), _ranks(y)
-    if rx.std() == 0 or ry.std() == 0:
-        return None
-    return float(np.corrcoef(rx, ry)[0, 1])
-
-
 MIN_DRAWS = 8  # draws needed before a setting is named
 # A setting is named only if its correlation is stronger than the strongest any
 # setting reaches with the draws' results shuffled, in this share of shuffles: a
@@ -384,9 +367,9 @@ def _strongest(
     values = np.array([float(np.median(v)) for v, _ in by_draw.values()])
     draws = [s for _, s in by_draw.values()]
     names = sorted(set[str].intersection(*(set(s) for s in draws)))
-    ranked = [_standard(_ranks(np.array([s[n] for s in draws], dtype=np.float64))) for n in names]
+    ranked = [_standard(ranks(np.array([s[n] for s in draws], dtype=np.float64))) for n in names]
     varied = [(n, r) for n, r in zip(names, ranked, strict=True) if r is not None]
-    y = _standard(_ranks(values))
+    y = _standard(ranks(values))
     if not varied or y is None:
         return None, None
     # Spearman's rho for every setting at once: correlations of standardised ranks.

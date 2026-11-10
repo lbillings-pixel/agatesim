@@ -47,6 +47,25 @@ def test_meta_describes_cavities_models_and_parameters(client: TestClient) -> No
     assert {p["name"] for p in meta["presets"]} >= {"fortification", "seam", "waterline"}
 
 
+def test_every_numeric_setting_has_a_nature_and_units() -> None:
+    """ADR 0003: every number a model reads is labelled (audit C14, ADR 0084).
+    Choices and switches need no nature; a schedule's numbers (when, how much)
+    take the nature of the setting it varies."""
+    from agatesim.server.app import MODELS
+
+    schedule_parts = {"Pulse", "Ramp", "Schedule", "Step"}
+    missing: list[str] = []
+    for kind, cls in MODELS.items():
+        schema = cls.model_json_schema()
+        defs = {k: v for k, v in schema.get("$defs", {}).items() if k not in schedule_parts}
+        for where, s in {kind: schema, **defs}.items():
+            for name, p in s.get("properties", {}).items():
+                types = {p.get("type")} | {a.get("type") for a in p.get("anyOf", [])}
+                if types & {"number", "integer"} and not {"nature", "units"} <= set(p):
+                    missing.append(f"{where}.{name}")
+    assert missing == []
+
+
 def test_preview_returns_images_and_evaluation(client: TestClient) -> None:
     response = client.post("/api/preview", json={"config": _config(), "resolution": 128})
     assert response.status_code == 200

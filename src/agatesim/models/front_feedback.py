@@ -338,7 +338,7 @@ class FrontFeedback(BaseModel):
         ),
     )
     spherulite_spacing_mm: float = param(
-        10.0,
+        16.0,  # inside the photo-matched range (ADR 0069, 0084); presets set their own
         gt=0,
         units="mm",
         nature=Nature.EFFECTIVE,

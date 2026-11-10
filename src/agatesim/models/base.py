@@ -133,9 +133,11 @@ def micro_band_spacing(
     """Regular micro-band spacing (µm) for each of `count` bands: a share
     `fraction` of them carry regular micro-bands, a diffraction grating (iris),
     log-normally spread about `mean_um`; NaN for the rest. Band k's spacing
-    doesn't depend on how many bands there are."""
-    regular = rng.random(count) < fraction
-    spacing = mean_um * np.exp(sigma * rng.standard_normal(count) - sigma**2 / 2)
+    doesn't depend on how many bands there are (separate streams: one stream
+    would put band 0's spacing draw after all `count` coin draws)."""
+    rng_regular, rng_spacing = rng.spawn(2)
+    regular = rng_regular.random(count) < fraction
+    spacing = mean_um * np.exp(sigma * rng_spacing.standard_normal(count) - sigma**2 / 2)
     return np.where(regular, spacing, np.nan)
 
 

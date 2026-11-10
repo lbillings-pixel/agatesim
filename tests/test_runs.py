@@ -12,6 +12,19 @@ from agatesim.runs import write_run
 from agatesim.simulate import simulate
 
 
+def test_a_saved_3d_run_keeps_every_field(tmp_path: Path) -> None:
+    """Including crystal grains and the iris micro-band spacing (audit C8, ADR 0084)."""
+    from agatesim.volume.config import load_volume_preset
+    from agatesim.volume.runs import write_volume_run
+    from agatesim.volume.simulate import prepare_volume
+
+    sim = prepare_volume(load_volume_preset("quartz-geode-3d").with_resolution(48))
+    path, _ = write_volume_run(sim, tmp_path, started=datetime.now().astimezone(), elapsed_s=0.0)
+    group = zarr.open_group(store=str(path / "fields.zarr"), mode="r")  # pyright: ignore[reportUnknownMemberType]
+    for name, array in sim.volume().fields.arrays().items():
+        np.testing.assert_array_equal(np.asarray(group[name]), array, err_msg=name)
+
+
 def test_run_record_is_complete_and_reproducible(tmp_path: Path) -> None:
     config = load_preset("waterline").with_resolution(128)
     result = simulate(config)

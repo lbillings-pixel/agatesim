@@ -24,6 +24,7 @@ from agatesim.config import RunConfig
 from agatesim.geometry import signed_area
 from agatesim.models import FrontFeedback, Liesegang, ProceduralGrowth, Settling, Staged
 from agatesim.models.dendrites import MAX_CELLS as DLA_2D_MAX_CELLS
+from agatesim.models.growth import TIME_STEPS, Mode, growth_modes
 from agatesim.models.liesegang import MAX_CELLS as H2_2D_MAX_CELLS
 from agatesim.volume.config import VolumeConfig
 from agatesim.volume.dendrites import MAX_CELLS as DENDRITE_DEFAULT_CELLS
@@ -139,8 +140,10 @@ def _dendrites_2d(width_mm: float, bounds_mm2: float) -> Estimate:
 
 
 def _dendrites_on(model: ProceduralGrowth) -> bool:
-    d = model.schedules.dendrite
-    return d.base > 0 or any(e.value > 0 for e in d.events)
+    """Whether a dendrite stage grows, decided as the model decides it (at 0.5 or
+    above, unless sticks take that time; ADR 0084)."""
+    tau = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
+    return bool((growth_modes(model, tau) == Mode.DENDRITE).any())
 
 
 def _h4(params: Settling) -> Estimate:

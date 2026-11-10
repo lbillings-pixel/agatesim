@@ -127,3 +127,22 @@ def line_fit_rms(points: FloatArray) -> float:
     centred = points - points.mean(axis=0)
     s = np.linalg.svd(centred, compute_uv=False)
     return float(s[-1] / np.sqrt(len(points)))
+
+
+def ranks(x: NDArray[np.floating]) -> NDArray[np.float64]:
+    """Ranks from 0; tied values share their mean rank (as Spearman's rho needs)."""
+    order = np.argsort(x, kind="stable")
+    r = np.empty(x.size)
+    r[order] = np.arange(x.size, dtype=np.float64)
+    for v in np.unique(x):
+        tied = x == v
+        r[tied] = r[tied].mean()
+    return r
+
+
+def spearman(x: NDArray[np.floating], y: NDArray[np.floating]) -> float | None:
+    """Spearman's rank correlation; None when either side doesn't vary."""
+    rx, ry = ranks(x), ranks(y)
+    if rx.std() == 0 or ry.std() == 0:
+        return None
+    return float(np.corrcoef(rx, ry)[0, 1])
