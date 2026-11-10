@@ -157,7 +157,7 @@ def _with_crystals(
 
 @dataclass(frozen=True, eq=False)
 class _Stage:
-    kind: str  # "wall", "spherulite", "floor", "dendrite" or "garden"
+    kind: str  # "wall", "spherulite", "floor", "dendrite", "garden" or "stick"
     solid: GrowthSolid  # the solid when the stage starts
     limit: float | None  # depth where a first stage stops (None: runs to fill)
     history: FrontHistory | None = None

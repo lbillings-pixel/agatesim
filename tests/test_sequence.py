@@ -93,7 +93,7 @@ def test_band_thickness_records_the_supply() -> None:
     assert np.mean(corrs) < -0.4
 
 
-def test_forcing_is_independent_of_the_grid() -> None:
+def test_forcing_is_reproducible_and_scaled() -> None:
     model = FrontFeedback(supply_noise=0.2)
     a = supply_forcing(model, 5000.0, np.random.default_rng(3))
     b = supply_forcing(model, 5000.0, np.random.default_rng(3))

@@ -210,7 +210,12 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
         });
     };
     const timer = window.setTimeout(() => {
-      const hold = (estimate: CostEstimate) => setHeld({ key: formationKey, estimate });
+      // Held: nothing is building now, even if an earlier request was abandoned mid-flight.
+      const hold = (estimate: CostEstimate) => {
+        setHeld({ key: formationKey, estimate });
+        setCutBusy(false);
+        setCutTask(null);
+      };
       startUnlessHeavy(config, sizes.current, approved.current === formationKey, controller.signal, start, hold);
     }, DEBOUNCE_MS);
     return () => {
@@ -241,7 +246,12 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
         });
     };
     const timer = window.setTimeout(() => {
-      const hold = (estimate: CostEstimate) => setHeld({ key: formationKey, estimate });
+      // Held: nothing is building now, even if an earlier request was abandoned mid-flight.
+      const hold = (estimate: CostEstimate) => {
+        setHeld({ key: formationKey, estimate });
+        setVoxelsBusy(false);
+        setVoxelsTask(null);
+      };
       startUnlessHeavy(config, sizes.current, approved.current === formationKey, controller.signal, start, hold);
     }, DEBOUNCE_MS);
     return () => {

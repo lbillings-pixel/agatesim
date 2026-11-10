@@ -66,7 +66,6 @@ EXPOSURE = 3.0
 GRATING_ORDERS = 3
 IRIS_GAIN = 3.0  # display exposure for transmitted light
 IRIS_PIGMENT = 3.0  # 1/mm per unit impurity, in transmitted light
-VISIBLE_NM = (380.0, 750.0)
 NORMAL_SMOOTH_MM = 0.25  # scale for band directions
 
 

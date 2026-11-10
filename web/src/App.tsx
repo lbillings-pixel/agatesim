@@ -206,7 +206,13 @@ export function App() {
       if (approved.current === key) return start();
       // Ask first if it's heavy; if the estimate fails, build as before.
       api.estimate(config, previewRes, previewRes, controller.signal).then(
-        (c) => (c.preview.heavy ? setHeld({ key, estimate: c.preview }) : start()),
+        (c) => {
+          if (!c.preview.heavy) return start();
+          setHeld({ key, estimate: c.preview });
+          // An earlier request may have been abandoned mid-flight: nothing is building now.
+          setPreviewBusy(false);
+          setPreviewTask(null);
+        },
         () => {
           if (!controller.signal.aborted) start();
         },
@@ -1048,7 +1054,9 @@ export function App() {
 
 /** An image the server serves, as a data: URL for embedding in a report. */
 async function dataUrl(url: string): Promise<string> {
-  const blob = await (await fetch(url)).blob();
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`can't load ${url} (${response.status})`);
+  const blob = await response.blob();
   return await new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));

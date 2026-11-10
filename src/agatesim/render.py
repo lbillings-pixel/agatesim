@@ -1,6 +1,6 @@
 """Render a polished-slab view of a result in reflected light.
 
-A non-physical, appearance-only renderer; the optical renderer arrives in M6.
+A non-physical, appearance-only renderer; the optical one is `agatesim.optics`.
 It reads only Fields and geometry, so it works for any model. Under reflected
 light on a polished slab:
 

@@ -39,12 +39,12 @@ from agatesim.volume.solids import (
 )
 from agatesim.volume.survey import apparent_thickness, survey
 
-RNG = np.random.default_rng(7)
+SEED = 7  # a fresh generator per use, so a test sees the same points whichever tests ran first
 
 
 def _inside_points(solid: Solid, n: int = 2000) -> FloatArray:
     lo, hi = solid.bounds()
-    pts = lo + (hi - lo) * RNG.random((n, 3))
+    pts = lo + (hi - lo) * np.random.default_rng(SEED).random((n, 3))
     return pts[solid.contains(pts)]
 
 
@@ -65,7 +65,7 @@ def test_sphere_distances_are_exact_for_every_representation() -> None:
         SphereUnion(host=Host.VOLCANIC, centres=np.zeros((1, 3)), radii=np.array([r])),
         Revolution(host=Host.VOLCANIC, profile=circle),
     ]
-    pts = RNG.uniform(-6, 6, (500, 3))
+    pts = np.random.default_rng(SEED).uniform(-6, 6, (500, 3))
     exact = r - np.linalg.norm(pts, axis=1)
     for s in solids:
         assert s.contains(pts).all()

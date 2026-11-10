@@ -271,7 +271,7 @@ npm --prefix web run lint                 # ESLint
 ```
 src/agatesim/
   archetypes/        archetype ladder (registry.toml): criteria and thresholds
-  presets/           shipped run configs; one per verified archetype
+  presets/           shipped run configs; one per verified archetype and tier, plus extras
   models/            formation models: procedural (fortification, waterline, growth history)
                      and mechanistic (front feedback H1, Liesegang H2, settling H4,
                      stages, chemical gardens), pigments and palettes

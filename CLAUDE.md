@@ -66,7 +66,7 @@
   (plus geometry), never model internals.
 - Anything random must be resolution-independent (spawned RNG streams; noise in
   world coordinates), so previews match full runs.
-- Label every model parameter `physical` or `effective` (ADR 0003).
+- Label every model parameter `physical`, `effective` or `imposed` (ADR 0003, 0005).
 - Long work reports through `agatesim.progress` (ADR 0054), so the app can show
   the time left and cancel it. Work on lattices of millions of cells in chunks
   (never every cell's coordinates at once), build search trees once, and hand

@@ -18,7 +18,7 @@ class Phase(IntEnum):
     CHALCEDONY = 1
     VOID = 2
     QUARTZ = 3
-    INCLUSION = 4  # foreign solid inside the cavity: tube filaments (later, dendrites)
+    INCLUSION = 4  # foreign solid inside the cavity: tube filaments, dendrites, sticks
 
 
 class Pigment(IntEnum):

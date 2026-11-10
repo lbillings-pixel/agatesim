@@ -209,6 +209,4 @@ def segment(rgb: NDArray[np.uint8], seed: tuple[float, float] | None = None) -> 
     region = np.isin(pieces, keep[keep > 0])
     outline = trace_outline(region) * step + (step - 1) / 2
     big = np.repeat(np.repeat(region, step, axis=0), step, axis=1)[:h, :w]
-    if big.shape != (h, w):
-        big = np.pad(big, ((0, h - big.shape[0]), (0, w - big.shape[1])))
     return Segmentation(mask=big, outline=outline)

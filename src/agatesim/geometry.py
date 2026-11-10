@@ -2,7 +2,7 @@
 
 A cavity is a simple polygon with counter-clockwise vertices. Smooth shapes are
 finely polygonized. Corners (sharp convex vertices) are found by turning angle, so
-drawn shapes will work the same way as presets.
+drawn shapes work the same way as presets.
 """
 
 from __future__ import annotations
@@ -158,7 +158,7 @@ def _ellipse(a: float, b: float, n: int = 256) -> FloatArray:
 
 
 def _lens(half_height: float, n: int = 96) -> FloatArray:
-    """Two circular arcs meeting in sharp tips at (Â±1, 0)."""
+    """Two circular arcs meeting in sharp tips at (±1, 0)."""
     h = half_height
     radius = (1 + h * h) / (2 * h)
     c = radius - h

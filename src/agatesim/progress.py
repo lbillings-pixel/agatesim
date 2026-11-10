@@ -159,11 +159,6 @@ def active() -> bool:
     return _scope.get() is not None
 
 
-def current() -> Tracker | None:
-    scope = _scope.get()
-    return None if scope is None else scope.tracker
-
-
 def report(fraction: float | None, label: str | None = None) -> None:
     """Report progress through the current part of the work; raise CancelledError if
     everyone waiting has given up. Does nothing outside a tracked task."""

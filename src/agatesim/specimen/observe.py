@@ -25,7 +25,6 @@ from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
-from PIL import Image
 
 from agatesim import _scipy
 from agatesim.archetypes import Host
@@ -300,7 +299,3 @@ def band_map(observation: Observation) -> NDArray[np.uint8]:
     out[f.phase == Phase.QUARTZ] = (235, 235, 240)
     out[f.phase == Phase.VOID] = (0, 0, 0)
     return out
-
-
-def to_image(array: NDArray[np.uint8]) -> Image.Image:
-    return Image.fromarray(array)

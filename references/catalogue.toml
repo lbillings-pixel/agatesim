@@ -1,7 +1,8 @@
 # Reference catalogue. Every source the project relies on, with how far it has
 # been checked and under what licence it may be used.
 #
-#   checked  = "citation" | "abstract" | "full-text"
+#   checked  = "citation" | "abstract" | "sections" | "full-text"
+#              ("sections" = abstract plus the sections listed in sections_read)
 #              Never state more in the docs than the checked level supports.
 #   licence  = SPDX id where one exists (e.g. "CC-BY-4.0"), otherwise a short
 #              description. Material is stored in this repository only when

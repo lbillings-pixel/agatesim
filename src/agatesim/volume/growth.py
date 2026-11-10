@@ -28,6 +28,7 @@ from __future__ import annotations
 import copy
 import math
 from dataclasses import dataclass, replace
+from functools import cached_property
 from typing import Protocol
 
 import numpy as np
@@ -92,6 +93,12 @@ class GrowthSolid:
     # the rate at which bands grow round it, as a share of the wall's (ADR 0080)
     aggregates: tuple[tuple[Inclusion, float, float], ...] = ()
 
+    @cached_property
+    def _ball_index(self) -> _scipy.NearestIndex:
+        """Built once per solid: every chunk and stage queries it."""
+        assert self.centres is not None
+        return _scipy.NearestIndex(self.centres)
+
     def distance(self, p: FloatArray, d_wall: FloatArray, h: FloatArray) -> FloatArray:
         """Distance from points to the solid: positive in the open space, zero or
         negative inside it. d_wall and h are the points' wall distances and heights."""
@@ -106,7 +113,7 @@ class GrowthSolid:
             return d
         centres, radii = self.centres, self.radii
         # Balls differ in radius, so compare the nearest few centres, not just one.
-        tree = _scipy.NearestIndex(centres)
+        tree = self._ball_index
         k = min(NEAREST_SITES, len(radii))
         for lo in range(0, len(p), CHUNK):
             q = p[lo : lo + CHUNK]

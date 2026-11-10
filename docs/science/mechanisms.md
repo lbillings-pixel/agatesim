@@ -263,8 +263,6 @@ amendment).
      accumulation trend ([@halden2000], abstract), so either the system was
      open or the real feedback tolerates the build-up.
 
-   Next: a 2D reaction–diffusion and nucleation model (H2) along the lines of
-   [@liu2025] and the pre-nucleation models of [@cartwright2026] §4.1.5.
 5. **Liesegang precipitation (H2, ADR 0015).** In the pre-nucleation model, a
    metal diffuses in from the wall and precipitates in a silica gel. It gives
    the Liesegang spacing and width laws. In an angular cavity its rings are

@@ -225,4 +225,5 @@ def preset_description(name: str) -> str:
 def load_preset(name: str) -> RunConfig:
     if name not in preset_names():
         raise KeyError(f"unknown preset {name!r}; choose from {preset_names()}")
-    return parse_config(resources.files("agatesim.presets").joinpath(f"{name}.toml").read_text())
+    text = resources.files("agatesim.presets").joinpath(f"{name}.toml").read_text(encoding="utf-8")
+    return parse_config(text)

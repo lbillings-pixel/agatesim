@@ -4,7 +4,7 @@
 
 Every literature source the project relies on, with:
 
-- **how far it has been checked:** citation, abstract, or full text. The docs never
+- **how far it has been checked:** citation, abstract, named sections, or full text. The docs never
   claim more than that.
 - **its licence.** Only material whose licence allows it (for example CC BY) is
   stored in this repository. Everything else is cited and linked.

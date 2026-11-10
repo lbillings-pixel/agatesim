@@ -2,9 +2,9 @@
 
 A solid answers three questions about any point: is it inside, how far is the
 wall, and how high does the solid reach in a direction (its support). The wall
-distance is exact inside every solid except unions of spheres, where it is
-exact wherever the nearest wall point lies on one sphere and sampled finely
-near the seams between spheres. Nothing depends on a voxel grid, so previews,
+distance is exact for ellipsoids, polyhedra and unions of spheres (ADR 0076
+s. 5); for solids built on a drawn outline (prisms, solids of revolution) it is
+within 1/8000 of the outline's extent. Nothing depends on a voxel grid, so previews,
 full runs and slices at any resolution agree.
 """
 
@@ -390,7 +390,8 @@ class _Outline:
         self.vertices = v[::-1].copy() if signed_area(v) < 0 else v
         lo, hi = self.vertices.min(axis=0), self.vertices.max(axis=0)
         extent = float(np.max(hi - lo))
-        self._samples = densify(self.vertices, extent / 4000)
+        # Built once: every wall-distance query uses it.
+        self._index = _scipy.NearestIndex(densify(self.vertices, extent / 4000))
         # Every boundary point is within half a spacing of a sample, so the
         # distance to the samples is within this of the distance to the outline.
         self.error_mm = extent / 8000
@@ -404,7 +405,7 @@ class _Outline:
     def signed(self, points: FloatArray) -> FloatArray:
         """Distance (mm) to the outline, positive inside."""
         pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
-        d = _scipy.nearest_distance(self._samples, pts)
+        d = self._index.query(pts)[0]
         ij = np.rint((pts - self._lo) / self._step - 0.5).astype(np.int64)
         ok = np.all((ij >= 0) & (ij < self.RASTER), axis=1)
         inside = np.zeros(len(pts), dtype=bool)

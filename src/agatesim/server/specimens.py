@@ -294,7 +294,7 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
         if new_ext != old_ext and same_kind.get(old_ext) != new_ext:
             raise HTTPException(422, f"keep the {old_ext} ending")
         target = folder / to
-        if target.exists() and target.name.lower() != name.lower():
+        if target.exists() and not target.samefile(source):
             raise HTTPException(409, f"{to} already exists")
         forget(name)
         source.rename(target)

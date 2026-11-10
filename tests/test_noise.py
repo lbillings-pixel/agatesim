@@ -74,7 +74,8 @@ def test_a_preview_is_the_full_noise_low_passed(pixel_mm: float) -> None:
     pts = grid[::step, ::step][trim:-trim, trim:-trim].reshape(-1, 2)
     preview = noise(pts, spacing_mm=pixel_mm).reshape(truth.shape)
     aliased = noise(pts).reshape(truth.shape)  # negative control: every octave read
-    assert noise.kept(pixel_mm) < 5 or pixel_mm < 1
+    if pixel_mm >= 1:
+        assert noise.kept(pixel_mm) < 5
     assert _rms(preview - truth) < 0.15 * truth.std()
     assert _rms(aliased - truth) > 3 * _rms(preview - truth)
 

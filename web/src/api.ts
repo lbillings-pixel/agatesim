@@ -633,6 +633,7 @@ export interface VolumeRunDetail {
   summary: VolumeRunSummary;
   config: VolumeConfig;
   metrics: Evaluation | null;
+  stats: BandStats | null;
   survey: { summary: SurveySummary; cuts: SurveyCut[] } | null;
 }
 

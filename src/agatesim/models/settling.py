@@ -178,8 +178,8 @@ def settle(
     pulse_of = np.full(nz, -1, dtype=np.int64)
     height = nz * dz
     settle_time = height  # w₀ = 1: time to fall the cavity's height
-    w_face_all = 0.5 * (w[1:] + w[:-1])
-    ratio = float(np.max(np.r_[w_face_all / w[:-1], w_face_all / w[1:]]))
+    w_face = 0.5 * (w[1:] + w[:-1])
+    ratio = float(np.max(np.r_[w_face / w[:-1], w_face / w[1:]]))
     dt = 0.4 * dz / max(ratio, 1.0)  # CFL for |f'| ≤ 1, with width changes
     diffusion = 0.5 * dz  # numerical, keeps the bed front a few cells wide
     total_area = float(np.sum(w) * dz)
@@ -191,7 +191,6 @@ def settle(
     k_next = 0
     current = -1
     end = pulse_times[-1] + 3 * settle_time
-    w_face = 0.5 * (w[1:] + w[:-1])
     while t < end:
         if k_next < params.pulses and t >= pulse_times[k_next]:
             fluid = np.isnan(packed_at)

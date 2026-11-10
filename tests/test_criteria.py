@@ -106,7 +106,7 @@ def test_the_imposed_check_finds_procedural_parameters() -> None:
 
 def test_waterline_criteria_reject_fortification() -> None:
     fort = load_preset("fortification").with_resolution(NEGATIVE_RESOLUTION)
-    assert {"gravity-normal", "planar", "geopetal-recoverable"} <= _failed(
+    assert {"gravity-normal", "planar", "geopetal-recoverable", "floor-confined"} <= _failed(
         _evaluate("waterline", fort)
     )
 

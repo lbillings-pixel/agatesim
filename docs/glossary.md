@@ -103,8 +103,8 @@ Plain-language meanings of terms used in the docs, the web app and the ADRs.
   the fast bands.
 - **Parameter natures.** Every model setting is labelled *physical* (a real
   quantity with units), *effective* (a stand-in for physics not modelled in
-  detail) or *imposed* (a condition set from outside, such as a supply
-  schedule).
+  detail) or *imposed* (a property of the result set directly; procedural models
+  only).
 - **Screening length.** The models' natural unit of length: how far the
   impurity spreads into the fluid ahead of the front before it relaxes back.
   Its real size is unknown, so results in this unit compare shapes, not sizes.

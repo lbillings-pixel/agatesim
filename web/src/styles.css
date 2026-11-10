@@ -90,7 +90,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .brand { margin: 0; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; }
 .inline { display: inline-flex; align-items: center; gap: 0.45rem; }
 .run-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-left: auto; }
-#run-name { width: 11rem; }
 
 .workspace {
   display: grid;
@@ -510,14 +509,8 @@ button.danger { border-color: var(--fail); color: var(--fail); }
   .specimen-list { border-right: 0; border-bottom: 1px solid var(--line); }
 }
 
-.mechanisms { display: grid; gap: 0.6rem; }
-.mechanisms-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
-.mechanisms-head h2 { font-size: 1rem; margin: 0; }
-.mechanisms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 0.75rem; }
-.mechanisms-grid figure { margin: 0; display: grid; gap: 0.35rem; align-content: start; min-width: 0; }
-.mechanisms-grid img, .mechanisms-placeholder { width: 100%; aspect-ratio: 1; border-radius: 4px; background: var(--slab-bg); object-fit: contain; }
+.mechanisms-placeholder { width: 100%; aspect-ratio: 1; border-radius: 4px; background: var(--slab-bg); object-fit: contain; }
 .mechanisms-placeholder { display: grid; place-items: center; }
-.mechanisms-grid figcaption { display: grid; gap: 0.15rem; }
 
 .glossary { max-width: min(46rem, calc(100vw - 32px)); max-height: 85vh; border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.25rem; background: var(--surface); color: inherit; }
 .glossary::backdrop { background: rgb(0 0 0 / 0.45); }

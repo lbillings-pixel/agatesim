@@ -819,9 +819,9 @@ def _place_sites(
     n = min(MAX_CANDIDATES, math.ceil((xmax - xmin) * (ymax - ymin) * CANDIDATE_DENSITY / delta**2))
     cand = np.column_stack([rng.uniform(xmin, xmax, n), rng.uniform(ymin, ymax, n)])
     draws = rng.random((n, 2))
-    dist = _scipy.nearest_distance(front.points, cand)
+    dist, nearest = _scipy.NearestIndex(front.points).query(cand)  # one tree, one query
     near = np.flatnonzero(dist < half)
-    idx = _scipy.nearest_index(front.points, cand[near])
+    idx = nearest[near]
     projected = front.points[idx]
 
     cell: dict[tuple[int, int], list[int]] = {}

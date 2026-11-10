@@ -113,7 +113,7 @@ def _border_ring(shape: tuple[int, int]) -> BoolArray:
 
 def bipartition(features: NDArray[np.float32], tau: float = TAU) -> NDArray[np.float64]:
     """TokenCut's second eigenvector over a (rows, cols, dims) feature grid,
-    as a (rows, cols) array; split it at its mean."""
+    as a (rows, cols) array; split it with `split_point` (Otsu), not at its mean."""
     rows, cols, dims = features.shape
     f = features.reshape(-1, dims).astype(np.float64)
     f /= np.maximum(np.linalg.norm(f, axis=1, keepdims=True), 1e-12)
