@@ -227,6 +227,11 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         verdicts = {i["archetype"]: i["verdict"] for i in body["identification"]}
         assert verdicts["fortification"] == "not confirmed"  # never a false positive
         assert body["transects"] == []
+        # A point off the photo is refused, not a crash or a point on the far side.
+        for seed in ([-5.0, 10.0], [10.0, 1e6]):
+            off = {**settings, "seed": seed}
+            assert c.post("/api/specimens/slab.jpg/analyse", json=off).status_code == 422
+            assert c.post("/api/specimens/slab.jpg/quality", json=off).status_code == 422
 
         # Hand-marked boundaries along a line are saved, and scored by the analysis.
         cx, cy = syn.centre
@@ -285,3 +290,33 @@ def test_every_mechanistic_preset_previews(client: TestClient, name: str) -> Non
     response = client.post("/api/preview", json={"config": _config(name), "resolution": 96})
     assert response.status_code == 200, response.text
     assert response.json()["stages"]
+
+
+def test_the_same_new_settings_are_simulated_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A preview and its optical view arrive together: the second waits for the first."""
+    import threading
+
+    from agatesim.server import app as server
+
+    calls: list[str] = []
+    simulate = server.simulate
+
+    def slow(config: server.RunConfig) -> server.SimulationResult:
+        calls.append(config.name)
+        time.sleep(0.3)
+        return simulate(config)
+
+    monkeypatch.setattr(server, "simulate", slow)
+    cache = server._Simulations()  # pyright: ignore[reportPrivateUsage]
+    config = load_preset("fortification").with_resolution(48)
+    results: list[server.SimulationResult] = []
+    workers = [threading.Thread(target=lambda: results.append(cache.get(config))) for _ in range(2)]
+    for w in workers:
+        w.start()
+    for w in workers:
+        w.join()
+    assert len(calls) == 1
+    assert results[0] is results[1]
+    other = config.model_copy(update={"seed": config.seed + 1})
+    assert cache.get(other) is not results[0]  # other settings are simulated as before
+    assert len(calls) == 2

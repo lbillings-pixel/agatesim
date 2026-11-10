@@ -19,6 +19,7 @@ from agatesim.library import (
     LABELS_TOML,
     LIBRARY_TOML,
     Label,
+    Library,
     LibraryImage,
     load_labels,
     load_library,
@@ -46,12 +47,23 @@ def library_router(
 ) -> APIRouter:
     router = APIRouter(prefix="/api/library")
     lock = threading.Lock()
+    parsed: dict[tuple[int, int], Library] = {}  # the list as last read, by its file's state
+
+    def listed(path: Path) -> Library:
+        """The library list, read again only when its file has changed."""
+        stat = path.stat()
+        key = (stat.st_mtime_ns, stat.st_size)
+        if key not in parsed:
+            found = load_library(path)
+            parsed.clear()
+            parsed[key] = found
+        return parsed[key]
 
     def image(image_id: str) -> LibraryImage:
         if not library_toml.exists():
             raise HTTPException(404, "the library list hasn't been built")
         try:
-            return load_library(library_toml).get(image_id)
+            return listed(library_toml).get(image_id)
         except KeyError:
             raise HTTPException(404, f"no library image {image_id!r}") from None
 
@@ -61,7 +73,7 @@ def library_router(
     @router.get("")
     def index() -> dict[str, object]:
         """Every library photo with its guesses and labels, and the choices."""
-        images = load_library(library_toml).images if library_toml.exists() else ()
+        images = listed(library_toml).images if library_toml.exists() else ()
         labels = load_labels(labels_toml)
         return {
             "forms": [{"id": a.id, "name": a.name} for a in load_registry().archetypes],

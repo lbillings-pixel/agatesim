@@ -8,6 +8,7 @@ from __future__ import annotations
 import base64
 import io
 import json
+import threading
 import time
 from collections import OrderedDict
 from collections.abc import AsyncGenerator
@@ -124,19 +125,35 @@ class _Simulations:
 
     def __init__(self) -> None:
         self._items: OrderedDict[str, SimulationResult] = OrderedDict()
+        self._lock = threading.Lock()
+        self._running: dict[str, threading.Lock] = {}  # one per settings being simulated
 
     def get(self, config: RunConfig) -> SimulationResult:
+        """The result for `config`. Two requests for the same new settings (a
+        preview and its optical view) simulate once: the second waits for the first."""
         key = config.digest()
-        if key in self._items:
-            self._items.move_to_end(key)
-        else:
-            if len(self._items) >= SIMULATION_CACHE:
-                self._items.popitem(last=False)
-            self._items[key] = simulate(config)
-        return self._items[key]
+        with self._lock:
+            running = self._running.setdefault(key, threading.Lock())
+        with running:
+            with self._lock:
+                found = self._items.get(key)
+                if found is not None:
+                    self._items.move_to_end(key)
+                    return found
+            try:
+                result = simulate(config)  # outside the cache's lock: other settings go on
+                with self._lock:
+                    while len(self._items) >= SIMULATION_CACHE:
+                        self._items.popitem(last=False)
+                    self._items[key] = result
+                return result
+            finally:
+                with self._lock:
+                    self._running.pop(key, None)
 
     def has(self, config: RunConfig) -> bool:
-        return config.digest() in self._items
+        with self._lock:
+            return config.digest() in self._items
 
 
 def _png(image: Image.Image) -> bytes:
@@ -253,6 +270,13 @@ def create_app(
         path = runs_dir / run_id
         if not is_run_id(run_id) or not (path / "metadata.json").exists():
             raise HTTPException(404, f"no run {run_id!r}")
+        return path
+
+    def flat_run_dir(run_id: str) -> Path:
+        """A 2D run's folder (3D runs are served under /api/volume/runs)."""
+        path = run_dir(run_id)
+        if (path / "cut.json").exists():
+            raise HTTPException(404, f"{run_id!r} is a 3D run")
         return path
 
     @app.get("/api/meta")
@@ -388,7 +412,7 @@ def create_app(
 
     @app.get("/api/runs/{run_id}")
     def run_detail(run_id: str) -> dict[str, object]:
-        path = run_dir(run_id)
+        path = flat_run_dir(run_id)
 
         def optional(name: str) -> object:
             p = path / name
@@ -410,7 +434,7 @@ def create_app(
 
     @app.get("/api/runs/{run_id}/tdep.png")
     def run_tdep(run_id: str) -> Response:
-        group = zarr.open_group(store=str(run_dir(run_id) / "fields.zarr"), mode="r")  # pyright: ignore[reportUnknownMemberType]
+        group = zarr.open_group(store=str(flat_run_dir(run_id) / "fields.zarr"), mode="r")  # pyright: ignore[reportUnknownMemberType]
         t_dep = np.asarray(group["t_dep"])
         return Response(_png(encode_tdep(t_dep)), media_type="image/png")
 

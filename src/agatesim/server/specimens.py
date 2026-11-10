@@ -173,7 +173,10 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
             )
         except ValueError as e:
             raise HTTPException(422, str(e)) from e
-        seg = segment(p.rgb, settings.seed)
+        try:
+            seg = segment(p.rgb, settings.seed)
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
         if len(seg.outline) < 3:
             raise HTTPException(422, "couldn't find the specimen: click on it to help")
         try:
@@ -327,7 +330,10 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
         if cached is not None:
             return {"quality": cached["quality"], "badges": cached["badges"]}
         p = photo(name)
-        seg = segment(p.rgb, settings.seed)
+        try:
+            seg = segment(p.rgb, settings.seed)
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
         mm_per_px: float | None = None
         ruler = None
         if settings.calibration is not None:

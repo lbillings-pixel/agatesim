@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
+import pytest
 import zarr
 from PIL import Image
 
@@ -55,3 +56,18 @@ def test_config_digest_changes_with_content() -> None:
     a = load_preset("seam")
     assert a.digest() == load_preset("seam").digest()
     assert a.digest() != a.with_resolution(64).digest()
+
+
+def test_a_failed_write_leaves_no_run_behind(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from agatesim import runs
+
+    def fail(result: object) -> object:
+        raise RuntimeError("disk full")
+
+    monkeypatch.setattr(runs, "band_statistics", fail)
+    result = simulate(load_preset("fortification").with_resolution(48))
+    with pytest.raises(RuntimeError, match="disk full"):
+        write_run(result, tmp_path, started=datetime.now().astimezone(), elapsed_s=0.0)
+    assert list(tmp_path.iterdir()) == []  # it would be invisible to the app, and in the way

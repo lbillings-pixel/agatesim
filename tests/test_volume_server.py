@@ -93,6 +93,9 @@ def test_survey_and_a_full_run(client: TestClient, tmp_path: Path) -> None:
     assert slab.content[1:4] == b"PNG"
     assert client.get("/api/volume/runs/not-a-run").status_code == 404
     # A saved run's own volume, read from its files, as the live view sends one.
+    # The 2D run pages don't know a 3D run: not found, rather than a server error.
+    assert client.get(f"/api/runs/{job['run_id']}").status_code == 404
+    assert client.get(f"/api/runs/{job['run_id']}/tdep.png").status_code == 404
     saved = client.get(f"/api/volume/runs/{job['run_id']}/voxels")
     header = json.loads(saved.headers["X-Volume"])
     assert max(header["nx"], header["ny"], header["nz"]) == 24

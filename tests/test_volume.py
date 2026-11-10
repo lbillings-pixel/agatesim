@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 
 import numpy as np
@@ -37,7 +38,7 @@ from agatesim.volume.solids import (
     make_solid,
     rotation,
 )
-from agatesim.volume.survey import apparent_thickness, survey
+from agatesim.volume.survey import Survey, SurveyCut, apparent_thickness, survey
 
 SEED = 7  # a fresh generator per use, so a test sees the same points whichever tests ran first
 
@@ -399,6 +400,24 @@ def test_survey_judges_random_cuts() -> None:
     assert summary["cuts"] == 6
     assert summary["archetype"] == "waterline"
     assert all(c.passed is not None or c.error for c in found.cuts)
+
+
+def test_a_survey_with_a_failed_cut_is_valid_json() -> None:
+    failed = SurveyCut(
+        tilt_deg=10.0,
+        azimuth_deg=20.0,
+        offset_mm=3.0,
+        pieces=0,
+        gravity_in_plane=None,
+        passed=None,
+        criteria={},
+        values={},
+        apparent_thickness_mm=None,
+        error="the cut only grazes the cavity",
+    )
+    found = Survey(archetype="waterline", true_thickness_mm=None, cuts=(failed,))
+    json.dumps(found.to_json(), allow_nan=False)  # NaN is not JSON: browsers refuse it
+    assert found.summary()["judged"] == 0
 
 
 # --- Configuration ----------------------------------------------------------------
