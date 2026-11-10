@@ -40,7 +40,9 @@ from agatesim.grid import FloatArray
 from agatesim.render import render_slab
 from agatesim.simulate import SimulationResult
 
-REFRACTIVE_INDEX = 1.54  # assumed typical value for chalcedony (source to add)
+# Chalcedony along the fibres in Brazilian agate bands: 1.533-1.542, falling with
+# water content [@graetsch1987, Table 6]; one value for all bands.
+REFRACTIVE_INDEX = 1.54
 MIN_LAYERS = 8
 MAX_LAYERS = 96
 SCATTER_MILKY = 12.0  # 1/mm, a fully milky (opaque) band

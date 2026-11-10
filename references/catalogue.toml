@@ -531,6 +531,21 @@ topics = ["chalcedony", "water", "translucency", "shadow"]
 notes = "Abstract as excerpted by a search engine, 2026-10-17 (the publisher page needs a sign-in): wall-lining chalcedony grades from translucent grey to milky white bands with decreasing total water content and silanol-to-molecular-water ratio, decreasing BET surface and increasing density; chalcedony holds water at open-pore surfaces and at inner surfaces and defect regions. The physical link between banding and milkiness that a mechanistic shadow agate would need."
 
 [[references]]
+id = "graetsch1987"
+kind = "article"
+authors = ["Graetsch, H.", "Flörke, O. W.", "Miehe, G."]
+year = 1987
+title = "Structural defects in microcrystalline silica"
+venue = "Physics and Chemistry of Minerals 14(3), 249–257"
+doi = "10.1007/BF00307990"
+access = "closed"
+licence = "publisher copyright; cite only"
+checked = "sections"
+sections_read = ["Abstract", "3 (methods: refractive index)", "4 (results: Table 6)", "5 (discussion: chalcedony)"]
+topics = ["chalcedony", "water", "refractive index", "optics"]
+notes = "Read 2026-11-10 (PDF the owner supplied; audit C20-22, ADR 0083). Table 6 (p.254): refractive index parallel to the fibre elongation of chalcedony from Brazilian agate bands (nos. 223, 224, 226, 227, 228; grey translucent, milky and horizontal bands), measured on a spindle stage: 1.533-1.542 over 9 samples (+-0.001), falling as total water rises from 0.72 to 1.92 wt% (correlation -0.94); density 2.556-2.622 g/cm3 falls with it. The index perpendicular to the fibres could not be measured precisely (p.255). Chalcedony's lower index and density than quartz are a function of water content (Discussion)."
+
+[[references]]
 id = "jones1952"
 kind = "article"
 authors = ["Jones, F. T."]

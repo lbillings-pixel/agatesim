@@ -56,10 +56,11 @@ their own records.
 - **C20–22:** `docs/science/mechanisms.md` updated: H1 with explicit diffusion
   per ADR 0017's amendments; iris spacing from Jones's measured gratings (ADR
   0042), and that open question answered; the status block's counts; stale notes;
-  the later plume, stick and pigment models. A time-boxed search found no
-  peer-reviewed refractive index for chalcedony (2026-11-10). Graetsch, Flörke &
-  Miehe 1987 (Phys. Chem. Minerals 14, 249–257) report that it depends on water
-  content, but the full text is closed, so n = 1.54 stays a stated assumption.
+  the later plume, stick and pigment models. Refractive index: the owner
+  supplied Graetsch, Flörke & Miehe 1987, whose Table 6 gives 1.533–1.542 along
+  the fibres for Brazilian agate chalcedony, falling with water content
+  [@graetsch1987]. n = 1.54 lies in that range and stays, now sourced; results
+  are unchanged.
 - **C23:** forward notes in ADRs 0010, 0015, 0024, 0049, 0053 and 0073; ADR 0072
   records that the new project is Nodule.
 - **C24:** the roadmap gains a row for the work since v0.1.0; README lists the

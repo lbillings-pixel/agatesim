@@ -218,9 +218,10 @@ amendment).
   about 15,000 down to 400 lines per inch, about 1.7–64 µm ([@jones1952]); the
   simulator accepts 1–65 µm on that basis (ADR 0042).
   The renderer applies the grating equation (d·sin θ = mλ) with the grating
-  lines along the visible bands. The refractive index of chalcedony (1.54) is an
-  assumed typical value: no peer-reviewed figure has been found yet (searched
-  2026-11-10).
+  lines along the visible bands. The renderer uses one refractive index, 1.54, for
+  all bands. Chalcedony from Brazilian agate bands measures 1.533–1.542 along the
+  fibres, lower in wetter bands [@graetsch1987]; the index across the fibres
+  was not measured.
 - **Against two banding hypotheses** ([@cartwright2026] §5.1.1): Liesegang
   patterns lack agate's sharp corners, have ring defects agates don't, and follow
   a spacing law agates don't. External-rhythm models predict that nearby agates
