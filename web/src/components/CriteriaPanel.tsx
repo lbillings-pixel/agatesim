@@ -26,7 +26,7 @@ export function CriteriaPanel({ evaluation, archetypes, title }: Props) {
     return (
       <section className="criteria-panel">
         <h3>Archetype tests</h3>
-        <p className="muted">Choose a form under “Judge as” to test this result against it.</p>
+        <p className="muted">Choose a form to test this result against it.</p>
       </section>
     );
   }

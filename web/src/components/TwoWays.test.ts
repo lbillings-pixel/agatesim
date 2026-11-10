@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ArchetypeInfo, RunConfig } from "../api";
 import { fieldsFor, imposedSettings } from "../lib/schema";
-import { formPairs } from "./TwoWays";
+import { formPairs } from "../lib/forms";
 
 const archetype = (id: string, implemented = true): ArchetypeInfo => ({
   id, name: id, rung: 1, status: { procedural: "verified", mechanistic: "pending" }, implemented, criteria: [],

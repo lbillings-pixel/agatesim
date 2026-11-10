@@ -51,3 +51,7 @@ while the mechanistic tier stayed at 4 of 12 forms. Its answer has converged.
 - Effort turns to the mechanistic tier for the eight pending forms, and to
   the web app.
 - The README's findings already state the conclusion in these terms.
+
+## Record (2026-11-10)
+
+The research code behind the corner question was removed in the 2026-11 audit (owner decision, PR #14, item C27): `scripts/h1_stefan_scan.py`, `h1_linear_stability.py`, `h1_surface_stability.py`, `h1_regularised_stability.py`, `h1_front_2d.py` and `marker_band_thinning.py`, `scripts/fetch_reference_images.py`, the module `agatesim.specimen.corner_fit` with its tests, and the hand-marked corners in `references/images/corner_marks.toml`. Commit 15c36be is the last that has them all; check it out to rerun the figures in ADRs 0017, 0026, 0028–0030, 0032 and this one.

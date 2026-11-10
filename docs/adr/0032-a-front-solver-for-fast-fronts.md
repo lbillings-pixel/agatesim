@@ -61,3 +61,7 @@ becomes singular. While fixing that, three more faults turned up.
 - The corner of ADR 0030's set 28923 is now settled (see its amendment).
 - The solver stays a script. Its 2D results before this ADR (ADR 0028) shift by
   about 10% in the lag, not in kind.
+
+## Record (2026-11-10)
+
+The scripts and marks named here were removed in the 2026-11 audit; commit 15c36be is the last that has them (see ADR 0034, Record).

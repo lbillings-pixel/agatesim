@@ -1,6 +1,7 @@
 # 10. Optical renderer: shadow and iris agate
 
 - Status: accepted
+- Later changed by: [ADR 0042](0042-iris-spacing-from-measured-gratings.md) (the `grating-spacing` range)
 - Date: 2026-10-15
 
 ## Context

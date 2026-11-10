@@ -35,10 +35,6 @@ class Step(BaseModel):
     at: Time
     value: float
 
-    @property
-    def start(self) -> float:
-        return self.at
-
 
 class Ramp(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -72,9 +68,6 @@ class Schedule(BaseModel):
 
     base: float
     events: tuple[Event, ...] = ()
-
-    def values(self) -> list[float]:
-        return [self.base, *(e.value for e in self.events)]
 
     def sample(self, t: FloatArray) -> FloatArray:
         t = np.asarray(t, dtype=np.float64)

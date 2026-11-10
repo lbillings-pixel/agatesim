@@ -68,7 +68,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim import _scipy, progress
-from agatesim.fields import Fields, Phase, Pigment
+from agatesim.fields import QUARTZ_TRANSLUCENCY, Fields, Phase, Pigment
 from agatesim.grid import FloatArray
 from agatesim.models.base import Domain
 from agatesim.models.growth import grow_crystals, spherulite_distance
@@ -76,7 +76,7 @@ from agatesim.params import KEY, Nature, param, used_when
 
 GEOMETRY_SAMPLES = 400  # depths at which the cavity's filled share is tabulated
 TRACE_SAMPLES = 20000  # depths at which the front's history is tabulated
-MILKY, CLEAR = 0.15, 0.9  # translucency of milky and clear chalcedony (and of quartz: clear)
+MILKY, CLEAR = 0.15, 0.9  # translucency of milky and clear chalcedony
 
 
 class TracePigments(BaseModel):
@@ -338,7 +338,7 @@ class FrontFeedback(BaseModel):
         ),
     )
     spherulite_spacing_mm: float = param(
-        10.0,
+        16.0,  # inside the photo-matched range (ADR 0069, 0084); presets set their own
         gt=0,
         units="mm",
         nature=Nature.EFFECTIVE,
@@ -745,9 +745,12 @@ def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]
     chal = grown & ~quartz
     edges = band_edges(history)
     band = np.where(chal, np.searchsorted(edges, d, side="right"), -1).astype(np.int32)
-    # Iron stand-in: the incorporated impurity, on a log scale over the run.
+    # Iron stand-in: the incorporated impurity, on a log scale over the run's
+    # chalcedony (ADR 0082): the run's range, not that of the points evaluated
+    # together, so a point's value doesn't depend on its batch or the resolution.
     log_c = np.log(np.maximum(incorporated, 1e-12))
-    lo, hi = (float(log_c[chal].min()), float(log_c[chal].max())) if chal.any() else (0.0, 1.0)
+    run_c = np.log(np.maximum(history.incorporated, 1e-12))[~history.quartz]
+    lo, hi = (float(run_c.min()), float(run_c.max())) if run_c.size else (0.0, 1.0)
     stain = np.clip((log_c - lo) / max(hi - lo, 1e-9), 0, 1)
     # Milky or clear (ADR 0048, an assumption): the impurity-rich, fast half of
     # each cycle is milky, the rest clear, switching where the bands are drawn,
@@ -766,7 +769,7 @@ def history_fields(history: FrontHistory, d: FloatArray, mask: NDArray[np.bool_]
         band=band,
         impurity=np.where(chal, 0.6 * stain, 0.0).astype(np.float32),
         translucency=np.where(
-            chal, np.where(milky, MILKY, CLEAR), np.where(quartz, CLEAR, 0.0)
+            chal, np.where(milky, MILKY, CLEAR), np.where(quartz, QUARTZ_TRANSLUCENCY, 0.0)
         ).astype(np.float32),
         t_dep=np.where(grown, time, np.nan).astype(np.float32),
         grain=np.full(d.shape, -1, dtype=np.int32),

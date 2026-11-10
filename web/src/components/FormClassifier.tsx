@@ -17,6 +17,21 @@ const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const percent = (p: number) => `${Math.round(p * 100)}%`;
 const SHOWN = 5;
 
+type Vocab = { forms: { id: string; name: string }[]; features: string[] };
+// The forms and features don't change while the app runs: fetch them once, not for
+// every photo (this component remounts per photo). A failure is not kept.
+let vocabRequest: Promise<Vocab> | null = null;
+function loadVocab(): Promise<Vocab> {
+  vocabRequest ??= library.list().then(
+    (i) => ({ forms: i.forms, features: i.features }),
+    (e: unknown) => {
+      vocabRequest = null;
+      throw e;
+    },
+  );
+  return vocabRequest;
+}
+
 /** The learned classifier's answer on one of the owner's photos, and their
  * confirmation or correction (ADR 0067). Corrections are kept beside the photo,
  * never in the reference library, and train the classifier on this PC only.
@@ -25,7 +40,7 @@ export function FormClassifier({ name }: { name: string }) {
   const [answer, setAnswer] = useState<ClassifierAnswer | null>(null);
   const [saved, setSaved] = useState<LibraryLabel | null>(null);
   const [edit, setEdit] = useState<{ label: LibraryLabel; guessed: boolean } | null>(null);
-  const [vocab, setVocab] = useState<{ forms: { id: string; name: string }[]; features: string[] } | null>(null);
+  const [vocab, setVocab] = useState<Vocab | null>(null);
   const [status, setStatus] = useState<ClassifierStatus | null>(null);
   const [task, setTask] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,10 +51,7 @@ export function FormClassifier({ name }: { name: string }) {
   const ask = (n: string) => specimens.classify(n).then(setAnswer, (e: unknown) => setError(message(e)));
 
   useEffect(() => {
-    library.list().then(
-      (i) => setVocab({ forms: i.forms, features: i.features }),
-      (e: unknown) => setError(message(e)),
-    );
+    loadVocab().then(setVocab, (e: unknown) => setError(message(e)));
     void refreshStatus();
   }, []);
 
@@ -120,7 +132,7 @@ export function FormClassifier({ name }: { name: string }) {
           <ul className="classifier-ranked small">
             {ranked.slice(0, SHOWN).map((r) => (
               <li key={r.form}>
-                <span className="classifier-form">{r.form}</span>
+                <span>{r.form}</span>
                 <span className="classifier-bar" aria-hidden="true">
                   <span style={{ width: percent(r.p) }} />
                 </span>

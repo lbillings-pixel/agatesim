@@ -30,8 +30,8 @@
 - `uv sync`: install (`uv sync --extra gpu` with CuPy). Once the GPU extra is
   installed, run everything as `uv run --no-sync ...`: a plain `uv run` re-syncs
   and removes CuPy, even under a running job.
-- `uv run pytest` (full, ~14 min; `-m "not slow"` quick tier ~6.5 min, list in
-  tests/conftest.py) / `uv run ruff check` / `uv run ruff format` / `uv run pyright`
+- `uv run pytest` (full, ~17 min; `-m "not slow"` quick tier ~8 min, list in
+  tests/conftest.py; runs and photos several files share are in tests/_shared.py) / `uv run ruff check` / `uv run ruff format` / `uv run pyright`
 - `uv run agatesim run <preset|config.toml> [--preview] [--check]`
 - `uv run agatesim library shape` then `volume shape [presets]`: band shape on
   photos vs blurred random cuts (ADR 0069; ~80 min for all, cached)
@@ -63,17 +63,18 @@
 - Every new criterion needs a negative control in tests/test_criteria.py: a
   result lacking the form that the criterion must reject.
 - Models read only the Domain and write only Fields. Criteria read only Fields
-  (plus geometry), never model internals.
+  (plus geometry, which includes the run's gravity direction), never model internals.
 - Anything random must be resolution-independent (spawned RNG streams; noise in
   world coordinates), so previews match full runs.
-- Label every model parameter `physical` or `effective` (ADR 0003).
+- Label every model parameter `physical`, `effective` or `imposed` (ADR 0003, 0005).
 - Long work reports through `agatesim.progress` (ADR 0054), so the app can show
   the time left and cancel it. Work on lattices of millions of cells in chunks
   (never every cell's coordinates at once), build search trees once, and hand
   GPU memory back after large runs (`_rd.release_gpu_memory`): each has caused
   gigabytes of waste or a crash before. A GPU path must give the CPU path's
   result (hashed draws for anything random, ADR 0057), and the compiled CPU
-  dendrite loop (`_dla_numba`) the NumPy reference loop's (ADR 0061).
+  dendrite loop (`_dla_numba`) the NumPy reference loop's (ADR 0061). The
+  GPU-vs-CPU tests skip in CI (no GPU), so run them here before pushing a GPU change.
 - Procedural results are never evidence for a formation mechanism.
 - The owner's specimen photos live in `specimens/` (gitignored) and never enter
   the repository, a commit, an artifact or any external service. Anything derived

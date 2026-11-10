@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from agatesim import progress
 from agatesim.fields import Fields, Phase
 from agatesim.volume.config import SliceConfig, VolumeConfig
 from agatesim.volume.grid import Grid3
@@ -67,6 +68,7 @@ class VolumeSimulation:
                 pigment[layers] = f.pigment.reshape(part)
                 pigmented = True
             inside[layers] = ins.reshape(part)
+            progress.report(layers.stop / grid.nz)
         fields = Fields(
             phase=phase,
             band=band,
@@ -85,12 +87,6 @@ class VolumeSimulation:
     def cut(self, slice_config: SliceConfig | None = None) -> Cut:
         config = self.config if slice_config is None else self.config.with_slice(slice_config)
         return cut(config, self.setting, self.evaluate, self.plane(config.slice))
-
-    def cut_plane(self, plane: Plane, resolution: int | None = None) -> Cut:
-        config = self.config
-        if resolution is not None:
-            config = config.with_slice(config.slice.model_copy(update={"resolution": resolution}))
-        return cut(config, self.setting, self.evaluate, plane)
 
 
 def prepare_volume(config: VolumeConfig) -> VolumeSimulation:

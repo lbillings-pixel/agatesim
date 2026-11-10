@@ -87,6 +87,7 @@ def test_gpu_matches_cpu(isotropic: bool) -> None:
     a = _run(np, n, 500, isotropic)
     b = _run(cupy, n, 500, isotropic)
     assert np.allclose(a[0], b[0], atol=1e-12)
+    assert np.allclose(a[1], b[1], equal_nan=True)
     assert a[2] == b[2]
 
 

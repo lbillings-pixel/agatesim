@@ -1,6 +1,7 @@
 # 15. Mechanistic Liesegang precipitation (H2), and a hypothesis test
 
 - Status: accepted
+- Later changed by: [ADR 0054](0054-gpu-by-default-and-progress-for-long-actions.md) (the solver runs on the GPU by default)
 - Date: 2026-10-15
 - Builds on: [ADR 0013](0013-mechanistic-front-feedback.md)
 

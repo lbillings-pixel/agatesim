@@ -108,3 +108,7 @@ lower right and merges with its neighbour near the left corner.
   through the cavity.
 - Backlog: more specimens with marker bands, ideally photographed under even
   light.
+
+## Record (2026-11-10)
+
+The scripts and marks named here were removed in the 2026-11 audit; commit 15c36be is the last that has them (see ADR 0034, Record).

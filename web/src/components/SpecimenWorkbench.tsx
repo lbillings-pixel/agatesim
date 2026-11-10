@@ -64,6 +64,9 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
   const [lineStart, setLineStart] = useState<Point | null>(null);
   const [saved, setSaved] = useState(true);
   const imgRef = useRef<HTMLImageElement>(null);
+  // The photo on screen now. An answer that arrives for another photo (opened
+  // before this one, answered after) is dropped, not shown or saved under this one.
+  const shown = useRef<string | null>(null);
 
   const refresh = () => specimens.list().then(setFiles, (e: unknown) => setError(String(e)));
   useEffect(() => {
@@ -72,14 +75,19 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
 
   const score = (n: string, s: SpecimenSettings) =>
     specimens.quality(n, s).then(
-      (r) => setQuality(r.badges),
-      () => setQuality(null),
+      (r) => {
+        if (shown.current === n) setQuality(r.badges);
+      },
+      () => {
+        if (shown.current === n) setQuality(null);
+      },
     );
 
   const choose = (n: string) => {
     setTab("classify");
     setQuality(null);
     setName(n);
+    shown.current = n;
     setAnalysis(null);
     setReplica(null);
     setError(null);
@@ -90,6 +98,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
     setLineStart(null);
     setSaved(true);
     specimens.settings(n).then((s) => {
+      if (shown.current !== n) return;
       void score(n, s);
       setSettings({ ...s, transects: s.transects ?? [] });
       setActive(s.transects?.length ? 0 : null);
@@ -100,7 +109,13 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
         setUnit("mm");
         setDistance(c.distance_mm);
       }
-    }, () => setSettings(blank));
+    }, () => {
+      if (shown.current !== n) return;
+      // Nothing of the photo shown before may stay: Analyse would save it here.
+      setSettings(blank);
+      setPoints([]);
+      setFaceHeight(0);
+    });
   };
 
   const current = (): SpecimenSettings => {
@@ -122,7 +137,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
       void score(name, s); // the scale and the specimen pick change the scores
       await action(s);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (shown.current === name) setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(null);
     }
@@ -223,10 +238,14 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
           onOpen={choose}
           onUploaded={choose}
           onRenamed={(from, to) => {
-            if (from === name) setName(to);
+            if (from === name) {
+              shown.current = to;
+              setName(to);
+            }
           }}
           onDeleted={(n) => {
             if (n === name) {
+              shown.current = null;
               setName(null);
               setQuality(null);
             }
@@ -250,7 +269,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
             <li key={f.name}>
               <button type="button" className={f.name === name ? "selected" : undefined} onClick={() => choose(f.name)}>
                 {f.name}
-                {f.has_settings && <span className="muted small"> · scaled</span>}
+                {f.scaled && <span className="muted small"> · scaled</span>}
               </button>
             </li>
           ))}
@@ -336,14 +355,20 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
                 type="button"
                 className="primary"
                 disabled={!scaleReady || busy !== null}
-                onClick={() => run("Analysing", async (s) => setAnalysis(await specimens.analyse(name, s)))}
+                onClick={() => run("Analysing", async (s) => {
+                    const found = await specimens.analyse(name, s);
+                    if (shown.current === name) setAnalysis(found);
+                  })}
               >
                 Analyse
               </button>
               <button
                 type="button"
                 disabled={!scaleReady || busy !== null}
-                onClick={() => run("Fitting a replica", async (s) => setReplica(await specimens.replicate(name, s)))}
+                onClick={() => run("Fitting a replica", async (s) => {
+                    const fitted = await specimens.replicate(name, s);
+                    if (shown.current === name) setReplica(fitted);
+                  })}
               >
                 Replicate
               </button>

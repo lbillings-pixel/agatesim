@@ -93,7 +93,6 @@ function sideBySide(view: Volume3DHandle | null, cut: FrameSource): FrameSource 
   };
 }
 
-/** A request the server stopped because it was cancelled, in words. */
 /** Start building the view or cut now, or hold it when preparing its formation is
  * heavy and the owner hasn't pressed Build for it (ADR 0062). */
 function startUnlessHeavy(
@@ -210,7 +209,12 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
         });
     };
     const timer = window.setTimeout(() => {
-      const hold = (estimate: CostEstimate) => setHeld({ key: formationKey, estimate });
+      // Held: nothing is building now, even if an earlier request was abandoned mid-flight.
+      const hold = (estimate: CostEstimate) => {
+        setHeld({ key: formationKey, estimate });
+        setCutBusy(false);
+        setCutTask(null);
+      };
       startUnlessHeavy(config, sizes.current, approved.current === formationKey, controller.signal, start, hold);
     }, DEBOUNCE_MS);
     return () => {
@@ -241,7 +245,12 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
         });
     };
     const timer = window.setTimeout(() => {
-      const hold = (estimate: CostEstimate) => setHeld({ key: formationKey, estimate });
+      // Held: nothing is building now, even if an earlier request was abandoned mid-flight.
+      const hold = (estimate: CostEstimate) => {
+        setHeld({ key: formationKey, estimate });
+        setVoxelsBusy(false);
+        setVoxelsTask(null);
+      };
       startUnlessHeavy(config, sizes.current, approved.current === formationKey, controller.signal, start, hold);
     }, DEBOUNCE_MS);
     return () => {
@@ -279,7 +288,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   useEffect(() => {
     if (!job || job.status === "done" || job.status === "failed") return;
     const timer = window.setInterval(() => {
-      api.job(job.id).then(setJob, () => undefined);
+      api.followJob(job).then(setJob, () => undefined);
     }, 1000);
     return () => window.clearInterval(timer);
   }, [job]);
@@ -313,7 +322,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
     surveyAbort.current = controller;
     setSurveyTask(task);
     volumeApi
-      .survey(config, surveyCount, 384, controller.signal, task)
+      .survey(config, surveyCount, controller.signal, task)
       .then(
         (result) => setSurveyed({ key: surveyKey, result }),
         (e: unknown) => {
@@ -441,6 +450,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
             fields={fields}
             values={config.model}
             onChange={(path, v) => update((c) => ({ ...c, model: { ...withSetting(c.model, path, v), kind: c.model.kind } }))}
+            idPrefix="volume-param" // the simulator's panel, mounted alongside, uses "param"
           />
         </section>
 
@@ -740,7 +750,7 @@ function SurveyTable({ result }: { result: SurveyResult }) {
         <strong>{pct(s.pass_rate)}</strong> of {s.judged} cuts pass as {s.archetype}{" "}
         {result.elapsed_ms > 0 && <span className="muted small">({(result.elapsed_ms / 1000).toFixed(1)} s)</span>}
       </p>
-      <table className="stats-table">
+      <table>
         <thead>
           <tr>
             <th>Criterion</th>

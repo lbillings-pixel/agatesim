@@ -194,11 +194,14 @@ The app runs only on your machine (bound to localhost). It offers:
   plus a **drawing tool** for your own (click corners or sketch freehand; keep
   corners angular or smooth them).
 - **Tubes**: click the preview to place filaments that banding grows around.
-- **Specimens screen**: measure your own specimen photos (they stay on your
-  machine and are shown without metadata). Mark the ruler, and agatesim traces
-  the outline (correcting for the face standing above the ruler), maps the bands,
-  checks the forms it can judge from a photo, and fits a simulated replica in the
-  specimen's own outline.
+- **Specimens screen**, in three tabs. **Library**: your own specimen photos
+  (they stay on your machine and are shown without metadata), with a quality
+  check. **Classify**: a photo's likely forms, from a local image model; mark
+  the ruler, and agatesim traces the outline (correcting for the face standing
+  above the ruler), maps the bands, checks the forms it can judge from a photo,
+  and fits a simulated replica in the specimen's own outline. **Reference
+  labels**: label the openly licensed reference photos by form, tap points for
+  training the feature maps, and check tags (phone-friendly).
 - **3D screen**: a cavity as a solid (vesicles, an angular nodule, lobed and
   lumpy nodules, sheet-like seams), a rotatable 3D view opened at a cut, and
   the cut itself as a slab, judged like any 2D result. Tilt and move the cut,
@@ -244,6 +247,13 @@ uv run agatesim archetypes                # the archetype ladder and its status
 uv run agatesim volume presets            # shipped 3D presets
 uv run agatesim volume run fortification-mechanistic-3d --survey 60   # 3D run + random cuts
 uv run agatesim volume survey waterline-3d --cuts 100                 # judge random cuts only
+uv run agatesim library fetch             # download the reference photos (open licences)
+uv run agatesim library status            # listed, fetched and labelled
+uv run agatesim library shape             # band shape statistics of the usable photos
+uv run agatesim volume shape              # the same on blurred random cuts of 3D models (slow, cached)
+uv run agatesim classify fetch            # download the image model (84 MB, once)
+uv run agatesim classify photo my.jpg     # a photo's likely forms
+uv run agatesim maps build                # train the feature maps from the training taps
 ```
 
 Each run directory contains `config.toml` (reproduces the run exactly),
@@ -271,7 +281,7 @@ npm --prefix web run lint                 # ESLint
 ```
 src/agatesim/
   archetypes/        archetype ladder (registry.toml): criteria and thresholds
-  presets/           shipped run configs; one per verified archetype
+  presets/           shipped run configs; one per verified archetype and tier, plus extras
   models/            formation models: procedural (fortification, waterline, growth history)
                      and mechanistic (front feedback H1, Liesegang H2, settling H4,
                      stages, chemical gardens), pigments and palettes

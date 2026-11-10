@@ -7,6 +7,7 @@ import {
   library,
 } from "../api";
 import { type Filter, draftFor, matches, nextIndex, toggle } from "../lib/labels";
+import { PhotoCredit } from "./PhotoCredit";
 import { TagChecker } from "./TagChecker";
 import { TapLabeler } from "./TapLabeler";
 
@@ -168,22 +169,7 @@ export function ReferenceLabeler() {
       <figure className="labeler-photo">
         <img src={library.imageUrl(image.id)} alt={image.title} />
         <figcaption className="muted">
-          {/* Photos used by permission (tier 2) have no public page or licence link. */}
-          {image.source.startsWith("http") ? (
-            <a href={image.source} target="_blank" rel="noreferrer">
-              {image.title}
-            </a>
-          ) : (
-            image.title
-          )}{" "}
-          · {image.author} ·{" "}
-          {image.licence_url ? (
-            <a href={image.licence_url} target="_blank" rel="noreferrer">
-              {image.licence}
-            </a>
-          ) : (
-            image.licence
-          )}
+          <PhotoCredit image={image} />
           {image.label && ` · labelled ${image.label.verdict === "forms" ? "" : image.label.verdict}`}
         </figcaption>
       </figure>

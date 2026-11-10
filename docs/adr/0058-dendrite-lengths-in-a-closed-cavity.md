@@ -99,3 +99,7 @@ So finding 3 stays an untested prediction. Testing it needs lengths of
 dendrites in closed nodules, measured from their wall, on sections or (better)
 in 3D: the specimens or scans would have to be collected, which no source
 read has done.
+
+## Record (2026-11-10)
+
+`scripts/dendrite_length_law.py` was removed in the 2026-11 audit (PR #14, item C28); commit 15c36be is the last that has it.

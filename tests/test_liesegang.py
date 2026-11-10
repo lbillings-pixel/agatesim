@@ -30,7 +30,10 @@ def _config(
 
 @cache
 def _angular() -> SimulationResult:
-    return simulate(_config(15.0, 0.04, 512))
+    # 0.0416 mm: the lattice these tests were written on (asked 0.04, it was 4%
+    # coarser until ADR 0084). The pattern is sensitive to the spacing: 0.038-0.042
+    # gives 5-13 bands, and at exactly 0.04 three of 12 bands don't close.
+    return simulate(_config(15.0, 0.0416, 512))
 
 
 def test_liesegang_bands_are_closed_rings_that_round_off_the_corners() -> None:
@@ -66,6 +69,19 @@ def test_output_resolution_does_not_change_the_pattern() -> None:
     assert len(np.unique(coarse.fields.band[coarse.domain.mask])) == len(
         np.unique(fine.fields.band[fine.domain.mask])
     )
+
+
+def test_the_lattice_has_the_spacing_asked_for_until_it_must_coarsen() -> None:
+    """`lattice_mm` is the lattice's spacing (it was 4% coarser: audit C2, ADR 0084);
+    beyond MAX_CELLS it coarsens, staying near that many cells."""
+    from agatesim.models.liesegang import MAX_CELLS, _lattice_grid  # pyright: ignore[reportPrivateUsage]
+    from agatesim.simulate import build_domain
+
+    domain = build_domain(_config(10.0, 0.05, 64))
+    assert _lattice_grid(domain, 0.05).dx == 0.05
+    coarse = _lattice_grid(domain, 0.001)
+    assert coarse.dx > 0.001
+    assert 0.98 * MAX_CELLS < coarse.nx * coarse.ny < 1.01 * MAX_CELLS
 
 
 def test_liesegang_reproduces_seam_agate(monkeypatch: pytest.MonkeyPatch) -> None:

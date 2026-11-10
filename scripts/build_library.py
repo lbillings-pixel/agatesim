@@ -1,7 +1,7 @@
 """Build the reference library's sources list (references/library.toml) from
 Wikimedia Commons (ADR 0063, tier 1; ADR 0066).
 
-    uv run python scripts/build_library.py [--limit 300] [--dry-run]
+    uv run --no-sync python scripts/build_library.py [--limit 300] [--dry-run]
 
 Walks a curated set of agate categories, keeps openly licensed photos large
 enough to classify, and records each one's source, author, licence and the

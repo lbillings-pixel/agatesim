@@ -3,17 +3,13 @@ follow the viewing angle and direction; results without micro-banding say why.""
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from pathlib import Path
-
 import numpy as np
-import pytest
 from fastapi.testclient import TestClient
 
 from agatesim.config import load_preset
 from agatesim.fields import Phase
+from agatesim.models.base import micro_band_spacing
 from agatesim.optics import render_iris
-from agatesim.server.app import create_app
 from agatesim.simulate import SimulationResult, simulate
 
 RESOLUTION = 256
@@ -26,10 +22,12 @@ def _coloured(result: SimulationResult, view_deg: float, azimuth_deg: float) -> 
     return float(((agate.max(axis=1) - agate.min(axis=1)) > 0.15).mean())
 
 
-@pytest.fixture
-def client(tmp_path: Path) -> Iterator[TestClient]:
-    with TestClient(create_app(tmp_path, static_dir=None)) as c:
-        yield c
+def test_a_bands_grating_does_not_depend_on_the_band_count() -> None:
+    """A preview and its full run can have a different number of bands; band k's
+    grating must be the same in both (audit C1, ADR 0084)."""
+    few = micro_band_spacing(20, 0.5, 2.0, 0.3, np.random.default_rng(7))
+    many = micro_band_spacing(23, 0.5, 2.0, 0.3, np.random.default_rng(7))
+    np.testing.assert_array_equal(few, many[:20])
 
 
 def test_the_default_form_shows_iris_colours() -> None:

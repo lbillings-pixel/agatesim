@@ -169,3 +169,7 @@ smoothing, not capillarity.
   - whether a supply that is less diffusion-limited (higher s_f) can oscillate
     at all in this model, since that is what a corner needs;
   - a sourced silica–water interfacial energy;
+
+## Record (2026-11-10)
+
+The scripts and marks named here were removed in the 2026-11 audit; commit 15c36be is the last that has them (see ADR 0034, Record).

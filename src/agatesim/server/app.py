@@ -5,9 +5,8 @@ Intended to run on the user's own machine, bound to localhost (`agatesim serve`)
 
 from __future__ import annotations
 
-import base64
-import io
 import json
+import threading
 import time
 from collections import OrderedDict
 from collections.abc import AsyncGenerator
@@ -21,7 +20,6 @@ import zarr
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from numpy.typing import NDArray
 from PIL import Image
 from pydantic import BaseModel, Field
 from starlette.types import Scope
@@ -46,6 +44,7 @@ from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
 from agatesim.runs import delete_run, is_run_id, list_runs, usage
 from agatesim.server.classifier import ClassifierService, classifier_router
+from agatesim.server.encoding import data_uri, encode_tdep, png
 from agatesim.server.jobs import Job, JobManager
 from agatesim.server.library import library_router
 from agatesim.server.specimens import specimen_router
@@ -124,37 +123,35 @@ class _Simulations:
 
     def __init__(self) -> None:
         self._items: OrderedDict[str, SimulationResult] = OrderedDict()
+        self._lock = threading.Lock()
+        self._running: dict[str, threading.Lock] = {}  # one per settings being simulated
 
     def get(self, config: RunConfig) -> SimulationResult:
+        """The result for `config`. Two requests for the same new settings (a
+        preview and its optical view) simulate once: the second waits for the first."""
         key = config.digest()
-        if key in self._items:
-            self._items.move_to_end(key)
-        else:
-            if len(self._items) >= SIMULATION_CACHE:
-                self._items.popitem(last=False)
-            self._items[key] = simulate(config)
-        return self._items[key]
+        with self._lock:
+            running = self._running.setdefault(key, threading.Lock())
+        with running:
+            with self._lock:
+                found = self._items.get(key)
+                if found is not None:
+                    self._items.move_to_end(key)
+                    return found
+            try:
+                result = simulate(config)  # outside the cache's lock: other settings go on
+                with self._lock:
+                    while len(self._items) >= SIMULATION_CACHE:
+                        self._items.popitem(last=False)
+                    self._items[key] = result
+                return result
+            finally:
+                with self._lock:
+                    self._running.pop(key, None)
 
     def has(self, config: RunConfig) -> bool:
-        return config.digest() in self._items
-
-
-def _png(image: Image.Image) -> bytes:
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG", optimize=False)
-    return buffer.getvalue()
-
-
-def _data_uri(png: bytes) -> str:
-    return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
-
-
-def encode_tdep(t_dep: NDArray[np.floating[Any]]) -> Image.Image:
-    """Deposition time as an 8-bit image: 0..254 is time 0..1, 255 is never deposited.
-    The slab viewer uses it to show growth over time."""
-    t = np.asarray(t_dep, dtype=np.float64)
-    coded = np.where(np.isnan(t), 255, np.rint(np.clip(t, 0, 1) * 254)).astype(np.uint8)
-    return Image.fromarray(coded)
+        with self._lock:
+            return config.digest() in self._items
 
 
 def _evaluation(config: RunConfig, result: Any) -> dict[str, object] | None:
@@ -255,6 +252,13 @@ def create_app(
             raise HTTPException(404, f"no run {run_id!r}")
         return path
 
+    def flat_run_dir(run_id: str) -> Path:
+        """A 2D run's folder (3D runs are served under /api/volume/runs)."""
+        path = run_dir(run_id)
+        if (path / "cut.json").exists():
+            raise HTTPException(404, f"{run_id!r} is a 3D run")
+        return path
+
     @app.get("/api/meta")
     def meta() -> dict[str, object]:
         return _meta()
@@ -292,7 +296,7 @@ def create_app(
                     "(micro rhythm)."
                 )
         return {
-            "image": _data_uri(_png(Image.fromarray(rgb))),
+            "image": data_uri(png(Image.fromarray(rgb))),
             "elapsed_ms": round((time.perf_counter() - t0) * 1000),
             "note": note,
         }
@@ -306,8 +310,8 @@ def create_app(
         rgb = render_slab(result)
         elapsed = time.perf_counter() - t0
         return {
-            "image": _data_uri(_png(Image.fromarray(rgb))),
-            "tdep": _data_uri(_png(encode_tdep(result.fields.t_dep))),
+            "image": data_uri(png(Image.fromarray(rgb))),
+            "tdep": data_uri(png(encode_tdep(result.fields.t_dep))),
             "width": result.grid.nx,
             "height": result.grid.ny,
             "dx_mm": result.grid.dx,
@@ -358,10 +362,6 @@ def create_app(
             raise HTTPException(422, f"resolution is limited to {MAX_RUN_RESOLUTION} px")
         return jobs.submit(config)
 
-    @app.get("/api/jobs")
-    def list_jobs() -> list[Job]:
-        return jobs.all()
-
     @app.get("/api/jobs/{job_id}")
     def get_job(job_id: str) -> Job:
         job = jobs.get(job_id)
@@ -388,7 +388,7 @@ def create_app(
 
     @app.get("/api/runs/{run_id}")
     def run_detail(run_id: str) -> dict[str, object]:
-        path = run_dir(run_id)
+        path = flat_run_dir(run_id)
 
         def optional(name: str) -> object:
             p = path / name
@@ -410,9 +410,9 @@ def create_app(
 
     @app.get("/api/runs/{run_id}/tdep.png")
     def run_tdep(run_id: str) -> Response:
-        group = zarr.open_group(store=str(run_dir(run_id) / "fields.zarr"), mode="r")  # pyright: ignore[reportUnknownMemberType]
+        group = zarr.open_group(store=str(flat_run_dir(run_id) / "fields.zarr"), mode="r")  # pyright: ignore[reportUnknownMemberType]
         t_dep = np.asarray(group["t_dep"])
-        return Response(_png(encode_tdep(t_dep)), media_type="image/png")
+        return Response(png(encode_tdep(t_dep)), media_type="image/png")
 
     specimens_dir = specimens_dir or runs_dir.parent / "specimens"
     classifier = classifier or ClassifierService(specimens_dir)

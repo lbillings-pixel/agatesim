@@ -16,9 +16,19 @@ interface Props {
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
+// Scores made in this visit, kept when the Library tab is left and reopened, so
+// photos aren't scored again (each takes seconds).
+let keptScores: Record<string, QualityBadge[]> = {};
+
+const without = <T,>(all: Record<string, T>, key: string): Record<string, T> =>
+  Object.fromEntries(Object.entries(all).filter(([k]) => k !== key));
+
 /** Every photo with its quality badges: what it is fit for, and why not (ADR 0064). */
 export function SpecimenLibrary({ files, selected, onOpen, onRenamed, onDeleted, onUploaded, refresh }: Props) {
-  const [scored, setScored] = useState<Record<string, QualityBadge[]>>({});
+  const [scored, setScored] = useState<Record<string, QualityBadge[]>>(() => keptScores);
+  useEffect(() => {
+    keptScores = scored;
+  }, [scored]);
   const [scoring, setScoring] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
@@ -80,6 +90,7 @@ export function SpecimenLibrary({ files, selected, onOpen, onRenamed, onDeleted,
       .then(
         () => {
           setConfirmDelete(null);
+          setScored((all) => without(all, name));
           onDeleted(name);
           refresh();
         },
@@ -96,6 +107,7 @@ export function SpecimenLibrary({ files, selected, onOpen, onRenamed, onDeleted,
       .upload(file)
       .then(
         (r) => {
+          setScored((all) => without(all, r.name));
           refresh();
           onUploaded(r.name);
         },
@@ -156,7 +168,7 @@ export function SpecimenLibrary({ files, selected, onOpen, onRenamed, onDeleted,
                   <span className="muted small">
                     {" "}
                     · {formatBytes(f.bytes)}
-                    {f.has_settings && " · scaled"}
+                    {f.scaled && " · scaled"}
                   </span>
                 </div>
               )}

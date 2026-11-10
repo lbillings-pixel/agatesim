@@ -2,20 +2,13 @@
 
 import json
 import time
-from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-from agatesim.server.app import create_app
 from agatesim.volume.config import load_volume_preset
-
-
-@pytest.fixture
-def client(tmp_path: Path) -> Iterator[TestClient]:
-    with TestClient(create_app(tmp_path, static_dir=None)) as c:
-        yield c
+from agatesim.volume.runs import read_volume_view
 
 
 def _config(name: str = "fortification-3d") -> dict[str, object]:
@@ -93,6 +86,9 @@ def test_survey_and_a_full_run(client: TestClient, tmp_path: Path) -> None:
     assert slab.content[1:4] == b"PNG"
     assert client.get("/api/volume/runs/not-a-run").status_code == 404
     # A saved run's own volume, read from its files, as the live view sends one.
+    # The 2D run pages don't know a 3D run: not found, rather than a server error.
+    assert client.get(f"/api/runs/{job['run_id']}").status_code == 404
+    assert client.get(f"/api/runs/{job['run_id']}/tdep.png").status_code == 404
     saved = client.get(f"/api/volume/runs/{job['run_id']}/voxels")
     header = json.loads(saved.headers["X-Volume"])
     assert max(header["nx"], header["ny"], header["nz"]) == 24
@@ -100,11 +96,9 @@ def test_survey_and_a_full_run(client: TestClient, tmp_path: Path) -> None:
     assert len(saved.content) == 5 * header["nx"] * header["ny"] * header["nz"]
     live = client.post("/api/volume/voxels", json={"config": config, "resolution": 24})
     assert saved.content == live.content  # the same voxels, saved or computed afresh
-    halved = json.loads(
-        client.get(f"/api/volume/runs/{job['run_id']}/voxels?most=12").headers["X-Volume"]
-    )
-    assert halved["stride"] == 2
-    assert max(halved["nx"], halved["ny"], halved["nz"]) == 12
+    halved = read_volume_view(run, 12)  # a large run is thinned to what the view takes
+    assert halved.stride == 2
+    assert max(halved.grid.shape) == 12
 
 
 def test_the_formation_cache_keeps_the_recently_used_within_its_budget() -> None:

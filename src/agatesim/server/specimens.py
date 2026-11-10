@@ -11,7 +11,6 @@ photos move to `.agatesim/deleted/`.
 
 from __future__ import annotations
 
-import base64
 import io
 import json
 import re
@@ -32,6 +31,7 @@ from agatesim.classify import own_label_path
 from agatesim.library import Label, check_label
 from agatesim.render import render_slab
 from agatesim.server.classifier import ClassifierService
+from agatesim.server.encoding import data_uri, png
 from agatesim.simulate import simulate
 from agatesim.specimen.benchmark import Transect, compare, score_along
 from agatesim.specimen.edges import EdgeMap, boundary_edges, edge_crossings
@@ -75,16 +75,6 @@ class SpecimenSettings(BaseModel):
     transects: list[Transect] = Field(
         default=[], description="Lines with hand-marked band boundaries."
     )
-
-
-def _png(array: np.ndarray) -> bytes:
-    buffer = io.BytesIO()
-    Image.fromarray(array).save(buffer, format="PNG")
-    return buffer.getvalue()
-
-
-def _data_uri(png: bytes) -> str:
-    return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
 
 
 def _transect_json(
@@ -173,7 +163,10 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
             )
         except ValueError as e:
             raise HTTPException(422, str(e)) from e
-        seg = segment(p.rgb, settings.seed)
+        try:
+            seg = segment(p.rgb, settings.seed)
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
         if len(seg.outline) < 3:
             raise HTTPException(422, "couldn't find the specimen: click on it to help")
         try:
@@ -208,12 +201,14 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
         out: list[dict[str, object]] = []
         for path in sorted(folder.iterdir()):
             if path.is_file() and NAME.fullmatch(path.name):
-                quality = cached_quality(path.name, saved_settings(path.name))
+                settings = saved_settings(path.name)
+                quality = cached_quality(path.name, settings)
                 out.append(
                     {
                         "name": path.name,
                         "bytes": path.stat().st_size,
                         "has_settings": settings_path(path.name).exists(),
+                        "scaled": settings.calibration is not None,  # a ruler was marked
                         "badges": None if quality is None else quality["badges"],
                     }
                 )
@@ -294,7 +289,7 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
         if new_ext != old_ext and same_kind.get(old_ext) != new_ext:
             raise HTTPException(422, f"keep the {old_ext} ending")
         target = folder / to
-        if target.exists() and target.name.lower() != name.lower():
+        if target.exists() and not target.samefile(source):
             raise HTTPException(409, f"{to} already exists")
         forget(name)
         source.rename(target)
@@ -327,7 +322,10 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
         if cached is not None:
             return {"quality": cached["quality"], "badges": cached["badges"]}
         p = photo(name)
-        seg = segment(p.rgb, settings.seed)
+        try:
+            seg = segment(p.rgb, settings.seed)
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
         mm_per_px: float | None = None
         ruler = None
         if settings.calibration is not None:
@@ -362,7 +360,7 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
             "size_mm": result.domain.cavity.size_mm,
             "outline_mm": np.round(obs.outline_mm, 3).tolist(),
             "host": settings.host.value,
-            "band_map": _data_uri(_png(band_map(obs))),
+            "band_map": data_uri(png(band_map(obs))),
             "stats": band_statistics(result).to_json(),
             "identification": [i.to_json() for i in identify(result)],
             "not_from_photos": NOT_FROM_PHOTOS,
@@ -417,7 +415,7 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
         image = render_slab(simulate(config))
         return {
             "config": json.loads(config.model_dump_json()),
-            "image": _data_uri(_png(image)),
+            "image": data_uri(png(image)),
             "stats": fit.stats.to_json(),
             "target": fit.target.to_json(),
             "mismatch": round(fit.mismatch, 3),

@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from _shared import preset_run
 from agatesim import _scipy
 from agatesim.config import RunConfig, load_preset
 from agatesim.criteria.radial import near_phase
@@ -66,7 +67,7 @@ def test_preview_matches_full_run(preset: str) -> None:
     """Previews must show the same agate as full runs, only coarser (ADR 0002).
     Deposition times agree pixel for pixel to within a couple of time steps, so
     nucleation sites, crystals and noise don't depend on resolution."""
-    full = simulate(load_preset(preset))
+    full = preset_run(preset)
     preview = simulate(load_preset(preset).with_resolution(256))
     # Compare at the preview's pixel centres.
     rows, cols = np.nonzero(preview.fields.phase == Phase.CHALCEDONY)
@@ -109,13 +110,6 @@ def test_same_seed_same_result() -> None:
         np.testing.assert_array_equal(array, b.arrays()[name], err_msg=name)
 
 
-def test_records_from_before_m4_still_load() -> None:
-    """Run records made before M4 name the retired `quartz_coarsening` parameter."""
-    old = load_preset("quartz-geode").model_dump(mode="json")
-    old["model"]["quartz_coarsening"] = 0.6
-    assert RunConfig.model_validate(old).model == load_preset("quartz-geode").model
-
-
 def test_tubes_are_inclusions_with_bands_around_them() -> None:
     result = simulate(load_preset("tube").with_resolution(256))
     f = result.fields
@@ -146,7 +140,7 @@ def test_dendrite_cache_never_changes_a_result() -> None:
 def test_inclusions_match_between_preview_and_full_run(preset: str) -> None:
     """Dendrites grow on a lattice in world coordinates, so a preview shows the
     same inclusions as a full run."""
-    full = simulate(load_preset(preset))
+    full = preset_run(preset)
     preview = simulate(load_preset(preset).with_resolution(256))
     rows, cols = np.nonzero(preview.fields.phase == Phase.INCLUSION)
     g = preview.grid

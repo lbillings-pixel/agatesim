@@ -11,13 +11,15 @@ any 2D run, so they judge a cut as they would judge a photo of a real slab.
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from dataclasses import dataclass, fields, replace
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
 
 from agatesim.config import CavityConfig, GridConfig, RunConfig
-from agatesim.fields import Fields
+from agatesim.fields import Fields, Pigment
 from agatesim.geometry import MAX_OUTLINE_POINTS, signed_area
 from agatesim.grid import FloatArray, Grid
 from agatesim.models.base import Domain
@@ -29,6 +31,7 @@ from agatesim.volume.solids import Solid
 SECTION_CELLS = 1024  # lattice cells along the cut's longer side, for tracing outlines
 MIN_SECTION_SHARE = 0.03  # of the cavity size: smaller cuts only graze it
 MARGIN_FRACTION = 0.08
+CUT_CHUNK = 1 << 21  # points evaluated together in a cut, as in a volume's chunks
 
 
 @dataclass(frozen=True)
@@ -233,6 +236,40 @@ class Cut:
     gravity_in_plane: float  # |gravity projected onto the cut|: 1 = gravity lies in it
 
 
+def join_fields(parts: list[Fields]) -> Fields:
+    """Fields of consecutive point lists joined into one list. An optional field
+    some parts lack is filled with what its absence means (iron pigment; t_dep
+    for t_smooth; impurity and translucency for the band's own values)."""
+    if len(parts) == 1:
+        return parts[0]
+
+    def optional(
+        get: Callable[[Fields], NDArray[Any] | None], absent: Callable[[Fields], NDArray[Any]]
+    ) -> NDArray[Any] | None:
+        values = [get(f) for f in parts]
+        if all(v is None for v in values):
+            return None
+        return np.concatenate(
+            [absent(f) if v is None else v for f, v in zip(parts, values, strict=True)]
+        )
+
+    return Fields(
+        phase=np.concatenate([f.phase for f in parts]),
+        band=np.concatenate([f.band for f in parts]),
+        impurity=np.concatenate([f.impurity for f in parts]),
+        translucency=np.concatenate([f.translucency for f in parts]),
+        t_dep=np.concatenate([f.t_dep for f in parts]),
+        grain=np.concatenate([f.grain for f in parts]),
+        micro_spacing_um=np.concatenate([f.micro_spacing_um for f in parts]),
+        pigment=optional(
+            lambda f: f.pigment, lambda f: np.full(f.phase.shape, Pigment.IRON, dtype=np.uint8)
+        ),
+        t_smooth=optional(lambda f: f.t_smooth, lambda f: f.t_dep),
+        band_impurity=optional(lambda f: f.band_impurity, lambda f: f.impurity),
+        band_translucency=optional(lambda f: f.band_translucency, lambda f: f.translucency),
+    )
+
+
 def reshape_fields(f: Fields, shape: tuple[int, ...]) -> Fields:
     return replace(
         f,
@@ -277,8 +314,15 @@ def cut(config: VolumeConfig, setting: Setting, evaluate: Evaluator, plane: Plan
     cavity = run.cavity.build()
     grid = Grid.around(cavity.bounds(), run.grid.resolution, run.grid.margin_fraction)
     domain = Domain.build(cavity, grid)
-    xx, yy = grid.coords()
-    flat = evaluate(plane.points(xx, yy), domain.mask.ravel())
+    # Whole rows of up to CUT_CHUNK points at a time, so large cuts never hold
+    # every pixel's 3D coordinates at once (ADR 0082).
+    x, y = grid.axes()
+    rows = max(1, CUT_CHUNK // grid.nx)
+    parts: list[Fields] = []
+    for r in range(0, grid.ny, rows):
+        xx, yy = np.meshgrid(x, y[r : r + rows])
+        parts.append(evaluate(plane.points(xx, yy), domain.mask[r : r + rows].ravel()))
+    flat = join_fields(parts)
     result = SimulationResult(config=run, domain=domain, fields=reshape_fields(flat, grid.shape))
     return Cut(
         result=result,

@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import math
 import platform
+import shutil
 import sys
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -28,7 +29,7 @@ import zarr
 from numpy.typing import NDArray
 from zarr.core.metadata import ArrayV3Metadata
 
-from agatesim import __version__
+from agatesim import __version__, progress
 from agatesim.criteria import Evaluation, evaluate, implemented
 from agatesim.render import render_slab, to_png_image
 from agatesim.runs import LIBRARIES, git_state, is_run_id
@@ -56,15 +57,30 @@ def write_volume_run(
     run_id = f"{started:%Y%m%d-%H%M%S}-{config.name}-{config.digest()[:6]}"
     path = out_dir / run_id
     path.mkdir(parents=True, exist_ok=False)
+    try:
+        return _write(sim, path, run_id, started, elapsed_s, survey)
+    except BaseException:  # a failed or cancelled write leaves no half-written run behind
+        shutil.rmtree(path, ignore_errors=True)
+        raise
+
+
+def _write(
+    sim: VolumeSimulation,
+    path: Path,
+    run_id: str,
+    started: datetime,
+    elapsed_s: float,
+    survey: Survey | None,
+) -> tuple[Path, Evaluation | None]:
+    config = sim.config
     (path / "config.toml").write_text(config.to_toml(), encoding="utf-8", newline="\n")
 
-    volume = sim.volume()
+    with progress.span(0.0, 0.7):
+        volume = sim.volume()
     grid = volume.grid
     group = zarr.open_group(store=str(path / "fields.zarr"), mode="w")  # pyright: ignore[reportUnknownMemberType]
     group.attrs.update({"dx_mm": grid.dx, "origin_mm": list(grid.origin), "axes": ["z", "y", "x"]})
-    for name, array in volume.fields.arrays().items():
-        if name in ("grain", "micro_spacing_um"):
-            continue  # not produced by the 3D models
+    for name, array in volume.fields.arrays().items():  # every field (ADR 0084: 2-19% more)
         group.create_array(name, data=array, chunks=(32, 64, 64))
     group.create_array("cavity_mask", data=volume.inside, chunks=(32, 64, 64))
 

@@ -118,7 +118,17 @@ class Liesegang(BaseModel):
             "(coarsened beyond 16 million cells)."
         ),
     )
-    max_steps: int = 400_000
+    max_steps: int = param(
+        400_000,
+        ge=1_000,
+        le=10_000_000,
+        units="steps",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "Most time steps: a run stops here if the reactant hasn't reached the "
+            "deepest cell. A numerical limit, not a property of the gel (ADR 0084)."
+        ),
+    )
     palette: Palette = Field(
         default_factory=Palette,
         description=(
@@ -129,14 +139,18 @@ class Liesegang(BaseModel):
 
 
 def _lattice_grid(domain: Domain, spacing_mm: float) -> Grid:
+    """A lattice of exactly `spacing_mm` (as the 3D one), over the cavity plus a 2%
+    margin. Beyond MAX_CELLS it coarsens, as the 3D one does: a finer spacing
+    would take more memory than a computer has (0.002 mm across 50 mm: 600
+    million cells). At least 8 cells across the longer side."""
     xmin, ymin, xmax, ymax = domain.cavity.bounds()
-    long, short = max(xmax - xmin, ymax - ymin), max(min(xmax - xmin, ymax - ymin), 1e-9)
-    resolution = max(8, math.ceil(long / spacing_mm))
-    # Beyond MAX_CELLS the lattice coarsens, as the 3D one does: a finer spacing
-    # would take more memory than a computer has (0.002 mm across 50 mm: 600
-    # million cells). The grid is about resolution² × short / long cells.
-    resolution = min(resolution, math.floor(math.sqrt(MAX_CELLS * long / short)))
-    return Grid.around(domain.cavity.bounds(), resolution, 0.02)
+    pad = 0.02 * max(xmax - xmin, ymax - ymin)
+    width, height = xmax - xmin + 2 * pad, ymax - ymin + 2 * pad
+    dx = max(spacing_mm, math.sqrt(width * height / MAX_CELLS))
+    dx = min(dx, max(width, height) / 8)
+    nx, ny = max(1, math.ceil(width / dx)), max(1, math.ceil(height / dx))
+    cx, cy = (xmin + xmax) / 2, (ymin + ymax) / 2
+    return Grid(nx=nx, ny=ny, dx=dx, x0=cx - nx * dx / 2, y1=cy + ny * dx / 2)
 
 
 def bands_by_arrival(
@@ -232,7 +246,7 @@ def run_liesegang(
     arrival = np.where(inside & ~reached, late * 1.001 + depth, arrival)
     level = 0.25 * float(np.median(p[p > 1e-3])) if (p > 1e-3).any() else np.inf
     zone = inside & (p > level)
-    min_cells = max(4, round(MIN_BAND_MM2 / params.lattice_mm**2))
+    min_cells = max(4, round(MIN_BAND_MM2 / lattice.dx**2))  # the actual spacing
     band = bands_by_arrival(arrival, zone, inside, min_cells)
     stain = np.clip(p / max(float(np.percentile(p[inside], 99)), 1e-9), 0, 1)
     t_dep = np.where(inside, arrival / max(float(np.max(arrival[inside])), 1e-9), np.nan)

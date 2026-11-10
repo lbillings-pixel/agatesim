@@ -7,6 +7,7 @@ boundaries. The negative control is the stepped `t_dep` itself: interpolating
 it misses by a fifth of a step or more, which the smoothness test rejects.
 """
 
+import functools
 from dataclasses import replace
 
 import numpy as np
@@ -21,6 +22,7 @@ from agatesim.volume.simulate import VolumeSimulation, prepare_volume
 from agatesim.volume.solids import BoolArray
 
 
+@functools.cache
 def _sim(name: str, **model: float) -> VolumeSimulation:
     cfg = load_volume_preset(name)
     if model:

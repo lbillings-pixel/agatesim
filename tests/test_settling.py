@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from _shared import preset_run
 from agatesim.config import load_preset
 from agatesim.criteria import evaluate
 from agatesim.fields import Phase
@@ -45,7 +46,7 @@ def test_chord_widths_are_exact() -> None:
 
 
 def test_verification_preset_passes_and_matches_its_preview() -> None:
-    full = simulate(load_preset("waterline-mechanistic"))
+    full = preset_run("waterline-mechanistic")
     assert evaluate("waterline", full).passed
     preview = simulate(load_preset("waterline-mechanistic").with_resolution(256))
     share = [

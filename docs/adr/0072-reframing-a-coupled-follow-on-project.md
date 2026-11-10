@@ -321,6 +321,9 @@ source. Against the sources:
 
 ## Next steps
 
+Step 1 is done: the project is **Nodule**, which continues steps 2–4 in its
+own ADRs (it pins agatesim at a fixed commit).
+
 1. **Name and set up the new project** (owner chooses the name; a new
    repository is outward-facing, so it waits for the owner's go-ahead).
 2. **Taxonomy ADR** (decision 4), approved by the owner, in the new project.

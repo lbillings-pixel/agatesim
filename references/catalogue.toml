@@ -1,7 +1,8 @@
 # Reference catalogue. Every source the project relies on, with how far it has
 # been checked and under what licence it may be used.
 #
-#   checked  = "citation" | "abstract" | "full-text"
+#   checked  = "citation" | "abstract" | "sections" | "full-text"
+#              ("sections" = abstract plus the sections listed in sections_read)
 #              Never state more in the docs than the checked level supports.
 #   licence  = SPDX id where one exists (e.g. "CC-BY-4.0"), otherwise a short
 #              description. Material is stored in this repository only when
@@ -383,20 +384,6 @@ checked = "abstract"
 topics = ["spherulites", "phase-field", "botryoidal"]
 notes = "Cited by goetze2020 (ref. 202) for spherulites forming from an amorphous silica precursor. Abstract (via NIST record): phase-field simulations attribute spherulitic growth to randomisation of local crystal orientation as new grains nucleate at the growth front; faceted crystals and symmetric dendrites form when discrete crystal symmetries dominate. A candidate mechanistic model for botryoidal and eye forms (M8). Journal DOI still to confirm."
 
-[[references]]
-id = "oehler1976"
-kind = "article"
-authors = ["Oehler, J. H."]
-year = 1976
-title = "Hydrothermal crystallization of silica gel"
-venue = "Geological Society of America Bulletin 87, 1143–1152"
-url = "https://pubs.geoscienceworld.org/gsa/gsabulletin"
-access = "closed"
-licence = "publisher copyright; cite only"
-checked = "citation"
-topics = ["silica-gel", "crystallization", "timescales"]
-notes = "Citation from the reference list of goetze2020 (ref. 184), which reports that Oehler crystallised silica gel to quartz in the laboratory in 12 h to 180 days under high-pressure/high-temperature conditions that may not apply to agate."
-
 # --- Fabric, silica phases and ageing ------------------------------------------
 
 [[references]]
@@ -544,18 +531,19 @@ topics = ["chalcedony", "water", "translucency", "shadow"]
 notes = "Abstract as excerpted by a search engine, 2026-10-17 (the publisher page needs a sign-in): wall-lining chalcedony grades from translucent grey to milky white bands with decreasing total water content and silanol-to-molecular-water ratio, decreasing BET surface and increasing density; chalcedony holds water at open-pore surfaces and at inner surfaces and defect regions. The physical link between banding and milkiness that a mechanistic shadow agate would need."
 
 [[references]]
-id = "raman1955"
+id = "graetsch1987"
 kind = "article"
-authors = ["Raman, C. V.", "Jayaraman, A."]
-year = 1955
-title = "On the optical behaviour of crypto-crystalline quartz"
-venue = "Proceedings of the Indian Academy of Sciences, Section A 41(1), 1–6"
-doi = "10.1007/BF03050587"
+authors = ["Graetsch, H.", "Flörke, O. W.", "Miehe, G."]
+year = 1987
+title = "Structural defects in microcrystalline silica"
+venue = "Physics and Chemistry of Minerals 14(3), 249–257"
+doi = "10.1007/BF00307990"
 access = "closed"
 licence = "publisher copyright; cite only"
-checked = "citation"
-topics = ["iris", "diffraction", "fibres"]
-notes = "Citation from Crossref. A search summary attributes iris diffraction to a periodic change of the quartz c-axis orientation along the chalcedony fibres; not read."
+checked = "sections"
+sections_read = ["Abstract", "3 (methods: refractive index)", "4 (results: Table 6)", "5 (discussion: chalcedony)"]
+topics = ["chalcedony", "water", "refractive index", "optics"]
+notes = "Read 2026-11-10 (PDF the owner supplied; audit C20-22, ADR 0083). Table 6 (p.254): refractive index parallel to the fibre elongation of chalcedony from Brazilian agate bands (nos. 223, 224, 226, 227, 228; grey translucent, milky and horizontal bands), measured on a spindle stage: 1.533-1.542 over 9 samples (+-0.001), falling as total water rises from 0.72 to 1.92 wt% (correlation -0.94); density 2.556-2.622 g/cm3 falls with it. The index perpendicular to the fibres could not be measured precisely (p.255). Chalcedony's lower index and density than quartz are a function of water content (Discussion)."
 
 [[references]]
 id = "jones1952"
@@ -1050,7 +1038,7 @@ licence = "arXiv preprint; cite only"
 checked = "sections"
 sections_read = ["2.1", "Appendix A", "Table 3"]
 topics = ["image model", "self-supervised"]
-notes = "Sections read 2026-10-29 by a helper agent (ADR 0073). High-norm artifact tokens (about 2% of tokens) sit in redundant background, often near the border (Sec. 2.1, App. A); in DINOv2 they appear in ViT-L and larger (Sec. 2.1, Fig. 4c), which suggests but does not state that ViT-S lacks them. They cut LOST on DINOv2-L keys from 55.4 to 35.3 VOC07 CorLoc (Table 3)."
+notes = "Sections read 2026-10-29 by a helper agent (ADR 0073). High-norm artifact tokens (about 2% of tokens) sit in redundant background, often near the border (Sec. 2.1, App. A); in DINOv2 they appear in ViT-L and larger (Sec. 2.1, Fig. 4c), which suggests but does not state that ViT-S lacks them. They cut LOST on DINOv2-L keys from 55.4 to 35.3 VOC07 CorLoc (Table 3). Earlier, as a duplicate entry (merged here in the 2026-11 audit): Main text read 2026-10-24 (M33): high-norm artefact tokens in patch-feature maps appear in large ViTs (ViT-L and up), not in small ones; adding register tokens removes them and improves dense results. Suggests the ViT-S/14 used here has largely clean patch maps; not checked on our model."
 
 [[references]]
 id = "zhou2016"
@@ -1081,21 +1069,6 @@ checked = "sections"
 sections_read = ["method", "Table I"]
 topics = ["image model", "segmentation", "point labels"]
 notes = "Method and Table I read 2026-10-24 (M33): denoised DINOv2 features at 512 px, upsampled to pixels, with point labels spread by nearest neighbour; mIoU 52.6 with 5 points per image, 59.5 with 10, 68.0 with 25, 85.0 with 300; evenly spaced points instead of chosen ones gave 38.7 at 5 points. The authors report SAM2 gave no usable segments on their textured coral photos. The closest published analogue to locating features in agate photos; option not chosen in ADR 0068 but kept for later."
-
-[[references]]
-id = "darcet2024"
-kind = "article"
-authors = ["Darcet, T.", "Oquab, M.", "Mairal, J.", "Bojanowski, P."]
-year = 2024
-title = "Vision Transformers Need Registers"
-venue = "ICLR 2024; arXiv:2309.16588"
-url = "https://arxiv.org/abs/2309.16588"
-access = "open"
-licence = "arXiv preprint; cite only"
-checked = "sections"
-sections_read = ["main text"]
-topics = ["image model", "patch features"]
-notes = "Main text read 2026-10-24 (M33): high-norm artefact tokens in patch-feature maps appear in large ViTs (ViT-L and up), not in small ones; adding register tokens removes them and improves dense results. Suggests the ViT-S/14 used here has largely clean patch maps; not checked on our model."
 
 [[references]]
 id = "arbelaez2011"

@@ -9,6 +9,7 @@ from typing import cast
 import numpy as np
 import pytest
 
+from _shared import preset_run
 from agatesim import _scipy
 from agatesim.archetypes import Status, Tier, load_registry
 from agatesim.config import RunConfig, load_preset, preset_names
@@ -25,12 +26,19 @@ NEGATIVE_RESOLUTION = 384
 
 
 _CACHE: dict[tuple[str, str], Evaluation] = {}
+# One small run per config, however many forms judge it (fortification alone is
+# judged as eight): only `_evaluate` reads these, and judging doesn't change a
+# result. Full-size runs aren't kept (tens of MB each).
+_RUNS: dict[str, SimulationResult] = {}
 
 
 def _evaluate(archetype: str, config: RunConfig) -> Evaluation:
     key = (archetype, config.digest())
     if key not in _CACHE:
-        _CACHE[key] = evaluate(archetype, simulate(config))
+        result = _RUNS.get(key[1]) or simulate(config)
+        if config.grid.resolution <= NEGATIVE_RESOLUTION:
+            _RUNS[key[1]] = result
+        _CACHE[key] = evaluate(archetype, result)
     return _CACHE[key]
 
 
@@ -44,7 +52,7 @@ def _with_model(config: RunConfig, **changes: float) -> RunConfig:
 
 @pytest.mark.parametrize("archetype", sorted(implemented()))
 def test_verification_preset_passes(archetype: str) -> None:
-    ev = _evaluate(archetype, load_preset(archetype))
+    ev = evaluate(archetype, preset_run(archetype))
     assert ev.passed, [r for r in ev.results if not r.passed]
 
 
@@ -69,7 +77,7 @@ MECHANISTIC = [
 
 @pytest.mark.parametrize("archetype", MECHANISTIC)
 def test_mechanistic_verification_preset_passes(archetype: str) -> None:
-    ev = _evaluate(archetype, load_preset(f"{archetype}-mechanistic"))
+    ev = evaluate(archetype, preset_run(f"{archetype}-mechanistic"))
     assert ev.passed, [r for r in ev.results if not r.passed]
 
 
@@ -106,7 +114,7 @@ def test_the_imposed_check_finds_procedural_parameters() -> None:
 
 def test_waterline_criteria_reject_fortification() -> None:
     fort = load_preset("fortification").with_resolution(NEGATIVE_RESOLUTION)
-    assert {"gravity-normal", "planar", "geopetal-recoverable"} <= _failed(
+    assert {"gravity-normal", "planar", "geopetal-recoverable", "floor-confined"} <= _failed(
         _evaluate("waterline", fort)
     )
 
@@ -114,6 +122,21 @@ def test_waterline_criteria_reject_fortification() -> None:
 def test_fortification_criteria_reject_waterline() -> None:
     wl = load_preset("waterline").with_resolution(NEGATIVE_RESOLUTION)
     assert {"wall-parallel", "closed-bands"} <= _failed(_evaluate("fortification", wl))
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"cooperativity": 1.0},  # catalysis not switch-like
+        {"silica_resupply": 0.5},  # silica resupplied as fast as the impurity relaxes
+        {"catalysis": 0.0},  # no catalysis: no positive feedback
+    ],
+)
+def test_band_count_rejects_h1_without_its_feedback(changes: dict[str, float]) -> None:
+    """Negative controls: remove an ingredient of H1's oscillator and the cavity
+    fills with a few bands at most, which `band-count` rejects."""
+    config = load_preset("fortification-mechanistic").with_resolution(384)
+    assert "band-count" in _failed(_evaluate("fortification", _with_model(config, **changes)))
 
 
 def test_corner_criterion_rejects_rounded_bands() -> None:

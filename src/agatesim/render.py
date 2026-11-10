@@ -1,6 +1,6 @@
 """Render a polished-slab view of a result in reflected light.
 
-A non-physical, appearance-only renderer; the optical renderer arrives in M6.
+A non-physical, appearance-only renderer; the optical one is `agatesim.optics`.
 It reads only Fields and geometry, so it works for any model. Under reflected
 light on a polished slab:
 
@@ -20,10 +20,11 @@ import numpy as np
 from numpy.typing import NDArray
 from PIL import Image
 
-from agatesim import _scipy
+from agatesim import _dla, _scipy
 from agatesim.archetypes import Host
 from agatesim.fields import Phase, Pigment
-from agatesim.grid import FloatArray
+from agatesim.grid import FloatArray, Grid
+from agatesim.models.base import smooth_noise
 from agatesim.simulate import SimulationResult
 
 MILKY = np.array([238.0, 235.0, 228.0])
@@ -127,30 +128,64 @@ def _sub_banding(result: SimulationResult) -> FloatArray:
     n = int(f.band.max()) + 1
     if n <= 0:
         return np.zeros(result.grid.shape)
-    rng = np.random.default_rng(result.config.seed + 2)
-    cycles = rng.uniform(2.0, 6.0, n)  # fine bands per coarse band
-    amplitude = rng.uniform(0.0, 1.0, n) ** 2  # most bands faint, a few strong
-    phase = rng.uniform(0.0, 2 * np.pi, n)
+    # A stream each, so band k's look doesn't depend on how many bands there are
+    # (a preview can have one or two fewer than its full run; ADR 0084).
+    rng_cycles, rng_amplitude, rng_phase = np.random.default_rng(result.config.seed + 2).spawn(3)
+    cycles = rng_cycles.uniform(2.0, 6.0, n)  # fine bands per coarse band
+    amplitude = rng_amplitude.uniform(0.0, 1.0, n) ** 2  # most bands faint, a few strong
+    phase = rng_phase.uniform(0.0, 2 * np.pi, n)
     b = np.maximum(f.band, 0)
     t = np.nan_to_num(f.t_dep.astype(np.float64))
     return amplitude[b] * np.sin(2 * np.pi * t * n * cycles[b] + phase[b])
 
 
+MOTTLE_MM = 1.5  # host-rock mottling scale
+GRAIN_MM = 0.05  # host-rock grain: one value per square this size
+SPECKS_PER_MM2 = 0.1  # volcanic phenocryst specks (0.0006 per pixel at the default 768 px)
+SPECK_MM = 0.08
+
+
+def _grain(grid: Grid, key: int) -> FloatArray:
+    """Unit-variance grain, one hashed value per GRAIN_MM square of the world, so
+    a preview samples the same squares as its full run (ADR 0084)."""
+    xx, yy = grid.coords()
+    ix = np.floor(xx / GRAIN_MM).astype(np.int64).astype(np.uint64)
+    iy = np.floor(yy / GRAIN_MM).astype(np.int64).astype(np.uint64)
+    with np.errstate(over="ignore"):
+        bits = _dla.mix(
+            np, ix * np.uint64(_dla.GOLDEN) + iy * np.uint64(_dla.SALT) + np.uint64(key)
+        )
+    return np.sqrt(3.0) * (2.0 * _dla.uniform(np, bits) - 1.0)
+
+
+def _specks(grid: Grid, rng: np.random.Generator) -> FloatArray:
+    """Specks at random world positions (a count set by the area, not the pixels),
+    each on its nearest pixel, blurred to SPECK_MM; 0..1."""
+    x0, x1 = grid.x0, grid.x0 + grid.nx * grid.dx
+    y0, y1 = grid.y1 - grid.ny * grid.dx, grid.y1
+    n = int(rng.poisson(SPECKS_PER_MM2 * (x1 - x0) * (y1 - y0)))
+    xs, ys = rng.uniform(x0, x1, n), rng.uniform(y0, y1, n)
+    cols = np.clip(((xs - x0) / grid.dx).astype(int), 0, grid.nx - 1)
+    rows = np.clip(((y1 - ys) / grid.dx).astype(int), 0, grid.ny - 1)
+    dots = np.zeros(grid.shape)
+    np.add.at(dots, (rows, cols), 1.0)
+    specks = _scipy.gaussian(dots, SPECK_MM / grid.dx, wrap=True)
+    return specks / (float(specks.max()) or 1.0)
+
+
 def _host_rock(result: SimulationResult) -> FloatArray:
-    shape = result.grid.shape
-    dx = result.grid.dx
-    rng = np.random.default_rng(result.config.seed + 1)
-    mottle = _scipy.gaussian(rng.standard_normal(shape), 1.5 / dx, wrap=True)
-    mottle /= float(mottle.std()) or 1.0
-    grain = rng.normal(0.0, 1.0, shape)
+    """Host rock in world coordinates (mottle on a lattice tied to the cavity,
+    hashed grain, specks placed in millimetres), so it looks the same at any
+    resolution (ADR 0084)."""
+    grid = result.grid
+    rng_mottle, rng_grain, rng_specks = np.random.default_rng(result.config.seed + 1).spawn(3)
+    mottle = smooth_noise(result.domain, MOTTLE_MM, rng_mottle)
+    grain = _grain(grid, int(rng_grain.integers(1 << 62)))
     host = result.domain.cavity.host
     base = HOST[host]
     rock = base + (4.0 * mottle + 7.0 * grain)[..., None]
     if host is Host.VOLCANIC:  # sparse, faint pale phenocryst specks
-        specks = _scipy.gaussian(
-            (rng.random(shape) < 0.0006).astype(np.float64), 0.08 / dx, wrap=True
-        )
-        rock += (40.0 * specks / (float(specks.max()) or 1.0))[..., None]
+        rock += (40.0 * _specks(grid, rng_specks))[..., None]
     return rock
 
 

@@ -1,6 +1,17 @@
 ﻿import { describe, expect, it } from "vitest";
 
-import { encodeGif, lzw, medianCut } from "./gif";
+import { GifEncoder, lzw, medianCut, type Rgba } from "./gif";
+
+/** All frames through the encoder, joined (as the app's animation export does). */
+function encodeGif(frames: Rgba[], delayCs: number): Uint8Array {
+  const first = frames[0];
+  if (!first) throw new Error("no frames");
+  const encoder = new GifEncoder(first.width, first.height, frames.length, delayCs);
+  for (const f of frames) encoder.sample(f);
+  for (const f of frames) encoder.add(f);
+  const parts = encoder.finish();
+  return Uint8Array.from(parts.flatMap((p) => Array.from(p)));
+}
 
 /** A GIF LZW decoder (minimum code size 8), to check the encoder against. */
 function unlzw(data: Uint8Array, count: number): number[] {

@@ -47,14 +47,14 @@ import math
 from dataclasses import dataclass
 from enum import IntEnum
 from itertools import pairwise
-from typing import Any, Literal
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim import _scipy
-from agatesim.fields import Fields, Phase
+from agatesim.fields import QUARTZ_TRANSLUCENCY, Fields, Phase
 from agatesim.geometry import circle, densify
 from agatesim.grid import FloatArray, Grid
 from agatesim.models import dendrites
@@ -71,7 +71,7 @@ from agatesim.params import KEY, Nature, param
 from agatesim.schedules import Schedule
 
 TIME_STEPS = 400
-CLEAR_TRANSLUCENCY = 0.9  # the clear first layer: as clear as this model's quartz
+CLEAR_TRANSLUCENCY = QUARTZ_TRANSLUCENCY  # the clear first layer: as clear as quartz
 SWITCH_ON = 0.5  # settling and spherulitic switch on at this value
 # Crystal growth form: termination faces make this angle with the long axis
 # (the half-angle of the pointed tip).
@@ -716,15 +716,6 @@ class ProceduralGrowth(BaseModel):
     )
     schedules: Schedules = Field(default_factory=Schedules)
 
-    @model_validator(mode="before")
-    @classmethod
-    def _drop_retired(cls, data: Any) -> Any:
-        """Run records made before M4 carry `quartz_coarsening`, retired when
-        crystal coarsening became an outcome of geometric selection."""
-        if isinstance(data, dict) and "quartz_coarsening" in data:
-            data = {k: v for k, v in data.items() if k != "quartz_coarsening"}  # pyright: ignore[reportUnknownVariableType]
-        return data  # pyright: ignore[reportUnknownVariableType]
-
     def gravity(self) -> FloatArray:
         th = math.radians(self.gravity_deg)
         return np.array([math.cos(th), math.sin(th)])
@@ -819,9 +810,9 @@ def _place_sites(
     n = min(MAX_CANDIDATES, math.ceil((xmax - xmin) * (ymax - ymin) * CANDIDATE_DENSITY / delta**2))
     cand = np.column_stack([rng.uniform(xmin, xmax, n), rng.uniform(ymin, ymax, n)])
     draws = rng.random((n, 2))
-    dist = _scipy.nearest_distance(front.points, cand)
+    dist, nearest = _scipy.NearestIndex(front.points).query(cand)  # one tree, one query
     near = np.flatnonzero(dist < half)
-    idx = _scipy.nearest_index(front.points, cand[near])
+    idx = nearest[near]
     projected = front.points[idx]
 
     cell: dict[tuple[int, int], list[int]] = {}
@@ -1412,7 +1403,7 @@ def growth_fields(
     impurity = np.where(inclusion, params.dendrite_tint, impurity)
     impurity = np.where(quartz, 0.25 * np.clip(s.iron.sample(np.nan_to_num(t_dep)), 0, 1), impurity)
     translucency = np.where(chalcedony, bands.translucency[safe], 0.0)
-    translucency = np.where(quartz, 0.9, translucency)
+    translucency = np.where(quartz, QUARTZ_TRANSLUCENCY, translucency)
 
     # Micro-banding: a share of the bands carry regular micro-bands (a grating).
     band_spacing = micro_band_spacing(

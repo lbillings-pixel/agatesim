@@ -41,14 +41,22 @@ export function CavityDrawer({ initial, onUse, onCancel }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const firstButton = useRef<HTMLButtonElement>(null);
 
+  // Focus once, when the dialog opens: the page re-renders each second during a
+  // run and hands over a new onCancel each time, which must not move the focus.
+  const cancel = useRef(onCancel);
+  useEffect(() => {
+    cancel.current = onCancel;
+  }, [onCancel]);
   useEffect(() => {
     firstButton.current?.focus();
+  }, []);
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
+      if (e.key === "Escape") cancel.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
+  }, []);
 
   const at = (e: React.PointerEvent): Point => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -124,7 +132,7 @@ export function CavityDrawer({ initial, onUse, onCancel }: Props) {
 
   return (
     <div className="dialog-backdrop" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="dialog drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
         <header className="dialog-head">
           <h3 id="drawer-title">Draw a cavity</h3>
           <p className="muted small">
@@ -180,7 +188,7 @@ export function CavityDrawer({ initial, onUse, onCancel }: Props) {
 
         <svg
           ref={svgRef}
-          className={`drawer-canvas mode-${mode}`}
+          className="drawer-canvas"
           viewBox={`0 0 ${VIEW} ${VIEW}`}
           role="img"
           aria-label="Drawing area"

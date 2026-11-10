@@ -2,7 +2,7 @@
 
 A cavity is a simple polygon with counter-clockwise vertices. Smooth shapes are
 finely polygonized. Corners (sharp convex vertices) are found by turning angle, so
-drawn shapes will work the same way as presets.
+drawn shapes work the same way as presets.
 """
 
 from __future__ import annotations
@@ -18,6 +18,8 @@ from PIL import Image, ImageDraw
 from agatesim import _scipy
 from agatesim.archetypes import Host
 from agatesim.grid import FloatArray, Grid
+
+DISCRETIZE_CELLS = 1 << 20  # cells whose wall distance is found at once
 
 
 def _unit(v: FloatArray) -> FloatArray:
@@ -101,10 +103,16 @@ class Cavity:
         Both are exact up to a tiny sampling error, so they don't depend on grid
         resolution: a preview and a full run agree wherever their pixels coincide.
         """
-        xx, yy = grid.coords()
-        centres = np.stack([xx.ravel(), yy.ravel()], axis=1)
-        distance = _scipy.nearest_distance(densify(self.vertices, grid.dx / 4), centres)
-        distance = distance.reshape(grid.shape)
+        # A block of rows at a time: a fine lattice has millions of cells, and
+        # every cell's coordinates at once would take gigabytes.
+        x, y = grid.axes()
+        wall = _scipy.NearestIndex(densify(self.vertices, grid.dx / 4))
+        distance = np.empty(grid.shape)
+        rows = max(1, DISCRETIZE_CELLS // grid.nx)
+        for r0 in range(0, grid.ny, rows):
+            yb = y[r0 : r0 + rows]
+            centres = np.stack([np.tile(x, len(yb)), np.repeat(yb, grid.nx)], axis=1)
+            distance[r0 : r0 + rows] = wall.query(centres)[0].reshape(len(yb), grid.nx)
 
         # Fast rasterization, then an exact test for pixels near the wall, where
         # the rasterizer's edge convention could disagree with the true polygon.
@@ -113,7 +121,8 @@ class Cavity:
         ImageDraw.Draw(image).polygon([(float(c), float(r)) for c, r in pts], fill=1)
         mask = np.asarray(image, dtype=np.bool_).copy()
         near = distance < 1.5 * grid.dx
-        mask[near] = point_in_polygon(centres[near.ravel()], self.vertices)
+        near_rows, near_cols = np.nonzero(near)
+        mask[near] = point_in_polygon(np.stack([x[near_cols], y[near_rows]], axis=1), self.vertices)
         return mask, np.where(mask, distance, 0.0)
 
 
@@ -158,7 +167,7 @@ def _ellipse(a: float, b: float, n: int = 256) -> FloatArray:
 
 
 def _lens(half_height: float, n: int = 96) -> FloatArray:
-    """Two circular arcs meeting in sharp tips at (Â±1, 0)."""
+    """Two circular arcs meeting in sharp tips at (±1, 0)."""
     h = half_height
     radius = (1 + h * h) / (2 * h)
     c = radius - h

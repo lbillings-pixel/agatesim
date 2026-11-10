@@ -54,10 +54,6 @@ class JobManager:
         with self._lock:
             return self._jobs.get(job_id)
 
-    def all(self) -> list[Job]:
-        with self._lock:
-            return sorted(self._jobs.values(), key=lambda j: j.submitted_utc, reverse=True)
-
     def submit(self, config: RunConfig) -> Job:
         job = self._new(config.name)
         self._executor.submit(self._run, job, config)
@@ -91,14 +87,14 @@ class JobManager:
                 if survey_cuts:
                     with progress.span(0.5, 0.85):
                         found = survey(sim, survey_cuts, SURVEY_RESOLUTION, seed=config.seed)
-                progress.report(None, "Writing the run")
-                path, _ = write_volume_run(
-                    sim,
-                    self._runs_dir,
-                    started=started,
-                    elapsed_s=time.perf_counter() - t0,
-                    survey=found,
-                )
+                with progress.span(0.85 if survey_cuts else 0.8, 1.0, "Writing the run"):
+                    path, _ = write_volume_run(
+                        sim,
+                        self._runs_dir,
+                        started=started,
+                        elapsed_s=time.perf_counter() - t0,
+                        survey=found,
+                    )
             self._tasks.finish(job.id)
             self._set(replace(job, status="done", run_id=path.name))
         except progress.CancelledError:
@@ -126,4 +122,10 @@ class JobManager:
             self._set(replace(job, status="failed", error=f"{type(exc).__name__}: {exc}"))
 
     def shutdown(self) -> None:
+        """Drop queued jobs and stop the running one at its next progress report,
+        so stopping the server doesn't wait for a long run to finish."""
         self._executor.shutdown(wait=False, cancel_futures=True)
+        with self._lock:
+            unfinished = [j.id for j in self._jobs.values() if j.status in ("queued", "running")]
+        for job_id in unfinished:
+            self._tasks.cancel(job_id)

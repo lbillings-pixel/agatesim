@@ -210,22 +210,6 @@ def watershed(gradient: NDArray[np.uint16], markers: NDArray[np.int16]) -> NDArr
     return cast(NDArray[np.int16], ndimage.watershed_ift(gradient, markers.astype(np.int16)))
 
 
-def majority(labels: NDArray[np.int32], passes: int) -> NDArray[np.int32]:
-    """Replace each label by the most common label in its 3x3 neighbourhood
-    (labels -1 are left alone and never spread)."""
-    out = labels.copy()
-    k = int(labels.max()) + 1
-    if k <= 0:
-        return out
-    for _ in range(passes):
-        counts = np.stack(
-            [ndimage.uniform_filter((out == i).astype(np.float64), size=3) for i in range(k)]
-        )
-        winner = np.argmax(counts, axis=0).astype(np.int32)
-        out = np.where(labels >= 0, winner, labels)
-    return out
-
-
 def solve_anisotropic(
     region: NDArray[np.bool_],
     d11: FloatArray,

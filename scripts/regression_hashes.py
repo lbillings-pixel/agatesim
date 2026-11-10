@@ -1,7 +1,7 @@
 """Did a refactor change any results? Hash every 2D preset's fields, before and after.
 
-    uv run python scripts/regression_hashes.py --write before.json     # on the old code
-    uv run python scripts/regression_hashes.py --check before.json     # on the new code
+    uv run --no-sync python scripts/regression_hashes.py --write before.json     # on the old code
+    uv run --no-sync python scripts/regression_hashes.py --check before.json     # on the new code
 
 Each preset is simulated at a small resolution (default 160 px, so all of them
 take a minute or two) and every field array is hashed (SHA-256 of its bytes,

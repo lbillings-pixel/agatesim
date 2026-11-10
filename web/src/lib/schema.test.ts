@@ -199,6 +199,24 @@ describe("isUsed with an on/off setting", () => {
   });
 });
 
+describe("fieldsFor with ignored settings", () => {
+  it("leaves out a nested model's settings that its parent ignores", () => {
+    const fields = fieldsFor({
+      properties: { wall: { $ref: "#/$defs/Wall", ignores: ["micro_rhythm"] } },
+      $defs: {
+        Wall: {
+          properties: {
+            rate: { type: "number", default: 1, minimum: 0 },
+            micro_rhythm: { type: "boolean", default: false },
+          },
+        },
+      },
+    });
+    const wall = fields[0];
+    expect(wall?.type === "group" && wall.fields.map((f) => f.key)).toEqual(["rate"]);
+  });
+});
+
 describe("key settings", () => {
   it("marks key settings, and groups holding one, as primary", () => {
     const schema = {

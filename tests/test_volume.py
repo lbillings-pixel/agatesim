@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 
 import numpy as np
@@ -13,6 +14,7 @@ from agatesim.criteria import evaluate
 from agatesim.fields import Phase
 from agatesim.grid import FloatArray
 from agatesim.models import ProceduralFortification, Settling
+from agatesim.volume import slicing
 from agatesim.volume.config import (
     GravityConfig,
     SliceConfig,
@@ -37,14 +39,14 @@ from agatesim.volume.solids import (
     make_solid,
     rotation,
 )
-from agatesim.volume.survey import apparent_thickness, survey
+from agatesim.volume.survey import Survey, SurveyCut, apparent_thickness, survey
 
-RNG = np.random.default_rng(7)
+SEED = 7  # a fresh generator per use, so a test sees the same points whichever tests ran first
 
 
 def _inside_points(solid: Solid, n: int = 2000) -> FloatArray:
     lo, hi = solid.bounds()
-    pts = lo + (hi - lo) * RNG.random((n, 3))
+    pts = lo + (hi - lo) * np.random.default_rng(SEED).random((n, 3))
     return pts[solid.contains(pts)]
 
 
@@ -65,7 +67,7 @@ def test_sphere_distances_are_exact_for_every_representation() -> None:
         SphereUnion(host=Host.VOLCANIC, centres=np.zeros((1, 3)), radii=np.array([r])),
         Revolution(host=Host.VOLCANIC, profile=circle),
     ]
-    pts = RNG.uniform(-6, 6, (500, 3))
+    pts = np.random.default_rng(SEED).uniform(-6, 6, (500, 3))
     exact = r - np.linalg.norm(pts, axis=1)
     for s in solids:
         assert s.contains(pts).all()
@@ -297,6 +299,37 @@ def test_front_feedback_bands_follow_the_3d_wall_distance() -> None:
     assert np.all(np.diff(bands[banded]) >= 0)
 
 
+def test_front_feedback_points_take_the_same_values_alone_or_together() -> None:
+    """A point's fields depend on its wall distance and the run alone, not on the
+    other points evaluated with it (ADR 0082), so cuts and volumes can be
+    evaluated in chunks. One point alone once got no stain at all."""
+    sim = prepare_volume(load_volume_preset("fortification-mechanistic-3d"))
+    pts = _inside_points(sim.solid, 4000)
+    inside = np.ones(len(pts), dtype=bool)
+    whole = sim.evaluate(pts, inside).arrays()
+    impurity = whole["impurity"].astype(np.float64)
+    assert impurity.max() - impurity.min() > 0.1
+    for part in (slice(0, 1), slice(1, 50), slice(50, None)):
+        alone = sim.evaluate(pts[part], inside[part]).arrays()
+        assert alone.keys() == whole.keys()
+        for name, array in alone.items():
+            np.testing.assert_array_equal(array, whole[name][part], err_msg=name)
+
+
+def test_a_cut_evaluated_in_chunks_equals_one_evaluated_whole(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sim = prepare_volume(load_volume_preset("fortification-mechanistic-3d"))
+    config = SliceConfig(resolution=96)
+    monkeypatch.setattr(slicing, "CUT_CHUNK", 1 << 30)
+    whole = sim.cut(config).result.fields.arrays()
+    monkeypatch.setattr(slicing, "CUT_CHUNK", 1000)  # about ten rows at a time
+    chunked = sim.cut(config).result.fields.arrays()
+    assert chunked.keys() == whole.keys()
+    for name, array in chunked.items():
+        np.testing.assert_array_equal(array, whole[name], err_msg=name)
+
+
 def test_settled_layers_are_horizontal_in_3d() -> None:
     config = load_volume_preset("waterline-mechanistic-3d").model_copy(
         update={"gravity": GravityConfig(tilt_deg=30, azimuth_deg=40)}
@@ -399,6 +432,24 @@ def test_survey_judges_random_cuts() -> None:
     assert summary["cuts"] == 6
     assert summary["archetype"] == "waterline"
     assert all(c.passed is not None or c.error for c in found.cuts)
+
+
+def test_a_survey_with_a_failed_cut_is_valid_json() -> None:
+    failed = SurveyCut(
+        tilt_deg=10.0,
+        azimuth_deg=20.0,
+        offset_mm=3.0,
+        pieces=0,
+        gravity_in_plane=None,
+        passed=None,
+        criteria={},
+        values={},
+        apparent_thickness_mm=None,
+        error="the cut only grazes the cavity",
+    )
+    found = Survey(archetype="waterline", true_thickness_mm=None, cuts=(failed,))
+    json.dumps(found.to_json(), allow_nan=False)  # NaN is not JSON: browsers refuse it
+    assert found.summary()["judged"] == 0
 
 
 # --- Configuration ----------------------------------------------------------------

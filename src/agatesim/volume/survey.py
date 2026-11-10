@@ -9,7 +9,6 @@ with their true thickness, measured in 3D along the wall's normal.
 from __future__ import annotations
 
 import itertools
-import math
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 
@@ -39,7 +38,7 @@ class SurveyCut:
     azimuth_deg: float
     offset_mm: float
     pieces: int
-    gravity_in_plane: float
+    gravity_in_plane: float | None  # None if the cut couldn't be made
     passed: bool | None  # None if the cut couldn't be judged
     criteria: dict[str, bool]
     values: dict[str, float | None]
@@ -67,7 +66,11 @@ class Survey:
         out["criteria"] = {k: _rate([c.criteria.get(k) for c in judged]) for k in ids}
         bins: list[dict[str, object]] = []
         for lo, hi in itertools.pairwise(GRAVITY_BINS):
-            sel = [c for c in judged if lo <= c.gravity_in_plane < hi]
+            sel = [
+                c
+                for c in judged
+                if c.gravity_in_plane is not None and lo <= c.gravity_in_plane < hi
+            ]
             bins.append(
                 {
                     "gravity_in_plane": [lo, min(hi, 1.0)],
@@ -76,9 +79,10 @@ class Survey:
                 }
             )
         out["by_gravity_in_plane"] = bins
+        # Without an archetype no cut is judged, but thickness is still measured.
         ratios = [
             c.apparent_thickness_mm / self.true_thickness_mm
-            for c in judged
+            for c in (judged if self.archetype else self.cuts)
             if c.apparent_thickness_mm is not None and self.true_thickness_mm
         ]
         out["true_thickness_mm"] = self.true_thickness_mm
@@ -191,7 +195,7 @@ def survey(
                     azimuth_deg=azimuth,
                     offset_mm=offset,
                     pieces=0,
-                    gravity_in_plane=math.nan,
+                    gravity_in_plane=None,
                     passed=None,
                     criteria={},
                     values={},

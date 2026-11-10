@@ -11,7 +11,7 @@ from agatesim.criteria import evaluate
 from agatesim.criteria.combined import BandClass, classify_bands
 from agatesim.fields import Phase
 from agatesim.models.staged import Order, Staged
-from agatesim.simulate import SimulationResult, simulate
+from agatesim.simulate import SimulationResult, build_domain, simulate
 
 RESOLUTION = 384
 SEQUENCES = {
@@ -192,7 +192,7 @@ def test_garden_tubes_rise_from_the_floor_and_ignore_the_grid() -> None:
     tubes = [
         grow_tubes(
             model.garden,
-            simulate(config.with_resolution(r)).domain,
+            build_domain(config.with_resolution(r)),
             model.gravity(),
             np.random.default_rng(3),
         )
@@ -250,3 +250,11 @@ def test_stick_stages_are_accepted_in_3d() -> None:
         }
     )
     assert config.model.kind == "mechanistic-staged"
+
+
+def test_tube_filaments_are_refused_under_staged() -> None:
+    """Staged's later stages don't grow around tubes, so the combination is refused."""
+    data = load_preset("fortification-waterline-mechanistic").model_dump(mode="json")
+    data["cavity"]["tubes"] = [{"x_mm": 0.0, "y_mm": 0.0, "radius_mm": 0.5}]
+    with pytest.raises(ValueError, match="doesn't support tube filaments"):
+        RunConfig.model_validate(data)

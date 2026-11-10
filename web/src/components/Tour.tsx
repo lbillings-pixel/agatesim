@@ -91,7 +91,7 @@ export function Tour() {
   const last = step === TOUR_STEPS.length - 1;
   return (
     <>
-      <button type="button" className="glossary-button" onClick={open}>
+      <button type="button" onClick={open}>
         Tour
       </button>
       <dialog ref={dialog} className="glossary tour" aria-labelledby="tour-title" onClose={markSeen}>

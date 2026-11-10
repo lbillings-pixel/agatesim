@@ -115,13 +115,19 @@ export function App() {
   const [placingTubes, setPlacingTubes] = useState(false);
   const [tubeRadius, setTubeRadius] = useState(0.3);
   const [screen, setScreen] = useState<"simulator" | "twoways" | "volume" | "specimens">("simulator");
+  const [opened, setOpened] = useState({ volume: false, specimens: false });
+  if ((screen === "volume" || screen === "specimens") && !opened[screen]) {
+    setOpened({ ...opened, [screen]: true }); // adjusting state while rendering, as React allows
+  }
   const [light, setLight] = useState<"reflected" | "shadow" | "iris">("reflected");
   const [lightAngle, setLightAngle] = useState(30);
   // Direction of the tilt in the slab plane: diffraction from a band runs across it,
   // so horizontal bands colour only when the view tilts up or down. 45° catches both.
   const [lightDirection, setLightDirection] = useState(45);
-  const [opticsImage, setOpticsImage] = useState<string | null>(null);
-  const [opticsNote, setOpticsNote] = useState("");
+  // The last optical view, with the settings it shows: one made for other settings is
+  // not shown (the plain slab is, until the new one arrives). The angle isn't in the
+  // key, so dragging it keeps the last view rather than flickering.
+  const [optics, setOptics] = useState<{ key: string; image: string; note: string } | null>(null);
   // Undo and redo: earlier and later settings, recorded whenever the settings change.
   const [past, setPast] = useState<RunConfig[]>([]);
   const [future, setFuture] = useState<RunConfig[]>([]);
@@ -206,7 +212,13 @@ export function App() {
       if (approved.current === key) return start();
       // Ask first if it's heavy; if the estimate fails, build as before.
       api.estimate(config, previewRes, previewRes, controller.signal).then(
-        (c) => (c.preview.heavy ? setHeld({ key, estimate: c.preview }) : start()),
+        (c) => {
+          if (!c.preview.heavy) return start();
+          setHeld({ key, estimate: c.preview });
+          // An earlier request may have been abandoned mid-flight: nothing is building now.
+          setPreviewBusy(false);
+          setPreviewTask(null);
+        },
         () => {
           if (!controller.signal.aborted) start();
         },
@@ -236,13 +248,11 @@ export function App() {
   useEffect(() => {
     if (!config || light === "reflected" || previewKey !== JSON.stringify([config, previewRes])) return;
     const controller = new AbortController();
+    const key = JSON.stringify([config, previewRes, light]);
     const timer = window.setTimeout(() => {
       api
         .optics(config, previewRes, light, lightAngle, light === "iris" ? lightDirection : 0, controller.signal)
-        .then((o) => {
-          setOpticsImage(o.image);
-          setOpticsNote(o.note);
-        })
+        .then((o) => setOptics({ key, image: o.image, note: o.note }))
         .catch((e: unknown) => {
           if (!controller.signal.aborted) setPreviewError(e instanceof Error ? e.message : String(e));
         });
@@ -253,12 +263,14 @@ export function App() {
     };
   }, [config, previewRes, previewKey, light, lightAngle, lightDirection]);
 
+  const currentOptics = optics?.key === JSON.stringify([config, previewRes, light]) ? optics : null;
+
   // Poll active jobs; refresh the run list when one finishes.
   useEffect(() => {
     const active = jobs.filter((j) => j.status === "queued" || j.status === "running");
     if (active.length === 0) return;
     const timer = window.setInterval(() => {
-      Promise.all(active.map((j) => api.job(j.id))).then((updated) => {
+      Promise.all(active.map((j) => api.followJob(j))).then((updated) => {
         setJobs((all) => all.map((j) => updated.find((u) => u.id === j.id) ?? j));
         if (updated.some((u) => u.status === "done")) refreshRuns();
       }, () => undefined);
@@ -281,6 +293,14 @@ export function App() {
   const cavity = meta?.cavities.find((c) => c.name === config?.cavity.preset);
   const host = cavity?.host ?? config?.cavity.host ?? undefined;
   const drawn = config ? (drawnOf(config) ?? lastDrawn) : null;
+  // Derived once per change, not on every render (the app re-renders often during runs).
+  const randomizable = useMemo(
+    () => fields.length > 0 && JSON.stringify(model?.schema ?? {}).includes('"explore"'),
+    [fields, model],
+  );
+  const changed = useMemo(() => (base && config ? settingDiffs(base.config, config) : []), [base, config]);
+  const forms = useMemo(() => (meta ? formPresets(meta) : []), [meta]);
+  const others = useMemo(() => (meta ? otherPresets(meta) : []), [meta]);
 
   if (loadError) {
     return (
@@ -400,7 +420,6 @@ export function App() {
     setConfig(next);
   };
 
-  const randomizable = fields.length > 0 && JSON.stringify(model?.schema ?? {}).includes('"explore"');
   // Extras Randomize may vary, where they apply to this model.
   const extraOptions: [RandomizeExtra, string, string][] = [
     ["cavity", "cavity", "Another shape of the same host, size within ±30%, any rotation (not with tubes placed)"],
@@ -411,7 +430,6 @@ export function App() {
       ? ([["order", "stage order", "A random stage order from the allowed list"]] as [RandomizeExtra, string, string][])
       : []),
   ];
-  const changed = base ? settingDiffs(base.config, config) : [];
   const randomize = () => {
     const task = newTaskId();
     const controller = new AbortController();
@@ -439,8 +457,6 @@ export function App() {
 
   // Choosing a form loads its preset for the current tier (or the other tier's, if
   // this one has none) and judges the result as that form.
-  const forms = formPresets(meta);
-  const others = otherPresets(meta);
   const tier = tierOf(config.model.kind);
   const chooseForm = (id: string, wanted = tier) => {
     if (!id) {
@@ -500,6 +516,24 @@ export function App() {
         )}
       </header>
 
+      {/* The 3D and Specimens screens stay mounted once opened, so leaving one keeps
+          its state, including a running job's progress and Cancel button. */}
+      {opened.volume && (
+        <div style={{ display: screen === "volume" ? "contents" : "none" }}>
+          <VolumeWorkbench models={meta.models} archetypes={meta.archetypes} />
+        </div>
+      )}
+      {opened.specimens && (
+        <div style={{ display: screen === "specimens" ? "contents" : "none" }}>
+          <SpecimenWorkbench
+            onOpenReplica={(replica) => {
+              load(replica, "the specimen replica");
+              setSelected(null);
+              setScreen("simulator");
+            }}
+          />
+        </div>
+      )}
       {screen === "twoways" ? (
         <TwoWays
           meta={meta}
@@ -510,17 +544,7 @@ export function App() {
             setScreen("simulator");
           }}
         />
-      ) : screen === "volume" ? (
-        <VolumeWorkbench models={meta.models} archetypes={meta.archetypes} />
-      ) : screen === "specimens" ? (
-        <SpecimenWorkbench
-          onOpenReplica={(replica) => {
-            load(replica, "the specimen replica");
-            setSelected(null);
-            setScreen("simulator");
-          }}
-        />
-      ) : (
+      ) : screen === "volume" || screen === "specimens" ? null : (
       <div className="workspace">
         <aside className="controls" aria-label="Simulation settings">
           <div className="randomize">
@@ -851,9 +875,9 @@ export function App() {
             )}
           </div>
 
-          {selected === null && light === "iris" && opticsNote && (
+          {selected === null && light === "iris" && currentOptics?.note && (
             <p className="muted small" role="status">
-              {opticsNote}
+              {currentOptics.note}
             </p>
           )}
           {selected === null && held && (
@@ -908,7 +932,7 @@ export function App() {
             {selected === null && preview && (
               <SlabView
                 identity="preview"
-                imageSrc={light !== "reflected" && opticsImage ? opticsImage : preview.image}
+                imageSrc={light !== "reflected" && currentOptics ? currentOptics.image : preview.image}
                 tdepSrc={preview.tdep}
                 dxMm={preview.dx_mm}
                 stages={preview.stages}
@@ -1048,7 +1072,9 @@ export function App() {
 
 /** An image the server serves, as a data: URL for embedding in a report. */
 async function dataUrl(url: string): Promise<string> {
-  const blob = await (await fetch(url)).blob();
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`can't load ${url} (${response.status})`);
+  const blob = await response.blob();
   return await new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));

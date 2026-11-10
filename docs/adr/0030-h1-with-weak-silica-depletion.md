@@ -97,3 +97,7 @@ impurity rejected from two walls switches the catalysis on, and the fast state
 takes over. Set 43597 was not re-run. A weakly depleted set with gentler
 catalysis (smaller n) remains the case to try: it might keep its rhythm in a
 corner without either lagging or running away.
+
+## Record (2026-11-10)
+
+The scripts and marks named here were removed in the 2026-11 audit; commit 15c36be is the last that has them (see ADR 0034, Record).

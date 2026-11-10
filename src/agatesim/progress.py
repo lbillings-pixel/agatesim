@@ -28,7 +28,8 @@ MIN_ETA_SECONDS = 2.0  # nor before this long
 RATE_WINDOW_S = (
     15.0  # the time left follows the rate over about this long (or a quarter of the run)
 )
-KEEP_SECONDS = 600.0  # finished trackers stay readable this long
+KEEP_SECONDS = 600.0  # trackers stay readable this long after their work ends
+KEEP_CANCEL_SECONDS = 86_400.0  # a cancel of work that hasn't started is remembered this long
 MIN_REPORT_S = 0.05  # reports closer than this are dropped (tight loops report often)
 
 
@@ -47,6 +48,8 @@ class Tracker:
         self.label = ""
         self.done = False
         self._cancelled = False
+        self._running = 0  # blocks of work reporting here now
+        self._begun = False  # whether any work has reported here
         self._followers: list[Tracker] = []
         self._source: tuple[Tracker, float, float] | None = None
         self._samples: deque[tuple[float, float]] = deque(maxlen=2048)  # (time, fraction)
@@ -62,6 +65,26 @@ class Tracker:
     def cancel(self) -> None:
         with self._lock:
             self._cancelled = True
+
+    def begin(self) -> None:
+        with self._lock:
+            self._running += 1
+            self._begun = True
+
+    def end(self) -> None:
+        with self._lock:
+            self._running -= 1
+            self.updated = time.monotonic()
+
+    def expired(self, now: float) -> bool:
+        """Whether the registry can forget this tracker: never while work runs
+        under it (however quiet), and a cancel of work still queued outlasts
+        the wait for its turn."""
+        with self._lock:
+            if self._running:
+                return False
+            waiting = self._cancelled and not self._begun
+            return now - self.updated > (KEEP_CANCEL_SECONDS if waiting else KEEP_SECONDS)
 
     def set(self, fraction: float | None, label: str | None = None) -> None:
         with self._lock:
@@ -157,11 +180,6 @@ _scope: ContextVar[_Scope | None] = ContextVar("agatesim_progress", default=None
 def active() -> bool:
     """Whether anyone is following progress here (so costly measures are worth taking)."""
     return _scope.get() is not None
-
-
-def current() -> Tracker | None:
-    scope = _scope.get()
-    return None if scope is None else scope.tracker
 
 
 def report(fraction: float | None, label: str | None = None) -> None:
@@ -262,12 +280,15 @@ class Registry:
     def obtain(self, task_id: str) -> Tracker:
         """The tracker for task_id, made if new (two requests of one action share it)."""
         with self._lock:
-            self._expire()
-            tracker = self._items.get(task_id)
-            if tracker is None or tracker.done:
-                tracker = Tracker()
-                self._items[task_id] = tracker
-            return tracker
+            return self._obtain(task_id)
+
+    def _obtain(self, task_id: str) -> Tracker:
+        self._expire()
+        tracker = self._items.get(task_id)
+        if tracker is None or tracker.done:
+            tracker = Tracker()
+            self._items[task_id] = tracker
+        return tracker
 
     def cancel(self, task_id: str) -> None:
         """Cancel task_id, even before its work starts (a request still queued)."""
@@ -279,10 +300,15 @@ class Registry:
         if not task_id:
             yield None
             return
-        tracker = self.obtain(task_id)
-        with using(tracker):
-            yield tracker
-        tracker.set(1.0)
+        with self._lock:
+            tracker = self._obtain(task_id)
+            tracker.begin()
+        try:
+            with using(tracker):
+                yield tracker
+            tracker.set(1.0)
+        finally:
+            tracker.end()
 
     def finish(self, task_id: str) -> None:
         tracker = self.get(task_id)
@@ -292,5 +318,5 @@ class Registry:
 
     def _expire(self) -> None:
         now = time.monotonic()
-        for key in [k for k, t in self._items.items() if now - t.updated > KEEP_SECONDS]:
+        for key in [k for k, t in self._items.items() if t.expired(now)]:
             del self._items[key]

@@ -8,8 +8,8 @@
 #   - "verified" at a tier requires every dependency verified at that tier,
 #     and every criterion to have a threshold (min and/or max)
 #
-# Metrics are provisional until an archetype is implemented, when they gain
-# thresholds. Changing a verified archetype's criteria requires an ADR
+# A new archetype's metrics are provisional until it is implemented, when they
+# gain thresholds. Changing a verified archetype's criteria requires an ADR
 # (see docs/adr/0004-archetype-ladder.md).
 #
 # After editing, regenerate the docs: agatesim archetypes --write docs/archetypes.md
@@ -200,7 +200,7 @@ spherulitic growth from many nucleation sites. Bands follow the lobes.
   [[archetypes.criteria]]
   id = "lobe-count"
   description = "Many lobes, not a single bulge."
-  metric = "Number of distinct growth centres behind the final growth surface (peaks in the density of curvature centres, each holding at least 1% of the surface pixels). That lobe count rises with nucleation density is checked in tests."
+  metric = "Number of separate bulging stretches of the final growth surface, divided by cusps (each holding at least 1% of the surface pixels; ADR 0008). That lobe count rises with nucleation density is checked in tests."
   min = 5
 
   [[archetypes.criteria]]
@@ -257,7 +257,7 @@ channels). In cross-section each tube shows up as a small concentric ring system
   [[archetypes.criteria]]
   id = "seed-concentric"
   description = "Bands around each seed are circles about it."
-  metric = "Worst seed's fraction of band boundary in its ring zone (out to halfway to the nearest other solid) lying within 10% of that band's median distance from the seed."
+  metric = "Worst seed's fraction of band boundary in its ring zone (out to 0.4 of the way to the nearest other solid, short of where the two growths meet) lying within 10% of that band's median distance from the seed."
   min = 0.8
 
   [[archetypes.criteria]]

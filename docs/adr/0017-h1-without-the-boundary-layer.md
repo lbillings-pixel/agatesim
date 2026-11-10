@@ -182,3 +182,7 @@ with the owner, the corner work stops here:
 The regularised surface model from the backlog was tested in
 [ADR 0028](0028-regularised-h1-at-the-corner.md): a curvature term makes the 2D
 front well posed, the mitres come out sharp, but the corner lags.
+
+## Record (2026-11-10)
+
+The scripts named here were removed in the 2026-11 audit; commit 15c36be is the last that has them (see ADR 0034, Record).

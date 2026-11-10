@@ -27,7 +27,10 @@ export function Glossary() {
     dialog.current?.showModal();
     if (markdown === null) {
       api.glossary().then(
-        (r) => setMarkdown(r.markdown),
+        (r) => {
+          setMarkdown(r.markdown);
+          setError(null);
+        },
         (e: unknown) => setError(e instanceof Error ? e.message : String(e)),
       );
     }
@@ -35,7 +38,7 @@ export function Glossary() {
 
   return (
     <>
-      <button type="button" className="glossary-button" onClick={open}>
+      <button type="button" onClick={open}>
         Glossary
       </button>
       <dialog ref={dialog} className="glossary" aria-labelledby="glossary-title">

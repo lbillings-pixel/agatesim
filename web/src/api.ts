@@ -22,6 +22,8 @@ export interface JsonSchemaProperty {
   nature?: Nature;
   /** The setting matters only when one of these holds (see `isUsed` in lib/schema). */
   used_when?: Record<string, string[]>[];
+  /** On a nested model: its settings this parent ignores, which the app hides. */
+  ignores?: string[];
   /** The bounded range Randomize draws from (ADR 0051). */
   explore?: { min: number; max: number; log: boolean };
   /** One of the model's key settings, shown first. */
@@ -196,6 +198,11 @@ export interface Job {
   error: string | null;
 }
 
+/** A job the server has forgotten: full runs don't survive a restart. */
+export function lostJob(job: Job): Job {
+  return { ...job, status: "failed", error: "lost: the server restarted" };
+}
+
 export interface RunSummary {
   id: string;
   name: string;
@@ -219,23 +226,35 @@ export interface RunDetail {
 }
 
 async function request<T>(path: string, init?: RequestInit, task?: string): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...taskHeaders(task, init?.signal), ...init?.headers },
+  return tracked(task, init?.signal, async (named) => {
+    const response = await fetch(path, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...named, ...init?.headers },
+    });
+    if (!response.ok) {
+      throw new Error(await errorMessage(response));
+    }
+    return (await response.json()) as T;
   });
-  if (!response.ok) {
-    throw new Error(await errorMessage(response));
-  }
-  return (await response.json()) as T;
 }
 
-/** The header that names a long request's task (its progress is read under that
- * id), and a cancel sent to the server if the request is abandoned, so the work
- * stops there too (src/agatesim/server/tasks.py). */
-function taskHeaders(task: string | undefined, signal: AbortSignal | null | undefined): Record<string, string> {
-  if (!task) return {};
-  signal?.addEventListener("abort", () => void progress.cancel(task), { once: true });
-  return { "X-Progress": task };
+/** Send a long request under its task's name: `send` gets the header that names
+ * the task (its progress is read under that id). If the request is abandoned
+ * while it runs, a cancel goes to the server so the work stops there too
+ * (src/agatesim/server/tasks.py); once it has settled, abandoning it sends nothing. */
+export async function tracked<T>(
+  task: string | undefined,
+  signal: AbortSignal | null | undefined,
+  send: (named: Record<string, string>) => Promise<T>,
+): Promise<T> {
+  if (!task) return send({});
+  const onAbort = () => void progress.cancel(task);
+  signal?.addEventListener("abort", onAbort, { once: true });
+  try {
+    return await send({ "X-Progress": task });
+  } finally {
+    signal?.removeEventListener("abort", onAbort);
+  }
 }
 
 export const progress = {
@@ -271,6 +290,8 @@ export interface SpecimenFile {
   name: string;
   bytes: number;
   has_settings: boolean;
+  /** A ruler has been marked on the photo. */
+  scaled: boolean;
   badges: QualityBadge[] | null; // null until the photo has been scored
 }
 
@@ -515,10 +536,6 @@ export const library = {
       method: "PUT",
       body: JSON.stringify(label),
     }),
-  clear: async (id: string) => {
-    const response = await fetch(`/api/library/${encodeURIComponent(id)}/label`, { method: "DELETE" });
-    if (!response.ok) throw new Error(await errorMessage(response));
-  },
 };
 
 // --- 3D runs (src/agatesim/server/volume.py) ---
@@ -532,6 +549,8 @@ export interface SolidConfig {
   size_mm: number;
   yaw_deg: number;
   pitch_deg: number;
+  /** Tube filaments, in mm from the cavity's centre. */
+  filaments?: { start_mm: [number, number, number]; end_mm: [number, number, number]; radius_mm?: number }[];
 }
 
 export interface SliceConfig {
@@ -589,6 +608,8 @@ export interface VoxelVolume {
 export interface SurveySummary {
   archetype: string | null;
   cuts: number;
+  /** Pixels per cut. */
+  resolution: number;
   judged: number;
   pass_rate: number | null;
   criteria: Record<string, number | null>;
@@ -606,6 +627,9 @@ export interface SurveyCut {
   gravity_in_plane: number | null;
   passed: boolean | null;
   criteria: Record<string, boolean>;
+  /** Each criterion's measured value (null where it couldn't be measured). */
+  values: Record<string, number | null>;
+  apparent_thickness_mm: number | null;
   error: string | null;
   thumbnail?: string | null;
 }
@@ -633,6 +657,7 @@ export interface VolumeRunDetail {
   summary: VolumeRunSummary;
   config: VolumeConfig;
   metrics: Evaluation | null;
+  stats: BandStats | null;
   survey: { summary: SurveySummary; cuts: SurveyCut[] } | null;
 }
 
@@ -669,23 +694,26 @@ export const volume = {
     signal?: AbortSignal,
     task?: string,
   ): Promise<VoxelVolume> =>
-    readVoxels(
-      await fetch("/api/volume/voxels", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...taskHeaders(task, signal) },
-        body: JSON.stringify({ config, resolution }),
-        signal,
-      }),
+    tracked(task, signal, async (named) =>
+      readVoxels(
+        await fetch("/api/volume/voxels", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...named },
+          body: JSON.stringify({ config, resolution }),
+          signal,
+        }),
+      ),
     ),
   /** A saved run's own volume, read from its files (every stride-th voxel of a large one). */
   runVoxels: async (id: string, signal?: AbortSignal): Promise<VoxelVolume> =>
     readVoxels(await fetch(`/api/volume/runs/${encodeURIComponent(id)}/voxels`, { signal })),
-  survey: (config: VolumeConfig, cuts: number, resolution: number, signal?: AbortSignal, task?: string) =>
+  /** Random cuts, at a saved run's survey size and seed (so both give the same pass rates). */
+  survey: (config: VolumeConfig, cuts: number, signal?: AbortSignal, task?: string) =>
     request<SurveyResult>(
       "/api/volume/survey",
       {
         method: "POST",
-        body: JSON.stringify({ config, cuts, resolution }),
+        body: JSON.stringify({ config, cuts }),
         signal,
       },
       task,
@@ -768,7 +796,14 @@ export const api = {
     ),
   startRun: (config: RunConfig) =>
     request<Job>("/api/runs", { method: "POST", body: JSON.stringify(config) }),
-  job: (id: string) => request<Job>(`/api/jobs/${id}`),
+  /** The job's latest state. A server that has restarted no longer knows the job
+   * (404, for good): it is then failed, so nothing keeps asking about it. */
+  followJob: async (job: Job): Promise<Job> => {
+    const response = await fetch(`/api/jobs/${encodeURIComponent(job.id)}`);
+    if (response.status === 404) return lostJob(job);
+    if (!response.ok) throw new Error(await errorMessage(response));
+    return (await response.json()) as Job;
+  },
   runs: () => request<RunSummary[]>("/api/runs"),
   run: (id: string) => request<RunDetail>(`/api/runs/${id}`),
   /** Delete a saved run, 2D or 3D. */

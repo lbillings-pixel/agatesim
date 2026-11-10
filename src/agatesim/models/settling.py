@@ -32,6 +32,7 @@ import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
 
+from agatesim import progress
 from agatesim.fields import Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models.base import Domain
@@ -39,6 +40,7 @@ from agatesim.models.palette import Palette
 from agatesim.params import Nature, param
 
 HEIGHT_CELLS = 400  # vertical resolution of the settling column
+REPORT = 256  # time steps between progress reports (and chances to cancel)
 MIN_WIDTH_SHARE = 0.1
 PAUSE = 0.5  # a gap in deposition this long (× settling time of the cavity) ends a layer
 
@@ -178,8 +180,8 @@ def settle(
     pulse_of = np.full(nz, -1, dtype=np.int64)
     height = nz * dz
     settle_time = height  # w₀ = 1: time to fall the cavity's height
-    w_face_all = 0.5 * (w[1:] + w[:-1])
-    ratio = float(np.max(np.r_[w_face_all / w[:-1], w_face_all / w[1:]]))
+    w_face = 0.5 * (w[1:] + w[:-1])
+    ratio = float(np.max(np.r_[w_face / w[:-1], w_face / w[1:]]))
     dt = 0.4 * dz / max(ratio, 1.0)  # CFL for |f'| ≤ 1, with width changes
     diffusion = 0.5 * dz  # numerical, keeps the bed front a few cells wide
     total_area = float(np.sum(w) * dz)
@@ -191,8 +193,11 @@ def settle(
     k_next = 0
     current = -1
     end = pulse_times[-1] + 3 * settle_time
-    w_face = 0.5 * (w[1:] + w[:-1])
+    steps = 0
     while t < end:
+        steps += 1
+        if steps % REPORT == 0:
+            progress.report(t / end)
         if k_next < params.pulses and t >= pulse_times[k_next]:
             fluid = np.isnan(packed_at)
             fluid_area = float(np.sum(w[fluid]) * dz)

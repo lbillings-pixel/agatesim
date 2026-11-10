@@ -15,7 +15,7 @@ from agatesim.sequence import (
     spectral_peak,
     width_scaling,
 )
-from agatesim.simulate import simulate
+from agatesim.simulate import build_domain, simulate
 
 
 def _fbm(hurst: float, n: int, seed: int) -> np.ndarray:
@@ -76,7 +76,7 @@ def test_band_thickness_records_the_supply() -> None:
     """Cycle thickness follows the mean supply over the cycle (more silica,
     thinner cycles), so the forcing is recoverable from the bands."""
     config = load_preset("fortification-mechanistic").with_resolution(256)
-    domain = simulate(config).domain
+    domain = build_domain(config)
     model = config.model.model_copy(
         update={"supply_noise": 0.15, "noise_time": 1000.0, "boundary_layer_mm": 0.0008}
     )
@@ -93,7 +93,7 @@ def test_band_thickness_records_the_supply() -> None:
     assert np.mean(corrs) < -0.4
 
 
-def test_forcing_is_independent_of_the_grid() -> None:
+def test_forcing_is_reproducible_and_scaled() -> None:
     model = FrontFeedback(supply_noise=0.2)
     a = supply_forcing(model, 5000.0, np.random.default_rng(3))
     b = supply_forcing(model, 5000.0, np.random.default_rng(3))

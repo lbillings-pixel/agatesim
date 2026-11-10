@@ -194,6 +194,8 @@ def segment(rgb: NDArray[np.uint8], seed: tuple[float, float] | None = None) -> 
     """The specimen's mask and outline. `seed` is an optional (x, y) working-pixel
     point on the specimen."""
     h, w = rgb.shape[:2]
+    if seed is not None and not (0 <= seed[0] < w and 0 <= seed[1] < h):
+        raise ValueError("the point marking the specimen lies outside the photo")
     step = max(1, round(max(h, w) / SEGMENT_LONG_SIDE))
     small = rgb[::step, ::step]
     small_seed = None if seed is None else (int(seed[1] / step), int(seed[0] / step))
@@ -209,6 +211,4 @@ def segment(rgb: NDArray[np.uint8], seed: tuple[float, float] | None = None) -> 
     region = np.isin(pieces, keep[keep > 0])
     outline = trace_outline(region) * step + (step - 1) / 2
     big = np.repeat(np.repeat(region, step, axis=0), step, axis=1)[:h, :w]
-    if big.shape != (h, w):
-        big = np.pad(big, ((0, h - big.shape[0]), (0, w - big.shape[1])))
     return Segmentation(mask=big, outline=outline)

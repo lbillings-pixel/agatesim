@@ -5,14 +5,9 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
+from _shared import preset_photo
 from agatesim.config import load_preset, preset_names
 from agatesim.server.app import create_app, encode_tdep
-
-
-@pytest.fixture
-def client(tmp_path: Path):
-    with TestClient(create_app(tmp_path, static_dir=None)) as c:
-        yield c
 
 
 def _config(name: str = "seam", resolution: int = 128) -> dict[str, object]:
@@ -50,6 +45,25 @@ def test_meta_describes_cavities_models_and_parameters(client: TestClient) -> No
     gravity = next(m for m in meta["models"] if m["kind"] == "procedural-waterline")
     assert gravity["schema"]["properties"]["gravity_deg"]["nature"] == "physical"
     assert {p["name"] for p in meta["presets"]} >= {"fortification", "seam", "waterline"}
+
+
+def test_every_numeric_setting_has_a_nature_and_units() -> None:
+    """ADR 0003: every number a model reads is labelled (audit C14, ADR 0084).
+    Choices and switches need no nature; a schedule's numbers (when, how much)
+    take the nature of the setting it varies."""
+    from agatesim.server.app import MODELS
+
+    schedule_parts = {"Pulse", "Ramp", "Schedule", "Step"}
+    missing: list[str] = []
+    for kind, cls in MODELS.items():
+        schema = cls.model_json_schema()
+        defs = {k: v for k, v in schema.get("$defs", {}).items() if k not in schedule_parts}
+        for where, s in {kind: schema, **defs}.items():
+            for name, p in s.get("properties", {}).items():
+                types = {p.get("type")} | {a.get("type") for a in p.get("anyOf", [])}
+                if types & {"number", "integer"} and not {"nature", "units"} <= set(p):
+                    missing.append(f"{where}.{name}")
+    assert missing == []
 
 
 def test_preview_returns_images_and_evaluation(client: TestClient) -> None:
@@ -195,9 +209,8 @@ def test_specimen_workflow(tmp_path: Path) -> None:
     from PIL import Image
 
     from agatesim.config import RunConfig
-    from agatesim.specimen.synthetic import photograph
 
-    syn = photograph(load_preset("waterline").with_resolution(760))  # validated size
+    syn = preset_photo("waterline")  # validated size
     exif = Image.Exif()
     exif[0x8825] = {1: "N", 2: (51.0, 30.0, 0.0)}
     buffer = io.BytesIO()
@@ -227,6 +240,11 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         verdicts = {i["archetype"]: i["verdict"] for i in body["identification"]}
         assert verdicts["fortification"] == "not confirmed"  # never a false positive
         assert body["transects"] == []
+        # A point off the photo is refused, not a crash or a point on the far side.
+        for seed in ([-5.0, 10.0], [10.0, 1e6]):
+            off = {**settings, "seed": seed}
+            assert c.post("/api/specimens/slab.jpg/analyse", json=off).status_code == 422
+            assert c.post("/api/specimens/slab.jpg/quality", json=off).status_code == 422
 
         # Hand-marked boundaries along a line are saved, and scored by the analysis.
         cx, cy = syn.centre
@@ -262,6 +280,7 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         (listed,) = c.get("/api/specimens").json()
         assert listed["name"] == "slab two.jpeg"
         assert listed["has_settings"]
+        assert listed["scaled"]  # the settings carry a ruler calibration
         assert listed["badges"] == scored["badges"]
         assert c.get("/api/specimens/slab.jpg/photo").status_code == 404
         assert c.delete("/api/specimens/slab%20two.jpeg").status_code == 200
@@ -285,3 +304,33 @@ def test_every_mechanistic_preset_previews(client: TestClient, name: str) -> Non
     response = client.post("/api/preview", json={"config": _config(name), "resolution": 96})
     assert response.status_code == 200, response.text
     assert response.json()["stages"]
+
+
+def test_the_same_new_settings_are_simulated_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A preview and its optical view arrive together: the second waits for the first."""
+    import threading
+
+    from agatesim.server import app as server
+
+    calls: list[str] = []
+    simulate = server.simulate
+
+    def slow(config: server.RunConfig) -> server.SimulationResult:
+        calls.append(config.name)
+        time.sleep(0.3)
+        return simulate(config)
+
+    monkeypatch.setattr(server, "simulate", slow)
+    cache = server._Simulations()  # pyright: ignore[reportPrivateUsage]
+    config = load_preset("fortification").with_resolution(48)
+    results: list[server.SimulationResult] = []
+    workers = [threading.Thread(target=lambda: results.append(cache.get(config))) for _ in range(2)]
+    for w in workers:
+        w.start()
+    for w in workers:
+        w.join()
+    assert len(calls) == 1
+    assert results[0] is results[1]
+    other = config.model_copy(update={"seed": config.seed + 1})
+    assert cache.get(other) is not results[0]  # other settings are simulated as before
+    assert len(calls) == 2

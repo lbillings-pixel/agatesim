@@ -9,8 +9,8 @@ import numpy as np
 import pytest
 from PIL import Image
 
+from _shared import preset_photo
 from agatesim import _scipy
-from agatesim.config import load_preset
 from agatesim.criteria import evaluate
 from agatesim.specimen.fit import replicate
 from agatesim.specimen.identify import DETECTION_RATE, PASS_RELIABLE, SUPPORTED, identify
@@ -18,7 +18,7 @@ from agatesim.specimen.observe import Observation, observe, simplify
 from agatesim.specimen.photo import load_photo, strip_metadata
 from agatesim.specimen.scale import Calibration, camera_height_mm, face_mm_per_px
 from agatesim.specimen.segment import segment, trace_outline
-from agatesim.specimen.synthetic import SyntheticPhoto, photograph
+from agatesim.specimen.synthetic import SyntheticPhoto
 from agatesim.stats import band_statistics
 
 PHOTO_RESOLUTION = 760
@@ -26,7 +26,7 @@ PHOTO_RESOLUTION = 760
 
 @cache
 def _photo(preset: str) -> SyntheticPhoto:
-    return photograph(load_preset(preset).with_resolution(PHOTO_RESOLUTION))
+    return preset_photo(preset, PHOTO_RESOLUTION)
 
 
 @cache

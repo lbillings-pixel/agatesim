@@ -167,17 +167,31 @@ export function Volume3D({ volume, plane, busy, progress, growth, exportRef }: V
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const glRef = useRef<Gl | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const lossTimer = useRef<number | null>(null);
   // Set up WebGL as soon as the canvas exists.
   const attach = useCallback((canvas: HTMLCanvasElement | null) => {
     canvasRef.current = canvas;
     if (!canvas) {
-      // Leaving the screen: give the context back now. Browsers keep only about
-      // 16 and otherwise drop the oldest with a warning, after a while.
-      glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
-      glRef.current = null;
+      // Leaving the screen: give the context back. Browsers keep only about 16 and
+      // otherwise drop the oldest with a warning, after a while. Not at once:
+      // React's development mode detaches and re-attaches the same canvas straight
+      // away, and a canvas whose context was lost can't get a working one back.
+      const held = glRef.current;
+      lossTimer.current = window.setTimeout(() => {
+        lossTimer.current = null;
+        if (held && canvasRef.current === held.gl.canvas) return; // re-attached
+        held?.gl.getExtension("WEBGL_lose_context")?.loseContext();
+        if (glRef.current === held) glRef.current = null;
+      }, 0);
       return;
     }
-    if (glRef.current) return;
+    if (lossTimer.current !== null) {
+      window.clearTimeout(lossTimer.current);
+      lossTimer.current = null;
+    }
+    if (glRef.current?.gl.canvas === canvas) return;
+    glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
+    glRef.current = null;
     try {
       glRef.current = setup(canvas);
     } catch (e) {

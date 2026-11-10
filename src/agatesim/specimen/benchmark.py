@@ -91,7 +91,7 @@ def traced_boundaries(obs: Observation, transect: Transect) -> list[float]:
 def score(marked_mm: FloatArray, traced_mm: FloatArray) -> TransectScore:
     """One-to-one matching of traced to marked positions (mm along the line),
     closest pairs first, within a tolerance: a quarter of the median marked
-    spacing, at least 0.2 mm."""
+    spacing, at least 0.1 mm."""
     marked_mm = np.sort(np.asarray(marked_mm, dtype=np.float64))
     traced_mm = np.sort(np.asarray(traced_mm, dtype=np.float64))
     spacing = float(np.median(np.diff(marked_mm))) if len(marked_mm) > 1 else 0.0

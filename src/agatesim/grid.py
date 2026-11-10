@@ -46,11 +46,15 @@ class Grid:
     def shape(self) -> tuple[int, int]:
         return (self.ny, self.nx)
 
-    def coords(self) -> tuple[FloatArray, FloatArray]:
-        """World x and y of every pixel centre, each shaped (ny, nx)."""
+    def axes(self) -> tuple[FloatArray, FloatArray]:
+        """World x of each column's centres (nx,) and y of each row's (ny,)."""
         x = self.x0 + (np.arange(self.nx) + 0.5) * self.dx
         y = self.y1 - (np.arange(self.ny) + 0.5) * self.dx
-        xx, yy = np.meshgrid(x, y)
+        return x, y
+
+    def coords(self) -> tuple[FloatArray, FloatArray]:
+        """World x and y of every pixel centre, each shaped (ny, nx)."""
+        xx, yy = np.meshgrid(*self.axes())
         return xx, yy
 
     def to_index(self, points: FloatArray) -> FloatArray:
