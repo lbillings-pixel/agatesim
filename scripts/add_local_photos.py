@@ -1,6 +1,6 @@
 """Add photos used by permission to the reference library (tier 2, ADR 0073).
 
-    uv run python scripts/add_local_photos.py FILE... --prefix ID --title TITLE
+    uv run --no-sync python scripts/add_local_photos.py FILE... --prefix ID --title TITLE
         --author ALIAS --licence "used by permission: ..." [--stone ID]
         [--names a1 a2 ...] [--dry-run]
 

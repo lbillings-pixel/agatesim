@@ -1,6 +1,6 @@
 """H1 with a surface state, regularised: which smoothing gives the front a short-wavelength cut-off?
 
-    uv run python scripts/h1_regularised_stability.py hits.npy
+    uv run --no-sync python scripts/h1_regularised_stability.py hits.npy
 
 `hits.npy` holds the oscillating sets of scripts/h1_surface_stability.py (run it
 with --sets 20000 --seed 0). That front law, after [@torii2024], has no

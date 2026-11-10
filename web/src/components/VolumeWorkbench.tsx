@@ -289,7 +289,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
   useEffect(() => {
     if (!job || job.status === "done" || job.status === "failed") return;
     const timer = window.setInterval(() => {
-      api.job(job.id).then(setJob, () => undefined);
+      api.followJob(job).then(setJob, () => undefined);
     }, 1000);
     return () => window.clearInterval(timer);
   }, [job]);

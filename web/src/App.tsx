@@ -264,7 +264,7 @@ export function App() {
     const active = jobs.filter((j) => j.status === "queued" || j.status === "running");
     if (active.length === 0) return;
     const timer = window.setInterval(() => {
-      Promise.all(active.map((j) => api.job(j.id))).then((updated) => {
+      Promise.all(active.map((j) => api.followJob(j))).then((updated) => {
         setJobs((all) => all.map((j) => updated.find((u) => u.id === j.id) ?? j));
         if (updated.some((u) => u.status === "done")) refreshRuns();
       }, () => undefined);

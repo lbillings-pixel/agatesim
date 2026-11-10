@@ -196,6 +196,11 @@ export interface Job {
   error: string | null;
 }
 
+/** A job the server has forgotten: full runs don't survive a restart. */
+export function lostJob(job: Job): Job {
+  return { ...job, status: "failed", error: "lost: the server restarted" };
+}
+
 export interface RunSummary {
   id: string;
   name: string;
@@ -219,23 +224,35 @@ export interface RunDetail {
 }
 
 async function request<T>(path: string, init?: RequestInit, task?: string): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...taskHeaders(task, init?.signal), ...init?.headers },
+  return tracked(task, init?.signal, async (named) => {
+    const response = await fetch(path, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...named, ...init?.headers },
+    });
+    if (!response.ok) {
+      throw new Error(await errorMessage(response));
+    }
+    return (await response.json()) as T;
   });
-  if (!response.ok) {
-    throw new Error(await errorMessage(response));
-  }
-  return (await response.json()) as T;
 }
 
-/** The header that names a long request's task (its progress is read under that
- * id), and a cancel sent to the server if the request is abandoned, so the work
- * stops there too (src/agatesim/server/tasks.py). */
-function taskHeaders(task: string | undefined, signal: AbortSignal | null | undefined): Record<string, string> {
-  if (!task) return {};
-  signal?.addEventListener("abort", () => void progress.cancel(task), { once: true });
-  return { "X-Progress": task };
+/** Send a long request under its task's name: `send` gets the header that names
+ * the task (its progress is read under that id). If the request is abandoned
+ * while it runs, a cancel goes to the server so the work stops there too
+ * (src/agatesim/server/tasks.py); once it has settled, abandoning it sends nothing. */
+export async function tracked<T>(
+  task: string | undefined,
+  signal: AbortSignal | null | undefined,
+  send: (named: Record<string, string>) => Promise<T>,
+): Promise<T> {
+  if (!task) return send({});
+  const onAbort = () => void progress.cancel(task);
+  signal?.addEventListener("abort", onAbort, { once: true });
+  try {
+    return await send({ "X-Progress": task });
+  } finally {
+    signal?.removeEventListener("abort", onAbort);
+  }
 }
 
 export const progress = {
@@ -670,13 +687,15 @@ export const volume = {
     signal?: AbortSignal,
     task?: string,
   ): Promise<VoxelVolume> =>
-    readVoxels(
-      await fetch("/api/volume/voxels", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...taskHeaders(task, signal) },
-        body: JSON.stringify({ config, resolution }),
-        signal,
-      }),
+    tracked(task, signal, async (named) =>
+      readVoxels(
+        await fetch("/api/volume/voxels", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...named },
+          body: JSON.stringify({ config, resolution }),
+          signal,
+        }),
+      ),
     ),
   /** A saved run's own volume, read from its files (every stride-th voxel of a large one). */
   runVoxels: async (id: string, signal?: AbortSignal): Promise<VoxelVolume> =>
@@ -769,7 +788,14 @@ export const api = {
     ),
   startRun: (config: RunConfig) =>
     request<Job>("/api/runs", { method: "POST", body: JSON.stringify(config) }),
-  job: (id: string) => request<Job>(`/api/jobs/${id}`),
+  /** The job's latest state. A server that has restarted no longer knows the job
+   * (404, for good): it is then failed, so nothing keeps asking about it. */
+  followJob: async (job: Job): Promise<Job> => {
+    const response = await fetch(`/api/jobs/${encodeURIComponent(job.id)}`);
+    if (response.status === 404) return lostJob(job);
+    if (!response.ok) throw new Error(await errorMessage(response));
+    return (await response.json()) as Job;
+  },
   runs: () => request<RunSummary[]>("/api/runs"),
   run: (id: string) => request<RunDetail>(`/api/runs/${id}`),
   /** Delete a saved run, 2D or 3D. */

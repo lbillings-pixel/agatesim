@@ -1,6 +1,6 @@
 """Fetch full-resolution reference photos into references/images/full/ (gitignored).
 
-    uv run python scripts/fetch_reference_images.py
+    uv run --no-sync python scripts/fetch_reference_images.py
 
 The repository keeps reduced copies and attribution (references/images/
 catalogue.toml); the full files are large, so they are fetched on demand from

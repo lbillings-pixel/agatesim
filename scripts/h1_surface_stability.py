@@ -1,7 +1,9 @@
 """H1 with an interface state: can adsorbed impurity make the front oscillate?
 
-    uv run python scripts/h1_surface_stability.py --sets 20000   (all cores; --workers 1 for one)
-    uv run python scripts/h1_surface_stability.py --sets 50000 --seed 2 --q-range 0.001 0.1
+    uv run --no-sync python scripts/h1_surface_stability.py --sets 20000
+        (all cores; --workers 1 for one)
+    uv run --no-sync python scripts/h1_surface_stability.py --sets 50000 --seed 2
+        --q-range 0.001 0.1
 
 Extends scripts/h1_linear_stability.py (same units and front problem) with the
 share θ of growth sites covered by adsorbed impurity, after [@torii2024]:

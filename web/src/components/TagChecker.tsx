@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { type LibraryIndex, library } from "../api";
 import { type Answer, applyAnswers, checkQueue, checkTags } from "../lib/labels";
+import { PhotoCredit } from "./PhotoCredit";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -89,13 +90,7 @@ export function TagChecker({
       <figure className="labeler-photo">
         <img src={library.imageUrl(image.id)} alt={image.title} />
         <figcaption className="muted">
-          <a href={image.source} target="_blank" rel="noreferrer">
-            {image.title}
-          </a>{" "}
-          · {image.author} ·{" "}
-          <a href={image.licence_url} target="_blank" rel="noreferrer">
-            {image.licence}
-          </a>
+          <PhotoCredit image={image} />
         </figcaption>
       </figure>
       {tags.map((t) => (

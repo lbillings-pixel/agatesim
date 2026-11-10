@@ -82,7 +82,7 @@ def _write(
     group.attrs.update({"dx_mm": grid.dx, "origin_mm": list(grid.origin), "axes": ["z", "y", "x"]})
     for name, array in volume.fields.arrays().items():
         if name in ("grain", "micro_spacing_um"):
-            continue  # not produced by the 3D models
+            continue  # not saved with 3D runs (the 3D models do produce them)
         group.create_array(name, data=array, chunks=(32, 64, 64))
     group.create_array("cavity_mask", data=volume.inside, chunks=(32, 64, 64))
 

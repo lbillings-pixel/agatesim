@@ -1,6 +1,6 @@
 """Exact linear stability of H1's moving front with explicit diffusion (ADR 0017).
 
-    uv run python scripts/h1_linear_stability.py --sets 4000
+    uv run --no-sync python scripts/h1_linear_stability.py --sets 4000
 
 The same front problem as scripts/h1_stefan_scan.py, in the front's frame, with
 lengths in impurity screening lengths, time in impurity relaxation times and the

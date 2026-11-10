@@ -1,7 +1,7 @@
 """Do bands thin toward the corners of real polygonal agates? (ADR 0029)
 
-    uv run python scripts/fetch_reference_images.py     # once: the full-resolution photos
-    uv run python scripts/marker_band_thinning.py
+    uv run --no-sync python scripts/fetch_reference_images.py     # once: the full-resolution photos
+    uv run --no-sync python scripts/marker_band_thinning.py
 
 For each marker band in references/images/corner_marks.toml, the band is picked
 out by colour (`kind = "colour"`) or as a smooth band brighter than its

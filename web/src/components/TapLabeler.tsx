@@ -16,6 +16,7 @@ import {
   photoDone,
   tap,
 } from "../lib/taps";
+import { PhotoCredit } from "./PhotoCredit";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -158,13 +159,7 @@ export function TapLabeler({
       </div>
       {image && (
         <p className="muted tap-credit">
-          <a href={image.source} target="_blank" rel="noreferrer">
-            {image.title}
-          </a>{" "}
-          · {image.author} ·{" "}
-          <a href={image.licence_url} target="_blank" rel="noreferrer">
-            {image.licence}
-          </a>
+          <PhotoCredit image={image} />
         </p>
       )}
       {photo.targets.length === 0 ? (

@@ -1,8 +1,8 @@
 """Record or check what photo analysis makes of the committed reference photos
 (ADR 0006 point 5, ADR 0066).
 
-    uv run python scripts/reference_regression.py            # show the differences
-    uv run python scripts/reference_regression.py --write    # re-record on purpose
+    uv run --no-sync python scripts/reference_regression.py            # show the differences
+    uv run --no-sync python scripts/reference_regression.py --write    # re-record on purpose
 
 tests/test_reference_regression.py fails when the results change; look at what
 changed, and re-record only if the change is intended (about a minute).

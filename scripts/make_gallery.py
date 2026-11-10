@@ -1,6 +1,6 @@
 """Render the documentation gallery images into docs/images/.
 
-    uv run python scripts/make_gallery.py
+    uv run --no-sync python scripts/make_gallery.py
 
 - archetypes.png: the verification preset of each implemented archetype (optical
   forms in their optical view: shadow lit at 30°, iris backlit and seen at 18°).

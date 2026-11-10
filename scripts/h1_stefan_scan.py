@@ -2,8 +2,8 @@
 oscillator survive explicit diffusion and moving-front conditions? (ADR 0017)
 
     uv sync --extra gpu
-    uv run python scripts/h1_stefan_scan.py --sets 4000 --cells 200
-    uv run python scripts/h1_stefan_scan.py --check hits.npy --cells 400
+    uv run --no-sync python scripts/h1_stefan_scan.py --sets 4000 --cells 200
+    uv run --no-sync python scripts/h1_stefan_scan.py --check hits.npy --cells 400
 
 A 1D front moves into the fluid; in its frame (x ≥ 0, lengths in impurity
 screening lengths, time in impurity relaxation times):

@@ -26,11 +26,13 @@ interface Props {
 
 export function CavityMenu({ cavities, selected, drawn, onSelect, onUseDrawn, onDraw }: Props) {
   return (
-    <div className="cavity-menu">
+    // One choice among every shape, drawn or preset: one radio group, so the
+    // arrow keys reach them all (lib/radiogroup.ts).
+    <div className="cavity-menu" role="radiogroup" aria-label="Cavity shape">
       {HOSTS.map(({ host, label }) => (
         <div key={host} className="cavity-group">
           <div className="micro-label">{label}</div>
-          <div className="cavity-row" role="radiogroup" aria-label={label}>
+          <div className="cavity-row" role="group" aria-label={label}>
             {cavities
               .filter((c) => c.host === host)
               .map((c) => (
@@ -54,7 +56,7 @@ export function CavityMenu({ cavities, selected, drawn, onSelect, onUseDrawn, on
       ))}
       <div className="cavity-group">
         <div className="micro-label">Your own</div>
-        <div className="cavity-row">
+        <div className="cavity-row" role="group" aria-label="Your own">
           {drawn && (
             <button
               type="button"
