@@ -45,7 +45,9 @@ export function installRadioKeys(root: Document | HTMLElement = document): () =>
     e.preventDefault();
     const next = options[target];
     next?.focus();
-    next?.click();
+    // Select it, unless it is already selected: clicking a selected option can
+    // mean something else (the drawn cavity opens its editor).
+    if (next?.getAttribute("aria-checked") !== "true") next?.click();
   };
   root.addEventListener("keydown", onKey);
   return () => root.removeEventListener("keydown", onKey);
