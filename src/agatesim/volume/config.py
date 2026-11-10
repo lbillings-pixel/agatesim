@@ -32,6 +32,7 @@ from agatesim.models import (
     Settling,
     Staged,
 )
+from agatesim.simulate import DEFAULT_GRAVITY_DEG
 from agatesim.volume.growth import unsupported_in_3d
 from agatesim.volume.models import gravity_vector
 from agatesim.volume.solids import (
@@ -53,7 +54,6 @@ VolumeModelConfig = Annotated[
     | Staged,
     Field(discriminator="kind"),
 ]
-DEFAULT_GRAVITY_DEG = 270.0
 
 
 class VolumeGridConfig(BaseModel):

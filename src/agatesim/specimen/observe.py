@@ -29,7 +29,7 @@ from numpy.typing import NDArray
 from agatesim import _scipy
 from agatesim.archetypes import Host
 from agatesim.config import CavityConfig, RunConfig
-from agatesim.fields import Fields, Phase
+from agatesim.fields import QUARTZ_TRANSLUCENCY, Fields, Phase
 from agatesim.geometry import MAX_OUTLINE_POINTS
 from agatesim.grid import Grid
 from agatesim.models import Domain, ProceduralGrowth
@@ -207,9 +207,9 @@ def observed_fields(image: NDArray[np.float64], domain: Domain) -> Fields:
         phase=phase,
         band=bands.astype(np.int32),
         impurity=np.where(chal, iron_band[safe], 0.0).astype(np.float32),
-        translucency=np.where(chal, trans_band[safe], np.where(quartz, 0.9, 0.0)).astype(
-            np.float32
-        ),
+        translucency=np.where(
+            chal, trans_band[safe], np.where(quartz, QUARTZ_TRANSLUCENCY, 0.0)
+        ).astype(np.float32),
         t_dep=t_dep.astype(np.float32),
         grain=np.full(shape, -1, dtype=np.int32),
         micro_spacing_um=np.full(shape, np.nan, dtype=np.float32),

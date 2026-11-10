@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import base64
-import io
 import json
 import threading
 import time
@@ -21,6 +19,7 @@ from agatesim import estimate, progress
 from agatesim.criteria import evaluate, implemented
 from agatesim.render import render_slab
 from agatesim.runs import is_run_id
+from agatesim.server.encoding import data_uri, encode_tdep, png, tdep_bytes
 from agatesim.server.footprint import footprint
 from agatesim.server.jobs import SURVEY_RESOLUTION, Job, JobManager
 from agatesim.server.tasks import TaskHeader
@@ -156,18 +155,6 @@ class Prepared:
             return list(self._items)
 
 
-def _png_uri(image: Image.Image) -> str:
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
-    return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode("ascii")
-
-
-def _tdep_image(t_dep: np.ndarray) -> Image.Image:
-    t = np.asarray(t_dep, dtype=np.float64)
-    coded = np.where(np.isnan(t), 255, np.rint(np.clip(t, 0, 1) * 254)).astype(np.uint8)
-    return Image.fromarray(coded)
-
-
 def _voxel_response(
     grid: Grid3, rgba: np.ndarray, t_dep: np.ndarray, t0: float, stride: int = 1
 ) -> Response:
@@ -184,10 +171,8 @@ def _voxel_response(
         "tdep": True,
         "stride": stride,
     }
-    t = np.asarray(t_dep, dtype=np.float64)
-    tdep = np.where(np.isnan(t), 255, np.rint(np.clip(t, 0, 1) * 254)).astype(np.uint8)
     return Response(
-        rgba.tobytes() + tdep.tobytes(),
+        rgba.tobytes() + tdep_bytes(t_dep).tobytes(),
         media_type="application/octet-stream",
         headers={"X-Volume": json.dumps(header)},
     )
@@ -243,8 +228,8 @@ def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) ->
         if config.archetype is not None and config.archetype in implemented():
             evaluation = evaluate(config.archetype, result).to_json()
         return {
-            "image": _png_uri(Image.fromarray(render_slab(result))),
-            "tdep": _png_uri(_tdep_image(result.fields.t_dep)),
+            "image": data_uri(png(render_slab(result))),
+            "tdep": data_uri(png(encode_tdep(result.fields.t_dep))),
             "width": result.grid.nx,
             "height": result.grid.ny,
             "dx_mm": result.grid.dx,
@@ -283,7 +268,7 @@ def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) ->
         def keep(k: int, c: Cut) -> None:  # a small picture of each cut, to browse
             image = Image.fromarray(render_slab(c.result))
             image.thumbnail((THUMBNAIL, THUMBNAIL))
-            thumbs[k] = _png_uri(image)
+            thumbs[k] = data_uri(png(image))
 
         with tasks.track(task):
             with progress.span(0.0, 0.3):

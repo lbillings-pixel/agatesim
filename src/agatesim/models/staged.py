@@ -51,7 +51,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim import _scipy, progress
-from agatesim.fields import Fields, Phase
+from agatesim.fields import QUARTZ_TRANSLUCENCY, Fields, Phase
 from agatesim.models.base import Domain
 from agatesim.models.front_feedback import FrontFeedback, run_front_feedback
 from agatesim.models.gardens import GardenStage, grow_tubes, rasterise_tubes
@@ -370,7 +370,7 @@ def _stick_fields(
         phase=phase,
         band=np.full(shape, -1, dtype=np.int32),
         impurity=np.zeros(shape, dtype=np.float32),
-        translucency=np.where(grown, 0.9, 0.0).astype(np.float32),
+        translucency=np.where(grown, QUARTZ_TRANSLUCENCY, 0.0).astype(np.float32),
         t_dep=np.where(grown, order, np.nan).astype(np.float32),
         grain=np.where(grown, owner, -1).astype(np.int32),
         micro_spacing_um=np.full(shape, np.nan, dtype=np.float32),

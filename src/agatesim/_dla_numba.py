@@ -25,14 +25,13 @@ import numba as nb
 import numpy as np
 
 from agatesim import progress
-from agatesim._dla import GOLDEN, MASK, MIX1, MIX2, RELEASE, SALT, STEP, STICK
+from agatesim._dla import GOLDEN, MASK, MIX1, MIX2, RELEASE, REPORT, SALT, STEP, STICK
 
 U = np.uint64
 G, M1, M2 = U(GOLDEN), U(MIX1), U(MIX2)
 SCALE = 1.0 / 9007199254740992.0  # 2**-53, as agatesim._dla.uniform
 FREE, NEAR, AGG = np.uint8(1), np.uint8(2), np.uint8(4)
 CHUNKS = 256  # parallel pieces of the particles in a sweep
-REPORT = 64  # sweeps between progress reports (and chances to cancel)
 
 # Numba's simplest threading layer (used where OpenMP and TBB are missing) is
 # not safe to enter from two threads at once; the server could, so one at a time.

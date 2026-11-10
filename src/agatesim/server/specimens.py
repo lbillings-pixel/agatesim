@@ -11,7 +11,6 @@ photos move to `.agatesim/deleted/`.
 
 from __future__ import annotations
 
-import base64
 import io
 import json
 import re
@@ -32,6 +31,7 @@ from agatesim.classify import own_label_path
 from agatesim.library import Label, check_label
 from agatesim.render import render_slab
 from agatesim.server.classifier import ClassifierService
+from agatesim.server.encoding import data_uri, png
 from agatesim.simulate import simulate
 from agatesim.specimen.benchmark import Transect, compare, score_along
 from agatesim.specimen.edges import EdgeMap, boundary_edges, edge_crossings
@@ -75,16 +75,6 @@ class SpecimenSettings(BaseModel):
     transects: list[Transect] = Field(
         default=[], description="Lines with hand-marked band boundaries."
     )
-
-
-def _png(array: np.ndarray) -> bytes:
-    buffer = io.BytesIO()
-    Image.fromarray(array).save(buffer, format="PNG")
-    return buffer.getvalue()
-
-
-def _data_uri(png: bytes) -> str:
-    return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
 
 
 def _transect_json(
@@ -368,7 +358,7 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
             "size_mm": result.domain.cavity.size_mm,
             "outline_mm": np.round(obs.outline_mm, 3).tolist(),
             "host": settings.host.value,
-            "band_map": _data_uri(_png(band_map(obs))),
+            "band_map": data_uri(png(band_map(obs))),
             "stats": band_statistics(result).to_json(),
             "identification": [i.to_json() for i in identify(result)],
             "not_from_photos": NOT_FROM_PHOTOS,
@@ -423,7 +413,7 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
         image = render_slab(simulate(config))
         return {
             "config": json.loads(config.model_dump_json()),
-            "image": _data_uri(_png(image)),
+            "image": data_uri(png(image)),
             "stats": fit.stats.to_json(),
             "target": fit.target.to_json(),
             "mismatch": round(fit.mismatch, 3),

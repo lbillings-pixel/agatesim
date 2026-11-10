@@ -21,7 +21,7 @@ from dataclasses import dataclass, replace
 import numpy as np
 
 from agatesim import progress
-from agatesim.fields import Fields, Phase
+from agatesim.fields import QUARTZ_TRANSLUCENCY, Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models import FrontFeedback, Staged
 from agatesim.models.front_feedback import (
@@ -316,7 +316,7 @@ def prepare_staged(params: Staged, setting: Setting, rng: np.random.Generator) -
                     moulds |= grown  # later stages grew around the crystals, now dissolved
                     continue
                 phase[grown] = Phase.QUARTZ
-                translucency[grown] = 0.9
+                translucency[grown] = QUARTZ_TRANSLUCENCY
                 grain[grown] = owner[grown].astype(np.int32)
                 t_dep[grown] = (i + STAGE_SPAN * np.clip(order_at[grown], 0, 1)) / len(order)
                 continue

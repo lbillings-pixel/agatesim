@@ -5,8 +5,6 @@ Intended to run on the user's own machine, bound to localhost (`agatesim serve`)
 
 from __future__ import annotations
 
-import base64
-import io
 import json
 import threading
 import time
@@ -22,7 +20,6 @@ import zarr
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from numpy.typing import NDArray
 from PIL import Image
 from pydantic import BaseModel, Field
 from starlette.types import Scope
@@ -47,6 +44,7 @@ from agatesim.models.growth import SCHEDULED, Schedules
 from agatesim.render import render_slab
 from agatesim.runs import delete_run, is_run_id, list_runs, usage
 from agatesim.server.classifier import ClassifierService, classifier_router
+from agatesim.server.encoding import data_uri, encode_tdep, png
 from agatesim.server.jobs import Job, JobManager
 from agatesim.server.library import library_router
 from agatesim.server.specimens import specimen_router
@@ -154,24 +152,6 @@ class _Simulations:
     def has(self, config: RunConfig) -> bool:
         with self._lock:
             return config.digest() in self._items
-
-
-def _png(image: Image.Image) -> bytes:
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG", optimize=False)
-    return buffer.getvalue()
-
-
-def _data_uri(png: bytes) -> str:
-    return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
-
-
-def encode_tdep(t_dep: NDArray[np.floating[Any]]) -> Image.Image:
-    """Deposition time as an 8-bit image: 0..254 is time 0..1, 255 is never deposited.
-    The slab viewer uses it to show growth over time."""
-    t = np.asarray(t_dep, dtype=np.float64)
-    coded = np.where(np.isnan(t), 255, np.rint(np.clip(t, 0, 1) * 254)).astype(np.uint8)
-    return Image.fromarray(coded)
 
 
 def _evaluation(config: RunConfig, result: Any) -> dict[str, object] | None:
@@ -316,7 +296,7 @@ def create_app(
                     "(micro rhythm)."
                 )
         return {
-            "image": _data_uri(_png(Image.fromarray(rgb))),
+            "image": data_uri(png(Image.fromarray(rgb))),
             "elapsed_ms": round((time.perf_counter() - t0) * 1000),
             "note": note,
         }
@@ -330,8 +310,8 @@ def create_app(
         rgb = render_slab(result)
         elapsed = time.perf_counter() - t0
         return {
-            "image": _data_uri(_png(Image.fromarray(rgb))),
-            "tdep": _data_uri(_png(encode_tdep(result.fields.t_dep))),
+            "image": data_uri(png(Image.fromarray(rgb))),
+            "tdep": data_uri(png(encode_tdep(result.fields.t_dep))),
             "width": result.grid.nx,
             "height": result.grid.ny,
             "dx_mm": result.grid.dx,
@@ -436,7 +416,7 @@ def create_app(
     def run_tdep(run_id: str) -> Response:
         group = zarr.open_group(store=str(flat_run_dir(run_id) / "fields.zarr"), mode="r")  # pyright: ignore[reportUnknownMemberType]
         t_dep = np.asarray(group["t_dep"])
-        return Response(_png(encode_tdep(t_dep)), media_type="image/png")
+        return Response(png(encode_tdep(t_dep)), media_type="image/png")
 
     specimens_dir = specimens_dir or runs_dir.parent / "specimens"
     classifier = classifier or ClassifierService(specimens_dir)

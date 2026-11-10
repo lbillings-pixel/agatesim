@@ -40,6 +40,7 @@ DEFAULT_CELLS = 4_000_000  # the default lattice budget, which MIN_SWEEPS was se
 # (measured: plume at 42,000 particles, 11 s on the CPU, 18 s on the GPU; a box
 # at 170,000, 47 s on the CPU, 6 s on the GPU).
 GPU_MIN_PARTICLES = 100_000
+REPORT = 64  # sweeps between progress reports (and chances to cancel), in every DLA loop
 
 
 def max_sweeps(cells: int) -> int:
@@ -174,7 +175,7 @@ def _aggregate_cpu(
     sweeps = attached = 0
     while len(pos) and sweeps < sweeps_allowed:
         sweeps += 1
-        if sweeps % 64 == 0:
+        if sweeps % REPORT == 0:
             progress.report(max(attached / max(budget, 1), sweeps / sweeps_allowed))
         target = pos + off_np[direction(np, draw(np, g, salt(key, sweeps, STEP)))]
         pos = np.where(flat[target], target, pos)
@@ -329,7 +330,7 @@ def _aggregate_gpu(
     sweeps = attached = 0
     while living and sweeps < sweeps_allowed:
         sweeps += 1
-        if sweeps % 64 == 0:
+        if sweeps % REPORT == 0:
             progress.report(max(attached / max(budget, 1), sweeps / sweeps_allowed))
         pos, g, alive, stick = pos_b[:size], g_b[:size], alive_b[:size], stick_b[:size]
         step(

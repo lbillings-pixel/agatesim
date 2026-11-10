@@ -25,11 +25,11 @@ import numpy as np
 from numpy.typing import NDArray
 
 from agatesim import progress
+from agatesim._dla import REPORT
 from agatesim.grid import FloatArray, Grid
 
 MAX_CELLS = 1_500_000
 MAX_SWEEPS = 40_000
-REPORT = 64  # sweeps between progress reports (and chances to cancel)
 
 
 def lattice_around(bounds: tuple[float, float, float, float], h: float) -> Grid:

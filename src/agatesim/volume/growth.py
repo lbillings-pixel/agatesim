@@ -35,7 +35,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from agatesim import _scipy, progress
-from agatesim.fields import Fields, Phase
+from agatesim.fields import QUARTZ_TRANSLUCENCY, Fields, Phase
 from agatesim.grid import FloatArray
 from agatesim.models.base import wobble_taper_mm
 from agatesim.models.growth import (
@@ -693,7 +693,7 @@ def prepare_growth(
     return evaluate
 
 
-HALO_TRANSLUCENCY = 0.9  # clear chalcedony (effective; quartz's value in growth_fields)
+HALO_TRANSLUCENCY = QUARTZ_TRANSLUCENCY  # clear chalcedony, as clear as quartz (effective)
 HALO_EDGE = 0.3  # share of the halo's width over which it fades out (assumption)
 
 

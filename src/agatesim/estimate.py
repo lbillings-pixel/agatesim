@@ -17,6 +17,9 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from agatesim import _rd
+from agatesim._dla import (
+    GPU_MIN_PARTICLES as DLA_GPU_PARTICLES,  # the dendrite engine's GPU threshold
+)
 from agatesim.config import RunConfig
 from agatesim.geometry import signed_area
 from agatesim.models import FrontFeedback, Liesegang, ProceduralGrowth, Settling, Staged
@@ -62,7 +65,7 @@ DLA_NUMPY_SECONDS = 112.0  # the reference loop, without Numba
 DLA_GPU_SECONDS = 3.1  # and on the GPU
 DLA_CELLS = 30_000_000
 DLA_BYTES = 12.0  # peak bytes per lattice cell
-DLA_GPU_PARTICLES = 100_000  # the dendrite engine's GPU threshold (agatesim._dla)
+
 DLA_UPWARD_FACTOR = 3.9  # plumes' upward bias: particles take longer to stick
 DLA_2D_SECONDS = 34.0  # 2D dendrites on their full lattice (moss at 0.005 mm branches)
 DLA_2D_POWER = 1.2  # time grows as cells ** power (moss at 0.12 mm: about 1.5 s)

@@ -21,6 +21,9 @@ class Phase(IntEnum):
     INCLUSION = 4  # foreign solid inside the cavity: tube filaments, dendrites, sticks
 
 
+QUARTZ_TRANSLUCENCY = 0.9  # macrocrystalline quartz, in every model (effective)
+
+
 class Pigment(IntEnum):
     """What colours a pixel of chalcedony (ADR 0050). Most colour in chalcedony
     comes from mineral inclusions; blue and white from how it scatters light."""

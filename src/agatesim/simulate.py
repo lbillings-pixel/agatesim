@@ -27,7 +27,7 @@ from agatesim.models import (
     run_waterline,
 )
 
-DEFAULT_GRAVITY_DEG = 270.0
+DEFAULT_GRAVITY_DEG = 270.0  # straight down the picture; the 3D config compares against it
 
 
 @dataclass(frozen=True)
@@ -51,11 +51,16 @@ class SimulationResult:
         return np.array([np.cos(th), np.sin(th)])
 
 
-def simulate(config: RunConfig) -> SimulationResult:
-    rng = np.random.default_rng(config.seed)
+def build_domain(config: RunConfig) -> Domain:
+    """The cavity on its grid, as a run of this config sees it, without running a model."""
     cavity = config.cavity.build()
     grid = Grid.around(cavity.bounds(), config.grid.resolution, config.grid.margin_fraction)
-    domain = Domain.build(cavity, grid, config.cavity.tube_array())
+    return Domain.build(cavity, grid, config.cavity.tube_array())
+
+
+def simulate(config: RunConfig) -> SimulationResult:
+    rng = np.random.default_rng(config.seed)
+    domain = build_domain(config)
     model = config.model
     match model:
         case ProceduralFortification():

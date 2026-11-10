@@ -174,7 +174,13 @@ def _cmd_volume_shape(args: argparse.Namespace) -> int:
     photos = shapes.spreads(entries, cut_shapes.LEVELS)
     names = args.presets or volume_preset_names()
     found = cut_shapes.survey_models(
-        names, looks, draws=args.draws, cuts=args.cuts, resolution=args.cut_resolution
+        names,
+        looks,
+        draws=cut_shapes.DRAWS if args.draws is None else args.draws,
+        cuts=cut_shapes.CUTS if args.cuts is None else args.cuts,
+        resolution=cut_shapes.MAX_RESOLUTION
+        if args.cut_resolution is None
+        else args.cut_resolution,
     )
     print(f"photos (fit and borderline, {len(looks)} looks), 10% / median / 90%:")
     for stat, s in photos.items():
@@ -246,9 +252,15 @@ def _add_volume(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> Non
         "shape", help="band shape on blurred random cuts, against the library (ADR 0069)"
     )
     p.add_argument("presets", nargs="*", help="3D presets (default: all)")
-    p.add_argument("--draws", type=int, default=12, help="settings drawn per model")
-    p.add_argument("--cuts", type=int, default=2, help="random cuts per draw")
-    p.add_argument("--cut-resolution", type=int, default=3072, help="most pixels across a cut")
+    p.add_argument(
+        "--draws", type=int, help="settings drawn per model (default: the standard survey's)"
+    )
+    p.add_argument("--cuts", type=int, help="random cuts per draw (default: the standard survey's)")
+    p.add_argument(
+        "--cut-resolution",
+        type=int,
+        help="most pixels across a cut (default: the standard survey's)",
+    )
     p.set_defaults(func=_cmd_volume_shape)
 
     p = vsub.add_parser("presets", help="list the shipped 3D presets")

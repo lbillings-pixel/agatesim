@@ -54,7 +54,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from agatesim import _scipy
-from agatesim.fields import Fields, Phase
+from agatesim.fields import QUARTZ_TRANSLUCENCY, Fields, Phase
 from agatesim.geometry import circle, densify
 from agatesim.grid import FloatArray, Grid
 from agatesim.models import dendrites
@@ -71,7 +71,7 @@ from agatesim.params import KEY, Nature, param
 from agatesim.schedules import Schedule
 
 TIME_STEPS = 400
-CLEAR_TRANSLUCENCY = 0.9  # the clear first layer: as clear as this model's quartz
+CLEAR_TRANSLUCENCY = QUARTZ_TRANSLUCENCY  # the clear first layer: as clear as quartz
 SWITCH_ON = 0.5  # settling and spherulitic switch on at this value
 # Crystal growth form: termination faces make this angle with the long axis
 # (the half-angle of the pointed tip).
@@ -1412,7 +1412,7 @@ def growth_fields(
     impurity = np.where(inclusion, params.dendrite_tint, impurity)
     impurity = np.where(quartz, 0.25 * np.clip(s.iron.sample(np.nan_to_num(t_dep)), 0, 1), impurity)
     translucency = np.where(chalcedony, bands.translucency[safe], 0.0)
-    translucency = np.where(quartz, 0.9, translucency)
+    translucency = np.where(quartz, QUARTZ_TRANSLUCENCY, translucency)
 
     # Micro-banding: a share of the bands carry regular micro-bands (a grating).
     band_spacing = micro_band_spacing(
