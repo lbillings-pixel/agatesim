@@ -130,14 +130,15 @@ function choiceFor(key: string, p: JsonSchemaProperty): Choice | null {
 
 /** Every setting of a model: numbers, choices, and nested models as groups. A nested
  * model's field that its parent also has is left out, since the parent's governs
- * (a staged model's gravity, for example). */
+ * (a staged model's gravity, for example), as are those the parent `ignores`. */
 export function fieldsFor(schema: ModelSchema, properties = schema.properties): Field[] {
   return Object.entries(properties).flatMap(([key, p]): Field[] => {
     const ref = p.$ref?.match(/^#\/\$defs\/(.+)$/)?.[1];
     const nested = ref ? schema.$defs?.[ref] : undefined;
     if (nested) {
+      const ignored = new Set(p.ignores ?? []);
       const inner = Object.fromEntries(
-        Object.entries(nested.properties).filter(([k]) => !(k in properties)),
+        Object.entries(nested.properties).filter(([k]) => !(k in properties) && !ignored.has(k)),
       );
       const fields = fieldsFor(schema, inner);
       const group: Field = {

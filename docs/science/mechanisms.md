@@ -1,11 +1,10 @@
 # Agate formation: what is known, what is debated, and what it means for the model
 
-> **Status: second draft (2026-10-15).** Each claim is limited by how far its
+> **Status: third draft (2026-11-10).** Each claim is limited by how far its
 > source has been read. See the `checked` field in `references/catalogue.toml`
-> (`sections` means only the listed sections). The two open-access reviews
-> ([@goetze2020], [@moxon2020]) and one dendrite study ([@hou2023]) are now read
-> in full or in large part; most other sources are still at citation or abstract
-> level.
+> (`sections` means only the listed sections). Of the 83 sources catalogued, 35
+> are read in full and 23 in the listed sections; the rest are at citation or
+> abstract level, and the text says so where it relies on one.
 
 ## 1. What agate is
 
@@ -76,7 +75,7 @@ What the reviews agree on:
 |---|---|---|---|---|
 | H1 | Self-organized crystallization | Feedback between growth and composition at the crystallization front produces rhythmic bands without any external cycling. Bands alternate between straight-fibred, trace-element-poor layers and twisted-fibred, trace-element-rich layers. | [@wang1990], [@merino1995], [@heaney1995] | Coupled front growth with concentration feedback (oscillatory zoning) |
 | H2 | Liesegang-type precipitation–diffusion | Supersaturation builds up, nucleates, then depletes, giving periodic precipitation bands in a gel or porous medium, without sedimentation. | [@krug1994], [@jahnke2008], [@liu2025] | Reaction–diffusion with nucleation thresholds; phase-field (Cahn–Hilliard) separation of the precipitate |
-| H3 | Repeated fluid pulses | Each pulse of silica-bearing fluid deposits a layer, so bands record changes in external supply. | Debated in the literature; primary sources to add | Wall-inward deposition driven by a supply schedule |
+| H3 | Repeated fluid pulses | Each pulse of silica-bearing fluid deposits a layer, so bands record changes in external supply. | Debated; one review argues against external rhythms ([@cartwright2026] §5.1.1, see §7) | Wall-inward deposition driven by a supply schedule |
 | H4 | Gravity settling | Particles too large to stay suspended settle to the cavity floor, forming horizontal (Uruguay, waterline) bands. One study finds these bands are made of euhedral quartz grains (0.5–4 µm, about 3 µm typically) and/or spherulites (tens of µm to 200 µm), deposited after the wall-lining bands and coarse quartz. | [@lu1994] | Particle sedimentation in a still pool |
 
 H1–H3 explain **wall-parallel (fortification)** banding. H4 explains **waterline**
@@ -97,7 +96,7 @@ localities ([@goetze2020] §4.1.2).
   ([@goetze2020] §5.4, Fig. 29), which is the eye-then-layers sequence of the
   eye preset. Colloform or botryoidal textures are read as precipitation of
   silica gel in free space ([@goetze2020] §4.1.2). Spherulites in general
-  (reviewed in [@shtukenberg2012], not yet read) have a phase-field model in
+  (reviewed in [@shtukenberg2012], citation only) have a phase-field model in
   which growth-front nucleation randomises crystal orientation
   ([@granasy2005], abstract only): a candidate mechanistic model.
 - **Tube agate.** One review interprets most so-called infiltration channels
@@ -170,6 +169,21 @@ upward-directed growth of plumes. The
 alternatives stay open: dendrites growing in fractures or gel after the
 chalcedony, and viscous fingering.
 
+Later models replace or add to that stand-in, each set out in its ADR:
+
+- **Plumes as silica gardens** (ADR 0044): tubes grow from seeds on the cavity
+  floor, turned back upward by buoyancy, until each seed's solution is used up;
+  then H1 encloses them ([@barge2015], [@cartwright2026] §4.3). ADRs 0079–0081
+  add tilt, tint, haloes and how far plumes reach from the wall.
+- **Stick agate** (ADR 0049): blade crystals in the cavity, lined by later
+  bands and then dissolved or replaced, leaving straight sticks of quartz or
+  open space. Sulfate and carbonate blades are reported in agate ([@goetze2020]
+  §6), and quartz pseudomorphs after anhydrite in geodes ([@chowns1974],
+  abstract).
+- **Pigments** (ADR 0050): each band can carry a named pigment (iron oxides,
+  celadonite, Mn oxide and others), which the renderer colours; criteria don't
+  read it.
+
 In 3D (M25–M26) the aggregation lattice's cell turned out to be the finest
 branch's width rather than a numerical step (ADR 0056). Grown from a flat
 surface into open space, the model's dendrites follow the length law measured
@@ -200,11 +214,13 @@ amendment).
   about 2 µm ([@cartwright2026] §5.1.1, after [@jones1952]). Iris zones "exist in
   nearly every agate, although they are often concealed by pigmentation"
   ([@cartwright2026] §5.1.1). Another review reports up to 1000 micro-bands per
-  millimetre ([@goetze2020] §4.1.2). Non-peer-reviewed sources give figures
-  ranging from about 0.1 to 25 µm, so the simulator uses the peer-reviewed range.
+  millimetre ([@goetze2020] §4.1.2). Jones measured iris gratings directly, from
+  about 15,000 down to 400 lines per inch, about 1.7–64 µm ([@jones1952]); the
+  simulator accepts 1–65 µm on that basis (ADR 0042).
   The renderer applies the grating equation (d·sin θ = mλ) with the grating
   lines along the visible bands. The refractive index of chalcedony (1.54) is an
-  assumed typical value, still to source.
+  assumed typical value: no peer-reviewed figure has been found yet (searched
+  2026-11-10).
 - **Against two banding hypotheses** ([@cartwright2026] §5.1.1): Liesegang
   patterns lack agate's sharp corners, have ring defects agates don't, and follow
   a spacing law agates don't. External-rhythm models predict that nearby agates
@@ -274,12 +290,16 @@ amendment).
    theory ([@kynch1952]) gives horizontal layers over a curved floor, verifying
    waterline. It predicts that layers thin where the cavity widens, and that
    pulses closer together than the settling time merge into one deposit.
-7. **H1 without the boundary-layer approximation (ADR 0017).** The oscillating
-   regime of the boundary-layer model doesn't survive explicit diffusion: the
-   front outruns its silica layer. With physical front conditions, converged
-   oscillations are rare (about 0.05% of sampled parameter sets), stick-slip,
-   and give bands thinner than the diffusion length, possibly the scale of
-   micro-banding rather than of visible bands.
+7. **H1 without the boundary-layer approximation (ADR 0017 and its
+   amendments).** The oscillating regime of the boundary-layer model doesn't
+   survive explicit diffusion: the front outruns its silica layer. Rare
+   stick-slip oscillations found at first turned out to be artefacts of
+   discretising the moving front, so with explicit diffusion H1 doesn't
+   self-organise bands at all. Adding impurity adsorbed on the growth surface
+   ([@torii2024]) restores a genuine oscillation in 1D, but in 2D the front is
+   unstable to short ripples, so corner shapes can't converge. H1's
+   verifications rest on the boundary-layer approximation; the corner question
+   was closed by the owner (ADR 0034).
 8. **Band sequences as records (ADR 0014).** Zoning profiles in other
    minerals are scale-free and anti-persistent (Hurst exponent 0.25–0.45), with
    no periodic component, which [@holten1997] read as environmental forcing.
@@ -302,7 +322,8 @@ amendment).
 - What drives fibre twisting, and should the model represent fibre orientation
   explicitly?
 - Is there a quantitative optical model of the shadow effect?
-- What are measured iris-band spacings, from peer-reviewed sources?
+- ~~What are measured iris-band spacings, from peer-reviewed sources?~~
+  About 1.7–64 µm, measured on iris gratings ([@jones1952]; ADR 0042).
 - ~~What controls the switch from chalcedony to macrocrystalline quartz?~~
   Both reviews: low silica concentration once the polymerised silica is used up
   (§5). Still open: is there a measurable concentration, and how do temperature

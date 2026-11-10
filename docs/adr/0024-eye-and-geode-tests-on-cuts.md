@@ -1,6 +1,7 @@
 # 24. Eye and geode tests that survive the cut
 
 - Status: accepted (owner approved, 2026-10-16)
+- Later changed by: [ADR 0031](0031-eyes-as-arcs-on-cuts.md) (`wall-nucleated`: eyes as arcs on cuts)
 - Date: 2026-10-16
 - Amends: `wall-nucleated` (eye) and `inward-coarsening` (quartz-centre geode)
 - Builds on: [ADR 0022](0022-corners-at-the-bands-own-corner.md), [ADR 0023](0023-growth-from-nuclei-in-3d.md)

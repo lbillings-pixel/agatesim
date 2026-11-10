@@ -322,7 +322,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
     surveyAbort.current = controller;
     setSurveyTask(task);
     volumeApi
-      .survey(config, surveyCount, 384, controller.signal, task)
+      .survey(config, surveyCount, controller.signal, task)
       .then(
         (result) => setSurveyed({ key: surveyKey, result }),
         (e: unknown) => {
@@ -450,6 +450,7 @@ export function VolumeWorkbench({ models, archetypes }: Props) {
             fields={fields}
             values={config.model}
             onChange={(path, v) => update((c) => ({ ...c, model: { ...withSetting(c.model, path, v), kind: c.model.kind } }))}
+            idPrefix="volume-param" // the simulator's panel, mounted alongside, uses "param"
           />
         </section>
 

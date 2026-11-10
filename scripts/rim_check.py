@@ -53,6 +53,11 @@ VIEW_PX = 768  # long side of the drawn outlines
 def split(force: bool) -> None:
     if SPLIT.exists() and not force:
         sys.exit(f"{SPLIT} exists: the split is fixed before tuning (--force to redo)")
+    if not NODULE_LABELS.exists():
+        sys.exit(
+            f"the split needs Nodule's owner-checked photos, {NODULE_LABELS} "
+            "(a Nodule checkout beside this repository)"
+        )
     library, labels = load_library(), load_labels()
     usable = sorted(
         i.id

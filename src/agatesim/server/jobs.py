@@ -54,10 +54,6 @@ class JobManager:
         with self._lock:
             return self._jobs.get(job_id)
 
-    def all(self) -> list[Job]:
-        with self._lock:
-            return sorted(self._jobs.values(), key=lambda j: j.submitted_utc, reverse=True)
-
     def submit(self, config: RunConfig) -> Job:
         job = self._new(config.name)
         self._executor.submit(self._run, job, config)

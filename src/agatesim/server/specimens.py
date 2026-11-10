@@ -201,12 +201,14 @@ def specimen_router(folder: Path, classifier: ClassifierService | None = None) -
         out: list[dict[str, object]] = []
         for path in sorted(folder.iterdir()):
             if path.is_file() and NAME.fullmatch(path.name):
-                quality = cached_quality(path.name, saved_settings(path.name))
+                settings = saved_settings(path.name)
+                quality = cached_quality(path.name, settings)
                 out.append(
                     {
                         "name": path.name,
                         "bytes": path.stat().st_size,
                         "has_settings": settings_path(path.name).exists(),
+                        "scaled": settings.calibration is not None,  # a ruler was marked
                         "badges": None if quality is None else quality["badges"],
                     }
                 )

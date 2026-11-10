@@ -261,6 +261,7 @@ def test_specimen_workflow(tmp_path: Path) -> None:
         (listed,) = c.get("/api/specimens").json()
         assert listed["name"] == "slab two.jpeg"
         assert listed["has_settings"]
+        assert listed["scaled"]  # the settings carry a ruler calibration
         assert listed["badges"] == scored["badges"]
         assert c.get("/api/specimens/slab.jpg/photo").status_code == 404
         assert c.delete("/api/specimens/slab%20two.jpeg").status_code == 200

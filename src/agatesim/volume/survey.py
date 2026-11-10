@@ -79,9 +79,10 @@ class Survey:
                 }
             )
         out["by_gravity_in_plane"] = bins
+        # Without an archetype no cut is judged, but thickness is still measured.
         ratios = [
             c.apparent_thickness_mm / self.true_thickness_mm
-            for c in judged
+            for c in (judged if self.archetype else self.cuts)
             if c.apparent_thickness_mm is not None and self.true_thickness_mm
         ]
         out["true_thickness_mm"] = self.true_thickness_mm

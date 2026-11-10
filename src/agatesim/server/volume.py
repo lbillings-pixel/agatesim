@@ -71,8 +71,9 @@ class VoxelRequest(BaseModel):
 class SurveyRequest(BaseModel):
     config: VolumeConfig
     cuts: int = Field(default=40, ge=1, le=MAX_SURVEY_CUTS)
-    resolution: int = Field(default=384, ge=64, le=MAX_CUT_RESOLUTION)
-    seed: int = Field(default=0, ge=0)
+    # A saved run's survey's size and seed by default, so both give the same pass rates.
+    resolution: int = Field(default=SURVEY_RESOLUTION, ge=64, le=MAX_CUT_RESOLUTION)
+    seed: int | None = Field(default=None, ge=0, description="Defaults to the run's seed.")
 
 
 class VolumeEstimateRequest(BaseModel):
@@ -274,7 +275,8 @@ def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) ->
             with progress.span(0.0, 0.3):
                 sim = prepared.get(request.config)
             with progress.span(0.3, 1.0):
-                found = survey(sim, request.cuts, request.resolution, request.seed, on_cut=keep)
+                seed = request.config.seed if request.seed is None else request.seed
+                found = survey(sim, request.cuts, request.resolution, seed, on_cut=keep)
         cuts = [{**asdict(c), "thumbnail": thumbs.get(k)} for k, c in enumerate(found.cuts)]
         return {
             "summary": found.summary(),
@@ -290,8 +292,7 @@ def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) ->
         config = request.config
         archetype = config.archetype
         cut = min(cut_resolution(archetype, request.cut_resolution), MAX_CUT_RESOLUTION)
-        survey_px = cut_resolution(archetype, request.cut_resolution)
-        run_px = cut_resolution(archetype, SURVEY_RESOLUTION)
+        survey_px = run_px = cut_resolution(archetype, SURVEY_RESOLUTION)  # as /survey runs
         cached = prepared.has(config)
         view = estimate.view_3d(config, request.view_resolution, cut)
         cuts = estimate.survey_3d(config, request.survey_cuts, survey_px)
@@ -330,14 +331,14 @@ def volume_router(jobs: JobManager, runs_dir: Path, tasks: progress.Registry) ->
         return details
 
     @router.get("/runs/{run_id}/voxels")
-    def run_voxels(run_id: str, most: int = MAX_SAVED_VIEW) -> Response:
+    def run_voxels(run_id: str) -> Response:
         """A saved run's own volume, read from its files (as /voxels sends a live
-        one), with at most `most` voxels along a side."""
+        one), with at most MAX_SAVED_VIEW voxels along a side."""
         t0 = time.perf_counter()
         path = run_dir(run_id)
         if not (path / "fields.zarr").is_dir():
             raise HTTPException(404, f"{run_id} has no saved volume")
-        view = read_volume_view(path, max(16, min(most, MAX_SAVED_VIEW)))
+        view = read_volume_view(path, MAX_SAVED_VIEW)
         return _voxel_response(view.grid, view.rgba, view.t_dep, t0, stride=view.stride)
 
     @router.get("/runs/{run_id}/slab.png")

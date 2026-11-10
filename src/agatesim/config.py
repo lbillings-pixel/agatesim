@@ -182,6 +182,13 @@ class RunConfig(BaseModel):
             load_registry().get(v)  # raises KeyError if unknown
         return v
 
+    @model_validator(mode="after")
+    def _supported_combination(self) -> RunConfig:
+        if isinstance(self.model, Staged) and self.cavity.tubes:
+            # Staged's later stages don't grow around tube filaments (audit C3).
+            raise ValueError("the staged model doesn't support tube filaments; remove the tubes")
+        return self
+
     def with_resolution(self, resolution: int) -> RunConfig:
         return self.model_copy(
             update={"grid": self.grid.model_copy(update={"resolution": resolution})}

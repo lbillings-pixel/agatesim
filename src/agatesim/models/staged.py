@@ -243,9 +243,14 @@ class Staged(BaseModel):
     wall: FrontFeedback = Field(
         default_factory=FrontFeedback,
         description="The H1 wall and spherulite stages (with the front-feedback wall mechanism).",
-        json_schema_extra=used_when(
-            {"order": ["spherulite"]}, {"order": ["wall"], "wall_mechanism": ["front-feedback"]}
-        ),
+        json_schema_extra={
+            **used_when(
+                {"order": ["spherulite"]},
+                {"order": ["wall"], "wall_mechanism": ["front-feedback"]},
+            ),
+            # Staged doesn't carry the fast rhythm through (audit C4), so the app hides it.
+            "ignores": ["micro_rhythm", "micro_boundary_layer_um"],
+        },
     )
     liesegang: Liesegang = Field(
         default_factory=Liesegang,

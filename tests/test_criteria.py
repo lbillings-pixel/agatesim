@@ -124,6 +124,21 @@ def test_fortification_criteria_reject_waterline() -> None:
     assert {"wall-parallel", "closed-bands"} <= _failed(_evaluate("fortification", wl))
 
 
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"cooperativity": 1.0},  # catalysis not switch-like
+        {"silica_resupply": 0.5},  # silica resupplied as fast as the impurity relaxes
+        {"catalysis": 0.0},  # no catalysis: no positive feedback
+    ],
+)
+def test_band_count_rejects_h1_without_its_feedback(changes: dict[str, float]) -> None:
+    """Negative controls: remove an ingredient of H1's oscillator and the cavity
+    fills with a few bands at most, which `band-count` rejects."""
+    config = load_preset("fortification-mechanistic").with_resolution(384)
+    assert "band-count" in _failed(_evaluate("fortification", _with_model(config, **changes)))
+
+
 def test_corner_criterion_rejects_rounded_bands() -> None:
     rounded = _with_model(load_preset("fortification"), corner_rounding_mm=1.0)
     assert _failed(_evaluate("fortification", rounded)) == {"corners-preserved"}

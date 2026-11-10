@@ -18,27 +18,27 @@ attribution in `images/catalogue.toml` (author, licence, source page). Each entr
 records:
 
 - which archetypes the photo shows, as reviewed by eye;
-- whether it is a cut slab or a rough surface;
-- whether it is **analysis-ready**: flat, face-on and unobstructed, so it can serve
-  as a test input for photo analysis (ADR 0006).
+- whether it is a cut slab or a rough surface.
+
+Whether a photo is fit for analysis is measured by the quality gate (ADR 0064),
+not set by hand; `tests/data/reference_regression.json` records the result for
+each photo (ADR 0066).
 
 The licences (CC BY and CC BY-SA, various versions) apply to the image files and
 anything derived from them. They don't affect the MIT licence of the code. When
 reusing an image, credit its author and licence as listed.
 
-| Form | Photos | Analysis-ready |
-|---|---:|---:|
-| fortification | 6 | 4 |
-| seam | 1 | 1 |
-| waterline | 3 | 2 |
-| fortification-waterline | 3 | 2 |
-| quartz-geode | 3 | 1 |
-| botryoidal | 4 | 2 |
-| eye | 2 | 2 |
-| tube | 0 | 0 |
-| moss | 1 | 1 |
-| plume | 1 | 1 |
-| shadow | 1 | 0 |
-| iris | 1 | 0 |
+## Reference library: `library*.toml`
 
-Gaps to fill: tube agate, and more analysis-ready seams, eyes and optical forms.
+A larger set of photos for classification and calibration (ADR 0063, 0066). The
+images aren't stored here: `agatesim library fetch` downloads them into
+`references/library/` (gitignored). Labels describe appearance only, never
+evidence for a formation mechanism.
+
+| File | Holds | Written by |
+|---|---|---|
+| `library.toml` | the photo list: source, author, licence, and guessed forms (not labels) | `scripts/build_library.py` |
+| `library-labels.toml` | forms labelled by eye | the Reference labels screen |
+| `library-taps.toml` | test taps for the feature maps (ADR 0068), never used for training | the screen's tap mode |
+| `library-train-taps.toml` | training taps for the feature maps (ADR 0070) | the screen's tap mode |
+| `rim-split.toml` | the rim finder's tuning, held-out and hard test sets (ADR 0073) | `scripts/rim_check.py` |

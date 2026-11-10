@@ -58,8 +58,8 @@ export function StatsPanel({ columns }: { columns: Column[] }) {
         </tbody>
       </table>
       <p className="muted small">
-        Thickness is measured along 48 lines running inward from the wall. The same measures will
-        describe specimen photos.
+        Thickness is measured along 48 lines running inward from the wall. The Specimens screen
+        measures photos the same way.
       </p>
     </section>
   );

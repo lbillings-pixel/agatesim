@@ -63,7 +63,7 @@
 - Every new criterion needs a negative control in tests/test_criteria.py: a
   result lacking the form that the criterion must reject.
 - Models read only the Domain and write only Fields. Criteria read only Fields
-  (plus geometry), never model internals.
+  (plus geometry, which includes the run's gravity direction), never model internals.
 - Anything random must be resolution-independent (spawned RNG streams; noise in
   world coordinates), so previews match full runs.
 - Label every model parameter `physical`, `effective` or `imposed` (ADR 0003, 0005).
@@ -73,7 +73,8 @@
   GPU memory back after large runs (`_rd.release_gpu_memory`): each has caused
   gigabytes of waste or a crash before. A GPU path must give the CPU path's
   result (hashed draws for anything random, ADR 0057), and the compiled CPU
-  dendrite loop (`_dla_numba`) the NumPy reference loop's (ADR 0061).
+  dendrite loop (`_dla_numba`) the NumPy reference loop's (ADR 0061). The
+  GPU-vs-CPU tests skip in CI (no GPU), so run them here before pushing a GPU change.
 - Procedural results are never evidence for a formation mechanism.
 - The owner's specimen photos live in `specimens/` (gitignored) and never enter
   the repository, a commit, an artifact or any external service. Anything derived

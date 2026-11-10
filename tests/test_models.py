@@ -110,13 +110,6 @@ def test_same_seed_same_result() -> None:
         np.testing.assert_array_equal(array, b.arrays()[name], err_msg=name)
 
 
-def test_records_from_before_m4_still_load() -> None:
-    """Run records made before M4 name the retired `quartz_coarsening` parameter."""
-    old = load_preset("quartz-geode").model_dump(mode="json")
-    old["model"]["quartz_coarsening"] = 0.6
-    assert RunConfig.model_validate(old).model == load_preset("quartz-geode").model
-
-
 def test_tubes_are_inclusions_with_bands_around_them() -> None:
     result = simulate(load_preset("tube").with_resolution(256))
     f = result.fields

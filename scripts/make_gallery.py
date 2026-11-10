@@ -4,7 +4,6 @@
 
 - archetypes.png: the verification preset of each implemented archetype (optical
   forms in their optical view: shadow lit at 30°, iris backlit and seen at 18°).
-- cavities.png:   every preset cavity shape, banded with the fortification model.
 - mechanisms.png: the mechanistic models: H1 and H2 in a nodule and a seam, H4, and
   H1 and H4 chained as stages.
 - volume.png:     cuts through 3D runs at several angles (ADR 0021).
@@ -25,7 +24,6 @@ from PIL import Image, ImageDraw
 from agatesim import optics
 from agatesim.config import RunConfig, load_preset
 from agatesim.criteria import implemented
-from agatesim.geometry import CAVITY_PRESETS
 from agatesim.render import render_slab, to_png_image
 from agatesim.simulate import SimulationResult, simulate
 from agatesim.volume.config import SliceConfig, load_volume_preset
@@ -140,14 +138,6 @@ def main() -> None:
     ]
     _sheet(archetypes, columns=3).save(OUT / "archetypes.png", optimize=True)
 
-    base = load_preset("fortification").with_resolution(512)
-    cavities: list[Image.Image] = []
-    for name, preset in CAVITY_PRESETS.items():
-        cavity = base.cavity.model_copy(update={"preset": name})
-        config = base.model_copy(update={"cavity": cavity, "name": name})
-        cavities.append(_tile(config, f"{name} ({preset.host.value})"))
-    _sheet(cavities, columns=3).save(OUT / "cavities.png", optimize=True)
-
     # Competing mechanisms on the same cavities (H2 needs a GPU to be quick).
     mechanisms = [
         _tile(load_preset("fortification-mechanistic"), "H1 front feedback: nodule"),
@@ -158,7 +148,7 @@ def main() -> None:
         _tile(load_preset("fortification-waterline-mechanistic"), "H1 → H4 → H1 stages"),
     ]
     _sheet(mechanisms, columns=2).save(OUT / "mechanisms.png", optimize=True)
-    print(f"wrote archetypes.png, cavities.png and mechanisms.png in {OUT}")
+    print(f"wrote archetypes.png and mechanisms.png in {OUT}")
     _volume()
 
 

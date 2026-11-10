@@ -1,6 +1,7 @@
 # 73. A rim-finder for library photos, and the friend's photos as tier 2
 
 - Status: accepted (2026-10-29; owner chose B, the proposed bar, and both batches)
+- Later changed by: [ADR 0074](0074-rim-finder-option-c-segmentation-model.md) (option C) and [ADR 0075](0075-rim-outlines-measured-after-a-helper-yes.md) (how the bar is used)
 - Date: 2026-10-29
 - Builds on: [ADR 0063](0063-specimen-work-restarted-in-stages.md), [ADR 0066](0066-reference-library-and-labelling.md), [ADR 0067](0067-form-classifier-v1.md), [ADR 0072](0072-reframing-a-coupled-follow-on-project.md)
 

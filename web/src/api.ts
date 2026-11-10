@@ -22,6 +22,8 @@ export interface JsonSchemaProperty {
   nature?: Nature;
   /** The setting matters only when one of these holds (see `isUsed` in lib/schema). */
   used_when?: Record<string, string[]>[];
+  /** On a nested model: its settings this parent ignores, which the app hides. */
+  ignores?: string[];
   /** The bounded range Randomize draws from (ADR 0051). */
   explore?: { min: number; max: number; log: boolean };
   /** One of the model's key settings, shown first. */
@@ -288,6 +290,8 @@ export interface SpecimenFile {
   name: string;
   bytes: number;
   has_settings: boolean;
+  /** A ruler has been marked on the photo. */
+  scaled: boolean;
   badges: QualityBadge[] | null; // null until the photo has been scored
 }
 
@@ -532,10 +536,6 @@ export const library = {
       method: "PUT",
       body: JSON.stringify(label),
     }),
-  clear: async (id: string) => {
-    const response = await fetch(`/api/library/${encodeURIComponent(id)}/label`, { method: "DELETE" });
-    if (!response.ok) throw new Error(await errorMessage(response));
-  },
 };
 
 // --- 3D runs (src/agatesim/server/volume.py) ---
@@ -707,12 +707,13 @@ export const volume = {
   /** A saved run's own volume, read from its files (every stride-th voxel of a large one). */
   runVoxels: async (id: string, signal?: AbortSignal): Promise<VoxelVolume> =>
     readVoxels(await fetch(`/api/volume/runs/${encodeURIComponent(id)}/voxels`, { signal })),
-  survey: (config: VolumeConfig, cuts: number, resolution: number, signal?: AbortSignal, task?: string) =>
+  /** Random cuts, at a saved run's survey size and seed (so both give the same pass rates). */
+  survey: (config: VolumeConfig, cuts: number, signal?: AbortSignal, task?: string) =>
     request<SurveyResult>(
       "/api/volume/survey",
       {
         method: "POST",
-        body: JSON.stringify({ config, cuts, resolution }),
+        body: JSON.stringify({ config, cuts }),
         signal,
       },
       task,

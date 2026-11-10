@@ -11,9 +11,7 @@ Desktop.ini
 .DS_Store
 
 # Editors and IDEs
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+.vscode/
 .idea/
 *.swp
 
@@ -30,9 +28,6 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ruff_cache/
-.mypy_cache/
-.coverage
-htmlcov/
 dist/
 build/
 *.egg-info/

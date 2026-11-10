@@ -1,6 +1,7 @@
 # 49. Stick agate
 
 - Status: accepted (owner approved the form, its tests and both tiers, 2026-10-17)
+- Later changed by: [ADR 0055](0055-stick-tests-that-survive-the-cut.md) (all four stick criteria)
 - Date: 2026-10-17
 - Builds on: [ADR 0004](0004-archetype-ladder.md), [ADR 0035](0035-what-the-mechanistic-tier-requires.md), [ADR 0037](0037-mechanistic-quartz-geode.md), [ADR 0039](0039-mechanistic-eye-and-tube.md)
 

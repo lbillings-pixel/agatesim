@@ -250,3 +250,11 @@ def test_stick_stages_are_accepted_in_3d() -> None:
         }
     )
     assert config.model.kind == "mechanistic-staged"
+
+
+def test_tube_filaments_are_refused_under_staged() -> None:
+    """Staged's later stages don't grow around tubes, so the combination is refused."""
+    data = load_preset("fortification-waterline-mechanistic").model_dump(mode="json")
+    data["cavity"]["tubes"] = [{"x_mm": 0.0, "y_mm": 0.0, "radius_mm": 0.5}]
+    with pytest.raises(ValueError, match="doesn't support tube filaments"):
+        RunConfig.model_validate(data)

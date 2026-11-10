@@ -81,9 +81,7 @@ def simplify(points: NDArray[np.float64], tolerance: float) -> NDArray[np.float6
 class Observation:
     result: SimulationResult
     mm_per_px: float  # of the working photo
-    crop: tuple[int, int, int, int]  # working-photo box (x0, y0, x1, y1) the grid covers
     outline_mm: NDArray[np.float64]  # cavity outline in world mm (y up), as used
-    band_count: int
     centre_px: tuple[float, float] = (0.0, 0.0)  # working-photo px at world (0, 0)
 
 
@@ -134,18 +132,10 @@ def observe(
         [_scipy.bilinear(rgb[..., c].astype(np.float64), py, px) for c in range(3)], axis=-1
     )
     fields = observed_fields(image, domain)
-    crop = (
-        int(max(px.min(), 0)),
-        int(max(py.min(), 0)),
-        int(min(px.max(), rgb.shape[1])),
-        int(min(py.max(), rgb.shape[0])),
-    )
     return Observation(
         result=SimulationResult(config=config, domain=domain, fields=fields),
         mm_per_px=mm_per_px,
-        crop=crop,
         outline_mm=outline_mm,
-        band_count=int(fields.band.max()) + 1,
         centre_px=(float(cx), float(cy)),
     )
 

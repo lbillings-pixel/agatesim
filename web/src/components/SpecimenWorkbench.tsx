@@ -269,7 +269,7 @@ export function SpecimenWorkbench({ onOpenReplica }: Props) {
             <li key={f.name}>
               <button type="button" className={f.name === name ? "selected" : undefined} onClick={() => choose(f.name)}>
                 {f.name}
-                {f.has_settings && <span className="muted small"> · scaled</span>}
+                {f.scaled && <span className="muted small"> · scaled</span>}
               </button>
             </li>
           ))}

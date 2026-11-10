@@ -109,3 +109,7 @@ real agates, so a mechanism that never rounds is also not the whole story.
   - more specimens, ideally with a scale;
   - teach the direction measure to step over a seam;
   - H2 and a regularised H1 measured at the photos' relative resolution.
+
+## Record (2026-11-10)
+
+The scripts and marks named here were removed in the 2026-11 audit; commit 15c36be is the last that has them (see ADR 0034, Record).

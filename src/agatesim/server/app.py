@@ -362,10 +362,6 @@ def create_app(
             raise HTTPException(422, f"resolution is limited to {MAX_RUN_RESOLUTION} px")
         return jobs.submit(config)
 
-    @app.get("/api/jobs")
-    def list_jobs() -> list[Job]:
-        return jobs.all()
-
     @app.get("/api/jobs/{job_id}")
     def get_job(job_id: str) -> Job:
         job = jobs.get(job_id)

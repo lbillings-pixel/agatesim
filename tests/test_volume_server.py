@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from agatesim.volume.config import load_volume_preset
+from agatesim.volume.runs import read_volume_view
 
 
 def _config(name: str = "fortification-3d") -> dict[str, object]:
@@ -95,11 +96,9 @@ def test_survey_and_a_full_run(client: TestClient, tmp_path: Path) -> None:
     assert len(saved.content) == 5 * header["nx"] * header["ny"] * header["nz"]
     live = client.post("/api/volume/voxels", json={"config": config, "resolution": 24})
     assert saved.content == live.content  # the same voxels, saved or computed afresh
-    halved = json.loads(
-        client.get(f"/api/volume/runs/{job['run_id']}/voxels?most=12").headers["X-Volume"]
-    )
-    assert halved["stride"] == 2
-    assert max(halved["nx"], halved["ny"], halved["nz"]) == 12
+    halved = read_volume_view(run, 12)  # a large run is thinned to what the view takes
+    assert halved.stride == 2
+    assert max(halved.grid.shape) == 12
 
 
 def test_the_formation_cache_keeps_the_recently_used_within_its_budget() -> None:

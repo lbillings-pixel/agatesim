@@ -88,12 +88,6 @@ class VolumeSimulation:
         config = self.config if slice_config is None else self.config.with_slice(slice_config)
         return cut(config, self.setting, self.evaluate, self.plane(config.slice))
 
-    def cut_plane(self, plane: Plane, resolution: int | None = None) -> Cut:
-        config = self.config
-        if resolution is not None:
-            config = config.with_slice(config.slice.model_copy(update={"resolution": resolution}))
-        return cut(config, self.setting, self.evaluate, plane)
-
 
 def prepare_volume(config: VolumeConfig) -> VolumeSimulation:
     rng = np.random.default_rng(config.seed)

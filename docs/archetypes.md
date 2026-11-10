@@ -103,7 +103,7 @@ spherulitic growth from many nucleation sites. Bands follow the lobes.
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
 | `lobate-front` | The final growth surface is made of rounded lobes. | Fraction of the banding next to the open space whose deposition-time surfaces bulge into it, curving about a centre behind them (radius under 30% of cavity size). Needs open space. | value ≥ 0.6 |
-| `lobe-count` | Many lobes, not a single bulge. | Number of distinct growth centres behind the final growth surface (peaks in the density of curvature centres, each holding at least 1% of the surface pixels). That lobe count rises with nucleation density is checked in tests. | value ≥ 5 |
+| `lobe-count` | Many lobes, not a single bulge. | Number of separate bulging stretches of the final growth surface, divided by cusps (each holding at least 1% of the surface pixels; ADR 0008). That lobe count rises with nucleation density is checked in tests. | value ≥ 5 |
 | `bands-follow-lobes` | Internal bands are concentric about the lobes, not parallel to the wall. | Fraction of band-boundary pixels whose band curves about a centre behind it. | value ≥ 0.7 |
 
 ## Eye agate
@@ -129,7 +129,7 @@ channels). In cross-section each tube shows up as a small concentric ring system
 
 | Criterion | Description | Metric | Pass if |
 |---|---|---|---|
-| `seed-concentric` | Bands around each seed are circles about it. | Worst seed's fraction of band boundary in its ring zone (out to halfway to the nearest other solid) lying within 10% of that band's median distance from the seed. | value ≥ 0.8 |
+| `seed-concentric` | Bands around each seed are circles about it. | Worst seed's fraction of band boundary in its ring zone (out to 0.4 of the way to the nearest other solid, short of where the two growths meet) lying within 10% of that band's median distance from the seed. | value ≥ 0.8 |
 | `seed-placement` | Ring systems sit where the seeds are. | Worst seed's offset from the centre of its ring system (median of circle fits to its band boundaries), as a fraction of the ring zone's radius. | value ≤ 0.1 |
 
 ## Moss / dendritic agate

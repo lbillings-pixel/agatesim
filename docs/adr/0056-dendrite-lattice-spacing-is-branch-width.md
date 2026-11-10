@@ -108,3 +108,7 @@ So the length law matches Hou et al.'s at both spacings (with seeds 1 mm
 apart), and the 1.39 above was one run's scatter. What the coarsening changes
 is the dimension at a fixed physical scale, which is steady from run to run;
 that is the reason left for the finer lattice.
+
+## Record (2026-11-10)
+
+`scripts/dendrite_convergence.py` was removed in the 2026-11 audit (PR #14, item C28); commit 15c36be is the last that has it. By then it no longer reproduced the figures above exactly (found in the audit).

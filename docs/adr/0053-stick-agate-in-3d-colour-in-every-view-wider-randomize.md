@@ -1,6 +1,7 @@
 # 53. Stick agate in 3D, colour in every view, a wider Randomize
 
 - Status: accepted (owner approved the list, 2026-10-18)
+- Later changed by: [ADR 0055](0055-stick-tests-that-survive-the-cut.md) (stick tests that pass on random cuts)
 - Date: 2026-10-18
 - Builds on: [ADR 0049](0049-stick-agate.md), [ADR 0050](0050-pigments-and-a-palette.md), [ADR 0051](0051-randomize-and-a-lighter-app.md)
 

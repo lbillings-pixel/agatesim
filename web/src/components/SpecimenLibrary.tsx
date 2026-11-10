@@ -168,7 +168,7 @@ export function SpecimenLibrary({ files, selected, onOpen, onRenamed, onDeleted,
                   <span className="muted small">
                     {" "}
                     · {formatBytes(f.bytes)}
-                    {f.has_settings && " · scaled"}
+                    {f.scaled && " · scaled"}
                   </span>
                 </div>
               )}

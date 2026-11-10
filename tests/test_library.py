@@ -162,5 +162,3 @@ def test_labelling_api(tmp_path: Path) -> None:
         client.put("/api/library/moss-agate-1/label", json={"verdict": "forms"}).status_code == 422
     )
     assert client.put("/api/library/nope/label", json={"verdict": "unusable"}).status_code == 404
-    assert client.delete("/api/library/moss-agate-1/label").status_code == 204
-    assert client.get("/api/library").json()["images"][0]["label"] is None

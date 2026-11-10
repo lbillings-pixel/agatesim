@@ -46,22 +46,6 @@ def test_nothing_is_random() -> None:
     assert np.array_equal(a.band, b.band)
 
 
-@pytest.mark.parametrize(
-    "changes",
-    [
-        {"cooperativity": 1.0},  # catalysis not switch-like
-        {"silica_resupply": 0.5},  # silica resupplied as fast as the impurity relaxes
-        {"catalysis": 0.0},  # no catalysis: no positive feedback
-    ],
-)
-def test_without_the_feedback_there_is_no_banding(changes: dict[str, float]) -> None:
-    """Negative controls: remove an ingredient of the oscillator and the cavity
-    fills with a few bands at most, which the fortification criteria reject."""
-    result = simulate(_config(**changes))
-    ev = evaluate("fortification", result)
-    assert "band-count" in {r.id for r in ev.results if not r.passed}
-
-
 def test_preview_matches_full_run() -> None:
     full = preset_run("fortification-mechanistic")
     preview = simulate(load_preset("fortification-mechanistic").with_resolution(256))

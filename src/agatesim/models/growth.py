@@ -47,11 +47,11 @@ import math
 from dataclasses import dataclass
 from enum import IntEnum
 from itertools import pairwise
-from typing import Any, Literal
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from agatesim import _scipy
 from agatesim.fields import QUARTZ_TRANSLUCENCY, Fields, Phase
@@ -715,15 +715,6 @@ class ProceduralGrowth(BaseModel):
         description="Which pigments colour the bands, as relative shares (ADR 0050).",
     )
     schedules: Schedules = Field(default_factory=Schedules)
-
-    @model_validator(mode="before")
-    @classmethod
-    def _drop_retired(cls, data: Any) -> Any:
-        """Run records made before M4 carry `quartz_coarsening`, retired when
-        crystal coarsening became an outcome of geometric selection."""
-        if isinstance(data, dict) and "quartz_coarsening" in data:
-            data = {k: v for k, v in data.items() if k != "quartz_coarsening"}  # pyright: ignore[reportUnknownVariableType]
-        return data  # pyright: ignore[reportUnknownVariableType]
 
     def gravity(self) -> FloatArray:
         th = math.radians(self.gravity_deg)

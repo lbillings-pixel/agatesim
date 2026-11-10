@@ -150,10 +150,4 @@ def library_router(
                 raise HTTPException(422, str(e)) from None
         return label.model_dump()
 
-    @router.delete("/{image_id}/label", status_code=204)
-    def clear_label(image_id: str) -> None:
-        image(image_id)
-        with lock:
-            save_label(image_id, None, labels_toml)
-
     return router

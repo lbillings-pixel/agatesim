@@ -196,20 +196,3 @@ export class GifEncoder {
 }
 
 const word = (v: number) => [v & 0xff, (v >> 8) & 0xff];
-
-/** Encode frames (all the same size) as a looping animated GIF. */
-export function encodeGif(frames: Rgba[], delayCs: number): Uint8Array {
-  const first = frames[0];
-  if (!first) throw new Error("no frames");
-  const encoder = new GifEncoder(first.width, first.height, frames.length, delayCs);
-  for (const f of frames) encoder.sample(f);
-  for (const f of frames) encoder.add(f);
-  const parts = encoder.finish();
-  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
-  let at = 0;
-  for (const p of parts) {
-    out.set(p, at);
-    at += p.length;
-  }
-  return out;
-}
