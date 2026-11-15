@@ -1,7 +1,7 @@
 # agatesim: notes for Claude
 
 ## Working with the owner
-- The owner directs and decides. They rarely edit code themselves. Be proactive:
+- The owner directs and decides. Be proactive: carry changes through end to end,
   raise risks, suggestions and next steps, and check in at each milestone
   (see docs/roadmap.md).
 - Ask before hard-to-reverse choices (stack, model architecture, archetype
