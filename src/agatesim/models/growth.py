@@ -474,6 +474,18 @@ class ProceduralGrowth(BaseModel):
         nature=Nature.EFFECTIVE,
         description="In 3D, the share of plumes that have a halo, drawn plume by plume.",
     )
+    dendrite_halo_clearing: float = param(
+        1.0,
+        gt=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, how far a halo clears the chalcedony: the share of the band colour it "
+            "erases and of the way to clear it goes (1 = wholly clear; below 1 the bands "
+            "show faintly inside the halo; an assumption, ADR 0085)."
+        ),
+    )
     dendrite_reach_mm: float = param(
         0.0,
         ge=0,
@@ -483,6 +495,44 @@ class ProceduralGrowth(BaseModel):
             "In 3D, branched inclusions grow only within this distance of the cavity wall "
             "(0 = anywhere), so they can stop short of a centre that later bands leave "
             "open or fill with quartz (ADR 0081)."
+        ),
+    )
+    dendrite_reach_share: float = param(
+        0.0,
+        ge=0,
+        le=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, branched inclusions grow only within this share of the local depth "
+            "from the wall (0 = off): the local depth is the half-width of the lobe or "
+            "pocket of the cavity a place lies in, so inclusions stay smaller in a small "
+            "side lobe than in the main one (ADR 0086). Applies together with the reach in mm."
+        ),
+    )
+    dendrite_reach_floor: float = param(
+        0.0,
+        ge=0,
+        lt=1,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, with a reach by share: the height, as a share of the cavity's, to which "
+            "a floor later fills it (0 = none). Above that level the local depth is measured "
+            "in the cavity left above the floor; below it, in the whole cavity (ADR 0086)."
+        ),
+    )
+    dendrite_reach_contrast: float = param(
+        0.0,
+        ge=0,
+        le=4,
+        units="",
+        nature=Nature.EFFECTIVE,
+        description=(
+            "In 3D, with a reach by share: the share is further scaled by (local depth / "
+            "deepest local depth) to this power, the deepest taken on each side of a floor's "
+            "level. At 0 every lobe fills the same share of its depth; above 0 a shallow side "
+            "lobe fills a smaller share than the main one (ADR 0086)."
         ),
     )
     dendrite_wrap_rate: float = param(
@@ -972,6 +1022,9 @@ class InclusionGrowth:
     tilt_deg: float = 0.0  # in 3D: the biased direction, from up (0) to down (180)
     azimuth_deg: float = 0.0  # in 3D: which way a tilted direction leans
     reach_mm: float = 0.0  # in 3D: grow only this close to the wall (0 = anywhere)
+    reach_share: float = 0.0  # in 3D: ... and within this share of the local depth (0 = off)
+    reach_floor: float = 0.0  # in 3D: height of a later floor, for the local depth (0 = none)
+    reach_contrast: float = 0.0  # in 3D: shallow lobes fill a smaller share (0 = the same)
 
     def gravity(self) -> FloatArray:
         th = math.radians(self.gravity_deg)
@@ -992,6 +1045,9 @@ def inclusion_growth(params: ProceduralGrowth) -> InclusionGrowth:
         tilt_deg=params.dendrite_tilt_deg,
         azimuth_deg=params.dendrite_azimuth_deg,
         reach_mm=params.dendrite_reach_mm,
+        reach_share=params.dendrite_reach_share,
+        reach_floor=params.dendrite_reach_floor,
+        reach_contrast=params.dendrite_reach_contrast,
     )
 
 

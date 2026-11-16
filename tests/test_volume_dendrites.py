@@ -13,7 +13,7 @@ from agatesim.criteria import evaluate
 from agatesim.fields import Fields, Phase
 from agatesim.models.growth import InclusionGrowth, ProceduralGrowth
 from agatesim.volume.config import SliceConfig, load_volume_preset
-from agatesim.volume.dendrites import Aggregate3, Lattice3, grow
+from agatesim.volume.dendrites import Aggregate3, Lattice3, basin_depth, grow, local_reach
 from agatesim.volume.growth import PlumeLook, plume_direction
 from agatesim.volume.simulate import VolumeSimulation, prepare_volume
 
@@ -338,6 +338,26 @@ def test_halos_clear_the_chalcedony_round_plumes(plume_grids: Grids) -> None:
     assert not _clear_round_plumes(fields, points)
 
 
+def _faint_bands_round_plumes(fields: Fields, points: np.ndarray) -> bool:
+    """Coloured bands within 0.6 mm of an inclusion keep a small part of their colour:
+    between a tenth and six tenths of the steps' own value, at the median."""
+    assert fields.band_impurity is not None
+    inc = fields.phase == Phase.INCLUSION
+    ch = np.flatnonzero(fields.phase == Phase.CHALCEDONY)
+    d, _ = NearestIndex(points[inc]).query(points[ch])
+    near = ch[(d <= 0.6) & (fields.band_impurity[ch] > 0.05)]
+    kept = float(np.median(fields.impurity[near] / fields.band_impurity[near]))
+    return 0.1 < kept < 0.6
+
+
+def test_partial_clearing_leaves_faint_bands_in_halos(plume_grids: Grids) -> None:
+    """ADR 0085. Negative control: a wholly clear halo (the default) keeps none."""
+    _, fields, points, _ = _plume(**STYLED, dendrite_halo_clearing=0.7)
+    assert _faint_bands_round_plumes(fields, points)
+    fields, points, _ = plume_grids["styled"]
+    assert not _faint_bands_round_plumes(fields, points)
+
+
 def _coat_rate(fields: Fields, points: np.ndarray, wall: np.ndarray, start: float) -> float:
     """How fast chalcedony grew round the plumes, against its growth from the wall:
     the median of each point's distance to the nearest plume over the wall growth
@@ -376,3 +396,82 @@ def test_plumes_stay_within_their_reach_of_the_wall(reach: float, kept: bool) ->
     sim, fields, points, _ = _plume(dendrite_reach_mm=reach)
     wall = _wall(sim, points)
     assert _within_reach(fields, wall, 4.0) is kept
+
+
+# ADR 0086: a reach that follows the local depth of the cavity.
+
+
+def _two_lobes(small: float) -> tuple[Lattice3, np.ndarray, np.ndarray]:
+    """Depth below the surface of two overlapping balls (radii 8 and `small`, centres
+    11 apart; `small` 0 leaves one ball), on a 0.5 mm lattice. Outside is -1."""
+    lattice = Lattice3.around(np.zeros(3), np.array([30.0, 20.0, 20.0]), 0.5)
+    c = lattice.centres()
+    depth = 8.0 - np.linalg.norm(c - np.array([10.0, 10.0, 10.0]), axis=1)
+    if small > 0:
+        depth = np.maximum(depth, small - np.linalg.norm(c - np.array([21.0, 10.0, 10.0]), axis=1))
+    return lattice, c, np.where(depth > 0, depth, -1.0).astype(np.float32)
+
+
+def _side_lobe_is_shallower(small: float) -> bool:
+    """Cells round the second centre climb to a depth near 4, not the main ball's 8."""
+    lattice, c, depth = _two_lobes(small)
+    basin = basin_depth(depth, lattice.shape)
+    side = (np.linalg.norm(c - np.array([21.0, 10.0, 10.0]), axis=1) < 2.5) & (depth > 0)
+    main = np.linalg.norm(c - np.array([10.0, 10.0, 10.0]), axis=1) < 6.0
+    assert float(np.abs(basin[main] - 8.0).max()) < 0.5
+    return bool(side.any()) and float(np.abs(basin[side] - 4.0).max()) < 0.5
+
+
+def test_basin_depth_tells_a_side_lobe_from_the_main_one() -> None:
+    assert _side_lobe_is_shallower(4.0)
+    assert not _side_lobe_is_shallower(0.0)  # negative control: one ball, no side lobe
+
+
+def test_basin_depth_does_not_climb_across_regions() -> None:
+    lattice, c, depth = _two_lobes(0.0)
+    below = c[:, 2] < 6.0
+    basin = basin_depth(depth, lattice.shape, below)
+    inside = depth > 0
+    assert float(basin[inside & below].max()) < 4.5  # the cap under z = 6 is 4 deep
+    assert float(basin[inside & ~below].min()) > 7.5
+
+
+def _side_fills_less(contrast: float) -> bool:
+    """The side lobe (depth 4) fills a clearly smaller share of its depth than the
+    main one (depth 8)."""
+    lattice, c, depth = _two_lobes(4.0)
+    basin = basin_depth(depth, lattice.shape)
+    reach = local_reach(basin, 0.6, contrast)
+    side = np.linalg.norm(c - np.array([21.0, 10.0, 10.0]), axis=1) < 2.5
+    main = np.linalg.norm(c - np.array([10.0, 10.0, 10.0]), axis=1) < 6.0
+    fill_side = float(np.median(reach[side] / basin[side]))
+    fill_main = float(np.median(reach[main] / basin[main]))
+    assert abs(fill_main - 0.6) < 0.01  # the deepest lobe keeps the plain share
+    return fill_side < 0.75 * fill_main
+
+
+def test_contrast_makes_a_side_lobe_fill_less_of_its_depth() -> None:
+    """ADR 0086. Negative control: at contrast 0 both lobes fill the same share."""
+    assert _side_fills_less(1.0)
+    assert not _side_fills_less(0.0)
+
+
+def test_contrast_takes_the_deepest_on_each_side_of_a_floor() -> None:
+    lattice, c, depth = _two_lobes(0.0)
+    below = c[:, 2] < 6.0
+    basin = basin_depth(depth, lattice.shape, below)
+    reach = local_reach(basin, 0.5, 2.0, below)
+    under = (depth > 0) & below
+    cap = under & (basin == basin[under].max())  # the cap under z = 6, about 4 deep
+    # Scaled by the ball's 8 instead, the cap would reach a quarter of this.
+    assert cap.any()
+    assert np.allclose(reach[cap], 0.5 * basin[cap])
+
+
+@pytest.mark.parametrize(("share", "kept"), [(0.3, True), (0.0, False)])
+def test_plumes_stay_within_a_share_of_the_local_depth(share: float, kept: bool) -> None:
+    """ADR 0086. Negative control: without a share (0), plume-3d's plumes rise farther
+    than three tenths of the cavity's depth."""
+    sim, fields, points, _ = _plume(dendrite_reach_share=share)
+    wall = _wall(sim, points)
+    assert _within_reach(fields, wall, 0.3 * float(np.nanmax(wall))) is kept

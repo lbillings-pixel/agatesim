@@ -75,6 +75,72 @@ class Lattice3:
         return i + nx * (j + ny * k)
 
 
+def basin_depth(
+    depth: NDArray[np.float32],
+    shape: tuple[int, int, int],
+    region: NDArray[np.bool_] | None = None,
+) -> NDArray[np.float32]:
+    """For each lattice cell, the largest `depth` reached by climbing from it
+    (ADR 0086): each cell points at its deepest neighbour of the 26 (itself at a
+    summit), and the pointers are followed to their ends. With `depth` the
+    distance from the wall, this is the half-width of the lobe or pocket a cell
+    lies in, so a small side lobe gets a smaller value than the main one. A climb
+    never crosses between the two values of `region`. Flat arrays, the lattice's
+    order (i + nx (j + ny k))."""
+    nx, ny, nz = shape
+    a = depth.reshape(nz, ny, nx)
+    reg = None if region is None else region.reshape(nz, ny, nx)
+    own = np.arange(a.size, dtype=np.int64).reshape(a.shape)
+    best = a.copy()
+    parent = own.copy()
+    for dk in (-1, 0, 1):
+        for dj in (-1, 0, 1):
+            for di in (-1, 0, 1):
+                if dk == dj == di == 0:
+                    continue
+                here = tuple(
+                    slice(max(-s, 0), n - max(s, 0)) for s, n in ((dk, nz), (dj, ny), (di, nx))
+                )
+                there = tuple(
+                    slice(max(s, 0), n - max(-s, 0)) for s, n in ((dk, nz), (dj, ny), (di, nx))
+                )
+                better = a[there] > best[here]
+                if reg is not None:
+                    better &= reg[there] == reg[here]
+                best[here] = np.where(better, a[there], best[here])
+                parent[here] = np.where(better, own[there], parent[here])
+    p = parent.ravel()
+    while True:
+        q = p[p]
+        if np.array_equal(q, p):
+            break
+        p = q
+    return depth[p]
+
+
+def local_reach(
+    basin: NDArray[np.float32],
+    share: float,
+    contrast: float = 0.0,
+    region: NDArray[np.bool_] | None = None,
+) -> NDArray[np.float32]:
+    """The distance from the wall within which inclusions grow, per cell (ADR 0086):
+    `share` of the local depth `basin`, times (basin / deepest) ** `contrast`, the
+    deepest taken within each value of `region`. At contrast 0 every lobe fills the
+    same share of its depth; above 0 a shallow side lobe fills a smaller share than
+    the main one."""
+    reach = (share * basin).astype(np.float32)
+    if contrast <= 0:
+        return reach
+    deepest = np.zeros_like(basin)
+    parts = [np.ones(basin.shape, dtype=bool)] if region is None else [region, ~region]
+    for part in parts:
+        if part.any():
+            deepest[part] = max(float(basin[part].max()), 0.0)
+    ratio = np.divide(basin, deepest, out=np.zeros_like(basin), where=deepest > 0)
+    return (reach * np.clip(ratio, 0, 1) ** contrast).astype(np.float32)
+
+
 _HASH = (2654435761, 2246822519, 3266489917)  # odd multipliers, one per axis
 
 

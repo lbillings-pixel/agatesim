@@ -52,7 +52,7 @@ from agatesim.models.growth import (
     inclusion_growth,
     mode_stages,
 )
-from agatesim.volume.dendrites import Aggregate3, Lattice3, grow
+from agatesim.volume.dendrites import Aggregate3, Lattice3, basin_depth, grow, local_reach
 from agatesim.volume.features import FeatureLayer, wall_features
 from agatesim.volume.models import Evaluator, Setting, SmoothNoise3
 from agatesim.volume.solids import BoolArray
@@ -379,6 +379,18 @@ def grow_aggregate(
     lo, hi = setting.solid.bounds()
     lattice = Lattice3.around(lo, hi, how.width_mm, how.max_cells)
     free = np.zeros(lattice.size, dtype=bool)
+    # A reach that follows the local depth (ADR 0086) needs every cell's wall
+    # distance at once: 4 bytes a cell, and one flag a cell with a floor.
+    local = how.reach_share > 0
+    wall = np.full(lattice.size, -1.0, dtype=np.float32) if local else None
+    depth = wall
+    floor_mm = 0.0
+    below = None
+    if local and how.reach_floor > 0:
+        g = setting.gravity
+        floor_mm = how.reach_floor * float(setting.solid.support(g) + setting.solid.support(-g))
+        depth = np.full(lattice.size, -1.0, dtype=np.float32)
+        below = np.zeros(lattice.size, dtype=bool)
     # In parts (the same values): a fine lattice's coordinates at once would take
     # gigabytes, and the parts report progress.
     for k in range(0, lattice.size, PROGRESS_CHUNK):
@@ -388,11 +400,24 @@ def grow_aggregate(
         if inside.any():
             c = c[inside]
             d_wall = setting.solid.wall_distance(c)
-            open_ = solid.distance(c, d_wall, setting.height(c)) > 0
+            height = setting.height(c)
+            open_ = solid.distance(c, d_wall, height) > 0
             if how.reach_mm > 0:  # only near the wall (ADR 0081)
                 open_ &= d_wall <= how.reach_mm
             free[idx[inside]] = open_
+            if wall is not None and depth is not None:
+                wall[idx[inside]] = d_wall
+                if below is not None:
+                    # Above the floor's level the depth is that of the cavity left above it.
+                    under = height < floor_mm
+                    below[idx[inside]] = under
+                    depth[idx[inside]] = np.where(
+                        under, d_wall, np.minimum(d_wall, height - floor_mm)
+                    )
         progress.report(0.55 * (k + PROGRESS_CHUNK) / lattice.size)
+    if wall is not None and depth is not None:
+        basin = basin_depth(depth, lattice.shape, below)
+        free &= wall <= local_reach(basin, how.reach_share, how.reach_contrast, below)
     sites = place_sites(setting, solid, how.spacing_mm, rng_sites)
     progress.report(0.75)
     points, normals = sites.points, sites.normals
@@ -687,7 +712,9 @@ def prepare_growth(
             impurity = np.where(dendrite, tint, fields.impurity).astype(np.float32)
             fields = replace(fields, impurity=impurity)
         if params.dendrite_halo_mm > 0:
-            fields = _halos(fields, points, stages, params.dendrite_halo_mm)
+            fields = _halos(
+                fields, points, stages, params.dendrite_halo_mm, params.dendrite_halo_clearing
+            )
         return fields
 
     return evaluate
@@ -697,12 +724,16 @@ HALO_TRANSLUCENCY = QUARTZ_TRANSLUCENCY  # clear chalcedony, as clear as quartz 
 HALO_EDGE = 0.3  # share of the halo's width over which it fades out (assumption)
 
 
-def _halos(fields: Fields, points: FloatArray, stages: list[_Stage], width: float) -> Fields:
+def _halos(
+    fields: Fields, points: FloatArray, stages: list[_Stage], width: float, clearing: float = 1.0
+) -> Fields:
     """Clear halos round plumes (ADR 0079): chalcedony within `width` of a plume
     that has one is clear, its band colour erased, fading out over the outer
     HALO_EDGE of the width. Whatever the bands were there, halos are reported to
-    erase them [@kile2002, p. 263]. The steps' own values stay in band_impurity
-    and band_translucency (ADR 0078), since a halo depends on place, not step."""
+    erase them [@kile2002, p. 263]. At a `clearing` below 1 a halo goes only that
+    share of the way, so the bands show faintly inside it (ADR 0085). The steps'
+    own values stay in band_impurity and band_translucency (ADR 0078), since a
+    halo depends on place, not step."""
     idx = np.flatnonzero(fields.phase == Phase.CHALCEDONY)
     weight = np.zeros(len(idx))
     for st in stages:
@@ -717,6 +748,7 @@ def _halos(fields: Fields, points: FloatArray, stages: list[_Stage], width: floa
         weight = np.maximum(weight, np.where(has, w, 0.0))
     if not weight.any():
         return fields
+    weight *= clearing  # at 1 (the default) exactly as before
     impurity = fields.impurity.copy()
     translucency = fields.translucency.copy()
     impurity[idx] *= (1 - weight).astype(np.float32)
