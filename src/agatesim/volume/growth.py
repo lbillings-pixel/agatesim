@@ -519,6 +519,19 @@ class _Stage:
     plumes: PlumeLook | None = None  # dendrite stages: each plume's tints and halo
 
 
+def settling_area(solid: GrowthSolid, setting: Setting, ref_h: FloatArray) -> float:
+    """The surface (mm²) a settling stage's growth is laid over to give its volume:
+    the open shell one reference spacing deep along the wall, bed, balls and tubes.
+    Inclusions hanging in the open space (dendrites, sticks) are left out: they add
+    surface, not supply, and counted in they raised a floor up to the whole cavity
+    (ADR 0087)."""
+    ref = setting.reference
+    s = ref.spacing
+    wall = replace(solid, aggregates=()) if solid.aggregates else solid
+    d = wall.distance(ref.points, ref.distance, ref_h)
+    return float(np.count_nonzero((d > 0) & (d < s))) * s * s
+
+
 def prepare_growth(
     params: ProceduralGrowth, setting: Setting, rng: np.random.Generator
 ) -> Evaluator:
@@ -604,7 +617,7 @@ def prepare_growth(
         else:  # settling: fill the open space from its lowest point, conserving volume
             d_ref = solid.distance(ref.points, ref.distance, ref_h)
             open_ref = d_ref > 0
-            front_area = float(np.count_nonzero(open_ref & (d_ref < s))) * s * s
+            front_area = settling_area(solid, setting, ref_h)
             heights = np.sort(ref_h[open_ref])
             stages.append(_Stage(m, a, b, cumulative * front_area, solid, settled_heights=heights))
             filled = float(cumulative[-1]) * front_area / s**3  # reference points' worth

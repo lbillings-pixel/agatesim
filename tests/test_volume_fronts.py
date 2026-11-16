@@ -12,7 +12,11 @@ import pytest
 from agatesim.criteria import evaluate
 from agatesim.fields import Phase
 from agatesim.models import Staged
-from agatesim.volume.config import SliceConfig, load_volume_preset
+from agatesim.models.growth import TIME_STEPS, Mode, ProceduralGrowth, growth_modes
+from agatesim.volume import growth
+from agatesim.volume.config import SliceConfig, VolumeConfig, load_volume_preset
+from agatesim.volume.growth import GrowthSolid
+from agatesim.volume.models import Setting
 from agatesim.volume.simulate import VolumeSimulation, prepare_volume
 from agatesim.volume.survey import MIN_CUT_RESOLUTION, cut_resolution
 
@@ -160,6 +164,60 @@ def test_3d_sticks_can_dissolve_into_moulds() -> None:
     f = prepare_volume(hollow).volume(64).fields
     assert not (f.phase == Phase.QUARTZ).any()
     assert (f.phase == Phase.VOID).any()
+
+
+_TAU = (np.arange(TIME_STEPS) + 0.5) / TIME_STEPS
+
+
+def _floor_share(sticks: bool) -> float:
+    """Share of a round cavity's interior laid down by a settling pulse right after
+    a stick stage (or the same moment without one)."""
+    config = load_volume_preset("stick-3d").model_dump()
+    config["solid"] = {"preset": "vesicle-round", "size_mm": 30}
+    model = config["model"]
+    model["growth_mm"] = 10
+    model["schedules"]["settling"] = {
+        "base": 0.0,
+        "events": [{"type": "pulse", "at": 0.1, "width": 0.1, "value": 1.0}],
+    }
+    model["schedules"]["sticks"] = (
+        {"base": 1.0, "events": [{"type": "step", "at": 0.05, "value": 0.0}]}
+        if sticks
+        else {"base": 0.0}
+    )
+    model["stick_spacing_mm"], model["stick_length_mm"] = 2.0, 2.5
+    parsed = VolumeConfig.model_validate(config)
+    assert isinstance(parsed.model, ProceduralGrowth)
+    # only what the settling steps laid down (lining round the sticks is not floor)
+    steps = np.flatnonzero(growth_modes(parsed.model, _TAU) == Mode.SETTLING)
+    lo, hi = steps[0] / TIME_STEPS, (steps[-1] + 1) / TIME_STEPS
+    vol = prepare_volume(parsed).volume(48)
+    t = np.nan_to_num(vol.fields.t_dep, nan=-1.0)
+    return float(((t >= lo) & (t <= hi))[vol.inside].mean())
+
+
+def test_a_floor_after_sticks_holds_what_it_would_without_them() -> None:
+    """ADR 0087: a settling floor is sized by the wall's surface, so sticks (which
+    enlarge the open surface many times) leave its volume about as it was."""
+    bare, with_sticks = _floor_share(False), _floor_share(True)
+    assert 0.05 < bare < 0.6
+    assert abs(with_sticks - bare) < 0.15 * bare
+
+
+def test_negative_control_counting_the_sticks_surface_overfills(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The old sizing (open shell next to everything, sticks included) must fail the
+    test above: the same floor rises well past the stone without sticks."""
+
+    def with_inclusions(solid: GrowthSolid, setting: Setting, ref_h: np.ndarray) -> float:
+        ref = setting.reference
+        d = solid.distance(ref.points, ref.distance, ref_h)
+        return float(np.count_nonzero((d > 0) & (d < ref.spacing))) * ref.spacing**2
+
+    bare = _floor_share(False)
+    monkeypatch.setattr(growth, "settling_area", with_inclusions)
+    assert _floor_share(True) > 1.3 * bare
 
 
 def test_procedural_3d_sticks_become_quartz() -> None:
