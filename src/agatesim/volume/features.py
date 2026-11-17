@@ -49,6 +49,9 @@ FADE_DEPTHS = 3.0  # a channel's effect ends at this many of its depths from the
 LINE_PIECES = 4  # straight pieces of a vanishing line, which follows the curved wall
 SURFACE_MIN_MM = 0.05  # with no clear layer the line sits this close to the wall
 GRADIENT_STEP_MM = 0.02
+# Below this wall-distance slope a piece's midpoint is taken to lie outside the cavity
+# (the slope there is 0; on the surface it is near 1).
+FLAT_SLOPE = 1e-6
 PLACEMENT_TRIES = 64
 WALK_ROUNDS = 3
 STRAIGHT_WALL = 0.9  # the wall distance's slope must reach this where a line is placed
@@ -286,6 +289,22 @@ def _gradient(solid: Solid, p: FloatArray) -> FloatArray:
     return grad
 
 
+def _sides(solid: Solid, line: FloatArray) -> FloatArray:
+    """Each piece's sideways direction: the wall distance's slope at its midpoint,
+    crossed with the piece. Where the line bends round a concave stretch of wall, a
+    piece's midpoint can lie outside the cavity, where the wall distance is flat and
+    has no slope; that piece takes the mean slope at its two ends, which lie on the
+    surface (ADR 0088). Every other piece keeps its direction exactly."""
+    mids = (line[:-1] + line[1:]) / 2
+    grad = _gradient(solid, mids)
+    flat = np.sum(grad * grad, axis=1) < FLAT_SLOPE**2
+    if flat.any():
+        ends = _gradient(solid, line[:-1][flat]) + _gradient(solid, line[1:][flat])
+        grad[flat] = ends / 2
+    sides = cast(FloatArray, np.cross(grad, line[1:] - line[:-1]))
+    return sides / np.sqrt(np.sum(sides * sides, axis=1, keepdims=True))
+
+
 def _on_surface(solid: Solid, p: FloatArray, surface_mm: float) -> tuple[FloatArray, FloatArray]:
     """Points moved onto the surface at `surface_mm`, and the wall distance's slope
     there (it strays from 1 at a kink, where the point cannot be placed)."""
@@ -357,9 +376,7 @@ def _place_channel(
         behind = _walk(solid, centre, -along, step, surface_mm, pieces)
         if ahead is not None and behind is not None:
             line = np.vstack([behind[::-1], centre, ahead])
-            mids = (line[:-1] + line[1:]) / 2
-            sides = cast(FloatArray, np.cross(_gradient(solid, mids), line[1:] - line[:-1]))
-            sides = sides / np.sqrt(np.sum(sides * sides, axis=1, keepdims=True))
+            sides = _sides(solid, line)
             gaps = params.channel_opening_mm * rng.spawn(1)[0].random((2, len(line)))
             return WallChannel(
                 line, params.channel_lateral_mm, params.channel_depth_mm, surface_mm, sides, gaps

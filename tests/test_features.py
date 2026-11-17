@@ -220,6 +220,31 @@ def test_a_channel_changes_nothing_outside_its_reach() -> None:
     assert not np.array_equal(a.band[inside & ~outside], b.band[inside & ~outside])
 
 
+def test_a_line_bent_round_a_concave_wall_keeps_finite_sides() -> None:
+    """ADR 0088. On nodule-irregular seed 9 with no clear layer, a piece's midpoint
+    lies outside the cavity, where the wall distance has no slope (the case the old
+    midpoint rule turned into a NaN side and a void of about 15 % of the stone; the
+    first assertion checks the case is here). Its side now comes from its ends."""
+    config = _config(channel_count=1, channel_length_mm=10.0).model_copy(update={"seed": 9})
+    sim = prepare_volume(config)
+    channel = _channel(sim)
+    line = channel.line
+    mids = (line[:-1] + line[1:]) / 2
+    slope = np.linalg.norm(features._gradient(sim.setting.solid, mids), axis=1)  # pyright: ignore[reportPrivateUsage]
+    assert np.any(slope < features.FLAT_SLOPE)
+    assert np.isfinite(channel.sides).all()
+    assert np.allclose(np.linalg.norm(channel.sides, axis=1), 1.0)
+    pieces = line[1:] - line[:-1]
+    assert np.allclose(np.sum(channel.sides * pieces, axis=1), 0.0, atol=1e-9)
+    points = _random_points(sim)
+    inside = sim.setting.solid.contains(points)
+    plain = prepare_volume(config.model_copy(update={"model": config.model.model_copy(
+        update={"channel_count": 0})}))  # fmt: skip
+    void = int(np.count_nonzero(inside & (sim.evaluate(points, inside).phase == Phase.VOID)))
+    void0 = int(np.count_nonzero(inside & (plain.evaluate(points, inside).phase == Phase.VOID)))
+    assert void - void0 < 0.001 * inside.sum()
+
+
 def test_the_feature_stream_leaves_the_run_generator_alone() -> None:
     rng, other = np.random.default_rng(5), np.random.default_rng(5)
     first = feature_stream(rng).random(4)
