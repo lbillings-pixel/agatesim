@@ -102,6 +102,26 @@ def periodic_spline_at(coeffs: FloatArray, coords: FloatArray) -> NDArray[np.flo
     return cast(NDArray[np.float64], out)
 
 
+def spline_coefficients(field: FloatArray) -> NDArray[np.float64]:
+    """Cubic B-spline coefficients of `field` (edges extended), so `cubic_at`
+    passes through its values."""
+    out = ndimage.spline_filter(field, order=3, mode="nearest", output=np.float64)
+    return cast(NDArray[np.float64], out)
+
+
+def cubic_at(coeffs: FloatArray, coords: FloatArray) -> NDArray[np.float64]:
+    """Evaluate a cubic B-spline with these coefficients at fractional indices
+    (one row per axis); beyond the edges the edge values continue."""
+    out = ndimage.map_coordinates(coeffs, coords, order=3, mode="nearest", prefilter=False)
+    return cast(NDArray[np.float64], out)
+
+
+def count_components_3d(mask: NDArray[np.bool_]) -> int:
+    """Number of face-connected pieces of a 3D mask."""
+    result: Any = ndimage.label(mask)
+    return int(result[1])
+
+
 def hull_planes(points: FloatArray) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """The convex hull of 3D points as planes n·x ≤ b with unit outward normals n,
     one per face (coplanar triangles merged)."""

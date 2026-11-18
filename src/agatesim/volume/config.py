@@ -35,6 +35,7 @@ from agatesim.models import (
 from agatesim.simulate import DEFAULT_GRAVITY_DEG
 from agatesim.volume.growth import unsupported_in_3d
 from agatesim.volume.models import gravity_vector
+from agatesim.volume.sampled import MAX_STORED_CHARS, encode, sampled_solid
 from agatesim.volume.solids import (
     SOLID_PRESETS,
     Rotated,
@@ -76,13 +77,35 @@ class FilamentConfig(BaseModel):
     radius_mm: float = Field(default=0.3, gt=0, le=10, description="Filament radius.")
 
 
+class SampledLevel(BaseModel):
+    """A drawn 3D cavity: its level on a lattice of equal cells, positive inside
+    and close to the signed distance in cells near the wall, stored clamped and
+    quantised (`agatesim.volume.sampled`, ADR 0089)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    shape: tuple[int, int, int] = Field(description="Lattice nodes along x, y, z.")
+    level: Annotated[str, StringConstraints(max_length=MAX_STORED_CHARS)] = Field(
+        description="The stored level (base64 of compressed 8-bit values)."
+    )
+
+    @classmethod
+    def of(cls, level_cells: FloatArray) -> SampledLevel:
+        """Store a level given in cells (array indexed [x, y, z])."""
+        shape, text = encode(level_cells)
+        return cls(shape=shape, level=text)
+
+
 class SolidConfig(BaseModel):
-    """A preset solid, or a drawn outline extruded into a slab-like solid. Exactly
-    one of `preset` and `outline` is given."""
+    """A preset solid, a drawn outline extruded into a slab-like solid, or a drawn
+    3D cavity. Exactly one of `preset`, `outline` and `sampled` is given."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     preset: str | None = None
+    sampled: SampledLevel | None = Field(
+        default=None, description="Drawn 3D cavity (any scale; only the shape is used)."
+    )
     outline: (
         Annotated[
             list[tuple[float, float]],
@@ -90,7 +113,7 @@ class SolidConfig(BaseModel):
         ]
         | None
     ) = Field(default=None, description="Drawn outline (any units; only the shape is used).")
-    host: Host | None = Field(default=None, description="Host setting of a drawn outline.")
+    host: Host | None = Field(default=None, description="Host setting of a drawn shape.")
     smooth: bool = Field(default=False, description="Smooth a drawn outline.")
     depth_fraction: float = Field(
         default=0.6, gt=0, le=2, description="Depth of an extruded outline, × its longest side."
@@ -109,13 +132,17 @@ class SolidConfig(BaseModel):
 
     @model_validator(mode="after")
     def _one_shape(self) -> SolidConfig:
-        if (self.preset is None) == (self.outline is None):
-            raise ValueError("give exactly one of `preset` and `outline`")
-        if self.outline is not None and self.host is None:
-            raise ValueError("a drawn `outline` needs a `host` (volcanic, sedimentary or seam)")
-        if self.outline is None and (self.host is not None or self.smooth):
-            raise ValueError("`host` and `smooth` apply only to a drawn `outline`")
-        solid = self.build()  # raises ValueError for a bad outline
+        given = [s is not None for s in (self.preset, self.outline, self.sampled)]
+        if sum(given) != 1:
+            raise ValueError("give exactly one of `preset`, `outline` and `sampled`")
+        drawn = self.preset is None
+        if drawn and self.host is None:
+            raise ValueError("a drawn shape needs a `host` (volcanic, sedimentary or seam)")
+        if not drawn and self.host is not None:
+            raise ValueError("`host` applies only to a drawn shape")
+        if self.outline is None and self.smooth:
+            raise ValueError("`smooth` applies only to a drawn `outline`")
+        solid = self.build()  # raises ValueError for a bad outline or sampled level
         for i, fil in enumerate(self.filaments):
             mid = (np.array(fil.start_mm) + np.array(fil.end_mm)) / 2
             if not solid.contains(mid[None, :])[0]:
@@ -129,15 +156,24 @@ class SolidConfig(BaseModel):
 
     @property
     def label(self) -> str:
-        return self.preset if self.preset is not None else "drawn"
+        if self.preset is not None:
+            return self.preset
+        return "drawn" if self.outline is not None else "drawn-3d"
 
     def build(self) -> Solid:
         if self.preset is not None:
             return make_solid(self.preset, self.size_mm, self.yaw_deg, self.pitch_deg)
-        assert self.outline is not None
         assert self.host is not None
-        cavity = drawn_cavity(np.array(self.outline), self.host, self.size_mm, smooth=self.smooth)
-        solid = extruded_outline(cavity.vertices, self.host, self.depth_fraction * self.size_mm)
+        solid: Solid
+        if self.sampled is not None:
+            s = self.sampled
+            solid = sampled_solid(s.shape, s.level, self.host, self.size_mm)
+        else:
+            assert self.outline is not None
+            cavity = drawn_cavity(
+                np.array(self.outline), self.host, self.size_mm, smooth=self.smooth
+            )
+            solid = extruded_outline(cavity.vertices, self.host, self.depth_fraction * self.size_mm)
         if self.yaw_deg == 0 and self.pitch_deg == 0:
             return solid
         return Rotated(inner=solid, rotation=rotation(self.yaw_deg, self.pitch_deg))

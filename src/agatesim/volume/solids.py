@@ -4,8 +4,9 @@ A solid answers three questions about any point: is it inside, how far is the
 wall, and how high does the solid reach in a direction (its support). The wall
 distance is exact for ellipsoids, polyhedra and unions of spheres (ADR 0076
 s. 5); for solids built on a drawn outline (prisms, solids of revolution) it is
-within 1/8000 of the outline's extent. Nothing depends on a voxel grid, so previews,
-full runs and slices at any resolution agree.
+within 1/8000 of the outline's extent. Nothing depends on the run's voxel grid, so
+previews, full runs and slices at any resolution agree. (A drawn 3D cavity,
+`agatesim.volume.sampled`, has a lattice of its own, part of the drawing.)
 """
 
 from __future__ import annotations

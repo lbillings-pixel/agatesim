@@ -17,6 +17,7 @@ from agatesim.volume.solids import (
     extruded_outline,
     make_solid,
 )
+from test_sampled import sampled_ellipsoid
 
 
 def _excess(solid: Solid, rng: np.random.Generator, n: int = 20000) -> float:
@@ -47,6 +48,13 @@ def test_a_drawn_solid_obeys_its_level_bound() -> None:
     solid = extruded_outline(outline, Host.VOLCANIC, 10.0)
     assert solid.level_bound().error_mm > 0  # its outline is sampled
     assert _excess(solid, np.random.default_rng(1)) <= 1e-9
+
+
+def test_a_sampled_3d_cavity_obeys_its_level_bound() -> None:
+    cfg, _ = sampled_ellipsoid(0.8)
+    solid = cfg.model_copy(update={"yaw_deg": 30.0, "pitch_deg": 15.0}).build()
+    assert solid.level_bound().lipschitz < 1.8  # about √3: a B-spline over distances
+    assert _excess(solid, np.random.default_rng(2)) <= 1e-9
 
 
 @dataclass(frozen=True, eq=False)
