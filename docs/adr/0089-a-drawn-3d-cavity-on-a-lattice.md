@@ -1,7 +1,8 @@
 # 89. A drawn 3D cavity, stored as a level on a lattice
 
-- Status: accepted (owner, 2026-11-18: approved from Nodule, "a general drawn 3D cavity
-  (grid-sampled level; SolidConfig option)"; the storage below is Claude's choice within it)
+- Status: accepted (owner, 2026-11-18: approved from Nodule a general drawn 3D cavity
+  given as a sampled level, as a `SolidConfig` option; the storage below is Claude's
+  choice within that)
 - Date: 2026-11-18
 - Builds on: [ADR 0076](0076-changes-for-nodule-n2.md) (level bounds, exact wall distance),
   [ADR 0072](0072-reframing-a-coupled-follow-on-project.md) (changes Nodule needs)
@@ -49,8 +50,15 @@ text), beside `preset` and `outline`; it needs a `host`, and `size_mm`, `yaw_deg
   function.
 - **Refused** (each a negative control in `tests/test_sampled.py`): a bare
   inside/outside mask (more than 1 % of wall-crossing edges with |level| summed over
-  2 cells: a terraced wall), a cavity in several pieces, one within 2 nodes of the
-  lattice's border, an empty one, a lattice too small or large, unreadable text.
+  2 cells: a terraced wall); a distance transform of such a mask (more than half the
+  crossings within 0.01 of an edge's middle, where a drawn wall puts about 2 %; an
+  axis-aligned flat wall exactly half-way between nodes would be refused too); a
+  cavity in several pieces at the nodes; one within 2 nodes of the lattice's border;
+  an empty one; a lattice too small or large; unreadable text.
+- **Thin parts.** An arm 1 cell in radius (2 across) stays whole and inside along its
+  axis, although the B-spline lowers a tube's ridge by about 0.6 cell (tested). An arm
+  half a cell in radius breaks into pieces at the nodes and is refused, so the
+  drawing must keep its thinnest parts at least about 2 cells across.
 
 ## Results (this PC, CPU, 2026-11-18)
 
@@ -68,6 +76,14 @@ cavity the slope changes smoothly: 99th percentile of its change per 0.02 mm ste
 0.073). A distance to the nearest of a set of wall samples would jump by about 0.5.
 Validation costs 0.01-0.05 s for these lattices (decompress, check); configs repeat
 it cheaply because the built solid is memoised by its stored text.
+
+End to end (a winding six-armed star 50 mm across, arms 1.4 to 0.5 mm in radius,
+`procedural-growth` with a wall channel and a clear layer): at 0.25 mm cells
+(174×191×72 nodes, 191 kB stored) `prepare_volume` plus the first query took 4.3 s,
+peak 0.13 GB; at 0.185 mm (232×255×95, 360 kB) 8.7 s, 0.23 GB. The channel's sides
+are finite; two cuts took 1.5 s; every field is finite inside the cavity (the
+non-finite times lie only outside it, as for a preset). Memoised node distances take
+up to about 190 MB each at the largest lattice; at most four cavities are kept.
 
 ## Consequences
 

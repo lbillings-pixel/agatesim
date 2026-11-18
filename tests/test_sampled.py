@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
+from agatesim import _scipy
 from agatesim.archetypes import Host
 from agatesim.geometry import signed_area
 from agatesim.grid import FloatArray
@@ -116,10 +117,43 @@ def test_a_ball_is_accepted() -> None:
     assert 13.5 < d[2] < 15.0
 
 
+def _mask_distance(half: float) -> FloatArray:
+    """A distance transform of a ball's inside/outside mask, signed, its wall
+    put half-way (`half` 0.5) or at the nodes either side (`half` 0)."""
+    mask = _ball_level(1.0, [(0, 0, 0)], 15.0) > 0
+    inside = _scipy.distance_to_false(mask, 1.0) - half
+    outside = _scipy.distance_to_false(~mask, 1.0) - half
+    return np.where(mask, inside, -outside)
+
+
+def test_thin_arms_stay_whole() -> None:
+    """A tube 1 cell in radius (2 across) stays one piece and inside along its
+    axis, although the B-spline lowers a tube's ridge by about 0.6 cell."""
+    cell = 1.0
+    axes = [(np.arange(48) - 23.5) * cell] * 3
+    x, y, z = np.meshgrid(*axes, indexing="ij")
+    body = 8.0 - np.sqrt(x**2 + y**2 + z**2)
+    along = np.clip(x, 0, 20)  # a tube along +x from the body, radius 1.0
+    tube = 1.0 - np.sqrt((x - along) ** 2 + y**2 + z**2)
+    cfg = SolidConfig(
+        sampled=SampledLevel.of(np.maximum(body, tube) / cell),
+        host=Host.VOLCANIC,
+        size_mm=29.0,  # x from -8 to 21: 1 mm cells kept
+    )
+    s = cfg.build()
+    axis_pts = np.stack([np.linspace(8, 20, 50), np.zeros(50), np.zeros(50)], axis=1)
+    centre = np.array([6.5, 0.0, 0.0])  # the drawing's bounds' centre goes to the origin
+    assert s.contains(axis_pts - centre).all()
+    inside = s.contains(np.stack([x.ravel(), y.ravel(), z.ravel()], 1) - centre)
+    assert _scipy.count_components_3d(inside.reshape(x.shape)) == 1
+
+
 @pytest.mark.parametrize(
     ("level", "message"),
     [
         (np.sign(_ball_level(1.0, [(0, 0, 0)], 15.0)) * 3, "too steep"),
+        (_mask_distance(0.0), "middle of lattice edges"),
+        (_mask_distance(0.5), "middle of lattice edges"),
         (_ball_level(1.0, [(-12, 0, 0), (12, 0, 0)], 8.0), "one connected piece"),
         (_ball_level(1.0, [(0, 0, 0)], 23.0), "border"),
         (-np.ones((20, 20, 20)), "no inside"),

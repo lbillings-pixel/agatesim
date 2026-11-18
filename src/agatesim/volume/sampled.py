@@ -42,6 +42,9 @@ REFINE_STEPS = 4
 FOOT_TOLERANCE = 1e-3  # cells: a refined wall point must lie this close to the zero set
 STEEP_LIMIT = 2.0  # cells: |level| summed over a wall-crossing edge (a true distance gives ≤ 1)
 STEEP_SHARE = 0.01  # at most this share of crossing edges may exceed STEEP_LIMIT
+# A drawn wall crosses edges anywhere along them (2 % within MID_WIDTH of the
+# middle); a distance transform of a mask crosses every edge at its middle.
+MID_WIDTH, MID_SHARE = 0.01, 0.5
 
 Int8Array = NDArray[np.int8]
 
@@ -76,30 +79,39 @@ def _level_cells(q: Int8Array) -> NDArray[np.float64]:
     return q.astype(np.float64) * (CLAMP_CELLS / QUANT)
 
 
-def _crossings(lv: NDArray[np.float64]) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+def _crossings(
+    lv: NDArray[np.float64],
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Where the level changes sign along lattice edges, by linear interpolation:
-    the points (x, y, z in cells), and |level| summed over each edge's ends."""
+    the points (x, y, z in cells), |level| summed over each edge's ends, and
+    where along its edge each crossing falls (0-1)."""
     pts: list[NDArray[np.float64]] = []
     sums: list[NDArray[np.float64]] = []
+    along: list[NDArray[np.float64]] = []
     for ax in range(3):
         a = np.moveaxis(lv, ax, 0)
         s0, s1 = a[:-1], a[1:]
         idx = np.nonzero((s0 > 0) != (s1 > 0))
         v0, v1 = s0[idx], s1[idx]
+        t = v0 / (v0 - v1)
         moved = np.stack(idx, axis=1).astype(np.float64)
-        moved[:, 0] += v0 / (v0 - v1)
+        moved[:, 0] += t
         p = np.empty_like(moved)
         p[:, [ax] + [i for i in range(3) if i != ax]] = moved
         pts.append(p)
         sums.append(np.abs(v0) + np.abs(v1))
-    return np.concatenate(pts), np.concatenate(sums)
+        along.append(t)
+    return np.concatenate(pts), np.concatenate(sums), np.concatenate(along)
 
 
 def check(q: Int8Array) -> NDArray[np.float64]:
     """Refuse a lattice that cannot be a drawn cavity: too small or large, open
-    at its border, empty, in several pieces, or not distance-like at the wall
-    (a bare inside/outside mask would give a terraced wall). Returns the wall's
-    crossings of lattice edges (cells)."""
+    at its border, empty, in several pieces (an arm thinner than about a cell
+    across breaks into pieces at the nodes), or not distance-like at the wall. A
+    bare inside/outside mask, or a distance transform of one, would give a
+    terraced wall: the first is too steep, the second puts its crossings at
+    the middle of their edges. Returns the wall's crossings of lattice edges
+    (cells)."""
     if q.ndim != 3 or min(q.shape) < MIN_SIDE or max(q.shape) > MAX_SIDE:
         raise ValueError(f"a sampled lattice needs {MIN_SIDE}-{MAX_SIDE} nodes a side")
     inside = q > 0
@@ -111,10 +123,15 @@ def check(q: Int8Array) -> NDArray[np.float64]:
         raise ValueError(f"the cavity must stay {BORDER} nodes inside the lattice's border")
     if _scipy.count_components_3d(inside) != 1:
         raise ValueError("the sampled cavity must be one connected piece")
-    wall, sums = _crossings(_level_cells(q))
+    wall, sums, along = _crossings(_level_cells(q))
     if float(np.mean(sums > STEEP_LIMIT)) > STEEP_SHARE:
         raise ValueError(
             "the sampled level is too steep at the wall: give a signed distance in cells"
+        )
+    if float(np.mean(np.abs(along - 0.5) < MID_WIDTH)) > MID_SHARE:
+        raise ValueError(
+            "the sampled wall sits at the middle of lattice edges, as from a distance "
+            "transform of an inside/outside mask: give the distance to the drawn wall"
         )
     return wall
 
@@ -124,7 +141,7 @@ def _node_distance(raw: bytes, shape: tuple[int, int, int]) -> NDArray[np.float6
     """Signed distance (cells) from each node to the wall, clamped to
     −CLAMP_CELLS outside. Built once per drawn cavity (memoised)."""
     lv = _level_cells(np.frombuffer(raw, dtype=np.int8).reshape(shape))
-    wall, _ = _crossings(lv)
+    wall, _, _ = _crossings(lv)
     coef = _scipy.spline_coefficients(lv)
     index = _scipy.NearestIndex(wall)
     near = lv > -CLAMP_CELLS * (1 - 1e-6)
@@ -231,7 +248,7 @@ class Sampled(Solid):
         return LevelBound(lipschitz=math.sqrt(sum(s * s for s in steep)))
 
 
-@functools.lru_cache(maxsize=8)
+@functools.lru_cache(maxsize=4)  # each built solid can hold up to ~190 MB of node distances
 def sampled_solid(shape: tuple[int, int, int], text: str, host: Host, size_mm: float) -> Sampled:
     """The stored cavity scaled so its longest side is size_mm, centred on the
     origin. Checked here (about a second for a large lattice); the node
