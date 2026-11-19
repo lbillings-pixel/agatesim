@@ -741,8 +741,9 @@ def prepare_growth(
 @dataclass(frozen=True, eq=False)
 class CrystalWall:
     """The crystals of a run's last stage when it is quartz crystals, for drawing
-    the hollow they leave (ADR 0090): a point is open (Phase.VOID) where the
-    earliest crystal arrives after the stage's last reach. A readout of the
+    the hollow they leave (ADR 0090): a point the crystals could still reach
+    (quartz or hollow) is open (Phase.VOID) where the earliest crystal arrives
+    after the stage's last reach. A readout of the
     prepared model for rendering; criteria never read it (they read Fields).
 
     Each crystal j has a site, a unit long axis and the stage's shared tip
@@ -781,7 +782,10 @@ class CrystalWall:
         return self.crystals.assign(points)
 
     def level(self, points: FloatArray) -> FloatArray:
-        """Arrival minus last reach (mm): positive in the hollow."""
+        """Arrival minus last reach (mm). Among the points the crystals could still
+        reach (quartz or hollow) it is positive exactly in the hollow; it is also
+        positive in host rock, outside the solid and on much of the chalcedony
+        behind the sites, so take the hollow from it only inside that region."""
         return self.arrival(points)[0] - self.last_reach
 
     def packed(self, dtype: DTypeLike = np.float32) -> NDArray[np.floating]:

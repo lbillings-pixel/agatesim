@@ -31,7 +31,10 @@ form on the GPU, which Nodule must not copy (ADR 0072: import, never copy).
   `CrystalWall` holds the stage's `Crystals`, its last reach (mm) and grain offset, and
   offers `sites`, `axes`, `alpha`, `side_rate`, `times` (= `pair_times`), `arrival`
   (= `assign`: the earliest time and its crystal, as the stage assigns them), `level`
-  (arrival − last reach: positive exactly where Fields say VOID) and `packed()` (rows
+  (arrival − last reach: among the points crystals could still reach, quartz or hollow,
+  positive exactly where Fields say VOID; it is also positive in host rock, outside the
+  solid and on much of the chalcedony behind the sites, so a caller takes the hollow
+  from it only inside the crystal stage's region) and `packed()` (rows
   of site and axis for the GPU). It is a readout for rendering; criteria never read it
   (they read Fields), and Fields are unchanged.
 - **The closed form for the GPU.** `agatesim.volume.crystal_gpu.CRYSTAL_TIME_CUDA` is
