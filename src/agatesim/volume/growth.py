@@ -32,7 +32,7 @@ from functools import cached_property
 from typing import Protocol
 
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import DTypeLike, NDArray
 
 from agatesim import _scipy, progress
 from agatesim.fields import QUARTZ_TRANSLUCENCY, Fields, Phase
@@ -730,7 +730,76 @@ def prepare_growth(
             )
         return fields
 
-    return evaluate
+    last = stages[-1] if stages else None
+    wall = None
+    if last is not None and last.mode is Mode.CRYSTAL:
+        assert isinstance(last.metric, Crystals)
+        wall = CrystalWall(last.metric, float(last.reach[-1]), last.crystal_offset)
+    return GrowthEvaluator(evaluate, wall)
+
+
+@dataclass(frozen=True, eq=False)
+class CrystalWall:
+    """The crystals of a run's last stage when it is quartz crystals, for drawing
+    the hollow they leave (ADR 0090): a point is open (Phase.VOID) where the
+    earliest crystal arrives after the stage's last reach. A readout of the
+    prepared model for rendering; criteria never read it (they read Fields).
+
+    Each crystal j has a site, a unit long axis and the stage's shared tip
+    half-angle and side rate; `times` is its closed form (`Crystals.pair_times`),
+    which agatesim.volume.crystal_gpu ships for the GPU."""
+
+    crystals: Crystals
+    last_reach: float  # mm of full-rate growth the stage reaches
+    grain_offset: int  # Fields.grain of crystal j is grain_offset + j
+
+    @property
+    def sites(self) -> FloatArray:
+        return self.crystals.s
+
+    @property
+    def axes(self) -> FloatArray:
+        return self.crystals.axis
+
+    @property
+    def alpha(self) -> float:
+        """Tip half-angle (radians)."""
+        return self.crystals.alpha
+
+    @property
+    def side_rate(self) -> float:
+        """The sides' growth rate as a share of the tip's (1 / elongation)."""
+        return self.crystals.side_rate
+
+    def times(self, points: FloatArray, idx: NDArray[np.int64]) -> FloatArray:
+        """Time (mm of full-rate growth) for crystals idx (n, k) to reach points (n, 3)."""
+        return self.crystals.pair_times(points, idx)
+
+    def arrival(self, points: FloatArray) -> tuple[FloatArray, NDArray[np.int64]]:
+        """The earliest arrival at each point and its crystal (0-based), as the
+        stage itself assigns them."""
+        return self.crystals.assign(points)
+
+    def level(self, points: FloatArray) -> FloatArray:
+        """Arrival minus last reach (mm): positive in the hollow."""
+        return self.arrival(points)[0] - self.last_reach
+
+    def packed(self, dtype: DTypeLike = np.float32) -> NDArray[np.floating]:
+        """One row per crystal, (site x, y, z, axis x, y, z): the layout
+        crystal_gpu's device functions read."""
+        return np.ascontiguousarray(np.concatenate([self.sites, self.axes], axis=1), dtype=dtype)
+
+
+@dataclass(frozen=True, eq=False)
+class GrowthEvaluator:
+    """The growth model's evaluator (an `Evaluator`), carrying its crystal wall
+    (None unless the last stage is quartz crystals)."""
+
+    evaluate: Evaluator
+    crystal_wall: CrystalWall | None
+
+    def __call__(self, points: FloatArray, inside: BoolArray) -> Fields:
+        return self.evaluate(points, inside)
 
 
 HALO_TRANSLUCENCY = QUARTZ_TRANSLUCENCY  # clear chalcedony, as clear as quartz (effective)

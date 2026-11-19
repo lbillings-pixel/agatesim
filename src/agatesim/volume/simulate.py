@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -13,6 +14,9 @@ from agatesim.volume.grid import Grid3
 from agatesim.volume.models import Evaluator, Setting, prepare
 from agatesim.volume.slicing import Cut, Plane, cut
 from agatesim.volume.solids import BoolArray, Solid
+
+if TYPE_CHECKING:
+    from agatesim.volume.growth import CrystalWall
 
 
 @dataclass(frozen=True, eq=False)
@@ -34,6 +38,15 @@ class VolumeSimulation:
     @property
     def solid(self) -> Solid:
         return self.setting.solid
+
+    @property
+    def crystal_wall(self) -> CrystalWall | None:
+        """The crystals that bound the hollow, when the model is growth ending in
+        quartz crystals (ADR 0090); otherwise None."""
+        from agatesim.volume.growth import GrowthEvaluator  # imports models
+
+        ev = self.evaluate
+        return ev.crystal_wall if isinstance(ev, GrowthEvaluator) else None
 
     def grid(self, resolution: int | None = None) -> Grid3:
         lo, hi = self.setting.solid.bounds()
