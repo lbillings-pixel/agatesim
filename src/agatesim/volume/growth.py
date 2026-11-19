@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import copy
 import math
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import Protocol
@@ -59,6 +60,10 @@ from agatesim.volume.solids import BoolArray
 
 NEAREST_SITES = 24  # sites compared per point (the nearest by straight distance)
 CHUNK = 1 << 17  # points per batch when comparing sites
+# Deepest channel stack, as a share of the last lining, for which the crystal wall's
+# chalcedony level is given over earlier stages (effective; ADR 0091: exact to 0.9 in
+# the tests, wrong from 1.0).
+CHANNEL_DEPTH_SHARE = 0.8
 
 
 def unsupported_in_3d(params: ProceduralGrowth) -> str | None:
@@ -625,6 +630,23 @@ def prepare_growth(
             top = float(np.interp(filled, ranks, heights)) if len(heights) else solid.bed
             solid = replace(solid, bed=max(solid.bed, top))
 
+    def lining_distance(
+        st: _Stage, p: FloatArray, d_wall: FloatArray, h: FloatArray, wobble: FloatArray
+    ) -> FloatArray:
+        """A lining stage's distance (mm) at open points p, read against its reach:
+        the clamped solid distance, plus the wobble tapered in from the wall, plus
+        the channel delay. evaluate and the chalcedony level both use it."""
+        d = np.maximum(st.solid.distance(p, d_wall, h), 0.0)
+        shift = np.zeros(len(d))
+        if params.wobble_mm > 0:
+            taper = np.clip(d / fade, 0, 1)
+            shift = wobble * taper
+            d = d + shift
+        if features.channels:
+            # After the wobble, so that the wobble's no-fold cap still holds.
+            d = d + features.delay(p, d_wall + shift, d_wall)
+        return d
+
     def evaluate(points: FloatArray, inside: BoolArray) -> Fields:
         n = len(points)
         d_wall = np.zeros(n)
@@ -679,19 +701,12 @@ def prepare_growth(
                 k = np.searchsorted(st.reach, d, side="left")
             else:
                 if st.mode is Mode.LINING:
-                    d = np.maximum(st.solid.distance(p, d_wall[open_idx], h[open_idx]), 0.0)
+                    d = lining_distance(st, p, d_wall[open_idx], h[open_idx], wobble[open_idx])
                 else:
                     assert st.metric is not None
                     d, owner = st.metric.assign(p)
-                shift = np.zeros(len(d))
-                if st.mode is not Mode.CRYSTAL and params.wobble_mm > 0:
-                    taper = np.clip(d / fade, 0, 1)
-                    shift = wobble[open_idx] * taper
-                    d = d + shift
-                if st.mode is Mode.LINING and features.channels:
-                    # After the wobble, so that the wobble's no-fold cap still holds.
-                    wall = d_wall[open_idx]
-                    d = d + features.delay(p, wall + shift, wall)
+                    if st.mode is not Mode.CRYSTAL and params.wobble_mm > 0:
+                        d = d + wobble[open_idx] * np.clip(d / fade, 0, 1)
                 k = np.searchsorted(st.reach, d, side="left")
             new = k < (st.end - st.start)
             filled_at[open_idx[new]] = st.start + k[new]
@@ -734,7 +749,33 @@ def prepare_growth(
     wall = None
     if last is not None and last.mode is Mode.CRYSTAL:
         assert isinstance(last.metric, Crystals)
-        wall = CrystalWall(last.metric, float(last.reach[-1]), last.crystal_offset)
+        before = stages[-2] if len(stages) > 1 else None
+        level = None
+        reach = float(before.reach[-1]) if before is not None else 0.0
+        # A channel's stack deeper than the lining reaches back into earlier stages'
+        # material, which the lining's own distance then reads as open (ADR 0091).
+        deep = (
+            bool(features.channels)
+            and len(stages) > 2
+            and params.channel_depth_mm > CHANNEL_DEPTH_SHARE * reach
+        )
+        if before is not None and before.mode is Mode.LINING and not deep:
+            lining = before
+
+            def chalcedony_level(points: FloatArray, inside: BoolArray) -> FloatArray:
+                out = np.full(len(points), -reach)  # not open: as at distance 0
+                for t in setting.tubes:
+                    inside = inside & (segment_distance(points, t[:3], t[3:6]) > t[6])
+                idx = np.flatnonzero(inside)
+                p = points[idx]
+                d_wall = setting.solid.wall_distance(p)
+                wobble = params.wobble_mm * noise(p) if params.wobble_mm > 0 else np.zeros(len(p))
+                d = lining_distance(lining, p, d_wall, setting.height(p), wobble)
+                out[idx] = d - reach
+                return out
+
+            level = chalcedony_level
+        wall = CrystalWall(last.metric, float(last.reach[-1]), last.crystal_offset, level)
     return GrowthEvaluator(evaluate, wall)
 
 
@@ -748,11 +789,22 @@ class CrystalWall:
 
     Each crystal j has a site, a unit long axis and the stage's shared tip
     half-angle and side rate; `times` is its closed form (`Crystals.pair_times`),
-    which agatesim.volume.crystal_gpu ships for the GPU."""
+    which agatesim.volume.crystal_gpu ships for the GPU.
+
+    `chalcedony_level` (ADR 0091), when the stage before the crystals is lining,
+    is that stage's distance minus its last reach (mm) at (points, inside): it is
+    positive exactly where the crystals start from open space, the stage's quartz
+    and the hollow, and smooth across the chalcedony's last surface. Points
+    outside `inside` or in a tube read minus the reach. Call it in chunks, as
+    evaluate. None when the stage before is not lining (or there is none), and
+    when earlier stages lie under that lining and a wall channel's stack is
+    deeper than CHANNEL_DEPTH_SHARE of it: the channel then reaches their
+    material, which the level would call open."""
 
     crystals: Crystals
     last_reach: float  # mm of full-rate growth the stage reaches
     grain_offset: int  # Fields.grain of crystal j is grain_offset + j
+    chalcedony_level: Callable[[FloatArray, BoolArray], FloatArray] | None = None
 
     @property
     def sites(self) -> FloatArray:

@@ -11,12 +11,13 @@ import pytest
 from agatesim import _rd
 from agatesim.fields import Phase
 from agatesim.models.growth import TIP_HALF_ANGLE_DEG
-from agatesim.volume.config import load_volume_preset
+from agatesim.volume.config import VolumeConfig, load_volume_preset
 from agatesim.volume.crystal_gpu import CRYSTAL_TIME_CUDA, ROW, shape_numbers
 from agatesim.volume.growth import (
     Crystals,
     CrystalWall,
     _Sites,  # pyright: ignore[reportPrivateUsage]
+    segment_distance,
 )
 from agatesim.volume.simulate import VolumeSimulation, prepare_volume
 
@@ -69,6 +70,116 @@ def test_the_packed_rows_and_shape_numbers() -> None:
 
 def test_runs_without_crystals_last_have_no_wall() -> None:
     assert prepare_volume(load_volume_preset("eye-3d")).crystal_wall is None
+
+
+# The chalcedony's last surface (ADR 0091).
+
+CHANNELS = {"channel_count": 2, "channel_length_mm": 12.0, "wobble_mm": 0.2}
+TUBES = [
+    {"start_mm": [0.0, 0.0, -25.0], "end_mm": [0.0, 0.0, 10.0], "radius_mm": 0.6},
+    {"start_mm": [-20.0, 0.0, 0.0], "end_mm": [10.0, 5.0, 0.0], "radius_mm": 0.4},
+]
+
+
+def _spherulites_until(at: float) -> dict[str, object]:
+    return {"base": 1.0, "events": [{"type": "step", "at": at, "value": 0.0}]}
+
+
+# Lining from 0.12 to 0.2 under spherulites, then the last lining (2.7 mm) and crystals.
+WINDOW = {
+    "base": 0.0,
+    "events": [
+        {"type": "step", "at": 0.12, "value": 1.0},
+        {"type": "step", "at": 0.2, "value": 0.0},
+    ],
+}
+
+
+@cache
+def _geode_with(
+    depth: float | None = None, spherulitic: str = "", tubes: bool = False
+) -> VolumeSimulation:
+    raw = load_volume_preset("quartz-geode-3d").model_dump(mode="json")
+    raw["model"].update(CHANNELS)
+    if depth is not None:
+        raw["model"]["channel_depth_mm"] = depth
+    if spherulitic == "first":  # spherulites, then the last lining (4.86 mm), then crystals
+        raw["model"]["schedules"]["spherulitic"] = _spherulites_until(0.08)
+    elif spherulitic == "window":
+        raw["model"]["schedules"]["spherulitic"] = WINDOW
+    elif spherulitic == "to-crystals":  # no lining between spherulites and crystals
+        raw["model"]["schedules"]["spherulitic"] = _spherulites_until(0.4)
+    if tubes:
+        raw["solid"]["filaments"] = TUBES
+    return prepare_volume(VolumeConfig.model_validate(raw))
+
+
+def _open_and_level(sim: VolumeSimulation) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Sample points, whether the crystals start there from open space (the stage's
+    quartz by grain, or the hollow) and the chalcedony level there."""
+    wall = sim.crystal_wall
+    assert wall is not None
+    assert wall.chalcedony_level is not None
+    p = _sample(sim, 300_000)
+    inside = np.ones(len(p), dtype=bool)
+    f = sim.evaluate(p, inside)
+    g0 = wall.grain_offset
+    stage = (f.grain >= g0) & (f.grain < g0 + len(wall.sites))
+    open_ = ((f.phase == Phase.QUARTZ) & stage) | (f.phase == Phase.VOID)
+    return p, open_, wall.chalcedony_level(p, inside)
+
+
+@pytest.mark.parametrize(
+    ("depth", "spherulitic", "tubes"),
+    [(None, "", True), (6.0, "", False), (2.92, "first", False), (3.85, "first", False)],
+    ids=["lining-tubes", "lining-stack-0.95", "spherulites-stack-0.6", "spherulites-stack-0.79"],
+)
+def test_the_chalcedony_level_is_positive_exactly_where_crystals_start_open(
+    depth: float | None, spherulitic: str, tubes: bool
+) -> None:
+    sim = _geode_with(depth, spherulitic, tubes)
+    assert len(sim.setting.tubes) == (2 if tubes else 0)
+    p, open_, level = _open_and_level(sim)
+    assert 1000 < open_.sum() < len(p) - 1000
+    assert np.array_equal(level > 0, open_)
+    # Control: a surface 0.3 mm off is wrong.
+    assert not np.array_equal(level + 0.3 > 0, open_)
+
+
+def test_the_chalcedony_level_needs_the_wobble_and_channel_delay() -> None:
+    """Control: the lining's plain distance from the wall (no wobble, no channel
+    delay) misplaces the surface; tube cores read as not open."""
+    sim = _geode_with(tubes=True)
+    wall = sim.crystal_wall
+    assert wall is not None
+    assert wall.chalcedony_level is not None
+    p, open_, level = _open_and_level(sim)
+    reach = -float(wall.chalcedony_level(p[:1], np.zeros(1, dtype=bool))[0])
+    assert reach > 1.0
+    plain = sim.setting.solid.wall_distance(p) - reach
+    assert np.mean((plain > 0) != open_) > 0.002
+    core = np.zeros(len(p), dtype=bool)
+    for t in sim.setting.tubes:
+        core |= segment_distance(p, t[:3], t[3:6]) < 0.5 * t[6]
+    assert core.sum() > 20
+    assert (level[core] < 0).all()
+
+
+def test_no_chalcedony_level_where_it_would_be_wrong() -> None:
+    # A channel stack deeper than the last lining, over earlier stages' material.
+    for spherulitic in ("first", "window"):
+        wall = _geode_with(5.0, spherulitic).crystal_wall
+        assert wall is not None
+        assert wall.chalcedony_level is None
+    # No lining just before the crystals.
+    wall = _geode_with(spherulitic="to-crystals").crystal_wall
+    assert wall is not None
+    assert wall.chalcedony_level is None
+    # Control: as deep a stack over the bare wall keeps it (nothing earlier to reach;
+    # exact in the test above).
+    wall = _geode_with(6.0).crystal_wall
+    assert wall is not None
+    assert wall.chalcedony_level is not None
 
 
 # The device functions, checked against Crystals.pair_times on the GPU (skipped in CI).
