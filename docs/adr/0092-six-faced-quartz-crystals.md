@@ -44,9 +44,12 @@ read as facets and glint under a small lamp.
 - **The closed form (ADR 0090 extended).** `CrystalWall.packed()` rows are 9 numbers:
   site, axis, first face normal (zeros when round); `ROW` and the CUDA source's
   `AGATESIM_CRYSTAL_ROW` say so. `shape_numbers` returns (cot_alpha, elongation, faces)
-  and the device functions take `int faces`. The face is chosen as on the CPU, by the
-  nearest multiple of the sector to atan2 of the offset's two components; across is then
-  the projection itself (no cosine of an angle), so float32 keeps ADR 0090's accuracy.
+  and the device functions take `int faces`. The CPU chooses the face by the nearest
+  multiple of the sector to atan2 of the offset's two components; the device steps round
+  the face normals instead (cos and sin of k sector by rotation, exact constants for six
+  faces) and keeps the one the offset projects on most, which is the same face up to
+  ties, where the projections are equal, and takes no atan2, sin or cos per crystal.
+  Across is the projection itself, so float32 keeps ADR 0090's accuracy.
   The gradient's across part is the chosen face normal. A breaking change for callers of
   the device functions (Nodule), made with them.
 
