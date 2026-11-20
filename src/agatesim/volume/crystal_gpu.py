@@ -19,8 +19,11 @@ the site along the axis and q its part across the axis:
     time   = max(tip, side)
 
 The nearest face normal lies at a whole multiple of 360/n degrees from the
-first face's, about the axis: the multiple nearest q's own angle from it.
-`across` is taken from q, not from |offset|² − along², which in float32 loses
+first face's, about the axis: the one q projects on most. The device steps round
+the normals (cos and sin of k 360/n by rotation; exact constants for six faces)
+and takes no angle, quicker than atan2, sin and cos; `Crystals.across` takes
+the angle, and the two pick the same face up to ties, where the projections are
+equal. `across` is taken from q, not from |offset|² − along², which in float32 loses
 about sqrt(eps)·|offset| near the axis. On a tie the tip's gradient is returned;
 on the axis (q 0) the across term's gradient is taken as 0, and at along 0 the
 axis term's sign as +.
@@ -57,13 +60,26 @@ __device__ __forceinline__ T agatesim_crystal_time_grad(
             const T ux = c[6], uy = c[7], uz = c[8];
             const T wx = ay * uz - az * uy, wy = az * ux - ax * uz, wz = ax * uy - ay * ux;
             const T qu = qx * ux + qy * uy + qz * uz, qw = qx * wx + qy * wy + qz * wz;
-            const T sector = T(6.283185307179586) / T(faces);
-            const T theta = floor(atan2(qw, qu) / sector + T(0.5)) * sector;
-            const T ct = cos(theta), st = sin(theta);
+            // the nearest face normal is the one q projects on most: step round the faces'
+            // normals (cos, sin of k sector), no angle taken (six faces: exact constants)
+            T cs = T(0.5), ss = T(0.8660254037844386);
+            if (faces != 6) {
+                const T sector = T(6.283185307179586) / T(faces);
+                cs = cos(sector);
+                ss = sin(sector);
+            }
+            T ck = T(1), sk = T(0), ct = T(1), st = T(0);
+            across = qu;
+            for (int k = 1; k < faces; ++k) {
+                const T cn = ck * cs - sk * ss;
+                sk = sk * cs + ck * ss;
+                ck = cn;
+                const T p = qu * ck + qw * sk;
+                if (p > across) { across = p; ct = ck; st = sk; }
+            }
             dx = ct * ux + st * wx;
             dy = ct * uy + st * wy;
             dz = ct * uz + st * wz;
-            across = qu * ct + qw * st;
         } else {
             dx = qx / r;
             dy = qy / r;
