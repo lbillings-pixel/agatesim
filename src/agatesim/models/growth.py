@@ -315,6 +315,17 @@ class ProceduralGrowth(BaseModel):
             "(0 = all perpendicular to the surface)."
         ),
     )
+    quartz_tip_faces: int = param(
+        0,
+        ge=0,
+        le=12,
+        units="",
+        nature=Nature.PHYSICAL,
+        description=(
+            "Faces round each crystal (ADR 0092): 6 for quartz's hexagonal prism and "
+            "pyramid, 0 = round (a cone on a cylinder, the earlier form). 3D runs only."
+        ),
+    )
     dendrite_spacing_mm: float = param(
         4.0,
         gt=0,

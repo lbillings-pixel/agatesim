@@ -334,12 +334,25 @@ class Spherulites(_Metric):
 
 
 class Crystals(_Metric):
-    """Each crystal's growth form is a prism (rotationally symmetric here) with a
-    pointed termination: the tip advances at full rate along the long axis, the
-    sides at 1/elongation. Long axes scatter about the surface normal."""
+    """Each crystal's growth form is a prism with a pointed termination: the tip
+    advances at full rate along the long axis, the sides at 1/elongation. Long axes
+    scatter about the surface normal.
 
-    def __init__(self, sites: _Sites, elongation: float, scatter_deg: float) -> None:
+    With `faces` 0 the form is rotationally symmetric (a cone on a cylinder). With
+    `faces` n >= 3 (ADR 0092; 6 for quartz) it is a regular n-sided prism under an
+    n-sided pyramid whose faces lean at the tip half-angle to the axis, as quartz's
+    rhombohedral faces sit over its prism faces: the distance across the axis is
+    measured to the nearest face plane (the offset's projection on the nearest of
+    the n face normals), not to the axis. The faces' turn about the axis comes from
+    the site's first draw, which no other use of crystal sites reads, so every other
+    draw stays as it was."""
+
+    def __init__(
+        self, sites: _Sites, elongation: float, scatter_deg: float, faces: int = 0
+    ) -> None:
         super().__init__(sites)
+        if faces in (1, 2) or faces < 0:
+            raise ValueError("crystal faces must be 0 (round) or at least 3")
         n = sites.normals
         tilt = math.radians(scatter_deg) * sites.draws[:, 1]
         turn = 2 * math.pi * sites.draws[:, 2]
@@ -351,12 +364,39 @@ class Crystals(_Metric):
         self.axis = np.cos(tilt)[:, None] * n + np.sin(tilt)[:, None] * side
         self.side_rate = 1.0 / elongation
         self.alpha = math.radians(TIP_HALF_ANGLE_DEG)
+        self.faces = int(faces)
+        # The first face's normal, across the axis: zeros when round.
+        self.face = np.zeros_like(self.axis)
+        if self.faces:
+            a = self.axis
+            helper = np.where(np.abs(a[:, 2:3]) < 0.9, [[0.0, 0.0, 1.0]], [[1.0, 0.0, 0.0]])
+            f1 = np.cross(a, helper)
+            f1 /= np.linalg.norm(f1, axis=1)[:, None]
+            f2 = np.cross(a, f1)
+            phase = 2 * math.pi / self.faces * sites.draws[:, 0]
+            self.face = np.cos(phase)[:, None] * f1 + np.sin(phase)[:, None] * f2
+
+    def across(self, q: FloatArray, idx: NDArray[np.int64]) -> FloatArray:
+        """The n-sided form's distance across the axis for offsets q (n, k, 3) that
+        lie across crystals idx's axes: q's projection on the nearest of the face
+        normals, at whole multiples of 360/n degrees from the first (`face`). It is
+        at most |q| and at least |q| cos(180/n). crystal_gpu does the same."""
+        u = self.face[idx]
+        w = np.cross(self.axis[idx], u)
+        qu = np.sum(q * u, axis=2)
+        qw = np.sum(q * w, axis=2)
+        sector = 2 * math.pi / self.faces
+        theta = np.floor(np.arctan2(qw, qu) / sector + 0.5) * sector
+        return qu * np.cos(theta) + qw * np.sin(theta)
 
     def pair_times(self, p: FloatArray, idx: NDArray[np.int64]) -> FloatArray:
         off = p[:, None, :] - self.s[idx]
         a = self.axis[idx]
         along = np.sum(off * a, axis=2)
-        across = np.sqrt(np.maximum(np.sum(off * off, axis=2) - along * along, 0.0))
+        if self.faces:
+            across = self.across(off - along[..., None] * a, idx)
+        else:
+            across = np.sqrt(np.maximum(np.sum(off * off, axis=2) - along * along, 0.0))
         sa, ca = math.sin(self.alpha), math.cos(self.alpha)
         tip = (np.abs(along) * sa + across * ca) / sa
         return np.maximum(tip, across / self.side_rate)
@@ -612,7 +652,12 @@ def prepare_growth(
             crystals += len(sticks.a)
         elif m is Mode.CRYSTAL:
             sites = place_sites(setting, solid, params.quartz_grain_mm, rng_crystals.spawn(1)[0])
-            metric = Crystals(sites, params.quartz_elongation, params.quartz_axis_scatter_deg)
+            metric = Crystals(
+                sites,
+                params.quartz_elongation,
+                params.quartz_axis_scatter_deg,
+                params.quartz_tip_faces,
+            )
             with progress.span(0.5 * (lo + hi), hi):
                 settle_owners(metric, setting, solid)
             stages.append(
@@ -787,9 +832,10 @@ class CrystalWall:
     after the stage's last reach. A readout of the
     prepared model for rendering; criteria never read it (they read Fields).
 
-    Each crystal j has a site, a unit long axis and the stage's shared tip
-    half-angle and side rate; `times` is its closed form (`Crystals.pair_times`),
-    which agatesim.volume.crystal_gpu ships for the GPU.
+    Each crystal j has a site, a unit long axis, a first face normal when faced
+    (ADR 0092) and the stage's shared tip half-angle, side rate and face count;
+    `times` is its closed form (`Crystals.pair_times`), which
+    agatesim.volume.crystal_gpu ships for the GPU.
 
     `chalcedony_level` (ADR 0091), when the stage before the crystals is lining,
     is that stage's distance minus its last reach (mm) at (points, inside): it is
@@ -824,6 +870,16 @@ class CrystalWall:
         """The sides' growth rate as a share of the tip's (1 / elongation)."""
         return self.crystals.side_rate
 
+    @property
+    def faces(self) -> int:
+        """Faces round each crystal: 0 round, else n (ADR 0092)."""
+        return self.crystals.faces
+
+    @property
+    def face_normals(self) -> FloatArray:
+        """Each crystal's first face normal (unit, across its axis); zeros when round."""
+        return self.crystals.face
+
     def times(self, points: FloatArray, idx: NDArray[np.int64]) -> FloatArray:
         """Time (mm of full-rate growth) for crystals idx (n, k) to reach points (n, 3)."""
         return self.crystals.pair_times(points, idx)
@@ -841,9 +897,10 @@ class CrystalWall:
         return self.arrival(points)[0] - self.last_reach
 
     def packed(self, dtype: DTypeLike = np.float32) -> NDArray[np.floating]:
-        """One row per crystal, (site x, y, z, axis x, y, z): the layout
-        crystal_gpu's device functions read."""
-        return np.ascontiguousarray(np.concatenate([self.sites, self.axes], axis=1), dtype=dtype)
+        """One row per crystal, (site x, y, z, axis x, y, z, first face normal x, y,
+        z; zeros when round): the layout crystal_gpu's device functions read."""
+        rows = np.concatenate([self.sites, self.axes, self.face_normals], axis=1)
+        return np.ascontiguousarray(rows, dtype=dtype)
 
 
 @dataclass(frozen=True, eq=False)
